@@ -1,0 +1,227 @@
+"""Shared theme, loaders and cell helpers for the ThermalSense workbook generator.
+
+Every number written by the sheet builders comes from the program's exported files (JSON / CSV) or is an
+Excel formula over those cells. Only explanatory text is authored here.
+"""
+import json
+import os
+
+from openpyxl.drawing.image import Image as XLImage
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.worksheet.hyperlink import Hyperlink
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "ThermalSense_Graphics_Documentation.xlsx")
+SCRATCH = os.path.join(ROOT, "build", "workbook_img")
+
+S_COVER = "0 Cover & Index"
+S_INV = "1 Primitive Inventory"
+S_VERT = "2 Primitive Vertex Data"
+S_OBJ = "3 Object Construction"
+S_MAT = "4 Transform Matrices"
+S_HIER = "5 Hierarchy"
+S_GEOM = "6 Geometry Statistics"
+S_LIGHT = "7 Lighting"
+S_SHADE = "8 Shading"
+S_PIPE = "9 Render Pipeline"
+S_TEST = "10 Testing"
+S_PERF = "11 Performance"
+S_BEHAV = "12 Behaviour"
+S_TRACE = "13 Traceability"
+SHEET_ORDER = [S_COVER, S_INV, S_VERT, S_OBJ, S_MAT, S_HIER, S_GEOM, S_LIGHT, S_SHADE, S_PIPE, S_TEST, S_PERF,
+               S_BEHAV, S_TRACE]
+
+AUTHOR = "Md. Shakhoyat Rahman Shujon"
+ROLL = "2107104"
+
+# ---- theme ----------------------------------------------------------------------------------------------
+DARK = "1F2937"
+ACCENT = "0E7490"
+MUTED = "6B7280"
+HEADER_FILL = PatternFill("solid", fgColor=DARK)
+HEADER_FONT = Font(bold=True, color="FFFFFF")
+TITLE_FONT = Font(bold=True, size=16, color=DARK)
+SUBTITLE_FONT = Font(italic=True, size=10, color=MUTED)
+SECTION_FONT = Font(bold=True, size=12, color=ACCENT)
+BOLD = Font(bold=True)
+LINK_FONT = Font(color="1D4ED8", underline="single")
+# start + end colour so the same fill also works inside conditional-formatting rules (DXF uses bgColor)
+PASS_FILL = PatternFill(fill_type="solid", start_color="D1FAE5", end_color="D1FAE5")
+FAIL_FILL = PatternFill(fill_type="solid", start_color="FEE2E2", end_color="FEE2E2")
+PENDING_FILL = PatternFill(fill_type="solid", start_color="FEF9C3", end_color="FEF9C3")
+INPUT_FILL = PatternFill("solid", fgColor="EFF6FF")      # values imported from the program's exports
+FORMULA_FILL = PatternFill("solid", fgColor="FFFFFF")    # computed by Excel
+HILITE_FILL = PatternFill("solid", fgColor="FDE68A")
+TOTAL_FILL = PatternFill("solid", fgColor="E5E7EB")
+THIN = Side(style="thin", color="D1D5DB")
+BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+
+# Primitive colour code (matches the renderer's diagnostic view: cube cyan, sphere magenta, cylinder amber).
+PRIM_COLOURS = {
+    "Cube": ("CFF4FC", "06B6D4"),
+    "Sphere": ("FCE7F3", "EC4899"),
+    "Cylinder": ("FEF3C7", "F59E0B"),
+    "Cylinder (frustum)": ("FFEDD5", "EA580C"),
+    "Cone": ("ECFCCB", "65A30D"),
+    "Terrain disc": ("E2E8E4", "4D6B54"),
+    "Group": ("F3F4F6", "6B7280"),
+}
+OTHER_COLOURS = ("EDE9FE", "7C3AED")
+
+FMT_INT = "#,##0"
+FMT_3 = "0.000"
+FMT_6 = "0.000000"
+FMT_PCT = "0.0%"
+FMT_SCI = "0.00E+00"
+FMT_MS = "0.00"
+
+WRAP_TOP = Alignment(wrap_text=True, vertical="top")
+CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+
+def prim_fill(name, strong=False):
+    light, dark = PRIM_COLOURS.get(name, OTHER_COLOURS)
+    return PatternFill("solid", fgColor=dark if strong else light)
+
+
+# ---- loaders --------------------------------------------------------------------------------------------
+def path(rel):
+    return os.path.join(ROOT, rel)
+
+
+def load_json(rel, default=None):
+    p = path(rel)
+    if not os.path.exists(p):
+        return default
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ---- cell helpers ---------------------------------------------------------------------------------------
+def col(c):
+    return get_column_letter(c)
+
+
+def ref(ws_title, cell, absolute=True):
+    """Cross-sheet reference like '3 Object Construction'!$B$5."""
+    if absolute:
+        letters = "".join(ch for ch in cell if ch.isalpha())
+        digits = "".join(ch for ch in cell if ch.isdigit())
+        cell = f"${letters}${digits}"
+    return f"'{ws_title}'!{cell}"
+
+
+def put(ws, row, column, value, fmt=None, fill=None, font=None, align=None, border=True):
+    c = ws.cell(row=row, column=column, value=value)
+    if fmt:
+        c.number_format = fmt
+    if fill:
+        c.fill = fill
+    if font:
+        c.font = font
+    c.alignment = align or WRAP_TOP
+    if border:
+        c.border = BORDER
+    return c
+
+
+def header(ws, row, headers, start_col=1, height=32):
+    for i, h in enumerate(headers):
+        c = ws.cell(row=row, column=start_col + i, value=h)
+        c.fill = HEADER_FILL
+        c.font = HEADER_FONT
+        c.alignment = CENTER
+        c.border = BORDER
+    ws.row_dimensions[row].height = height
+
+
+def title(ws, text, subtitle=None, span=10):
+    ws.cell(row=1, column=1, value=text).font = TITLE_FONT
+    ws.row_dimensions[1].height = 26
+    if subtitle:
+        c = ws.cell(row=2, column=1, value=subtitle)
+        c.font = SUBTITLE_FONT
+        c.alignment = Alignment(wrap_text=True, vertical="top")
+        ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=span)
+        ws.row_dimensions[2].height = max(30, 15 * (1 + len(subtitle) // (span * 14)))
+
+
+def section(ws, row, column, text):
+    c = ws.cell(row=row, column=column, value=text)
+    c.font = SECTION_FONT
+    return c
+
+
+def widths(ws, values, start_col=1):
+    for i, w in enumerate(values):
+        ws.column_dimensions[col(start_col + i)].width = w
+
+
+def finish(ws, header_row, freeze=None, landscape=True):
+    """Frozen header, print setup (landscape, fit to width, repeat header row)."""
+    ws.freeze_panes = freeze or f"A{header_row + 1}"
+    ws.page_setup.orientation = "landscape" if landscape else "portrait"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.print_title_rows = f"{header_row}:{header_row}"
+    ws.print_options.horizontalCentered = True
+    ws.page_margins.left = ws.page_margins.right = 0.4
+    ws.oddFooter.center.text = "ThermalSense  -  " + AUTHOR + " (" + ROLL + ")  -  page &P of &N"
+    ws.sheet_view.zoomScale = 90
+
+
+def style_chart(ch, legend="b"):
+    """Visible axes (openpyxl hides them by default in recent Excel) and a bottom legend."""
+    ch.x_axis.delete = False
+    ch.y_axis.delete = False
+    if ch.legend is not None:
+        ch.legend.position = legend
+    return ch
+
+
+def nowrap(ws, first_row, last_row, first_col=1, last_col=None):
+    """Single-line cells for big numeric tables (keeps an indent if one was set)."""
+    last_col = last_col or ws.max_column
+    for row in ws.iter_rows(min_row=first_row, max_row=last_row, min_col=first_col, max_col=last_col):
+        for c in row:
+            c.alignment = Alignment(vertical="top", indent=c.alignment.indent)
+
+
+def link(cell, sheet_title, target="A1", text=None):
+    cell.hyperlink = Hyperlink(ref=cell.coordinate, location=f"'{sheet_title}'!{target}", display=text)
+    if text is not None:
+        cell.value = text
+    cell.font = LINK_FONT
+
+
+def file_link(cell, rel_path, text=None):
+    cell.hyperlink = rel_path.replace("\\", "/")
+    cell.value = text or rel_path
+    cell.font = LINK_FONT
+
+
+def define_name(wb, name, sheet_title, cell_range):
+    wb.defined_names[name] = DefinedName(name, attr_text=ref(sheet_title, cell_range))
+
+
+def image(ws, anchor, src, box=None, width=None):
+    """Embeds a (cropped, resized) copy of a report figure; returns the embedded height in pixels or 0."""
+    from PIL import Image as PILImage
+
+    if not os.path.exists(src):
+        return 0
+    os.makedirs(SCRATCH, exist_ok=True)
+    im = PILImage.open(src).convert("RGB")
+    if box:
+        im = im.crop(box)
+    if width and im.width > width:
+        im = im.resize((width, round(im.height * width / im.width)), PILImage.LANCZOS)
+    stem = os.path.splitext(os.path.basename(src))[0]
+    out = os.path.join(SCRATCH, f"{stem}_{box[0] if box else 0}_{width or 0}.png")
+    im.save(out)
+    ws.add_image(XLImage(out), anchor)
+    return im.height

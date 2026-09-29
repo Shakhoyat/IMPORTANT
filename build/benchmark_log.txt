@@ -1,0 +1,100 @@
+OpenGL 3.3.0 Core Profile Context 24.8.1.240813 | AMD Radeon(TM) Graphics
+v1 look (no post), indexed           32.2 FPS  31.011 ms/frame  (median of 5 rounds, 666 frames)
+      uav camera (CV)      4.82 ms
+      scene               22.76 ms
+      resolve + bloom      1.43 ms
+      composite            0.79 ms
+LOW, indexed                         18.2 FPS  55.020 ms/frame  (median of 5 rounds, 369 frames)
+      uav camera (CV)      4.42 ms
+      shadow maps          1.72 ms
+      scene               43.81 ms
+      resolve + bloom      2.08 ms
+      composite            0.69 ms
+HIGH, indexed (glDrawElements)       14.7 FPS  67.917 ms/frame  (median of 5 rounds, 292 frames)
+      uav camera (CV)      3.57 ms
+      shadow maps          7.47 ms
+      pre-pass             1.38 ms
+      ssao                 1.38 ms
+      volumetric fog       6.12 ms
+      scene               42.22 ms
+      resolve + bloom      2.35 ms
+      composite            0.77 ms
+HIGH, non-indexed (glDrawArrays)     14.3 FPS  70.105 ms/frame  (median of 5 rounds, 287 frames)
+      uav camera (CV)      3.55 ms
+      shadow maps          6.95 ms
+      pre-pass             1.39 ms
+      ssao                 1.39 ms
+      volumetric fog       6.17 ms
+      scene               45.02 ms
+      resolve + bloom      2.00 ms
+      composite            0.74 ms
+ULTRA, indexed                        4.9 FPS  202.650 ms/frame  (median of 5 rounds, 103 frames)
+      uav camera (CV)      4.07 ms
+      shadow maps         25.36 ms
+      pre-pass             1.31 ms
+      ssao                 1.91 ms
+      volumetric fog      84.72 ms
+      scene               58.14 ms
+      resolve + bloom      2.90 ms
+      composite            0.87 ms
+HIGH without shadow maps             19.3 FPS  51.746 ms/frame  (median of 5 rounds, 381 frames)
+      uav camera (CV)      3.23 ms
+      pre-pass             1.58 ms
+      ssao                 1.51 ms
+      volumetric fog       2.27 ms
+      scene               37.78 ms
+      resolve + bloom      2.29 ms
+      composite            0.82 ms
+HIGH without SSAO                    15.0 FPS  66.570 ms/frame  (median of 5 rounds, 291 frames)
+      uav camera (CV)      3.50 ms
+      shadow maps          7.15 ms
+      pre-pass             4.42 ms
+      volumetric fog       3.33 ms
+      scene               41.85 ms
+      resolve + bloom      1.96 ms
+      composite            0.74 ms
+HIGH without volumetric fog          15.4 FPS  64.984 ms/frame  (median of 5 rounds, 312 frames)
+      uav camera (CV)      3.38 ms
+      shadow maps          7.38 ms
+      pre-pass             1.19 ms
+      ssao                 1.37 ms
+      scene               44.96 ms
+      resolve + bloom      1.85 ms
+      composite            0.64 ms
+HIGH without bloom                   14.9 FPS  67.152 ms/frame  (median of 5 rounds, 303 frames)
+      uav camera (CV)      3.58 ms
+      shadow maps          7.78 ms
+      pre-pass             1.23 ms
+      ssao                 1.34 ms
+      volumetric fog       5.80 ms
+      scene               41.84 ms
+      resolve + bloom      1.49 ms
+      composite            0.74 ms
+HIGH without MSAA                    17.1 FPS  58.612 ms/frame  (median of 5 rounds, 347 frames)
+      uav camera (CV)      3.31 ms
+      shadow maps          7.50 ms
+      pre-pass             1.21 ms
+      ssao                 1.38 ms
+      volumetric fog       5.88 ms
+      scene               34.13 ms
+      resolve + bloom      1.24 ms
+      composite            0.70 ms
+HIGH without searchlight shadow      15.3 FPS  65.254 ms/frame  (median of 5 rounds, 312 frames)
+      uav camera (CV)      3.53 ms
+      shadow maps          6.39 ms
+      pre-pass             1.42 ms
+      ssao                 1.40 ms
+      volumetric fog       5.46 ms
+      scene               41.28 ms
+      resolve + bloom      2.19 ms
+      composite            0.76 ms
+HIGH, raining (soaked ground)        13.3 FPS  74.955 ms/frame  (median of 5 rounds, 272 frames)
+      uav camera (CV)      3.42 ms
+      shadow maps          7.02 ms
+      pre-pass             1.30 ms
+      ssao                 1.43 ms
+      volumetric fog       6.34 ms
+      scene               49.63 ms
+      resolve + bloom      2.08 ms
+      composite            0.72 ms
+Benchmark written to build/benchmark.json

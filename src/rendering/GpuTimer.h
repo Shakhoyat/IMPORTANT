@@ -1,0 +1,39 @@
+// Per-pass GPU timings with GL_TIME_ELAPSED queries (core in OpenGL 3.3).
+// Results are read three frames later so the CPU never waits for the GPU; values are smoothed.
+#pragma once
+
+#include <glad/gl.h>
+
+#include <string>
+#include <vector>
+
+namespace ts {
+
+class GpuTimer {
+public:
+    ~GpuTimer();
+    void begin(const char* pass);  // passes must not nest
+    void end();
+    void endFrame();               // collect finished queries
+    struct Entry {
+        std::string name;
+        double ms = 0.0;       // exponentially smoothed
+        double sumMs = 0.0;    // accumulated since reset (for benchmarks)
+        int samples = 0;
+    };
+    const std::vector<Entry>& entries() const { return entries_; }
+    void resetTotals();
+
+private:
+    static constexpr int kLatency = 3;
+    struct Pass {
+        GLuint query[kLatency] = {0, 0, 0};
+        bool issued[kLatency] = {false, false, false};
+    };
+    std::vector<Pass> passes_;
+    std::vector<Entry> entries_;
+    int current_ = -1;
+    int frame_ = 0;
+};
+
+}  // namespace ts

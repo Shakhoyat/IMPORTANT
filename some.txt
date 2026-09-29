@@ -1,0 +1,55 @@
+ThermalSense is built and tested, and the Excel workbook, LaTeX report and screenshots are all generated from the program's own output. All 32 automated tests pass. I ran the program on your AMD Radeon GPU for the screenshots, the FPS benchmark and a 180 s behaviour log. I invented no numbers and no images.
+
+How it meets your requirements and the handwritten sheet
+- Primitives: createCube(), createSphere() and createCylinder() make unit shapes centred at the origin, with counter-clockwise faces and 36 slices (10°). As in your notes, the sphere's bottom half is a mirror image of the top half, and the cylinder's axis is z.
+- Indexed rendering: each primitive is uploaded to the GPU once. All 126 parts in the scene reuse those five meshes, and indexing saves 66% of mesh memory.
+- Objects:
+  - bunker: 27 parts, flat shading;
+  - UAV: 34 parts, Phong shading;
+  - rover: 26 parts;
+  - terrain: Gouraud shading.
+
+  Every part has its own scale, rotation and translation (M = T·R·S), and the searchlight hangs off the UAV through a two-joint gimbal.
+- The rest of the proposal: three lights at once (moon, pulsing beacon, UAV spotlight), a thermal colour map, the Z-buffer, hidden-line and x-ray wireframe views, a primitive diagnostic mode with an "explode" key, and four camera modes.
+
+Your three mid-task changes
+- Terrain: a 10 m radius disc, built as a cylinder cap split into rings.
+- Rover hiding: it uses MicroMouse flood-fill planning to find cells the drone can't see. It then drives there with a 5-sensor line follower that steers each side's wheels separately.
+- Drone tracking: each frame it renders its own 160×120 thermal camera image and finds hot blobs, and steers the gimbal from that. It never reads the rover's real position.
+
+Measured results
+
+┌──────────────────────────────────────────────────────────┬─────────────────┐
+│                         Measure                          │     Result      │
+├──────────────────────────────────────────────────────────┼─────────────────┤
+│ FPS, indexed drawing                                     │ 89.6            │
+├──────────────────────────────────────────────────────────┼─────────────────┤
+│ FPS, non-indexed drawing                                 │ 81.8            │
+├──────────────────────────────────────────────────────────┼─────────────────┤
+│ Drone detects rover (180 s run)                          │ 79% of the time │
+├──────────────────────────────────────────────────────────┼─────────────────┤
+│ Tracking error while detected (median / 90th percentile) │ 0.33 m / 0.45 m │
+├──────────────────────────────────────────────────────────┼─────────────────┤
+│ Time spent re-acquiring after the rover escaped          │ 16%             │
+└──────────────────────────────────────────────────────────┴─────────────────┘
+
+The FPS includes the drone-camera render and read-back every frame. The drone usually wins the chase: the rover gets away briefly and hides behind the bunker, but it is rarely out of sight for long. The report says so as measured.
+
+Things you should know
+- The report is 5 pages, not 4; the rover and computer-vision additions needed the extra space.
+- The rover uses Phong shading. The proposal doesn't specify one, and the reason is noted in the report and the workbook.
+- The first live test showed the drone locked onto the wrong object: its position estimate was off by a median of 4 m. Two rules in how things look hot caused it, and I fixed both. After that, results matched the renders.
+- An independent code review found no serious defects. I fixed its one minor note (capture mode could silently lose its log file).
+- Nothing needed a GPU for training, so Kaggle wasn't used.
+- main.exe in the root is the original blank starter template and is not ThermalSense.
+
+To try it, run run.bat and press F1 for the controls. mingw32-make docs regenerates the workbook after any code change.
+
+Files are in D:\opengl-project\2107104 - Graphics Project:
+- ThermalSense.exe
+- ThermalSense_Graphics_Documentation.xlsx
+- report\main.pdf
+- report\main.tex
+- report\figures\
+- README.md
+- docs\PLAN.md

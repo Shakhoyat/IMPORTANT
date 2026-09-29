@@ -1,0 +1,186 @@
+[
+ {
+  "id": "V01",
+  "description": "Primitive library: cube, sphere, cylinder and cone render closed, lit, with their triangle structure",
+  "expected": "Four closed primitives; counts printed from the generators",
+  "observed": "Cube (one diagonal per face), sphere (latitude/longitude triangles), cylinder (36 side quads + fan caps) and cone (fan to the apex) all closed and lit; labels show 24/12, 614/1224, 146/144 and 109/72 vertices/triangles",
+  "status": "PASS",
+  "evidence": "report/figures/primitive_library.png"
+ },
+ {
+  "id": "V02",
+  "description": "Thermal view: hot rover, warm bunker vents/door/generator and floodlight, cold vegetation",
+  "expected": "Rover brightest, bunker details warm, trees and ground dark",
+  "observed": "Rover under a TGT LOCK bracket in orange/white; bunker vents, slits and door warm; watchtower floodlight warm; pines and ground dark purple; UAV feed (320x240) shows the rover hot at the centre",
+  "status": "PASS",
+  "evidence": "report/figures/scene_thermal.png"
+ },
+ {
+  "id": "V03",
+  "description": "UAV camera (computer vision) keeps the target centred while tracking",
+  "expected": "Rover near the image centre, HUD mode TRACK",
+  "observed": "Through the UAV camera the rover's motor box is white-hot near the image centre; HUD reads TRACK",
+  "status": "PASS",
+  "evidence": "report/figures/uav_camera_view.png"
+ },
+ {
+  "id": "V04",
+  "description": "Rover hides under tree cover; UAV loses it and switches to REACQUIRE",
+  "expected": "Rover HIDDEN, UAV REACQUIRE, LAST KNOWN marker, 0 blobs in the feed",
+  "observed": "At t = 52 s HUD reads REACQUIRE and ROVER HIDDEN; the LAST KNOWN bracket sits on a spruce crown that covers the rover; the UAV feed shows 0 blobs",
+  "status": "PASS",
+  "evidence": "report/figures/hide_thermal.png"
+ },
+ {
+  "id": "V05",
+  "description": "Z-buffer: disabling the depth test breaks hidden-surface removal",
+  "expected": "The hidden rover is drawn on top of the crown that covers it",
+  "observed": "Same frame with Z-TEST OFF: the rover (hot) is painted over the spruce crown that hides it in V04",
+  "status": "PASS",
+  "evidence": "report/figures/hide_ztest_off.png"
+ },
+ {
+  "id": "V06",
+  "description": "Depth buffer visualisation",
+  "expected": "Linearised depth: near white, far dark",
+  "observed": "Grey ramp from the near watchtower and trees (light) to the distant hills (dark)",
+  "status": "PASS",
+  "evidence": "report/figures/scene_depth.png"
+ },
+ {
+  "id": "V07",
+  "description": "Hidden-line wireframe shows only visible edges",
+  "expected": "Edges drawn over offset solids; occluded edges removed",
+  "observed": "Terrain rings, fence, pines and trees drawn as visible edges only; the bunker hides the ground edges behind it",
+  "status": "PASS",
+  "evidence": "report/figures/scene_hiddenline.png"
+ },
+ {
+  "id": "V08",
+  "description": "X-ray wireframe shows overlapping (hidden) edges, colour-coded by primitive",
+  "expected": "All edges visible; cube cyan, sphere magenta, cylinder amber, cone green",
+  "observed": "Back edges visible through solids; bunker/crates cyan, canopies/hills magenta, posts/wires amber, pine whorls green",
+  "status": "PASS",
+  "evidence": "report/figures/scene_xray.png"
+ },
+ {
+  "id": "V09",
+  "description": "Primitive diagnostic + explode separates composites into components",
+  "expected": "Composite parts pushed apart, colours match the legend",
+  "observed": "Bunker, UAV and rover components separated along their offsets; colours match the four-primitive legend",
+  "status": "PASS",
+  "evidence": "report/figures/iso_uav_exploded.png, iso_rover_exploded.png, iso_bunker_exploded.png"
+ },
+ {
+  "id": "V10",
+  "description": "Flat shading on the bunker",
+  "expected": "Faceted dome and turret ring",
+  "observed": "Dome and turret ring show individual facets; walls lit uniformly per face; soft moon shadows and warm door lamp on the facade",
+  "status": "PASS",
+  "evidence": "report/figures/bunker_flat_visible.png"
+ },
+ {
+  "id": "V11",
+  "description": "Shading override: same bunker in Gouraud / Phong",
+  "expected": "Dome facets disappear",
+  "observed": "Dome facets smooth out under Gouraud and Phong; large flat walls look almost identical in all three (one normal per face either way)",
+  "status": "PASS",
+  "evidence": "report/figures/bunker_all_gouraud.png, bunker_all_phong.png"
+ },
+ {
+  "id": "V12",
+  "description": "Three main lights plus practical lights act together",
+  "expected": "Moonlight + shadows, red beacon, searchlight pool, warm lamps",
+  "observed": "Cool moonlight with long shadows, pulsing red beacon, UAV searchlight pool, sodium lamp posts, door lamp, fire barrel and floodlight all visible",
+  "status": "PASS",
+  "evidence": "report/figures/scene_visible.png"
+ },
+ {
+  "id": "V13",
+  "description": "Hierarchical searchlight: local axes of UAV body, gimbal yaw and gimbal pitch",
+  "expected": "Axis triads at each node; beam follows the pitch axis",
+  "observed": "RGB axis triads drawn at the body and both gimbal nodes; the lamp points along the pitch node's axis",
+  "status": "PASS",
+  "evidence": "report/figures/hierarchy_axes.png"
+ },
+ {
+  "id": "V14",
+  "description": "MicroMouse flood field",
+  "expected": "Goal cells (cyan) out of the UAV's sight, values rising away from them",
+  "observed": "With the UAV low (4.4 m) in REACQUIRE most free cells are hidden by the forest (cyan); free cells are absent under buildings and trees",
+  "status": "PASS",
+  "evidence": "report/figures/plan_topdown.png"
+ },
+ {
+  "id": "V15",
+  "description": "Realistic ground: turf, tyre ruts, gravel, pebble creek bed, grass tufts",
+  "expected": "Distinct ground materials in the right places; no hard texel edges",
+  "observed": "Two curved tyre ruts along the track with gravel, dark turf with clumped grass tufts, pebbled wet creek bed; track edges smooth",
+  "status": "PASS",
+  "evidence": "report/figures/cine_gate.png, cine_establishing.png"
+ },
+ {
+  "id": "V16",
+  "description": "v1 renderer vs v2 pipeline, same camera",
+  "expected": "Same framing; v2 adds shadows, PBR, lights, fog, grading",
+  "observed": "Identical framing; v1 is flat and dark, v2 shows moon shadows, warm practical lights, ground materials, haze and bloom",
+  "status": "PASS",
+  "evidence": "report/figures/compare_v1.png, compare_v2.png"
+ },
+ {
+  "id": "V17",
+  "description": "Feature ablation: one feature off at a time",
+  "expected": "Only the removed feature changes",
+  "observed": "Without shadows the ground under trees and the bunker is evenly lit; without fog the far hills lose their haze; without bloom the beacon and lamps lose their glow; SSAO off is barely visible at this camera distance (contact darkening is small)",
+  "status": "PASS",
+  "evidence": "report/figures/ablate_shadows.png, ablate_fog.png, ablate_bloom.png, ablate_ssao.png"
+ },
+ {
+  "id": "V18",
+  "description": "Volumetric searchlight shaft",
+  "expected": "Visible light cone in the mist, cut by geometry",
+  "observed": "The UAV's beam is a visible cone in the haze lighting a spruce and the ground under it",
+  "status": "PASS",
+  "evidence": "report/figures/cine_chase.png"
+ },
+ {
+  "id": "V19",
+  "description": "Ground-level view of the rover",
+  "expected": "Rover, grass and IR sensors readable at ground level",
+  "observed": "Rover under the watchtower platform in lit grass; its five IR line sensors glow red",
+  "status": "PASS",
+  "evidence": "report/figures/cine_ground.png"
+ },
+ {
+  "id": "V20",
+  "description": "Thermal palette switch (T): ironbow, white-hot, rainbow",
+  "expected": "Same scene, three colour maps; main view, UAV feed and HOT/COLD bar switch together",
+  "observed": "Identical frames rendered with ironbow, white-hot (grey ramp) and rainbow; the UAV feed inset and the colour bar change with the palette and the palette name is shown above the bar",
+  "status": "PASS",
+  "evidence": "report/figures/scene_thermal.png, scene_thermal_whitehot.png, scene_thermal_rainbow.png"
+ },
+ {
+  "id": "V21",
+  "description": "Thermal footprints: the rover's tyres leave warm tracks that cool with time",
+  "expected": "Twin warm tracks behind the rover, older parts of the path dimmer",
+  "observed": "Two parallel warm tyre tracks lead to the rover; loops of its earlier path are visible and fainter the older they are",
+  "status": "PASS",
+  "evidence": "report/figures/thermal_footprints.png"
+ },
+ {
+  "id": "V22",
+  "description": "Rain in the visible view: lit streaks, wet ground with lamp reflections, overcast sky",
+  "expected": "Streaks brighter near lamps and in the searchlight, glossy wet track reflecting the lamp, stars and moon hidden",
+  "observed": "Rain streaks across the frame, brighter around the sodium lamp and inside the searchlight cone; the wet track shows the lamp's orange reflection along the ruts; clouds cover the sky and the moon is reduced to a faint disc; foliage has only a slight sheen",
+  "status": "PASS",
+  "evidence": "report/figures/rain_gate.png, rain_chase.png, rain_low_angle.png"
+ },
+ {
+  "id": "V23",
+  "description": "Rain in the thermal view: cooled ground, footprints stand out, no streaks",
+  "expected": "Darker (cooler) ground, warm tracks and hot rover clearly visible, rain invisible to LWIR",
+  "observed": "Ground and props are darker than in the dry thermal view; the rover's warm tyre tracks stand out in the UAV feed; no rain streaks appear in the thermal image",
+  "status": "PASS",
+  "evidence": "report/figures/rain_thermal.png"
+ }
+]
