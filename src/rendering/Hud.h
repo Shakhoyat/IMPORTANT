@@ -1,5 +1,5 @@
 // 2D overlay in pixel coordinates (origin top-left): lines, filled rectangles, text and the UAV camera feed.
-// Text uses a glyph atlas rasterised once at start-up with the Windows GDI (no font files needed).
+// Text uses a glyph atlas baked into the program (tools/bake_font.py), so no font files or OS font API are needed.
 #pragma once
 
 #include <glad/gl.h>

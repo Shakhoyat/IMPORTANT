@@ -30,7 +30,17 @@ extern const char* kBlurFrag;
 extern const char* kFogFrag;      // + palette
 extern const char* kBloomDownFrag;
 extern const char* kBloomUpFrag;
-extern const char* kCompositeFrag;  // + palette
+
+// ShadersPostFx.cpp (v3 chain)
+extern const char* kCombineFrag;     // fog + screen-space reflections      (+ palette)
+extern const char* kTaaFrag;         // temporal anti-aliasing               (+ palette)
+extern const char* kReduceFrag;      // luminance / heat statistics
+extern const char* kAdaptFrag;       // temporal adaptation of the statistics
+extern const char* kFlareFrag;       // lens ghosts + halo
+extern const char* kStreakFrag;      // anamorphic streak
+extern const char* kDofFrag;         // bokeh depth of field (half resolution) (+ palette)
+extern const char* kDofCombineFrag;  //                                        (+ palette)
+extern const char* kCompositeFrag;   // grading + filmic curve / thermal sensor (+ palette)
 extern const char* kHudVert;      // 2D overlay (NDC), optional texture
 extern const char* kHudFrag;
 

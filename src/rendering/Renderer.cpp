@@ -84,9 +84,25 @@ bool Renderer::init() {
     ok = ok && bloomDown_->build("bloom-down", kFullscreenVert, kBloomDownFrag);
     ok = ok && bloomUp_->build("bloom-up", kFullscreenVert, kBloomUpFrag);
     ok = ok && composite_->build("composite", kFullscreenVert, withPalette(kCompositeFrag));
+    for (auto* p : {&combine_, &taa_, &reduce_, &adapt_, &flare_, &streak_, &dof_, &dofCombine_})
+        *p = std::make_unique<Shader>();
+    ok = ok && combine_->build("combine", kFullscreenVert, withPalette(kCombineFrag));
+    ok = ok && taa_->build("taa", kFullscreenVert, withPalette(kTaaFrag));
+    ok = ok && reduce_->build("reduce", kFullscreenVert, kReduceFrag);
+    ok = ok && adapt_->build("adapt", kFullscreenVert, kAdaptFrag);
+    ok = ok && flare_->build("flare", kFullscreenVert, kFlareFrag);
+    ok = ok && streak_->build("streak", kFullscreenVert, kStreakFrag);
+    ok = ok && dof_->build("dof", kFullscreenVert, withPalette(kDofFrag));
+    ok = ok && dofCombine_->build("dof-combine", kFullscreenVert, withPalette(kDofCombineFrag));
     ok = ok && hud_.init();
     ok = ok && grass_.init();
     ok = ok && rain_.init();
+#ifdef TS_HAS_FOLIAGE
+    ok = ok && foliage_.init();
+#endif
+#ifdef TS_HAS_PARTICLES
+    ok = ok && particles_.init();
+#endif
     if (!ok) return false;
 
     // Fixed texture units for the lighting samplers (different sampler types must never share a unit).
@@ -273,7 +289,7 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
         if (n->primitive == PrimitiveType::BeamCone) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         // The gimbal camera hangs below the airframe, so the UAV's own parts are outside its view.
-        if (s.view == ViewMode::HeatRaw && n->object == "Autonomous UAV") continue;
+        if ((s.view == ViewMode::HeatRaw || s.hideUav) && n->object == "Autonomous UAV") continue;
         if (!inFrustum(*n, frustum)) continue;
         if (n->material.opacity < 1.0f && s.view != ViewMode::Diagnostic) continue;  // translucent pass
         bucketOf(&programFor(*n, s)).push_back(n);
@@ -298,7 +314,7 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
 void Renderer::drawTranslucent(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
                                FrameStats& st) {
     // Rotor blur discs: blended over the opaque scene, depth-tested but not written; visible light only.
-    if (s.view != ViewMode::Visible || !s.isolate.empty()) return;
+    if (s.view != ViewMode::Visible || !s.isolate.empty() || s.hideUav) return;
     const Frustum frustum(cam.proj * cam.view);
     Shader* bound = nullptr;
     glEnable(GL_BLEND);
@@ -328,7 +344,7 @@ void Renderer::drawTranslucent(const Scene& scene, const CameraView& cam, int w,
 
 void Renderer::drawBeam(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st) {
     if (!s.isolate.empty()) return;
-    if (!s.spotOn || s.view == ViewMode::Depth || s.view == ViewMode::HeatRaw || s.view == ViewMode::Diagnostic) return;
+    if (!s.spotOn || s.view != ViewMode::Visible || s.hideUav) return;   // an LWIR camera does not see the beam
     if (s.view == ViewMode::Visible && s.cinematic && frame_.fog) return;  // the volumetric pass draws the shaft
     const SceneNode& beam = *scene.uav().beam;
     glEnable(GL_BLEND);
@@ -395,10 +411,23 @@ void Renderer::drawWire(const Scene& scene, const CameraView& cam, const RenderS
     if (s.depthTest) glEnable(GL_DEPTH_TEST);
 }
 
+void Renderer::surfaceWrites(bool on) const {
+    if (!mrt_) return;  // only the main scene target has the surface attachment
+    const GLenum both[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    const GLenum colourOnly[2] = {GL_COLOR_ATTACHMENT0, GL_NONE};
+    glDrawBuffers(2, on ? both : colourOnly);
+}
+
 void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
                          FrameStats& st) {
     glClearColor(0, 0, 0, 1);
+    surfaceWrites(true);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (mrt_) {
+        const GLfloat neutral[4] = {0.5f, 1.0f, 0.5f, 0.0f};  // up normal, no reflection
+        glClearBufferfv(GL_COLOR, 1, neutral);
+    }
+    surfaceWrites(false);
     moonDir_ = scene.lights.moon.direction;
     uploadHeatTrail(scene);
     if (!groundBuilt_) {  // needs the world matrices, so it is built on the first frame
@@ -422,13 +451,20 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(1.0f, 1.0f);
         }
+        surfaceWrites(true);
         drawSolids(scene, cam, w, h, s, st);
         glDisable(GL_POLYGON_OFFSET_FILL);
-        if (s.edges == EdgeMode::Solid) drawGrass(scene, cam, w, h, s, st);
+        if (s.edges == EdgeMode::Solid) {
+            drawGrass(scene, cam, w, h, s, st);
+            drawFoliage(scene, cam, w, h, s, st);
+        }
+        surfaceWrites(false);
         drawTranslucent(scene, cam, w, h, s, st);
         drawRain(scene, cam, w, h, s, st);
+        drawParticles(scene, cam, w, h, s, st);
         drawBeam(scene, cam, s, st);
     }
+    surfaceWrites(false);
     if (overlay || s.edges == EdgeMode::XRay) drawWire(scene, cam, s, st);
 }
 
@@ -440,9 +476,12 @@ void Renderer::captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, 
     RenderSettings s;
     s.view = ViewMode::HeatRaw;
     s.grain = 0.0f;
+    const bool mrt = mrt_;
+    mrt_ = false;
     const CameraView cam = uavCameraView(scene, static_cast<float>(kCvWidth) / kCvHeight, kCvFovYDeg);
     drawScene(scene, cam, kCvWidth, kCvHeight, s, stats);
     cvTarget_.read(heat);
+    mrt_ = mrt;
     glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(previous));
     timer_.end();
 }

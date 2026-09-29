@@ -1,5 +1,6 @@
 #include "scene/Camera.h"
 
+#include "objects/Terrain.h"
 #include "objects/Uav.h"
 #include "scene/Director.h"
 
@@ -17,6 +18,7 @@ const char* cameraModeName(CameraMode m) {
         case CameraMode::Chase: return "CHASE";
         case CameraMode::UavCamera: return "UAV CAM";
         case CameraMode::Cinematic: return "CINEMATIC";
+        case CameraMode::Walk: return "WALK";
     }
     return "?";
 }
@@ -48,6 +50,16 @@ CameraView Camera::compute(const Scene& scene, float aspect) const {
 
     CameraView v;
     Vec3 eye, center;
+    if (mode == CameraMode::Walk) {
+        const float bob = std::sin(walkBobPhase) * 0.025f * clampf(walkSpeed / kWalkSpeed, 0.0f, 2.0f);
+        const float yaw = radians(walkYawDeg), pitch = radians(walkPitchDeg);
+        eye = {walkX, walkEyeY + bob, walkZ};
+        center = eye + Vec3{std::cos(pitch) * std::sin(yaw), std::sin(pitch), std::cos(pitch) * std::cos(yaw)};
+        v.position = eye;
+        v.view = lookAt(eye, center, {0, 1, 0});
+        v.proj = perspective(radians(kWalkFovDeg), aspect, v.nearZ, v.farZ);
+        return v;
+    }
     if (mode == CameraMode::Orbit) {
         const float yaw = radians(yawDeg), pitch = radians(pitchDeg);
         eye = target + Vec3{std::cos(pitch) * std::sin(yaw), std::sin(pitch), std::cos(pitch) * std::cos(yaw)} * distance;
@@ -77,12 +89,16 @@ void Camera::drag(float dx, float dy) {
     } else if (mode == CameraMode::Free) {
         freeYawDeg -= dx * 0.2f;
         freePitchDeg = clampf(freePitchDeg - dy * 0.2f, -85.0f, 85.0f);
+    } else if (mode == CameraMode::Walk) {
+        walkYawDeg -= dx * 0.15f;
+        walkPitchDeg = clampf(walkPitchDeg - dy * 0.15f, -80.0f, 80.0f);
     }
 }
 
 void Camera::zoom(float steps) {
     if (mode == CameraMode::Orbit) distance = clampf(distance * std::pow(0.9f, steps), kOrbitMinDistance, kOrbitMaxDistance);
     else if (mode == CameraMode::Free) moveFree(steps * kFreeZoomStep, 0, 0);
+    else if (mode == CameraMode::Walk) return;
     else fovDeg = clampf(fovDeg - steps * 2.0f, 20.0f, 80.0f);
 }
 
@@ -93,8 +109,61 @@ void Camera::moveFree(float forward, float right, float up) {
     freePos = freePos + f * forward + r * right + Vec3{0, up, 0};
 }
 
+float Camera::walkGroundY(float x, float z) const {
+    // The terrain disc ends at kTerrainRadius; beyond it the backdrop ground continues at the rim height.
+    return std::sqrt(x * x + z * z) <= kTerrainRadius ? terrainHeight(x, z) : terrainRimHeight();
+}
+
+void Camera::placeWalk(float x, float z) {
+    walkX = x;
+    walkZ = z;
+    walkEyeY = walkGroundY(x, z) + kWalkEyeHeight;
+    walkSpeed = 0.0f;
+}
+
+void Camera::moveWalk(float forward, float right, float dt, bool run) {
+    const float yaw = radians(walkYawDeg);
+    const Vec3 f{std::sin(yaw), 0.0f, std::cos(yaw)};
+    const Vec3 r{-std::cos(yaw), 0.0f, std::sin(yaw)};  // to the right of f (same as cross(f, up))
+    Vec3 dir = f * forward + r * right;
+    const float len = std::sqrt(dir.x * dir.x + dir.z * dir.z);
+    if (len > 1.0f) dir = dir * (1.0f / len);
+    const float speed = run ? kWalkRunSpeed : kWalkSpeed;
+    const float ox = walkX, oz = walkZ;
+    walkX += dir.x * speed * dt;
+    walkZ += dir.z * speed * dt;
+    // Keep out of the bunker.
+    float d = std::sqrt(walkX * walkX + walkZ * walkZ);
+    if (d < kWalkBunkerRadius) {
+        if (d < 1e-4f) { walkX = 0.0f; walkZ = kWalkBunkerRadius; }
+        else { walkX *= kWalkBunkerRadius / d; walkZ *= kWalkBunkerRadius / d; }
+    }
+    d = std::sqrt(walkX * walkX + walkZ * walkZ);
+    if (d > kWalkMaxRadius) { walkX *= kWalkMaxRadius / d; walkZ *= kWalkMaxRadius / d; }
+    // Smoothed vertical follow and head bob.
+    if (dt > 0.0f) {
+        const float moved = std::sqrt((walkX - ox) * (walkX - ox) + (walkZ - oz) * (walkZ - oz));
+        walkSpeed = lerpf(walkSpeed, moved / dt, std::min(1.0f, dt * 8.0f));
+        walkBobPhase += walkSpeed * dt * (run ? 2.6f : 3.4f);
+        if (walkBobPhase > 6.2831853f * 100.0f) walkBobPhase -= 6.2831853f * 100.0f;
+        const float goal = walkGroundY(walkX, walkZ) + kWalkEyeHeight;
+        walkEyeY = lerpf(walkEyeY, goal, std::min(1.0f, dt * 30.0f));
+    }
+}
+
 void Camera::cycle() {
-    mode = static_cast<CameraMode>((static_cast<int>(mode) + 1) % 4);  // K selects the cinematic camera
+    // Orbit -> Free -> Chase -> UAV CAM -> Walk -> Orbit (K selects the cinematic camera).
+    switch (mode) {
+        case CameraMode::Orbit: mode = CameraMode::Free; break;
+        case CameraMode::Free: mode = CameraMode::Chase; break;
+        case CameraMode::Chase: mode = CameraMode::UavCamera; break;
+        case CameraMode::UavCamera:
+            mode = CameraMode::Walk;
+            walkEyeY = walkGroundY(walkX, walkZ) + kWalkEyeHeight;
+            walkSpeed = 0.0f;
+            break;
+        default: mode = CameraMode::Orbit; break;
+    }
 }
 
 }  // namespace ts

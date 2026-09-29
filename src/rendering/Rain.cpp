@@ -46,7 +46,7 @@ const char* kRainFrag = R"(
 in float vT;
 in vec3 vWorld;
 uniform float uRainAmount;            // 0 .. 1
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() {
     vec3 V = normalize(vWorld - uCamPos);                          // eye -> drop
     // Forward scattering: a drop between the eye and a light looks much brighter (refraction / glint).

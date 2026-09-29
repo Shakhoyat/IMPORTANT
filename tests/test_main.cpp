@@ -22,6 +22,7 @@
 #include "math/ShadowMath.h"
 #include "objects/Backdrop.h"
 #include "primitives/Sphere.h"
+#include "scene/Camera.h"
 #include "scene/Scene.h"
 #include "vision/ThermalTracker.h"
 
@@ -763,6 +764,72 @@ void testHeatTrail() {
            "trail peak > 0.2", fmt("trail peak %.2f, rover at (%.1f, %.1f)", peak, r.x, r.z), peak > 0.2f);
 }
 
+// ---------------------------------------------------------------- first-person walk camera
+void testWalkCamera() {
+    Camera cam;
+    cam.mode = CameraMode::Walk;
+    record("T50", "cameraModeName(Walk) is WALK and Walk comes after Cinematic (existing values unchanged)",
+           "\"WALK\", Cinematic = 4, Walk = 5", fmt("\"%s\", Cinematic = %d, Walk = %d", cameraModeName(CameraMode::Walk),
+           static_cast<int>(CameraMode::Cinematic), static_cast<int>(CameraMode::Walk)),
+           std::string(cameraModeName(CameraMode::Walk)) == "WALK" && static_cast<int>(CameraMode::Cinematic) == 4 &&
+               static_cast<int>(CameraMode::Walk) == 5);
+
+    // Walk a loop over the hills; the eye stays 1.7 m above the terrain (head bob is a few cm).
+    cam.placeWalk(6.0f, 6.0f);
+    float worst = 0.0f;
+    int steps = 0;
+    for (int i = 0; i < 60 * 40; ++i) {
+        cam.walkYawDeg += 0.6f;
+        cam.moveWalk(1.0f, 0.0f, 1.0f / 60.0f, i % 400 > 300);
+        const float dev = std::fabs(cam.walkEyeY - (terrainHeight(cam.walkX, cam.walkZ) + Camera::kWalkEyeHeight));
+        worst = std::max(worst, dev);
+        ++steps;
+    }
+    record("T51", "Walk camera: eye height stays 1.7 +- 0.05 m above the terrain while walking and running",
+           "max deviation <= 0.05 m", fmt("max deviation %.3f m over %d steps", worst, steps), worst <= 0.05f);
+
+    // Cannot enter the bunker circle.
+    cam.placeWalk(0.0f, 8.0f);
+    cam.walkYawDeg = 180.0f;  // facing the bunker
+    float minR = 1e9f;
+    for (int i = 0; i < 60 * 10; ++i) {
+        cam.moveWalk(1.0f, 0.0f, 1.0f / 60.0f, true);
+        minR = std::min(minR, std::sqrt(cam.walkX * cam.walkX + cam.walkZ * cam.walkZ));
+    }
+    record("T52", "Walk camera is pushed out of the 3.2 m bunker circle when walking straight at it",
+           "radius >= 3.2 m", fmt("min radius %.2f m", minR), minR >= 3.2f);
+
+    // Clamped to the maximum radius.
+    cam.placeWalk(30.0f, 0.0f);
+    cam.walkYawDeg = 90.0f;  // +X
+    for (int i = 0; i < 60 * 30; ++i) cam.moveWalk(1.0f, 0.0f, 1.0f / 60.0f, true);
+    const float rEnd = std::sqrt(cam.walkX * cam.walkX + cam.walkZ * cam.walkZ);
+    record("T53", "Walk camera is clamped to a 45 m radius", "radius <= 45.01 m and eye near the rim height + 1.7",
+           fmt("radius %.2f m, eye %.2f m, rim %.2f m", rEnd, cam.walkEyeY, terrainRimHeight()),
+           rEnd <= 45.01f && rEnd >= 44.0f && std::fabs(cam.walkEyeY - (terrainRimHeight() + 1.7f)) < 0.05f);
+
+    // compute() puts the view at the walker and looks along the yaw; pitch is clamped.
+    Scene scene;
+    cam.placeWalk(5.0f, -4.0f);
+    cam.walkYawDeg = 90.0f;
+    cam.walkPitchDeg = 0.0f;
+    cam.drag(0.0f, -100000.0f);
+    const CameraView v = cam.compute(scene, 16.0f / 9.0f);
+    const float ex = std::fabs(v.position.x - 5.0f), ez = std::fabs(v.position.z + 4.0f);
+    const float ey = std::fabs(v.position.y - (terrainHeight(5.0f, -4.0f) + 1.7f));
+    record("T54", "Walk camera: compute() view sits at the walker (eye 1.7 m up) and mouse-look pitch clamps to +-80 deg",
+           "position matches within 5 cm, pitch = 80", fmt("dx %.3f dz %.3f dy %.3f, pitch %.1f", ex, ez, ey, cam.walkPitchDeg),
+           ex < 0.05f && ez < 0.05f && ey < 0.05f && near(cam.walkPitchDeg, 80.0f, 1e-3f));
+
+    // C cycles Orbit -> Free -> Chase -> UAV -> Walk -> Orbit.
+    Camera c2;
+    std::string seq;
+    for (int i = 0; i < 5; ++i) { seq += cameraModeName(c2.mode); seq += ">"; c2.cycle(); }
+    record("T55", "C cycles Orbit, Free, Chase, UAV CAM, Walk, back to Orbit",
+           "ORBIT>FREE>CHASE>UAV CAM>WALK>ORBIT", seq + cameraModeName(c2.mode),
+           seq == "ORBIT>FREE>CHASE>UAV CAM>WALK>" && c2.mode == CameraMode::Orbit);
+}
+
 int main(int argc, char** argv) {
     testPrimitives();
     testMath();
@@ -777,6 +844,7 @@ int main(int argc, char** argv) {
     testTerrainV2();
     testAgentsV2();
     testHeatTrail();
+    testWalkCamera();
     int failed = 0;
     for (const Result& r : g_results) failed += r.pass ? 0 : 1;
     std::printf("\n%zu tests, %d failed\n", g_results.size(), failed);

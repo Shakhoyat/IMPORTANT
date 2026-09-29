@@ -4,19 +4,15 @@
         {
             "type": "shell",
             "label": "Build ThermalSense",
-            "command": "${workspaceFolder}\\build.bat",
-            "options": {
-                "cwd": "${workspaceFolder}",
-                "shell": { "executable": "cmd.exe", "args": ["/c"] }
+            "command": "./build.sh",
+            "windows": {
+                "command": "${workspaceFolder}\\build.bat",
+                "options": { "cwd": "${workspaceFolder}", "shell": { "executable": "cmd.exe", "args": ["/c"] } }
             },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "detail": "Compile all sources in src/ into ThermalSense.exe"
+            "options": { "cwd": "${workspaceFolder}" },
+            "problemMatcher": ["$gcc"],
+            "group": { "kind": "build", "isDefault": true },
+            "detail": "Windows: build.bat (MinGW). Linux: build.sh (make; add --headless for EGL only)"
         }
     ]
 }

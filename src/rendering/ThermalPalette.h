@@ -1,5 +1,5 @@
 // Thermal colour maps shared by the HUD (CPU) -- the GLSL thermalPalette() in ShaderSources.cpp uses the
-// same stops. 0 = ironbow (cold indigo -> hot white), 1 = white-hot (grey ramp), 2 = rainbow.
+// same stops. 0 = ironbow (cold indigo -> hot white), 1 = white-hot (grey ramp), 2 = rainbow, 3 = black-hot (inverted grey).
 #pragma once
 
 #include <algorithm>
@@ -8,12 +8,13 @@
 
 namespace ts {
 
-constexpr int kPaletteCount = 3;
+constexpr int kPaletteCount = 4;
 
 inline const char* paletteName(int p) {
     switch (p) {
         case 1: return "WHITE-HOT";
         case 2: return "RAINBOW";
+        case 3: return "BLACK-HOT";
         default: return "IRONBOW";
     }
 }
@@ -28,6 +29,10 @@ inline Vec3 thermalPaletteCpu(int palette, float t) {
     t = clampf(t, 0.0f, 1.0f);
     if (palette == 1) {
         const float g = std::pow(t, 0.9f);
+        return {g, g, g};
+    }
+    if (palette == 3) {
+        const float g = 1.0f - std::pow(t, 0.9f);
         return {g, g, g};
     }
     const float(*stops)[3] = palette == 2 ? rainbow : iron;

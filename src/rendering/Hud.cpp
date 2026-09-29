@@ -1,9 +1,6 @@
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-
 #include "rendering/Hud.h"
 
+#include <cstdint>
 #include <cstring>
 
 #include "rendering/ShaderSources.h"
@@ -13,6 +10,7 @@ namespace ts {
 namespace {
 
 constexpr int kFirstChar = 32, kLastChar = 126, kAtlasCols = 16;
+#include "rendering/FontAtlas.inc"
 
 }  // namespace
 
@@ -38,59 +36,25 @@ bool Hud::init() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(V), reinterpret_cast<void*>(6 * sizeof(float)));
     glBindVertexArray(0);
 
-    // --- Rasterise printable ASCII with GDI into a 16-column glyph atlas ---
-    HDC dc = CreateCompatibleDC(nullptr);
-    HFONT font = CreateFontA(-32, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS,
-                             CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, FIXED_PITCH | FF_MODERN, "Consolas");
-    HGDIOBJ oldFont = SelectObject(dc, font);
-    TEXTMETRICA tm;
-    GetTextMetricsA(dc, &tm);
-    cellW_ = tm.tmAveCharWidth + 2;
-    cellH_ = tm.tmHeight + 2;
-    const int rows = (kLastChar - kFirstChar + 1 + kAtlasCols - 1) / kAtlasCols;
-    atlasW_ = cellW_ * kAtlasCols;
-    atlasH_ = cellH_ * rows;
-
-    BITMAPINFO bi{};
-    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bi.bmiHeader.biWidth = atlasW_;
-    bi.bmiHeader.biHeight = -atlasH_;  // top-down rows
-    bi.bmiHeader.biPlanes = 1;
-    bi.bmiHeader.biBitCount = 32;
-    bi.bmiHeader.biCompression = BI_RGB;
-    void* bits = nullptr;
-    HBITMAP bmp = CreateDIBSection(dc, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
-    if (!bmp || !bits) {
-        SelectObject(dc, oldFont);
-        DeleteObject(font);
-        DeleteDC(dc);
-        return false;
+    // --- Glyph atlas: printable ASCII in 16 columns, baked into the program by tools/bake_font.py ---
+    cellW_ = kFontCellW;
+    cellH_ = kFontCellH;
+    atlasW_ = kFontAtlasW;
+    atlasH_ = kFontAtlasH;
+    std::vector<uint8_t> alpha;
+    alpha.reserve(static_cast<size_t>(atlasW_) * atlasH_);
+    for (size_t i = 0; i < sizeof(kFontAtlasRle); ++i) {
+        if (kFontAtlasRle[i] == 0 && i + 1 < sizeof(kFontAtlasRle)) alpha.insert(alpha.end(), kFontAtlasRle[++i], 0);
+        else alpha.push_back(kFontAtlasRle[i]);
     }
-    HGDIOBJ oldBmp = SelectObject(dc, bmp);
-    std::memset(bits, 0, static_cast<size_t>(atlasW_) * atlasH_ * 4);
-    SetBkMode(dc, TRANSPARENT);
-    SetTextColor(dc, RGB(255, 255, 255));
-    for (int ch = kFirstChar; ch <= kLastChar; ++ch) {
-        const int i = ch - kFirstChar;
-        const char c = static_cast<char>(ch);
-        TextOutA(dc, (i % kAtlasCols) * cellW_ + 1, (i / kAtlasCols) * cellH_ + 1, &c, 1);
-    }
-    GdiFlush();
-    std::vector<uint8_t> alpha(static_cast<size_t>(atlasW_) * atlasH_);
-    const uint8_t* px = static_cast<const uint8_t*>(bits);
-    for (size_t i = 0; i < alpha.size(); ++i) alpha[i] = px[i * 4 + 1];  // green channel of white text
-
-    SelectObject(dc, oldBmp);
-    SelectObject(dc, oldFont);
-    DeleteObject(bmp);
-    DeleteObject(font);
-    DeleteDC(dc);
+    if (alpha.size() != static_cast<size_t>(atlasW_) * atlasH_) return false;
 
     glGenTextures(1, &atlas_);
     glBindTexture(GL_TEXTURE_2D, atlas_);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlasW_, atlasH_, 0, GL_RED, GL_UNSIGNED_BYTE, alpha.data());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);  // small HUD text is minified from the 48 px atlas
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

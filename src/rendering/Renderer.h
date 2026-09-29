@@ -7,6 +7,15 @@
 
 #include "math/Frustum.h"
 #include "math/ShadowMath.h"
+// Foliage / particles are being written in parallel; the renderer compiles without them until they exist.
+#if __has_include("rendering/Foliage.h")
+#include "rendering/Foliage.h"
+#define TS_HAS_FOLIAGE 1
+#endif
+#if __has_include("rendering/Particles.h")
+#include "rendering/Particles.h"
+#define TS_HAS_PARTICLES 1
+#endif
 #include "rendering/FrameBuffers.h"
 #include "rendering/GpuTimer.h"
 #include "rendering/Grass.h"
@@ -23,7 +32,8 @@ namespace ts {
 enum class ViewMode { Thermal = 0, Visible = 1, Diagnostic = 2, Depth = 3, HeatRaw = 4 };
 enum class EdgeMode { Solid, HiddenLine, XRay };
 enum class ShadingOverride { PerObject, Flat, Gouraud, Phong };
-enum class Quality { Low = 0, High = 1, Ultra = 2 };
+enum class Quality { Low = 0, High = 1, Ultra = 2, Epic = 3 };
+constexpr int kQualityCount = 4;
 
 // What each quality preset turns on (see docs/PLAN_V2.md, A8).
 struct QualityProfile {
@@ -40,6 +50,16 @@ struct QualityProfile {
     int fogSteps = 24;
     int fogDivisor = 4;          // fog buffer = screen / divisor
     float cascadeSplit = 12.0f;  // metres: near cascade covers the view up to this depth
+    // v3
+    int prepassDivisor = 2;      // pre-pass / SSAO resolution = screen / divisor
+    bool taa = true;             // temporal anti-aliasing
+    bool ssr = false;            // screen-space reflections (puddles, wet ground)
+    int ssrSteps = 48;
+    bool flare = true;           // lens flare + anamorphic streak
+    bool dof = false;            // depth of field (cinematic shots)
+    bool motionBlur = false;     // camera motion blur (cinematic / video)
+    float foliageDensity = 0.5f; // foliage cards on trees and bushes (fraction of the EPIC count)
+    int fireflies = 200;         // instanced fireflies and drifting motes
 };
 QualityProfile qualityProfile(Quality q);
 const char* qualityName(Quality q);
@@ -74,6 +94,13 @@ struct RenderSettings {
     // Feature switches (benchmark ablation: cost of each feature = frame time with it minus without it)
     bool practicalsOn = true;  // lamps, fire barrel, floodlight (key 4)
     bool shadowsOn = true, spotShadowOn = true, ssaoOn = true, fogOn = true, bloomOn = true, msaaOn = true;
+    // v3 post-processing switches (the quality preset decides what is available)
+    bool taaOn = true, ssrOn = true, flareOn = true, autoExposureOn = true, foliageOn = true, particlesOn = true;
+    float dof = 0.0f;             // depth-of-field strength (cinematic shots); 0 = off
+    float focusDistance = -1.0f;  // metres; < 0 = autofocus on the frame centre
+    float motionBlur = 0.0f;      // camera motion blur, shutter fraction (0.5 = 180 degrees); 0 = off
+    bool hideUav = false;         // first-person UAV camera: the airframe is behind the lens
+    float nucShutter = 0.0f;      // thermal sensor: non-uniformity-correction shutter closed (0..1)
 };
 
 struct FrameStats {
@@ -101,6 +128,11 @@ public:
     // Resolve -> bloom -> composite (tone mapping) into 'targetFbo'.
     void endFrame(GLuint targetFbo, int width, int height, float time);
     GpuTimer& timer() { return timer_; }
+    // Forget the temporal history (TAA, exposure / sensor gain): at camera cuts and for new capture shots.
+    void resetHistory() { historyValid_ = false; adaptValid_ = false; }
+    // Adapted frame statistics (min, max, mean, mean of squares) of log2 luminance (visible) or heat
+    // (thermal); read back from the GPU, for logs and calibration only.
+    void adaptedStats(float out[4]) const;
     int maxSamples() const { return maxSamples_; }
 
     // Geometry of the current view into the bound framebuffer (sky, solids, beam, wireframe).
@@ -125,6 +157,7 @@ private:
                          FrameStats& st);
     void drawBeam(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st);
     void drawWire(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st);
+    void surfaceWrites(bool on) const;  // enable / disable the surface render target (main scene only)
 
     static bool inFrustum(const SceneNode& n, const Frustum& f);
     // RendererFrame.cpp
@@ -134,6 +167,11 @@ private:
         int pcfTaps = 8;
         int shadowMode = 0;        // 0 none, 1 moon, 2 moon + searchlight
         bool ao = false, fog = false, hdr = false, thermalPost = false;
+        bool taa = false, ssr = false, flare = false, dof = false;
+        int ssrSteps = 48;
+        Mat4 viewProj, viewProjJ;   // unjittered / jittered (what the depth buffer holds)
+        float dt = 1.0f / 60.0f;    // seconds since the previous frame (temporal adaptation)
+        float jitterUV[2] = {0.0f, 0.0f};  // screen offset of the current TAA jitter (UV units)
         RenderSettings settings;
         CameraView cam;
         float time = 0.0f;
@@ -145,7 +183,15 @@ private:
     void renderPrepass(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st);
     void renderSsao(const CameraView& cam, const QualityProfile& q);
     void renderFog(const Scene& scene, const CameraView& cam, const RenderSettings& s, const QualityProfile& q);
-    void renderBloom();
+    void renderBloom(GLuint source);
+    // v3 post chain (RendererFrame.cpp)
+    GLuint renderCombine();                   // fog + SSR -> lit
+    GLuint renderTaa(GLuint current);         // -> history target (or 'current' when TAA is off)
+    void renderStatistics(GLuint image);      // exposure / AGC statistics -> adapt_
+    void renderFlare();
+    GLuint renderDof(GLuint image);
+    void drawFoliage(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
+    void drawParticles(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
     void bindLightingTextures();
     void setShadowUniforms(Shader& sh, const RenderSettings& s);
     void gatherPracticals(const Scene& scene, const CameraView& cam);
@@ -157,6 +203,20 @@ private:
 
     std::unique_ptr<Shader> flat_, gouraud_, phong_, beam_, line_, sky_;
     std::unique_ptr<Shader> depth_, prepass_, ssao_, blur_, fog_, bloomDown_, bloomUp_, composite_;
+    std::unique_ptr<Shader> combine_, taa_, reduce_, adapt_, flare_, streak_, dof_, dofCombine_;
+#ifdef TS_HAS_FOLIAGE
+    FoliageField foliage_;
+#endif
+#ifdef TS_HAS_PARTICLES
+    ParticleField particles_;
+#endif
+    bool mrt_ = false;                  // the main scene target (with the surface attachment) is bound
+    bool historyValid_ = false, adaptValid_ = false;
+    int historyIndex_ = 0, adaptIndex_ = 0;
+    unsigned frameIndex_ = 0;
+    Mat4 prevViewProj_;
+    Vec3 prevCamPos_, prevCamFwd_;
+    float prevTime_ = -1.0f;
     void drawGrass(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
     GrassField grass_;
     RainField rain_;

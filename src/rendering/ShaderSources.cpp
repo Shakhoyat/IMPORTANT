@@ -18,6 +18,7 @@ vec3 paletteStops(float t, vec3 c0, vec3 c1, vec3 c2, vec3 c3, vec3 c4, vec3 c5,
 }
 vec3 thermalPalette(float t) {
     if (uPalette == 1) return vec3(pow(clamp(t, 0.0, 1.0), 0.9));          // white-hot
+    if (uPalette == 3) return vec3(1.0 - pow(clamp(t, 0.0, 1.0), 0.9));    // black-hot
     if (uPalette == 2)                                                     // rainbow
         return paletteStops(t, vec3(0.00, 0.00, 0.05), vec3(0.05, 0.10, 0.60), vec3(0.00, 0.70, 0.90),
                             vec3(0.10, 0.85, 0.20), vec3(1.00, 0.95, 0.10), vec3(1.00, 0.20, 0.05), vec3(1.0));
@@ -195,6 +196,11 @@ uniform sampler2D uHeatTrail;                          // rover footprints (scen
 uniform float uTrailExtent; uniform float uTrailHeat;
 float trailHeat(vec3 P) { return uTrailHeat * texture(uHeatTrail, P.xz / (2.0 * uTrailExtent) + 0.5).r; }
 uniform float uOpacity;    // translucent parts (rotor blur discs)
+// Surface buffer (second render target): world normal and reflectivity, read by the screen-space reflection
+// pass. Every shader that includes this block writes it (finalColor sets a neutral default).
+layout(location = 1) out vec4 FragSurface;
+vec3 gReflectNormal = vec3(0.0, 1.0, 0.0);   // set by the surface shading below
+float gReflectivity = 0.0;
 uniform vec3 uPartCentre;  uniform float uPartRadius;
 
 const vec2 kPoisson[16] = vec2[](
@@ -289,7 +295,8 @@ vec3 surfaceAlbedo(vec3 P, vec3 N, vec3 base) {
         vec3 q = P * 9.0;
         float leaves = valueNoise(q.xy + q.z * 0.7) * valueNoise(q.zy * 1.3 - q.x * 0.4);
         float gaps = smoothstep(0.05, 0.3, leaves);                 // deep holes between leaf clusters
-        return base * mix(vec3(0.75, 0.85, 0.7), vec3(1.25, 1.15, 0.75), hue) * (0.35 + 0.9 * gaps) * (0.8 + 0.4 * n2);
+        // 0.6: the solid crown is the shaded inner volume behind the instanced foliage cards (Foliage.cpp)
+        return 0.6 * base * mix(vec3(0.75, 0.85, 0.7), vec3(1.25, 1.15, 0.75), hue) * (0.35 + 0.9 * gaps) * (0.8 + 0.4 * n2);
     }
     if (uSurface == 6) return base * (0.6 + 0.6 * valueNoise(vec2(atan(N.z, N.x) * 8.0, P.y * 1.5)) * (0.7 + 0.3 * n2));
     if (uSurface == 7) {          // rock: large-scale tone + lichen patches
@@ -428,6 +435,9 @@ vec3 terrainShade(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
         }
     }
     vec3 specular = (sMoon * sm + sSpot * ss) * mix(0.25, 1.0, wetness) + t.s1 * 0.5 + reflection + lampGlints * wetness;
+    // Screen-space reflections: standing water mirrors the scene, wet soil only faintly.
+    gReflectNormal = Nd;
+    gReflectivity = max(puddle, 0.35 * wetness * (1.0 - rough));
     return albedo * diffuse + specular;
 }
 
@@ -438,6 +448,11 @@ vec3 compose(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     if (porous && uHdr == 1) albedo *= 1.0 - 0.45 * uWetness;
     vec3 diffuse = t.amb * ao * (1.0 - uMetalness) + t.d0 * sm + t.d1 + t.d2 * ss;
     vec3 specular = t.s0 * sm + t.s1 + t.s2 * ss + t.sa * ao;
+    // Wet tops (water film) and polished metal reflect the scene (screen-space reflection weight).
+    float film = uWetness * clamp(N.y * 1.4 + 0.1, 0.0, 1.0) * (uSurface == 5 ? 0.0 : 1.0);
+    float gloss = 1.0 - clamp(uRoughness, 0.0, 1.0);
+    gReflectNormal = N;
+    gReflectivity = max(0.45 * film, uMetalness * gloss * gloss * 0.6);
     return albedo * diffuse + specular + albedo * uEmissive * uEmissiveScale;
 }
 
@@ -450,6 +465,7 @@ float fogAmount(vec3 P) {
 }
 
 vec4 finalColor(vec3 lit, float heat, vec3 P) {
+    FragSurface = vec4(0.5, 1.0, 0.5, 0.0);
     float fade = fogAmount(P);
     if (uViewMode == 3) {  // Z-buffer visualisation: linearised depth, near = white
         float z = gl_FragCoord.z * 2.0 - 1.0;
@@ -458,12 +474,10 @@ vec4 finalColor(vec3 lit, float heat, vec3 P) {
         return vec4(vec3(g * g), 1.0);
     }
     if (uViewMode == 0 || uViewMode == 4) {
+        // Apparent temperature (0..1) as a scalar: the tracker reads it directly (raw heat), the thermal
+        // view passes it through the sensor model (gain control, detail enhancement, palette, noise).
         float h = mix(heat, 0.08, fade);
-        if (uViewMode == 4) return vec4(h, h, h, 1.0);
-        float grain = (hash21(gl_FragCoord.xy + fract(uTime * 7.31) * 311.0) - 0.5) * uGrain;
-        vec3 c = thermalPalette((h - 0.10) / 0.80 + grain);
-        vec2 q = gl_FragCoord.xy / uResolution - 0.5;
-        return vec4(c * (1.0 - 0.6 * dot(q, q)), 1.0);
+        return vec4(h, h, h, 1.0);
     }
     if (uViewMode == 2) return vec4(lit, 1.0);
     if (uHdr == 1) {        // linear HDR radiance; tone mapping happens in the composite pass
@@ -495,6 +509,7 @@ vec4 shadeFragment(Terms t, vec3 P, vec3 N) {
                                                                    : compose(t, P, N, sm, ss, ao);
     vec4 c = finalColor(lit, heat, P);
     c.a = partAlpha(P);
+    if (uHdr == 1) FragSurface = vec4(normalize(gReflectNormal) * 0.5 + 0.5, clamp(gReflectivity, 0.0, 1.0));
     return c;
 }
 )";
@@ -548,7 +563,7 @@ void main() {
 const char* kFlatFrag = TS_STR(TS_TERM_VARYINGS(flat, in, f)) R"(
 flat in vec3 fNormal;
 in vec3 fWorld;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() {
     Terms t = Terms(fAmb, fD0, fS0, fD1, fS1, fD2, fS2, fSa, fIrr);
     FragColor = shadeFragment(t, fWorld, fNormal);
@@ -578,7 +593,7 @@ void main() {
 const char* kGouraudFrag = TS_STR(TS_TERM_VARYINGS(, in, v)) R"(
 in vec3 vWorld;
 in vec3 vNormal;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() {   // lighting terms are only interpolated; shadows/AO (visibility) are looked up per fragment
     Terms t = Terms(vAmb, vD0, vS0, vD1, vS1, vD2, vS2, vSa, vIrr);
     FragColor = shadeFragment(t, vWorld, normalize(vNormal));
@@ -604,7 +619,7 @@ void main() {
 const char* kPhongFrag = R"(
 in vec3 vWorld;
 in vec3 vNormal;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() {
     vec3 N = normalize(vNormal);
     if (!gl_FrontFacing) N = -N;
@@ -671,7 +686,7 @@ in vec3 vNormal;
 uniform vec3 uCamPos;
 uniform vec3 uBeamColor;
 uniform float uBeamIntensity;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() {
     float t = clamp(vAxial, 0.0, 1.0);
     vec3 V = normalize(uCamPos - vWorld);
@@ -698,7 +713,7 @@ void main() {
 const char* kLineFrag = R"(#version 330 core
 in vec3 vColor;
 uniform float uAlpha;
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() { FragColor = vec4(vColor, uAlpha); }
 )";
 
@@ -721,7 +736,7 @@ in vec4 vColor;
 in vec2 vUV;
 uniform sampler2D uTex;
 uniform int uMode;   // 0 flat colour, 1 text (atlas alpha), 2 raw heat image through the thermal palette
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 void main() {
     if (uMode == 1) {
         FragColor = vec4(vColor.rgb, vColor.a * texture(uTex, vUV).r);

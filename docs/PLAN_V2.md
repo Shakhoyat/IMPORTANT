@@ -169,4 +169,4 @@ recalculates it headlessly (LibreOffice, if installed) and checks for formula er
 | D6 cinematic director camera (`K`), E1 captures, E2 `--record` video | done |
 | Chase re-balanced for 20 m (320x240 sensor, search pattern, track coasting, exact rover collision) | done: TRACK 57 %, detection 51 %, hidden 31 % |
 | Excel v2 (14 sheets, formula matrices verified = code) and report v2 (7 pages) | done |
-| Not done yet | D3 thermal footprints, D5 thermal palette switch, D7 rain / wet SSR, TAA, lens flare, DOF / motion blur, auto-exposure |
+| Remaining items (D3, D5, D7 SSR, TAA, lens flare, DOF / motion blur, auto-exposure) | done in v3, see `PLAN_V3.md` |

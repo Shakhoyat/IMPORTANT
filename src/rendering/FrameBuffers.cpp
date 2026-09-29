@@ -67,58 +67,80 @@ FrameBuffers::~FrameBuffers() { release(); }
 void FrameBuffers::release() {
     if (sceneFbo) glDeleteFramebuffers(1, &sceneFbo);
     if (sceneColorRb) glDeleteRenderbuffers(1, &sceneColorRb);
+    if (sceneSurfaceRb) glDeleteRenderbuffers(1, &sceneSurfaceRb);
     if (sceneDepthRb) glDeleteRenderbuffers(1, &sceneDepthRb);
+    if (depthFbo) glDeleteFramebuffers(1, &depthFbo);
+    if (depthTex) glDeleteTextures(1, &depthTex);
     if (prepassFbo) glDeleteFramebuffers(1, &prepassFbo);
     if (prepassDepth) glDeleteTextures(1, &prepassDepth);
     if (prepassNormal) glDeleteTextures(1, &prepassNormal);
-    sceneFbo = sceneColorRb = sceneDepthRb = prepassFbo = prepassDepth = prepassNormal = 0;
-    resolved.release();
-    ao[0].release();
-    ao[1].release();
-    fog.release();
+    sceneFbo = sceneColorRb = sceneSurfaceRb = sceneDepthRb = depthFbo = depthTex = 0;
+    prepassFbo = prepassDepth = prepassNormal = 0;
+    for (ColorTarget* t : {&resolved, &surface, &ao[0], &ao[1], &fog, &lit, &history[0], &history[1], &dof,
+                           &dofCombined, &flare, &streak, &adapt[0], &adapt[1]})
+        t->release();
     for (ColorTarget& b : bloom) b.release();
+    for (ColorTarget& r : reduce) r.release();
     bloom.clear();
-    w_ = h_ = samples_ = fogDiv_ = 0;
+    reduce.clear();
+    w_ = h_ = fogDiv_ = preDiv_ = 0;
+    samples_ = -1;
 }
 
-bool FrameBuffers::ensure(int width, int height, int samples, int fogDivisor) {
-    if (width == w_ && height == h_ && samples == samples_ && fogDivisor == fogDiv_) return true;
+namespace {
+
+GLuint makeTexture(GLenum internalFormat, GLenum format, GLenum type, int w, int h, GLenum filter) {
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    return tex;
+}
+
+}  // namespace
+
+bool FrameBuffers::ensure(int width, int height, int samples, int fogDivisor, int prepassDivisor) {
+    if (width == w_ && height == h_ && samples == samples_ && fogDivisor == fogDiv_ && prepassDivisor == preDiv_)
+        return true;
     release();
     fogDiv_ = fogDivisor;
+    preDiv_ = prepassDivisor;
     w_ = width;
     h_ = height;
     samples_ = samples;
 
+    // Multisampled HDR scene: colour (RGBA16F keeps the thermal heat values precise), surface data, depth.
     glGenFramebuffers(1, &sceneFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
-    glGenRenderbuffers(1, &sceneColorRb);
-    glBindRenderbuffer(GL_RENDERBUFFER, sceneColorRb);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_R11F_G11F_B10F, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, sceneColorRb);
-    glGenRenderbuffers(1, &sceneDepthRb);
-    glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRb);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT24, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sceneDepthRb);
+    GLuint* rbs[3] = {&sceneColorRb, &sceneSurfaceRb, &sceneDepthRb};
+    const GLenum formats[3] = {GL_RGBA16F, GL_RGBA8, GL_DEPTH_COMPONENT24};
+    const GLenum attach[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_DEPTH_ATTACHMENT};
+    for (int i = 0; i < 3; ++i) {
+        glGenRenderbuffers(1, rbs[i]);
+        glBindRenderbuffer(GL_RENDERBUFFER, *rbs[i]);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, formats[i], width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, attach[i], GL_RENDERBUFFER, *rbs[i]);
+    }
     bool ok = complete("HDR scene");
 
-    ok = resolved.create(width, height, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
+    ok = resolved.create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = surface.create(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST) && ok;
+    depthTex = makeTexture(GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, width, height, GL_NEAREST);
+    glGenFramebuffers(1, &depthFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    ok = complete("resolved depth") && ok;
 
-    halfW = std::max(1, width / 2);
-    halfH = std::max(1, height / 2);
-    glGenTextures(1, &prepassDepth);
-    glBindTexture(GL_TEXTURE_2D, prepassDepth);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, halfW, halfH, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glGenTextures(1, &prepassNormal);
-    glBindTexture(GL_TEXTURE_2D, prepassNormal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, halfW, halfH, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    halfW = std::max(1, width / prepassDivisor);
+    halfH = std::max(1, height / prepassDivisor);
+    prepassDepth = makeTexture(GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, halfW, halfH, GL_NEAREST);
+    prepassNormal = makeTexture(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, halfW, halfH, GL_NEAREST);
     glGenFramebuffers(1, &prepassFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, prepassFbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, prepassNormal, 0);
@@ -128,27 +150,50 @@ bool FrameBuffers::ensure(int width, int height, int samples, int fogDivisor) {
     ok = ao[0].create(halfW, halfH, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_LINEAR) && ok;
     ok = ao[1].create(halfW, halfH, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_LINEAR) && ok;
     ok = fog.create(std::max(1, width / fogDivisor), std::max(1, height / fogDivisor), GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = lit.create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = history[0].create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = history[1].create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = dof.create(std::max(1, width / 2), std::max(1, height / 2), GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = dofCombined.create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
     int bw = std::max(1, width / 4), bh = std::max(1, height / 4);
+    ok = flare.create(bw, bh, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
+    ok = streak.create(bw, bh, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
     for (int i = 0; i < kBloomLevels && bw >= 2 && bh >= 2; ++i) {
         bloom.emplace_back();
         ok = bloom.back().create(bw, bh, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
         bw /= 2;
         bh /= 2;
     }
+    for (int size : {64, 16, 4, 1}) {
+        reduce.emplace_back();
+        ok = reduce.back().create(size, size, GL_RGBA32F, GL_RGBA, GL_FLOAT, GL_NEAREST) && ok;
+    }
+    ok = adapt[0].create(1, 1, GL_RGBA32F, GL_RGBA, GL_FLOAT, GL_NEAREST) && ok;
+    ok = adapt[1].create(1, 1, GL_RGBA32F, GL_RGBA, GL_FLOAT, GL_NEAREST) && ok;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     return ok;
 }
 
-void FrameBuffers::bindScene() const {
+void FrameBuffers::bindScene(bool withSurface) const {
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
+    const GLenum both[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    const GLenum colourOnly[2] = {GL_COLOR_ATTACHMENT0, GL_NONE};
+    glDrawBuffers(2, withSurface ? both : colourOnly);
     glViewport(0, 0, w_, h_);
 }
 
 void FrameBuffers::resolveScene() const {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, sceneFbo);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolved.fbo);
     glBlitFramebuffer(0, 0, w_, h_, 0, 0, w_, h_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, surface.fbo);
+    glBlitFramebuffer(0, 0, w_, h_, 0, 0, w_, h_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, depthFbo);
+    glBlitFramebuffer(0, 0, w_, h_, 0, 0, w_, h_, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

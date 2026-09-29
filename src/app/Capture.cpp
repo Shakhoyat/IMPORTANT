@@ -1,7 +1,6 @@
 // Non-interactive modes: scripted screenshot capture (for the report) and the performance benchmark.
 // Both run the real simulation (UAV camera, tracker, rover planner) with a fixed 60 Hz time step.
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 
 #include <algorithm>
 #include <cstdio>
@@ -11,12 +10,15 @@
 #include <utility>
 
 #include "app/App.h"
+#include "app/HeadlessGL.h"
 
+#if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
+#endif
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
 #include "primitives/Sphere.h"
@@ -45,6 +47,9 @@ struct Shot {
     bool rain = false;          // full rain, ground soaked
     const char* without = "";   // feature switched off (shadows, ssao, fog, bloom) for the comparison figures
     CameraMode cam = CameraMode::Orbit;
+    bool fpv = false;           // thermal view through the UAV gimbal camera, full screen (first person)
+    float fov = 40.0f;          // first-person thermal display field of view
+    float walkX = 0, walkZ = 12, walkYaw = 180, walkPitch = 0;   // CameraMode::Walk
     Follow follow = Follow::Action;
     float yaw = 100, pitch = 30, dist = 24;
     int width = 1600, height = 900;
@@ -113,6 +118,30 @@ std::vector<Shot> shotList() {
         add(c);
     }
     Shot rt{"rain_thermal", 44.0f}; rt.rain = true; add(rt);
+    // First-person thermal (FLIR) view: the full screen is the UAV's gimbal camera.
+    Shot tf{"thermal_fpv", 44.0f}; tf.fpv = true; tf.width = 1920; tf.height = 1080; add(tf);
+    Shot tw = tf; tw.file = "thermal_fpv_whitehot"; tw.palette = 1; add(tw);
+    Shot tz = tf; tz.file = "thermal_fpv_zoom"; tz.fov = 14.0f; tz.palette = 3; add(tz);
+    // First-person walk (eye height 1.7 m): the scene from where a player would stand.
+    auto walk = [&](const char* file, float x, float z, float yaw, float pitch, bool rain) {
+        Shot w{file, 44.0f};
+        w.view = ViewMode::Visible;
+        w.cam = CameraMode::Walk;
+        w.walkX = x;
+        w.walkZ = z;
+        w.walkYaw = yaw;
+        w.walkPitch = pitch;
+        w.hud = false;
+        w.feed = false;
+        w.rain = rain;
+        w.width = 1920;
+        w.height = 1080;
+        add(w);
+    };
+    walk("walk_bunker", -3.5f, 11.0f, 165.0f, 2.0f, false);
+    walk("walk_forest", 9.0f, -6.0f, 250.0f, 4.0f, false);
+    walk("walk_meadow", -12.0f, 4.0f, 110.0f, -2.0f, false);
+    walk("walk_rain_puddles", 1.5f, 14.0f, 175.0f, -8.0f, true);
     // Before/after and one-feature-off comparisons, all from the same camera.
     const std::pair<const char*, const char*> variants[] = {{"compare_v1", "v1"},       {"compare_v2", ""},
                                                             {"ablate_shadows", "shadows"}, {"ablate_ssao", "ssao"},
@@ -133,6 +162,7 @@ std::vector<Shot> shotList() {
     // t = 52 s: the rover has slipped out of sight (trace: hidden, REACQUIRE) and the UAV is circling back.
     Shot r{"hide_thermal", 52.0f}; r.follow = Follow::Rover; r.yaw = 200; r.pitch = 30; r.dist = 11; add(r);
     Shot t = r; t.file = "hide_ztest_off"; t.depthTest = false; t.feed = false; add(t);
+    Shot th{"thermal_fpv_hidden", 52.0f}; th.fpv = true; th.width = 1920; th.height = 1080; add(th);
     Shot u{"plan_topdown", 52.0f}; u.plan = true; u.view = ViewMode::Visible; u.pitch = 85; u.yaw = 0; u.dist = 44; u.feed = false; u.follow = Follow::None; add(u);
     return s;
 }
@@ -200,7 +230,8 @@ int App::captureMode() {
         settings_.palette = shot.palette;
         settings_.rain = shot.rain ? 1.0f : 0.0f;
         scene_->wetness = shot.rain ? 1.0f : 0.0f;
-        settings_.quality = Quality::Ultra;  // report figures: best quality (frame rate is irrelevant offline)
+        // Report figures: best quality (frame rate is irrelevant offline) unless --quality says otherwise.
+        settings_.quality = opt_.quality >= 0 ? static_cast<Quality>(opt_.quality) : Quality::Ultra;
         const std::string off = shot.without;
         settings_.shadowsOn = off != "shadows";
         settings_.ssaoOn = off != "ssao";
@@ -215,6 +246,13 @@ int App::captureMode() {
 
         camera_ = Camera{};
         camera_.mode = shot.cam;
+        thermalFpv_ = shot.fpv;
+        thermalFovDeg_ = shot.fov;
+        if (shot.cam == CameraMode::Walk) {
+            camera_.placeWalk(shot.walkX, shot.walkZ);
+            camera_.walkYawDeg = shot.walkYaw;
+            camera_.walkPitchDeg = shot.walkPitch;
+        }
         camera_.yawDeg = shot.yaw;
         camera_.pitchDeg = shot.pitch;
         camera_.distance = shot.dist;
@@ -229,26 +267,37 @@ int App::captureMode() {
             camera_.directorTime = shot.director;
             applyCinematic();
         }
-        if (!target.create(shot.width, shot.height, 4, false)) return 1;
+        const int width = opt_.sizeGiven ? opt_.width : shot.width, height = opt_.sizeGiven ? opt_.height : shot.height;
+        if (!target.create(width, height, 0, false)) return 1;
         target.bind();
         if (shot.library) {
             stats_ = {};
             glClearColor(0.075f, 0.08f, 0.09f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            const int size = shot.width / Renderer::kLegendCount;
+            const int size = width / Renderer::kLegendCount;
             renderer_->drawPrimitiveLegend(0, 0, size, 0.55f, stats_, true);
-            glViewport(0, 0, shot.width, shot.height);
-            drawLibraryLabels(renderer_->hud(), shot.width, shot.height);
+            glViewport(0, 0, width, height);
+            drawLibraryLabels(renderer_->hud(), width, height);
         } else {
-            renderFrame(shot.width, shot.height, true);
+            // Temporal effects (TAA, exposure / sensor gain) start fresh for every shot; the frozen frame is
+            // rendered several times so the jittered TAA samples accumulate into a supersampled image.
+            renderer_->resetHistory();
+            const int frames = qualityProfile(settings_.quality).taa ? 8 : 1;
+            for (int f = 0; f < frames; ++f) {
+                target.bind();
+                renderFrame(width, height, true);
+            }
         }
         std::vector<uint8_t> rgb;
         target.read(rgb);
         const std::string path = dir + "/" + shot.file + ".png";
-        const bool ok = writePng(path, shot.width, shot.height, rgb);
+        const bool ok = writePng(path, width, height, rgb);
         std::printf("%s %s (t = %.1f s, %d draw calls, %lld triangles)\n", ok ? "wrote" : "FAILED", path.c_str(), t,
                     stats_.drawCalls + cvStats_.drawCalls, stats_.triangles + cvStats_.triangles);
-        log << "shot " << shot.file << " at t=" << t << " draws=" << stats_.drawCalls + cvStats_.drawCalls
+        float stats[4] = {0, 0, 0, 0};
+        renderer_->adaptedStats(stats);
+        std::printf("    frame statistics: min %.3f max %.3f mean %.3f (log2 luminance or heat)\n", stats[0], stats[1], stats[2]);
+        log << "shot " << shot.file << " at t=" << t << " stat_mean=" << stats[2] << " draws=" << stats_.drawCalls + cvStats_.drawCalls
             << " tris=" << stats_.triangles + cvStats_.triangles << "\n";
         if (!ok) return 1;
     }
@@ -305,7 +354,7 @@ int App::benchmarkMode() {
         int frames = 0;
         std::vector<GpuTimer::Entry> passes;
     };
-    std::vector<Phase> phases(12);
+    std::vector<Phase> phases(17);
     phases[0].name = "v1 look (no post), indexed";
     phases[0].cinematic = false;
     phases[1].name = "LOW, indexed";
@@ -324,17 +373,35 @@ int App::benchmarkMode() {
     }
     phases[11].name = "HIGH, raining (soaked ground)";
     phases[11].rain = true;
+    // EPIC (discrete GPU, e.g. RTX 4070) and the cost of its v3 features
+    phases[12].name = "EPIC, indexed";
+    phases[12].quality = Quality::Epic;
+    const char* epicAblations[4][2] = {{"EPIC without TAA", "taa"}, {"EPIC without SSR", "ssr"},
+                                       {"EPIC without foliage cards", "foliage"}, {"EPIC, raining", "rain"}};
+    for (int i = 0; i < 4; ++i) {
+        phases[13 + i].name = epicAblations[i][0];
+        phases[13 + i].quality = Quality::Epic;
+        if (std::string(epicAblations[i][1]) == "rain") phases[13 + i].rain = true;
+        else phases[13 + i].without = epicAblations[i][1];
+    }
     settings_.view = ViewMode::Visible;
-    glfwSwapInterval(0);  // measure the real frame rate, not the monitor refresh
+    setSwapInterval(0);  // measure the real frame rate, not the monitor refresh
+#if defined(_WIN32)
     // Background applications (editor, browser) compete for the CPU and the shared GPU; high priority keeps the
     // rounds comparable. Results are the median of 5 interleaved rounds; the spread is reported as the IQR.
     SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-    for (int i = 0; i < 120; ++i) {  // warm-up: 2 s of simulation
+#endif
+    // Headless (EGL, remote GPU): no default framebuffer, so frames go to an off-screen target of the same size.
+    RenderTarget offscreen;
+    if (headless_ && !offscreen.create(opt_.width, opt_.height, 0, false)) return 1;
+    auto frame = [&]() {
         step(kStep);
+        if (headless_) offscreen.bind();
+        else glBindFramebuffer(GL_FRAMEBUFFER, 0);
         renderFrame(opt_.width, opt_.height, true);
-        glfwSwapBuffers(window_);
-        glfwPollEvents();
-    }
+        present();
+    };
+    for (int i = 0; i < 120; ++i) frame();  // warm-up: 2 s of simulation
     // Three interleaved rounds over all phases; the median frame time per phase is reported, which is robust
     // against slow drift (thermal throttling, background load) on this integrated GPU.
     constexpr int kRounds = 5;
@@ -351,22 +418,17 @@ int App::benchmarkMode() {
             settings_.fogOn = off != "fog";
             settings_.bloomOn = off != "bloom";
             settings_.msaaOn = off != "msaa";
+            settings_.taaOn = off != "taa";
+            settings_.ssrOn = off != "ssr";
+            settings_.foliageOn = off != "foliage";
             settings_.rain = p.rain ? 1.0f : 0.0f;
             scene_->wetness = p.rain ? 1.0f : 0.0f;
-            for (int i = 0; i < 20; ++i) {  // settle: new targets, query latency
-                step(kStep);
-                renderFrame(opt_.width, opt_.height, true);
-                glfwSwapBuffers(window_);
-                glfwPollEvents();
-            }
+            for (int i = 0; i < 20; ++i) frame();  // settle: new targets, query latency
             renderer_->timer().resetTotals();
             int frames = 0;
-            const double start = glfwGetTime();
-            while (glfwGetTime() - start < kSeconds && !glfwWindowShouldClose(window_)) {
-                step(kStep);
-                renderFrame(opt_.width, opt_.height, true);
-                glfwSwapBuffers(window_);
-                glfwPollEvents();
+            const double start = nowSeconds();
+            while (nowSeconds() - start < kSeconds && !closeRequested()) {
+                frame();
                 ++frames;
                 p.sumDraws += stats_.drawCalls;
                 p.sumShadowDraws += stats_.shadowDraws;
@@ -375,7 +437,7 @@ int App::benchmarkMode() {
                 p.sumVerts += static_cast<double>(stats_.vertices);
             }
             glFinish();
-            p.roundMs.push_back(1000.0 * (glfwGetTime() - start) / std::max(frames, 1));
+            p.roundMs.push_back(1000.0 * (nowSeconds() - start) / std::max(frames, 1));
             p.frames += frames;
             p.main = stats_;
             p.cv = cvStats_;

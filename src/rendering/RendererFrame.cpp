@@ -10,6 +10,9 @@ namespace {
 
 constexpr float kShadowCasterMargin = 30.0f;  // metres behind the fitted sphere that may still cast shadows
 constexpr float kFogMaxDistance = 70.0f;
+// Mean log2 luminance of the reference night frame (establishing shot): auto-exposure maps it to the base
+// exposure, so the designed look is kept and only darker / brighter views are corrected (+-1 EV).
+constexpr float kExposureKeyLog2 = -5.2f;
 
 }  // namespace
 
@@ -18,6 +21,7 @@ const char* qualityName(Quality q) {
         case Quality::Low: return "LOW";
         case Quality::High: return "HIGH";
         case Quality::Ultra: return "ULTRA";
+        case Quality::Epic: return "EPIC";
     }
     return "?";
 }
@@ -33,6 +37,29 @@ QualityProfile qualityProfile(Quality q) {
         p.cascadeSplit = 10.0f;
         p.grassBlades = 14000;
         p.rainDrops = 6000;
+        p.taa = false;
+        p.flare = false;
+        p.foliageDensity = 0.2f;
+        p.fireflies = 60;
+    } else if (q == Quality::Epic) {   // discrete GPU (RTX 4070 12 GB class)
+        p.msaa = 4;                     // + TAA
+        p.moonShadowRes = 4096;
+        p.spotShadowRes = 2048;
+        p.ssaoSamples = 16;
+        p.pcfTaps = 16;
+        p.moonShafts = true;
+        p.grassBlades = 450000;
+        p.rainDrops = 60000;
+        p.fogSteps = 64;
+        p.fogDivisor = 2;
+        p.cascadeSplit = 14.0f;
+        p.prepassDivisor = 1;
+        p.ssr = true;
+        p.ssrSteps = 64;
+        p.dof = true;
+        p.motionBlur = true;
+        p.foliageDensity = 1.0f;
+        p.fireflies = 700;
     } else if (q == Quality::Ultra) {
         p.msaa = 8;
         p.moonShadowRes = 4096;
@@ -45,6 +72,11 @@ QualityProfile qualityProfile(Quality q) {
         p.fogSteps = 48;
         p.fogDivisor = 2;
         p.cascadeSplit = 14.0f;
+        p.ssr = true;
+        p.dof = true;
+        p.motionBlur = true;
+        p.foliageDensity = 0.7f;
+        p.fireflies = 400;
     }
     return p;
 }
@@ -98,14 +130,24 @@ void Renderer::renderShadowMaps(const Scene& scene, FrameStats& st) {
     shadows_.bindMoonLayer(0);  // near cascade follows the camera: everything, every frame
     glClear(GL_DEPTH_BUFFER_BIT);
     drawDepthOnly(scene, frame_.moon[0].viewProj, Casters::All, st);
+#ifdef TS_HAS_FOLIAGE
+    if (frame_.settings.foliageOn) st.shadowDraws += foliage_.drawDepth(frame_.moon[0].viewProj, frame_.time);
+    depth_->use();
+#endif
     // World cascade: its matrix never changes, so the static casters are rendered once and cached;
     // each frame the cache is copied in and only the moving UAV and rover are drawn on top.
-    if (!shadows_.staticValid || shadows_.staticKey != scene.explode) {
+    // The cache also depends on the foliage cards (on/off, density of the preset).
+    const float cacheKey = scene.explode + (frame_.settings.foliageOn ? 10.0f * qualityProfile(frame_.settings.quality).foliageDensity : 0.0f);
+    if (!shadows_.staticValid || shadows_.staticKey != cacheKey) {
         shadows_.bindStaticCache();
         glClear(GL_DEPTH_BUFFER_BIT);
         drawDepthOnly(scene, frame_.moon[1].viewProj, Casters::Static, st);
+#ifdef TS_HAS_FOLIAGE
+        if (frame_.settings.foliageOn) st.shadowDraws += foliage_.drawDepth(frame_.moon[1].viewProj, 0.0f);
+        depth_->use();
+#endif
         shadows_.staticValid = true;
-        shadows_.staticKey = scene.explode;
+        shadows_.staticKey = cacheKey;
     }
     shadows_.copyStaticCacheToLayer(1);
     drawDepthOnly(scene, frame_.moon[1].viewProj, Casters::Dynamic, st);
@@ -328,22 +370,104 @@ void Renderer::drawRain(const Scene& scene, const CameraView& cam, int w, int h,
     st.triangles += static_cast<long long>(rain_.count()) * 12;
 }
 
-void Renderer::beginFrame(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
+namespace {
+
+// Halton (2, 3) sub-pixel offsets in [-0.5, 0.5]: the TAA jitter sequence (8 frames).
+float halton(unsigned i, unsigned base) {
+    float f = 1.0f, r = 0.0f;
+    while (i > 0) {
+        f /= static_cast<float>(base);
+        r += f * static_cast<float>(i % base);
+        i /= base;
+    }
+    return r;
+}
+
+Vec3 viewForward(const Mat4& view) { return normalize(Vec3{-view.at(2, 0), -view.at(2, 1), -view.at(2, 2)}); }
+
+}  // namespace
+
+void Renderer::drawFoliage(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
+                           FrameStats& st) {
+#ifdef TS_HAS_FOLIAGE
+    if (!s.foliageOn || s.view == ViewMode::HeatRaw || s.view == ViewMode::Diagnostic || !s.isolate.empty()) return;
+    const float density = qualityProfile(s.quality).foliageDensity;
+    if (density <= 0.0f) return;
+    foliage_.build(scene, density);
+    auto prepare = [&](Shader& sh) {
+        setFrameUniforms(sh, scene, cam, w, h, s);
+        sh.set("uFogged", 1.0f);
+        sh.set("uHeatVariation", 0.0f);
+    };
+    st.drawCalls += foliage_.draw(cam.proj * cam.view, prepare, scene.time());
+#else
+    (void)scene; (void)cam; (void)w; (void)h; (void)s; (void)st;
+#endif
+}
+
+void Renderer::drawParticles(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
+                             FrameStats& st) {
+#ifdef TS_HAS_PARTICLES
+    // Fireflies stay hidden in rain; visible-light effect only.
+    if (!s.particlesOn || s.view != ViewMode::Visible || !s.cinematic || !s.isolate.empty() || s.rain > 0.3f) return;
+    particles_.setCount(qualityProfile(s.quality).fireflies);
+    if (particles_.count() <= 0) return;
+    auto prepare = [&](Shader& sh) { setFrameUniforms(sh, scene, cam, w, h, s); };
+    st.drawCalls += particles_.draw(cam.proj * cam.view, cam.position, prepare, scene.time());
+#else
+    (void)scene; (void)cam; (void)w; (void)h; (void)s; (void)st;
+#endif
+}
+
+void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, int h, const RenderSettings& s,
                           FrameStats& st) {
     QualityProfile q = qualityProfile(s.quality);
     if (!s.ssaoOn) q.ssao = false;
     if (!s.fogOn) q.volumetric = false;
     if (!s.msaaOn) q.msaa = 0;
-    fb_.ensure(w, h, std::min(q.msaa, maxSamples_), q.fogDivisor);
+    fb_.ensure(w, h, std::min(q.msaa, maxSamples_), q.fogDivisor, q.prepassDivisor);
     const bool visible = s.view == ViewMode::Visible;
     frame_.settings = s;
     frame_.pcfTaps = q.pcfTaps;
-    frame_.cam = cam;
     frame_.time = scene.time();
+    frame_.dt = prevTime_ >= 0.0f && scene.time() > prevTime_ ? std::min(scene.time() - prevTime_, 0.25f) : 1.0f / 60.0f;
+    prevTime_ = scene.time();
     frame_.hdr = s.cinematic && visible && s.edges == EdgeMode::Solid;  // wireframe figures stay unprocessed
-    frame_.thermalPost = s.cinematic && s.view == ViewMode::Thermal;
+    frame_.thermalPost = s.view == ViewMode::Thermal && s.edges == EdgeMode::Solid;
+    const bool temporal = frame_.hdr || frame_.thermalPost;
+    frame_.taa = temporal && q.taa && s.taaOn;
+    frame_.ssr = frame_.hdr && q.ssr && s.ssrOn;
+    frame_.ssrSteps = q.ssrSteps;
+    frame_.flare = frame_.hdr && q.flare && s.flareOn && s.bloomOn;
+    frame_.dof = frame_.hdr && q.dof && s.dof > 0.0f;
     frame_.shadowMode = 0;
     frame_.ao = frame_.fog = false;
+
+    // Camera cut (director cut, camera mode switch, teleport): the history no longer matches the view.
+    const Vec3 fwd = viewForward(camIn.view);
+    if (length(camIn.position - prevCamPos_) > 2.5f || dot(fwd, prevCamFwd_) < 0.85f) historyValid_ = false;
+    prevCamPos_ = camIn.position;
+    prevCamFwd_ = fwd;
+
+    // TAA: sub-pixel jitter of the projection (Halton 2,3); every pass that fills the depth buffer uses it.
+    CameraView cam = camIn;
+    if (frame_.taa) {
+        const unsigned k = (frameIndex_ % 8) + 1;
+        const float jx = (halton(k, 2) - 0.5f) * 2.0f / static_cast<float>(w);
+        const float jy = (halton(k, 3) - 0.5f) * 2.0f / static_cast<float>(h);
+        cam.proj.at(0, 2) += jx;
+        cam.proj.at(1, 2) += jy;
+        // A point at view depth z moves by (jx, jy) * z / -z... in NDC: x_ndc += -jx (w = -z); in UV: -j / 2.
+        frame_.jitterUV[0] = -0.5f * jx;
+        frame_.jitterUV[1] = -0.5f * jy;
+    } else {
+        frame_.jitterUV[0] = frame_.jitterUV[1] = 0.0f;
+    }
+    ++frameIndex_;
+    frame_.cam = cam;
+    frame_.viewProj = camIn.proj * camIn.view;
+    frame_.viewProjJ = cam.proj * cam.view;
+
     if (frame_.hdr) {
         gatherPracticals(scene, cam);
         shadows_.ensure(q.moonShadowRes, q.spotShadowRes);
@@ -363,12 +487,13 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& cam, int w, int 
         }
     }
     timer_.begin("scene");
-    fb_.bindScene();
+    fb_.bindScene(true);
+    mrt_ = true;
     drawScene(scene, cam, w, h, s, st);
     timer_.end();
 }
 
-void Renderer::renderBloom() {
+void Renderer::renderBloom(GLuint source) {
     if (fb_.bloom.empty()) return;
     glBindVertexArray(emptyVao_);
     glDisable(GL_DEPTH_TEST);
@@ -377,7 +502,7 @@ void Renderer::renderBloom() {
     bloomDown_->set("uSrc", 0);
     bloomDown_->set("uThreshold", frame_.hdr ? 1.2f : 0.85f);
     glActiveTexture(GL_TEXTURE0);
-    GLuint src = fb_.resolved.tex;
+    GLuint src = source;
     for (size_t i = 0; i < fb_.bloom.size(); ++i) {
         fb_.bloom[i].bind();
         bloomDown_->set("uPrefilter", i == 0 ? 1 : 0);
@@ -398,46 +523,218 @@ void Renderer::renderBloom() {
     glDisable(GL_BLEND);
 }
 
+namespace {
+
+void bindTex(int unit, GLuint tex) {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, tex);
+}
+
+}  // namespace
+
+GLuint Renderer::renderCombine() {
+    timer_.begin("combine + ssr");
+    fb_.lit.bind();
+    combine_->use();
+    bindTex(0, fb_.resolved.tex);
+    bindTex(1, fb_.fog.tex);
+    bindTex(2, fb_.surface.tex);
+    bindTex(3, fb_.depthTex);
+    combine_->set("uScene", 0);
+    combine_->set("uFog", 1);
+    combine_->set("uSurface", 2);
+    combine_->set("uDepth", 3);
+    combine_->set("uMode", frame_.hdr ? 0 : (frame_.thermalPost ? 1 : 2));
+    combine_->set("uUseFog", frame_.fog ? 1 : 0);
+    combine_->set("uSsr", frame_.ssr ? 1 : 0);
+    combine_->set("uSsrSteps", frame_.ssrSteps);
+    combine_->set("uViewProj", frame_.viewProjJ);
+    combine_->set("uInvViewProj", inverse(frame_.viewProjJ));
+    combine_->set("uCamPos", frame_.cam.position);
+    combine_->set("uNearFar", frame_.cam.nearZ, frame_.cam.farZ);
+    combine_->set("uTime", frame_.time);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    timer_.end();
+    return fb_.lit.tex;
+}
+
+GLuint Renderer::renderTaa(GLuint current) {
+    if (!frame_.taa) {
+        historyValid_ = false;
+        return current;
+    }
+    timer_.begin("taa");
+    const int out = historyIndex_ ^ 1;
+    fb_.history[out].bind();
+    taa_->use();
+    bindTex(0, current);
+    bindTex(1, fb_.history[historyIndex_].tex);
+    bindTex(2, fb_.depthTex);
+    taa_->set("uCurrent", 0);
+    taa_->set("uHistory", 1);
+    taa_->set("uDepth", 2);
+    taa_->set("uReproject", prevViewProj_ * inverse(frame_.viewProjJ));
+    taa_->set("uJitterUV", frame_.jitterUV[0], frame_.jitterUV[1]);
+    taa_->set("uFeedback", 0.9f);
+    taa_->set("uReset", historyValid_ ? 0 : 1);
+    taa_->set("uNearFar", frame_.cam.nearZ, frame_.cam.farZ);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    historyIndex_ = out;
+    historyValid_ = true;
+    timer_.end();
+    return fb_.history[out].tex;
+}
+
+void Renderer::renderStatistics(GLuint image) {
+    timer_.begin("exposure / agc");
+    reduce_->use();
+    reduce_->set("uSrc", 0);
+    reduce_->set("uHeat", frame_.thermalPost ? 1 : 0);
+    reduce_->set("uLetterbox", frame_.settings.letterbox);
+    GLuint src = image;
+    for (size_t i = 0; i < fb_.reduce.size(); ++i) {
+        fb_.reduce[i].bind();
+        reduce_->set("uMode", i == 0 ? 0 : 1);
+        bindTex(0, src);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        src = fb_.reduce[i].tex;
+    }
+    // Eye / sensor adaptation: about 1.5 s for the exposure, faster (0.5 s) for the thermal AGC.
+    const int out = adaptIndex_ ^ 1;
+    fb_.adapt[out].bind();
+    adapt_->use();
+    bindTex(0, src);
+    bindTex(1, fb_.adapt[adaptIndex_].tex);
+    adapt_->set("uCurrent", 0);
+    adapt_->set("uPrevious", 1);
+    const float speed = frame_.thermalPost ? 2.0f : 0.7f;
+    adapt_->set("uRate", adaptValid_ ? 1.0f - std::exp(-frame_.dt * speed) : 1.0f);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    adaptIndex_ = out;
+    adaptValid_ = true;
+    timer_.end();
+}
+
+void Renderer::renderFlare() {
+    if (fb_.bloom.size() < 2) return;
+    timer_.begin("lens flare");
+    fb_.flare.bind();
+    flare_->use();
+    bindTex(0, fb_.bloom[1].tex);
+    flare_->set("uSrc", 0);
+    flare_->set("uThreshold", 0.35f);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    fb_.streak.bind();
+    streak_->use();
+    bindTex(0, fb_.bloom[0].tex);
+    streak_->set("uSrc", 0);
+    streak_->set("uThreshold", 0.6f);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    timer_.end();
+}
+
+GLuint Renderer::renderDof(GLuint image) {
+    timer_.begin("depth of field");
+    const RenderSettings& s = frame_.settings;
+    // Circle of confusion of an object at infinity, in pixels: scales with the frame height and strength.
+    const float apertureFull = 0.012f * static_cast<float>(fb_.height()) * s.dof;
+    fb_.dof.bind();
+    dof_->use();
+    bindTex(0, image);
+    bindTex(1, fb_.depthTex);
+    dof_->set("uSrc", 0);
+    dof_->set("uDepth", 1);
+    dof_->set("uNearFar", frame_.cam.nearZ, frame_.cam.farZ);
+    dof_->set("uFocus", s.focusDistance);
+    dof_->set("uAperture", apertureFull * 0.5f);
+    dof_->set("uMaxCoc", std::max(2.0f, apertureFull * 0.5f));
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    fb_.dofCombined.bind();
+    dofCombine_->use();
+    bindTex(0, image);
+    bindTex(1, fb_.dof.tex);
+    bindTex(2, fb_.depthTex);
+    dofCombine_->set("uSharp", 0);
+    dofCombine_->set("uBlur", 1);
+    dofCombine_->set("uDepth", 2);
+    dofCombine_->set("uNearFar", frame_.cam.nearZ, frame_.cam.farZ);
+    dofCombine_->set("uFocus", s.focusDistance);
+    dofCombine_->set("uAperture", apertureFull);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    timer_.end();
+    return fb_.dofCombined.tex;
+}
+
+void Renderer::adaptedStats(float out[4]) const {
+    glBindTexture(GL_TEXTURE_2D, fb_.adapt[adaptIndex_].tex);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, out);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     const RenderSettings& s = frame_.settings;
-    timer_.begin("resolve + bloom");
+    mrt_ = false;
+    timer_.begin("resolve");
     fb_.resolveScene();
-    const bool post = (frame_.hdr || frame_.thermalPost) && s.bloomOn;
-    if (post) renderBloom();
     timer_.end();
-
-    timer_.begin("composite");
-    glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
-    glViewport(0, 0, w, h);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     glDisable(GL_CULL_FACE);
     glBindVertexArray(emptyVao_);
+
+    GLuint image = renderCombine();
+    image = renderTaa(image);
+    const bool temporal = frame_.hdr || frame_.thermalPost;
+    if (temporal) renderStatistics(image);
+    const bool bloom = frame_.hdr && s.bloomOn;
+    timer_.begin("bloom");
+    if (bloom) renderBloom(image);
+    timer_.end();
+    if (frame_.flare) renderFlare();
+    if (frame_.dof) image = renderDof(image);
+
+    timer_.begin("composite");
+    glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
+    glViewport(0, 0, w, h);
+    glBindVertexArray(emptyVao_);
     composite_->use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, fb_.resolved.tex);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, fb_.bloom.empty() ? fb_.resolved.tex : fb_.bloom[0].tex);
-    const bool bloomUsed = post && !fb_.bloom.empty();
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, fb_.fog.tex);
-    glActiveTexture(GL_TEXTURE0);
+    bindTex(0, image);
+    bindTex(1, fb_.bloom.empty() ? whiteTex_ : fb_.bloom[0].tex);
+    bindTex(2, fb_.flare.tex);
+    bindTex(3, fb_.streak.tex);
+    bindTex(4, fb_.adapt[adaptIndex_].tex);
+    bindTex(5, fb_.depthTex);
     composite_->set("uScene", 0);
     composite_->set("uBloom", 1);
-    composite_->set("uFog", 2);
+    composite_->set("uFlare", 2);
+    composite_->set("uStreak", 3);
+    composite_->set("uStats", 4);
+    composite_->set("uDepth", 5);
     composite_->set("uMode", frame_.hdr ? 0 : (frame_.thermalPost ? 1 : 2));
-    composite_->set("uUseFog", frame_.fog ? 1 : 0);
-    composite_->set("uBloomStrength", !bloomUsed ? 0.0f : (frame_.hdr ? s.bloom * 0.12f : 0.5f));
+    composite_->set("uPalette", s.palette);
+    composite_->set("uBloomStrength", bloom && !fb_.bloom.empty() ? s.bloom * 0.12f : 0.0f);
+    composite_->set("uFlareStrength", frame_.flare ? 0.05f : 0.0f);
     composite_->set("uExposure", s.exposure * 1.5f);
+    composite_->set("uAutoExposure", s.autoExposureOn && adaptValid_ ? 1 : 0);
+    composite_->set("uKeyLog2", kExposureKeyLog2);
+    composite_->set("uEvRange", 1.5f);
     composite_->set("uTime", time);
     composite_->set("uGrain", 0.03f);
     composite_->set("uVignette", 0.55f);
     composite_->set("uFade", s.fade);
     composite_->set("uLetterbox", s.letterbox);
+    const bool blur = frame_.hdr && s.motionBlur > 0.0f && qualityProfile(s.quality).motionBlur && historyValid_;
+    composite_->set("uMotionBlur", blur ? s.motionBlur : 0.0f);
+    composite_->set("uReproject", prevViewProj_ * inverse(frame_.viewProjJ));
+    composite_->set("uNearFar", frame_.cam.nearZ, frame_.cam.farZ);
+    composite_->set("uShutter", s.nucShutter);
+    composite_->set("uSensorNoise", 0.035f);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_CULL_FACE);
     timer_.end();
     timer_.endFrame();
+    prevViewProj_ = frame_.viewProj;  // unjittered: the TAA history is kept on the unjittered pixel grid
 }
 
 }  // namespace ts

@@ -1,0 +1,65 @@
+t=  0.0 uav=SEARCH    pos(-0.00, 5.50,11.00) blobs=0 found=0 rover=EXPOSED ( 6.00, 7.50)
+t=  1.0 uav=SEARCH    pos(-0.90, 6.34,10.81) blobs=0 found=0 rover=EXPOSED ( 6.06, 7.71)
+t=  2.0 uav=SEARCH    pos(-3.04, 6.77,10.65) blobs=0 found=0 rover=EXPOSED ( 6.57, 7.86)
+t=  3.0 uav=SEARCH    pos(-5.33, 7.01,10.16) blobs=0 found=0 rover=EXPOSED ( 7.27, 7.76)
+t=  4.0 uav=SEARCH    pos(-7.54, 6.99, 9.24) blobs=0 found=0 rover=EXPOSED ( 8.02, 7.74)
+t=  5.0 uav=SEARCH    pos(-9.51, 7.03, 7.93) blobs=0 found=0 rover=EXPOSED ( 8.75, 7.74)
+t=  6.0 uav=SEARCH    pos(-11.21, 6.98, 6.23) blobs=0 found=0 rover=EXPOSED ( 9.50, 7.75)
+t=  7.0 uav=SEARCH    pos(-12.54, 6.97, 4.23) blobs=0 found=0 rover=EXPOSED (10.25, 7.75)
+t=  8.0 uav=SEARCH    pos(-13.49, 7.00, 2.03) blobs=0 found=0 rover=EXPOSED (11.00, 7.76)
+t=  9.0 uav=SEARCH    pos(-14.00, 6.91,-0.31) blobs=0 found=0 rover=EXPOSED (11.68, 7.81)
+t= 10.0 uav=SEARCH    pos(-14.07, 6.87,-2.70) blobs=0 found=0 rover=EXPOSED (11.92, 8.20)
+t= 11.0 uav=SEARCH    pos(-13.71, 6.90,-5.05) blobs=0 found=0 rover=EXPOSED (12.41, 8.41)
+t= 12.0 uav=SEARCH    pos(-12.92, 7.00,-7.34) blobs=0 found=0 rover=EXPOSED (12.70, 8.44)
+t= 13.0 uav=SEARCH    pos(-11.75, 6.94,-9.41) blobs=0 found=0 rover=EXPOSED (12.98, 8.83)
+t= 14.0 uav=SEARCH    pos(-10.23, 7.11,-11.24) blobs=0 found=0 rover=EXPOSED (12.76, 9.40)
+t= 15.0 uav=SEARCH    pos(-8.42, 7.27,-12.78) blobs=0 found=0 rover=EXPOSED (12.74,10.09)
+t= 16.0 uav=SEARCH    pos(-6.37, 7.17,-13.97) blobs=0 found=0 rover=EXPOSED (12.76,10.84)
+t= 17.0 uav=SEARCH    pos(-4.14, 7.01,-14.78) blobs=0 found=0 rover=EXPOSED (13.01,11.25)
+t= 18.0 uav=SEARCH    pos(-1.80, 6.92,-15.20) blobs=0 found=0 rover=EXPOSED (13.62,11.27)
+t= 19.0 uav=SEARCH    pos( 0.57, 6.82,-15.19) blobs=0 found=0 rover=HIDDEN  (14.24,11.21)
+t= 20.0 uav=SEARCH    pos( 2.91, 6.80,-14.77) blobs=0 found=0 rover=HIDDEN  (14.24,11.21)
+t= 21.0 uav=SEARCH    pos( 5.14, 6.84,-13.94) blobs=0 found=0 rover=HIDDEN  (14.24,11.21)
+t= 22.0 uav=SEARCH    pos( 7.19, 6.87,-12.73) blobs=0 found=0 rover=HIDDEN  (14.24,11.21)
+t= 23.0 uav=SEARCH    pos( 9.00, 6.98,-11.16) blobs=0 found=0 rover=HIDDEN  (14.41,11.12)
+t= 24.0 uav=SEARCH    pos(10.49, 6.82,-9.29) blobs=0 found=0 rover=HIDDEN  (14.52,11.01)
+t= 25.0 uav=SEARCH    pos(11.61, 6.95,-7.18) blobs=0 found=0 rover=HIDDEN  (14.52,11.01)
+t= 26.0 uav=SEARCH    pos(12.32, 6.99,-4.88) blobs=0 found=0 rover=HIDDEN  (14.52,11.01)
+t= 27.0 uav=TRACK     pos(12.71, 6.67,-2.54) blobs=1 found=1 rover=EXPOSED (14.64,10.68)
+t= 28.0 uav=TRACK     pos(13.23, 6.18,-0.25) blobs=1 found=1 rover=EXPOSED (14.51,10.41)
+t= 29.0 uav=TRACK     pos(13.87, 5.61, 1.99) blobs=1 found=1 rover=EXPOSED (14.21,10.40)
+t= 30.0 uav=TRACK     pos(14.50, 4.90, 4.11) blobs=1 found=1 rover=EXPOSED (13.63,10.28)
+t= 31.0 uav=TRACK     pos(14.54, 4.60, 4.92) blobs=1 found=1 rover=EXPOSED (12.90,10.24)
+t= 32.0 uav=TRACK     pos(14.48, 4.46, 5.33) blobs=1 found=1 rover=EXPOSED (12.15,10.24)
+t= 33.0 uav=TRACK     pos(14.31, 4.42, 5.63) blobs=0 found=0 rover=EXPOSED (11.40,10.24)
+t= 34.0 uav=REACQUIRE pos(14.50, 4.42, 5.79) blobs=1 found=1 rover=EXPOSED (10.75,10.27)
+t= 35.0 uav=TRACK     pos(14.47, 4.41, 6.16) blobs=3 found=1 rover=EXPOSED (10.28,10.31)
+t= 36.0 uav=TRACK     pos(14.45, 4.43, 6.65) blobs=2 found=0 rover=EXPOSED ( 9.82,10.16)
+t= 37.0 uav=TRACK     pos(14.46, 4.43, 6.88) blobs=5 found=1 rover=EXPOSED ( 9.83, 9.84)
+t= 38.0 uav=TRACK     pos(14.65, 4.46, 6.99) blobs=3 found=1 rover=EXPOSED (10.25, 9.54)
+t= 39.0 uav=TRACK     pos(14.80, 4.56, 7.07) blobs=2 found=1 rover=EXPOSED (10.25, 8.91)
+t= 40.0 uav=TRACK     pos(14.94, 4.60, 6.89) blobs=1 found=1 rover=EXPOSED (10.21, 8.24)
+t= 41.0 uav=TRACK     pos(15.00, 4.61, 6.83) blobs=2 found=1 rover=EXPOSED ( 9.94, 7.90)
+t= 42.0 uav=TRACK     pos(14.90, 4.59, 6.85) blobs=5 found=1 rover=EXPOSED ( 9.77, 7.30)
+t= 43.0 uav=TRACK     pos(14.92, 4.61, 6.93) blobs=1 found=0 rover=EXPOSED ( 9.52, 6.90)
+shot scene_thermal at t=43.9995 stat_mean=0.134231 draws=980 tris=5871508
+shot cine_establishing at t=43.9995 stat_mean=-6.16262 draws=1715 tris=5877988
+shot cine_gate at t=43.9995 stat_mean=-5.15014 draws=1370 tris=5750464
+shot cine_chase at t=43.9995 stat_mean=-6.45864 draws=1481 tris=5784892
+shot cine_low_angle at t=43.9995 stat_mean=-4.81561 draws=1318 tris=5733892
+shot thermal_fpv at t=43.9995 stat_mean=0.1634 draws=250 tris=5571568
+shot thermal_fpv_whitehot at t=43.9995 stat_mean=0.1634 draws=250 tris=5571568
+shot thermal_fpv_zoom at t=43.9995 stat_mean=0.179644 draws=158 tris=5542000
+shot walk_bunker at t=43.9995 stat_mean=-5.27767 draws=1360 tris=5757808
+shot walk_forest at t=43.9995 stat_mean=-6.44379 draws=1136 tris=5636956
+shot walk_meadow at t=43.9995 stat_mean=-5.96099 draws=1464 tris=5797168
+shot walk_rain_puddles at t=43.9995 stat_mean=-4.87029 draws=743 tris=6510568
+t= 44.0 uav=TRACK     pos(14.69, 4.57, 7.10) blobs=0 found=0 rover=EXPOSED ( 9.26, 6.49)
+t= 45.0 uav=TRACK     pos(14.57, 4.50, 7.24) blobs=0 found=0 rover=HIDDEN  ( 9.25, 5.79)
+t= 46.0 uav=REACQUIRE pos(14.42, 4.53, 7.70) blobs=0 found=0 rover=HIDDEN  ( 9.24, 5.11)
+t= 47.0 uav=REACQUIRE pos(13.73, 4.67, 8.74) blobs=0 found=0 rover=HIDDEN  ( 9.37, 4.59)
+t= 48.0 uav=REACQUIRE pos(12.97, 4.49, 9.93) blobs=0 found=0 rover=EXPOSED ( 9.80, 4.38)
+t= 49.0 uav=REACQUIRE pos(12.21, 4.41,10.87) blobs=0 found=0 rover=HIDDEN  ( 9.89, 3.93)
+t= 50.0 uav=REACQUIRE pos(11.70, 4.41,11.97) blobs=0 found=0 rover=HIDDEN  ( 9.89, 3.92)
+t= 51.0 uav=REACQUIRE pos( 9.71, 4.35,12.08) blobs=0 found=0 rover=HIDDEN  ( 9.89, 3.92)
+shot thermal_fpv_hidden at t=51.9994 stat_mean=0.184927 draws=570 tris=5730784

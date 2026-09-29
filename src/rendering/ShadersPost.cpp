@@ -35,7 +35,7 @@ uniform vec2 uResolution;
 uniform vec3 uMoonDir;       // direction the moonlight travels
 uniform vec3 uFogColor;
 uniform float uRain;          // overcast: clouds close, stars and moon glow fade
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
 vec3 stars(vec3 dir, float scale, float threshold, float gain) {
     vec2 uv = vec2(atan(dir.z, dir.x), asin(clamp(dir.y, -1.0, 1.0))) * scale;
@@ -49,30 +49,85 @@ vec3 stars(vec3 dir, float scale, float threshold, float gain) {
     return tint * smoothstep(0.09, 0.0, d) * (h - threshold) / (1.0 - threshold) * gain * twinkle;
 }
 
+// Five-octave fbm for the cumulus layer (the shared fbm has four).
+float fbm5(vec2 p) {
+    float s = 0.0, a = 0.5;
+    for (int i = 0; i < 5; ++i) { s += a * valueNoise(p); p = p * 2.03 + vec2(17.1, 9.7); a *= 0.5; }
+    return s;
+}
+
+// Cumulus density at a sky direction (plane projection 1 km up, drifting with the wind).
+float cumulusDensity(vec2 cp, float cover) {
+    float n = fbm5(cp) * 0.8 + 0.3 * valueNoise(cp * 6.0 + 3.0);
+    return smoothstep(0.55 - cover, 0.80 - cover * 0.6, n);
+}
+
 vec3 nightSky(vec3 dir) {
     float up = dir.y;
     vec3 toMoon = normalize(-uMoonDir);
-    float cosMoon = dot(dir, toMoon);
-    vec3 zenith = vec3(0.0020, 0.0032, 0.0085), horizon = vec3(0.018, 0.024, 0.040);
+    float cosMoon = clamp(dot(dir, toMoon), -1.0, 1.0);
+    float theta = acos(cosMoon);                                     // angular distance to the moon centre
+    vec3 moonCool = vec3(0.78, 0.86, 1.0);                           // cool white moonlight tint
+    float clear = 1.0 - 0.9 * uRain;
+
+    // Atmosphere: deep-blue zenith, faint airglow band above the horizon, moonlit haze on the moon side
+    vec3 zenith = vec3(0.0022, 0.0034, 0.0075), horizon = vec3(0.020, 0.027, 0.042);
     vec3 c = mix(horizon, zenith, pow(smoothstep(-0.02, 0.75, up), 0.6));
-    c += vec3(0.020, 0.024, 0.034) * pow(max(cosMoon, 0.0), 6.0);             // moonlit haze
-    c += vec3(0.10, 0.11, 0.13) * pow(max(cosMoon, 0.0), 180.0);             // halo
+    c += vec3(0.0015, 0.0048, 0.0085) * exp(-max(up, 0.0) * 7.0) * smoothstep(-0.1, 0.02, up);   // airglow
+    vec2 azim = normalize(vec2(toMoon.x, toMoon.z) + 1e-5);
+    float sideAz = max(dot(normalize(dir.xz + 1e-5), azim), 0.0);
+    c += moonCool * vec3(0.012, 0.014, 0.019) * pow(sideAz, 3.0) * exp(-max(up, 0.0) * 5.0) * clear;  // horizon glow to the moon
+    c += moonCool * 0.018 * pow(max(cosMoon, 0.0), 6.0) * clear;                                    // wide moonlit haze
+
+    // Moon halo: tight glow + wide aureole (the disc itself is the emissive "Moon" sphere)
+    float halo = 0.55 * exp(-theta * 55.0) + 0.05 * exp(-theta * 14.0) + 0.012 * exp(-theta * 4.0);
+    c += moonCool * halo * (0.25 + 0.75 * clear);
+
+    vec3 cloudLight = vec3(0.0);
+    float cloudAlpha = 0.0;
     if (up > -0.02) {
-        // Milky Way: a noisy band along a tilted great circle
+        float horizonFade = smoothstep(0.0, 0.2, up);
+        // Milky Way: tilted band, warm core / blue arms, dark dust lanes
         vec3 axis = normalize(vec3(0.35, 0.25, -0.9));
         float band = exp(-pow(dot(dir, axis) / 0.22, 2.0));
-        vec2 bp = vec2(atan(dir.z, dir.x) * 3.0, dir.y * 5.0);
+        vec3 gu = normalize(cross(axis, vec3(0.0, 1.0, 0.0)));                         // galactic frame: no pole singularity on the band
+        vec2 bp = vec2(atan(dot(dir, cross(axis, gu)), dot(dir, gu)) * 3.0, dot(dir, axis) * 5.0);
         float dust = fbm(bp * 2.0) * (0.55 + 0.45 * fbm(bp * 6.0 + 4.0));
-        c += vec3(0.020, 0.021, 0.028) * band * dust * smoothstep(0.0, 0.3, up);
-        float vis = smoothstep(0.02, 0.2, up) * (1.0 - smoothstep(0.96, 0.995, cosMoon)) * (1.0 - uRain);
+        float lane = smoothstep(0.42, 0.62, fbm(bp * 3.0 + 11.0)) * band;                  // dark lanes cut the band
+        vec3 mwCol = mix(vec3(0.020, 0.024, 0.036), vec3(0.030, 0.026, 0.022), smoothstep(0.35, 0.7, fbm(bp + 20.0)));
+        c += mwCol * band * dust * (1.0 - 0.75 * lane) * horizonFade * clear;
+
+        // Clouds. Cumulus (lower, broken) and cirrus (high, thin), drifting; denser in rain.
+        float cover = 0.06 + 0.22 * uRain;
+        vec2 wind = vec2(uTime * 0.010, uTime * 0.004);
+        vec2 cp = dir.xz / (up + 0.10) * 0.9 + wind;
+        float dens = cumulusDensity(cp, cover);
+        vec2 mo = normalize(toMoon.xz + 1e-5) * 0.12 / (1.0 + 3.0 * max(toMoon.y, 0.0));
+        float densM = cumulusDensity(cp + mo, cover);                                      // toward the moon
+        float edge = clamp((dens - densM) * 3.0 + 0.35 * (1.0 - dens), 0.0, 1.0);          // lit rims, dark bases
+        float fwd = pow(max(cosMoon, 0.0), 10.0);                                          // silver lining
+        float moonUp = smoothstep(-0.05, 0.3, toMoon.y);
+        vec3 cumCol = vec3(0.0035, 0.0045, 0.0075) + moonCool * (0.020 * edge * (0.4 + moonUp) + 0.14 * fwd * (0.3 + edge) * moonUp)
+                      + vec3(0.004, 0.005, 0.007) * (1.0 - dens);
+        cumCol *= 1.0 - 0.3 * uRain;
+        float cumA = dens * smoothstep(0.02, 0.22, up) * (0.9 + 0.1 * uRain);
+
+        vec2 rp = vec2(dir.x, dir.z) / (up + 0.25) * vec2(0.6, 2.2) + wind * 1.8 + 5.0;
+        float cirrus = smoothstep(0.50 - 0.2 * uRain, 0.85, fbm(rp) * 0.9 + 0.25 * fbm(rp * 3.7));
+        float cirA = cirrus * 0.35 * smoothstep(0.03, 0.3, up);
+        vec3 cirCol = vec3(0.006, 0.0075, 0.012) + moonCool * (0.03 * pow(max(cosMoon, 0.0), 8.0) * moonUp + 0.004);
+
+        cloudAlpha = 1.0 - (1.0 - cumA) * (1.0 - cirA);
+        cloudLight = (cumCol * cumA + cirCol * cirA * (1.0 - cumA)) / max(cloudAlpha, 1e-4);
+
+        // Stars fade near the horizon, near the moon and behind clouds
+        float vis = smoothstep(0.02, 0.22, up) * (1.0 - smoothstep(0.94, 0.995, cosMoon)) * (1.0 - uRain) * (1.0 - cloudAlpha);
         c += (stars(dir, 170.0, 0.975, 0.9) + stars(dir, 60.0, 0.992, 3.5) + band * stars(dir, 320.0, 0.94, 0.25)) * vis;
-        // Thin clouds on a plane 1 km up, drifting, silver-lined towards the moon
-        vec2 cp = dir.xz / max(up, 0.05) * 1.2 + vec2(uTime * 0.012, uTime * 0.004);
-        float cloud = smoothstep(0.52 - 0.45 * uRain, 0.85 - 0.3 * uRain, fbm(cp) * 0.75 + fbm(cp * 3.1) * 0.35);
-        vec3 cloudCol = vec3(0.010, 0.012, 0.018) + vec3(0.10, 0.10, 0.11) * pow(max(cosMoon, 0.0), 24.0);
-        c = mix(c, cloudCol * (1.0 - 0.5 * uRain), cloud * smoothstep(0.03, 0.25, up) * (0.85 + 0.15 * uRain));
+        c = mix(c, cloudLight, cloudAlpha);
     }
-    return mix(c, uFogColor, smoothstep(0.08, -0.05, up));   // horizon haze meets the fog colour
+    c = mix(c, uFogColor, smoothstep(0.08, -0.05, up));   // horizon haze meets the fog colour
+    c += (hash21(gl_FragCoord.xy) - 0.5) * 0.0008;         // dither: no banding in the dark gradient
+    return max(c, vec3(0.0));
 }
 
 void main() {
@@ -80,10 +135,9 @@ void main() {
     vec3 dir = normalize(p.xyz / p.w - uCamPos);
     float up = clamp(dir.y, -1.0, 1.0);
     vec2 q = gl_FragCoord.xy / uResolution - 0.5;
-    if (uViewMode == 0) {
-        float grain = (hash21(gl_FragCoord.xy + fract(uTime * 7.31) * 311.0) - 0.5) * 0.03;
-        vec3 c = thermalPalette(0.05 + 0.07 * (1.0 - smoothstep(-0.05, 0.6, up)) + grain);
-        FragColor = vec4(c * (1.0 - 0.6 * dot(q, q)), 1.0);
+    if (uViewMode == 0) {   // cold sky: apparent temperature rises towards the (warmer, denser) horizon air
+        float h = 0.03 + 0.06 * (1.0 - smoothstep(-0.05, 0.6, up)) + 0.02 * uRain;
+        FragColor = vec4(h, h, h, 1.0);
     } else if (uViewMode == 1 && uHdr == 1) {
         FragColor = vec4(nightSky(dir), 1.0);
     } else if (uViewMode == 1) {
@@ -358,60 +412,6 @@ void main() {
     s += texture(uSrc, vUV + vec2(-t.x, -t.y)).rgb + texture(uSrc, vUV + vec2(t.x, -t.y)).rgb +
          texture(uSrc, vUV + vec2(-t.x, t.y)).rgb + texture(uSrc, vUV + vec2(t.x, t.y)).rgb;
     Color = vec4(s / 16.0, 1.0);
-}
-)";
-
-// ---------------------------------------------------------------- Composite
-const char* kCompositeFrag = R"(
-in vec2 vUV;
-uniform sampler2D uScene;
-uniform sampler2D uBloom;
-uniform sampler2D uFog;
-uniform int uMode;            // 0 cinematic HDR (visible), 1 thermal sensor, 2 pass-through
-uniform int uUseFog;
-uniform float uBloomStrength;
-uniform float uExposure;
-uniform float uTime;
-uniform float uGrain;
-uniform float uVignette;
-uniform float uFade;          // dip to black between cinematic shots
-uniform float uLetterbox;     // fraction of the height covered by each black bar
-out vec4 FragColor;
-
-// ACES filmic curve (Narkowicz 2015 fit)
-vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
-
-vec4 finish(vec3 c) {
-    if (vUV.y < uLetterbox || vUV.y > 1.0 - uLetterbox) return vec4(0.0, 0.0, 0.0, 1.0);
-    return vec4(c * uFade, 1.0);
-}
-
-void main() {
-    vec3 c = texture(uScene, vUV).rgb;
-    if (uMode == 2) { FragColor = finish(c); return; }
-    vec2 q = vUV - 0.5;
-    float grain = hash21(gl_FragCoord.xy + fract(uTime * 13.7) * 517.0) - 0.5;
-    if (uMode == 1) {   // thermal sensor: hot areas bloom on the detector, slight lens fringing
-        vec2 ca = q * 0.004;
-        c = vec3(texture(uScene, vUV + ca).r, c.g, texture(uScene, vUV - ca).b);
-        c += texture(uBloom, vUV).rgb * uBloomStrength * 0.6;
-        FragColor = finish(c + grain * uGrain * 0.5);
-        return;
-    }
-    if (uUseFog == 1) {
-        vec4 f = texture(uFog, vUV);
-        c = c * f.a + f.rgb;
-    }
-    c += texture(uBloom, vUV).rgb * uBloomStrength;
-    c *= uExposure;
-    // Colour grading before the curve: cool moonlit shadows, warm practical lights
-    float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    c = mix(c * vec3(0.92, 0.98, 1.12), c * vec3(1.08, 1.0, 0.9), smoothstep(0.05, 1.5, l));
-    c = aces(c);
-    c = pow(c, vec3(1.0 / 2.2));                            // linear -> sRGB (approx.)
-    c *= 1.0 - uVignette * dot(q, q) * 1.6;
-    c += grain * uGrain;
-    FragColor = finish(clamp(c, 0.0, 1.0));
 }
 )";
 
