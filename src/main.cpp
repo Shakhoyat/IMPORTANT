@@ -6,7 +6,7 @@
 //   ThermalSense --capture DIR               render the report screenshots into DIR
 //   ThermalSense --benchmark FILE            measure FPS per preset / feature into FILE
 //   ThermalSense --trace FILE SECONDS        log the UAV / rover behaviour (4 Hz) to a CSV file
-//   ThermalSense --record FILE SECONDS       cinematic video through ffmpeg
+//   ThermalSense --record FILE [SECONDS]     cinematic (default 120 s) video through ffmpeg
 // Common options: --quality low|high|ultra|epic, --size WxH, --headless (EGL, no window: remote GPU over SSH),
 //                 --gpu N (EGL device), --fullscreen, --fps 30|60, --encoder libx264|h264_nvenc|hevc_nvenc
 #include <cstdio>
@@ -33,7 +33,7 @@ void usage() {
         "modes:\n"
         "  (none)                       interactive simulation (F1 in the window lists the controls)\n"
         "  --capture DIR [--only a,b]   render the report figures\n"
-        "  --record FILE SECONDS        cinematic video (needs ffmpeg)\n"
+        "  --record FILE [SECONDS]      cinematic video, default 120 s (needs ffmpeg)\n"
         "  --benchmark FILE             FPS per preset + per-feature ablation + GPU pass times\n"
         "  --trace FILE SECONDS         UAV / rover behaviour log (4 Hz CSV)\n"
         "  --export-docs FILE           GPU-free export of every part, matrix and mesh\n"
@@ -72,12 +72,16 @@ int main(int argc, char** argv) {
         } else if (arg == "--record") {
             opt.mode = ts::AppOptions::Mode::Record;
             opt.outPath = value;
-            if (i + 2 < argc) opt.seconds = static_cast<float>(std::atof(argv[i + 2]));
+            opt.seconds = 120.0f;  // the director sequence is 120 s long
+            ++i;
+            if (i + 1 < argc && argv[i + 1][0] >= '0' && argv[i + 1][0] <= '9') {  // optional length in seconds
+                opt.seconds = static_cast<float>(std::atof(argv[i + 1]));
+                ++i;
+            }
             if (!opt.sizeGiven) {
                 opt.width = 1920;
                 opt.height = 1080;
             }
-            i += 2;
         } else if (arg == "--ffmpeg") {
             opt.ffmpeg = value;
             ++i;

@@ -1,4 +1,4 @@
-// Ground data map: a 512 x 512 RGBA texture over the terrain, computed once on the CPU from the scene layout
+// Ground data map: a 1024 x 1024 RGBA texture over the terrain, computed once on the CPU from the scene layout
 // (no image files). The terrain shader uses it to decide which ground material is where, and the grass
 // placement uses the same densities, so blades grow exactly where the ground is shaded as meadow.
 //   R  wetness     1 in the creek bed, fading up the banks
@@ -26,7 +26,7 @@ public:
 
 private:
     float sample(int channel, float x, float z) const;
-    static constexpr int kSize = 512;
+    static constexpr int kSize = 1024;
     std::vector<unsigned char> texels_;
     GLuint tex_ = 0;
 };

@@ -6,6 +6,8 @@
 
 #include "rendering/Renderer.h"
 #include "scene/Camera.h"
+#include "scene/Control.h"
+#include "scene/SceneApi.h"
 #include "scene/Scene.h"
 #include "vision/ThermalTracker.h"
 
@@ -42,6 +44,21 @@ public:
     void onScroll(double dy);
 
 private:
+    // Possession / control (Interactive.cpp, App.cpp).
+    void possess(int index);                 // take control of controllables()[index] (-1 = release)
+    void possessSlot(Slot slot);             // keys 5 6 7 8 9 0
+    void cyclePossession(int dir);           // [ and ]
+    void toggleSight();                      // C while possessed: chase <-> first-person sight
+    void interact();                         // Enter / Left Ctrl in walk mode: toggle the nearest door / barrier
+    void gatherControl(ControlInput& in, const ControlInput*& ip, int& index);  // who gets which input this step
+    void syncWalkWorld();                    // WalkSpace + dynamic obstacles into the walk camera
+    void forceStrike();                      // UAV fires a missile at the primary rover (director / capture)
+    void restartWorld(float warmUpSeconds);  // fresh deterministic scene (cinematic K, recorder)
+    void updateCombatFeed();                 // HUD feed lines from Combat / Scene counters
+    void drawPossessHud(const CameraView& cam, int w, int h);   // AppHud.cpp
+    void drawCombatFeed(int w, int h);
+    const char* possessedName() const;
+
     bool initWindow(bool visible);
     Quality autoQuality() const;
     void present();                                        // swap buffers (window) or flush (headless)
@@ -85,6 +102,20 @@ private:
     float rainTarget_ = 0.0f;  // R toggles; rain intensity eases towards it, wetness follows slowly
     bool paused_ = false, showHud_ = true, showFeed_ = true, showHelp_ = false, exploded_ = false;
     bool dragging_ = false;
+    // Possession state. possessed_ indexes sa::controllables(*scene_); possessedSlot_ is its Slot (or -1).
+    int possessed_ = -1, possessedSlot_ = -1;
+    CameraMode modeBeforePossess_ = CameraMode::Orbit;
+    ControlInput held_;                       // axes / held buttons sampled by the loop each frame
+    bool firePressedEdge_ = false, actionEdge_ = false;
+    float aimYawAcc_ = 0.0f, aimPitchAcc_ = 0.0f;   // mouse look since the last step, degrees
+    int interactIdx_ = -1;                    // door / barrier that gets one frame of actionPressed
+    float scriptClock_ = -1.0f;               // >= 0: seconds on the director's script clock (video, cinematic K, capture)
+    bool scriptFirePrev_ = false, scriptActionPrev_ = false, scriptStrikePrev_ = false;
+    float strikeTimer_ = -1.0f;               // > 0: keep the laser designator on the rover for the missile
+    struct FeedLine { std::string text; float time; };
+    std::vector<FeedLine> feed_;              // combat feed (newest last)
+    int feedMissiles_ = 0, feedScorches_ = 0, feedKills_ = -1;
+    float ammoMax_ = 0.0f;
     double lastX_ = 0, lastY_ = 0;
     double fps_ = 0.0;
     int screenshotCount_ = 0;

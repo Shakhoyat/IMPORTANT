@@ -18,7 +18,16 @@ inline const char* shadingName(ShadingModel s) {
 }
 
 // Procedural surface pattern evaluated in the fragment shader (no image textures are used).
-enum class Surface { Plain = 0, Concrete, Ground, Metal, Paint, Foliage, Bark, Rock, Wood, Sand, Rubber, Glass };
+enum class Surface {
+    Plain = 0, Concrete, Ground, Metal, Paint, Foliage, Bark, Rock, Wood, Sand, Rubber, Glass,
+    Corrugated,   // 12 ribbed sheet metal (containers, Quonset huts, sheds); ribs along world Y on walls
+    Hesco,        // 13 wire-mesh gabion filled with sand (HESCO bastion walls)
+    Hazard,       // 14 yellow / black diagonal warning stripes (base colour ignored)
+    Screen,       // 15 glowing display: map grid, radar sweep, status text bars (use emissive > 0)
+    Asphalt,      // 16 dark tarmac with aggregate, cracks and tyre polish
+    Camo,         // 17 woodland camouflage paint (3 colours mixed with the base colour)
+    SteelPlate,   // 18 heavy plate: panel seams, rivet rows, worn edges (blast doors, armour)
+};
 
 struct Material {
     Vec3 baseColor{0.5f, 0.5f, 0.5f};  // albedo under visible light

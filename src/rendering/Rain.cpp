@@ -48,6 +48,7 @@ in vec3 vWorld;
 uniform float uRainAmount;            // 0 .. 1
 layout(location = 0) out vec4 FragColor;
 void main() {
+    if (indoorMask(vWorld) > 0.3) discard;                         // no rain inside the bunker
     vec3 V = normalize(vWorld - uCamPos);                          // eye -> drop
     // Forward scattering: a drop between the eye and a light looks much brighter (refraction / glint).
     vec3 light = uSkyZenith * 0.6 + uMoonColor * 0.08 * (0.3 + pow(max(dot(V, -uMoonDir), 0.0), 8.0));
@@ -55,7 +56,7 @@ void main() {
     float ds = length(toSpot);
     float cone = clamp((dot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
     light += uSpotColor * cone * cone / (1.0 + uSpotAtt.x * ds + uSpotAtt.y * ds * ds) * 0.25 * (0.4 + 2.0 * pow(max(dot(V, toSpot / ds), 0.0), 6.0));
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);

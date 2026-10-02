@@ -1,6 +1,9 @@
 // Heads-up display: status text, heat scale, target marker, UAV camera feed, legend and help.
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 
 #include "app/App.h"
@@ -78,35 +81,237 @@ void App::drawUavFeed(int w, int h) {
 
 void App::drawHelp(int w, int h) {
     Hud& hud = renderer_->hud();
-    const float s = static_cast<float>(h) / 900.0f;
-    const char* lines[] = {
-        "MOUSE DRAG  orbit / look (L or R button in walk)   WHEEL  zoom",
-        "C  camera: orbit, free, chase, UAV camera, walk    K  cinematic",
-        "W A S D (+SHIFT run)  move: walk / free camera   PgUp PgDn  up/down",
+    const float s = std::min(static_cast<float>(h) / 900.0f, static_cast<float>(w) / 1300.0f);
+    const char* left[] = {
+        "VIEW & CAMERA",
+        "MOUSE DRAG  orbit / look      WHEEL  zoom",
+        "C  camera: orbit, free, chase, UAV, walk",
+        "K  cinematic director (restarts the world, ~2 min)",
+        "W A S D (+SHIFT run)  walk / free camera",
+        "PgUp PgDn  free camera up / down",
+        "ENTER / L-CTRL in walk  open / close nearest door",
         "V  view: thermal, visible, primitives, z-buffer",
-        "THERMAL: Y first-person / external   T palette   WHEEL zoom   Q NUC",
-        "X  edges: solid, hidden-line, x-ray wireframe",
-        "Z  depth test on/off     I  indexed/non-indexed",
-        "O F G P  shading: per-object, flat, gouraud, phong",
-        "1 2 3 4  moon / beacon / searchlight / practical lights",
-        "F5  quality LOW/HIGH/ULTRA/EPIC   B  PBR/Blinn-Phong",
-        "F6 TAA  F7 SSR  F8 flare  F9 auto-exposure  F10 depth of field",
-        "L  foliage   J  fireflies   N  v1 renderer   + -  exposure",
-        "R  rain on/off   E  explode composites   H  hierarchy axes",
-        "M  MicroMouse flood field + LFR guide line",
-        "U  UAV camera feed   TAB  HUD   SPACE  pause",
-        "F12  screenshot          ESC  quit",
+        "THERMAL: Y first-person  T palette  WHEEL zoom  Q NUC",
+        "X edges   Z depth test   I indexed   O F G P shading",
+        "1 2 3 4  moon / beacon / searchlight / practicals",
+        "F5 quality   F6 TAA  F7 SSR  F8 flare  F9 exposure",
+        "F10 DoF   L foliage   J fireflies   N v1   + - exposure",
+        "R rain   E explode   H axes   M flood field   B PBR",
+        "U UAV feed   TAB HUD   SPACE pause   F12 shot   ESC quit",
     };
-    const float lh = 22.0f * s, pw = 700.0f * s, ph = lh * 17.0f;
+    const char* right[] = {
+        "CONTROL (possess an object)",
+        "5 tank   6 helicopter   7 AA gun   8 radar",
+        "9 blast doors   0 UAV (manual drone)",
+        "[  ]  previous / next controllable (incl. gate)",
+        "BACKSPACE  release control",
+        "W S  drive / throttle     A D  steer / yaw",
+        "PgUp PgDn  lift (helicopter, UAV)",
+        "ARROWS or MOUSE DRAG  aim turret / gun / gimbal",
+        "ENTER or L-CTRL  fire (hold = automatic)",
+        "BACKSLASH  action: start / land, open / close, mode",
+        "SHIFT  boost",
+        "C  chase view <-> first-person sight",
+        "V T Y keep working while controlling",
+        "SPACE  pause",
+    };
+    const float lh = 21.0f * s, colW = 600.0f * s, pw = colW * 2.0f + 30.0f * s, ph = lh * 16.0f;
     const float x = (static_cast<float>(w) - pw) / 2, y = (static_cast<float>(h) - ph) / 2;
-    hud.rect(x - 12 * s, y - 12 * s, pw + 24 * s, ph + 24 * s, Rgba{0, 0, 0, 0.75f});
-    hud.text(x, y, "CONTROLS", 18 * s, kAmber);
-    for (size_t i = 0; i < sizeof(lines) / sizeof(lines[0]); ++i)
-        hud.text(x, y + lh * static_cast<float>(i + 1), lines[i], 15 * s, kWhite);
+    hud.rect(x - 12 * s, y - 12 * s, pw + 24 * s, ph + 24 * s, Rgba{0, 0, 0, 0.78f});
+    hud.text(x, y, "CONTROLS (F1)", 17 * s, kAmber);
+    for (size_t i = 0; i < sizeof(left) / sizeof(left[0]); ++i)
+        hud.text(x, y + lh * static_cast<float>(i + 1), left[i], 14 * s, i == 0 ? kAmber : kWhite);
+    for (size_t i = 0; i < sizeof(right) / sizeof(right[0]); ++i)
+        hud.text(x + colW + 30 * s, y + lh * static_cast<float>(i + 1), right[i], 14 * s, i == 0 ? kAmber : kWhite);
 }
 
 bool App::thermalFirstPerson() const {
+    if (camera_.mode == CameraMode::Possess)  // only the manual UAV's gimbal sight uses the FLIR view
+        return possessedSlot_ == static_cast<int>(Slot::Uav) && camera_.possessSight && settings_.view == ViewMode::Thermal;
     return settings_.view == ViewMode::Thermal && thermalFpv_ && camera_.mode != CameraMode::Cinematic;
+}
+
+namespace {
+
+void ring(Hud& hud, float cx, float cy, float r, int seg, Rgba c) {
+    for (int i = 0; i < seg; ++i) {
+        const float a0 = 6.2831853f * static_cast<float>(i) / static_cast<float>(seg);
+        const float a1 = 6.2831853f * static_cast<float>(i + 1) / static_cast<float>(seg);
+        hud.line(cx + std::cos(a0) * r, cy + std::sin(a0) * r, cx + std::cos(a1) * r, cy + std::sin(a1) * r, c);
+    }
+}
+
+// Number following 'key' in 'text' (e.g. "AMMO 18"), or -1.
+float parseAfter(const std::string& text, const char* key) {
+    const size_t p = text.find(key);
+    if (p == std::string::npos) return -1.0f;
+    return static_cast<float>(std::atof(text.c_str() + p + std::strlen(key)));
+}
+
+void bar(Hud& hud, float x, float y, float w, float h, float frac, const char* label, float s, Rgba c) {
+    hud.rect(x, y, w, h, Rgba{0, 0, 0, 0.5f});
+    hud.rect(x, y, w * clampf(frac, 0.0f, 1.0f), h, c);
+    hud.frame(x, y, w, h, kDim);
+    hud.text(x + w + 6 * s, y - 1 * s, label, h, kDim);
+}
+
+}  // namespace
+
+void App::drawCombatFeed(int w, int h) {
+    Hud& hud = renderer_->hud();
+    const float s = static_cast<float>(h) / 900.0f;
+    const float W = static_cast<float>(w);
+    float y = (showFeed_ && camera_.mode != CameraMode::UavCamera ? 306.0f : 24.0f) * s;
+    char line[64];
+    const int kills = sa::kills(*scene_);
+    if (kills >= 0) {
+        std::snprintf(line, sizeof(line), "KILLS %d / %d", kills, static_cast<int>(sa::roverPositions(*scene_).size()));
+        hud.text(W - hud.textWidth(line, 15 * s) - 24 * s, y, line, 15 * s, kAmber);
+        y += 22 * s;
+    }
+    const float now = scene_->time();
+    for (auto it = feed_.rbegin(); it != feed_.rend(); ++it) {
+        const float age = now - it->time;
+        const float a = clampf(1.0f - (age - 5.5f) / 2.5f, 0.0f, 1.0f);
+        const bool kill = it->text == "TARGET DESTROYED";
+        const Rgba c = kill ? Rgba{kRed.r, kRed.g, kRed.b, a} : Rgba{kWhite.r, kWhite.g, kWhite.b, 0.9f * a};
+        hud.text(W - hud.textWidth(it->text, 13 * s) - 24 * s, y, it->text, 13 * s, c);
+        y += 18 * s;
+    }
+}
+
+// Possessed object: name / status / controls panel, sight reticles, tapes, ammo and reload bars.
+void App::drawPossessHud(const CameraView& cam, int w, int h) {
+    (void)cam;
+    const std::vector<Controllable*> list = sa::controllables(*scene_);
+    if (possessed_ < 0 || possessed_ >= static_cast<int>(list.size()) || !list[possessed_]) return;
+    const Controllable& c = *list[possessed_];
+    Hud& hud = renderer_->hud();
+    const float s = static_cast<float>(h) / 900.0f;
+    const float W = static_cast<float>(w), H = static_cast<float>(h), cx = W * 0.5f, cy = H * 0.5f;
+    const std::string status = c.status();
+    const CameraHint hint = c.camera(camera_.possessSight);
+    const Rgba fg{0.55f, 1.0f, 0.6f, 0.95f}, dim{0.55f, 1.0f, 0.6f, 0.55f};
+    char buf[96];
+
+    // Control panel (bottom centre).
+    const float pw = std::max(560.0f * s, hud.textWidth(c.controls(), 13 * s) + 30 * s);
+    const float px = cx - pw / 2, py = H - 128 * s;
+    hud.rect(px, py, pw, 100 * s, kPanel);
+    hud.frame(px, py, pw, 100 * s, dim);
+    hud.text(px + 12 * s, py + 8 * s, c.name(), 20 * s, kAmber);
+    const char* view = camera_.possessSight ? "SIGHT" : "CHASE";
+    hud.text(px + pw - hud.textWidth(view, 13 * s) - 12 * s, py + 12 * s, view, 13 * s, kDim);
+    hud.text(px + 12 * s, py + 38 * s, status, 15 * s, kWhite);
+    hud.text(px + 12 * s, py + 62 * s, c.controls(), 13 * s, kDim);
+    hud.text(px + 12 * s, py + 80 * s, "BACKSPACE release   C chase / sight   [ ] next", 12 * s, kDim);
+
+    // Ammo / reload bars parsed from the status line ("AMMO 18", "RELOAD 40%").
+    const float ammo = parseAfter(status, "AMMO "), reload = parseAfter(status, "RELOAD ");
+    float by = py - 20 * s;
+    if (ammo >= 0.0f) {
+        ammoMax_ = std::max(ammoMax_, ammo);
+        std::snprintf(buf, sizeof(buf), "AMMO %.0f", ammo);
+        bar(hud, px, by, 220 * s, 10 * s, ammoMax_ > 0.0f ? ammo / ammoMax_ : 0.0f, buf, 12 * s, ammo < 4.0f ? kRed : fg);
+        by -= 18 * s;
+    }
+    if (reload >= 0.0f) {
+        const float frac = reload > 1.0f ? reload / 100.0f : reload;
+        bar(hud, px, by, 220 * s, 10 * s, frac, frac >= 0.99f ? "READY" : "RELOAD", 12 * s, frac >= 0.99f ? fg : kAmber);
+    }
+
+    if (!camera_.possessSight || !hint.sight) return;
+    const int slot = possessedSlot_;
+    if (slot == static_cast<int>(Slot::Tank)) {
+        // Gunner's sight: optic vignette, cross with range stadia (hundreds of metres), lead marks.
+        const float rr = H * 0.46f;
+        hud.rect(0, 0, cx - rr, H, Rgba{0, 0, 0, 0.6f});
+        hud.rect(cx + rr, 0, cx - rr, H, Rgba{0, 0, 0, 0.6f});
+        ring(hud, cx, cy, rr, 72, dim);
+        hud.line(cx - rr, cy, cx - 24 * s, cy, fg);
+        hud.line(cx + 24 * s, cy, cx + rr, cy, fg);
+        hud.line(cx, cy - rr * 0.5f, cx, cy - 24 * s, fg);
+        hud.line(cx, cy + 24 * s, cx, cy + rr, fg);
+        hud.rect(cx - 1.5f * s, cy - 1.5f * s, 3 * s, 3 * s, fg);
+        for (int i = 1; i <= 6; ++i) {
+            const float y = cy + 24 * s + 30 * s * static_cast<float>(i);
+            const float half = (i % 2 ? 10.0f : 18.0f) * s;
+            hud.line(cx - half, y, cx + half, y, fg);
+            if (i % 2 == 0) {
+                std::snprintf(buf, sizeof(buf), "%d", i / 2 + 1);
+                hud.text(cx + 24 * s, y - 7 * s, buf, 13 * s, fg);
+            }
+        }
+        for (int i = 1; i <= 4; ++i) {
+            const float x = 60.0f * s * static_cast<float>(i);
+            hud.line(cx - x, cy - 5 * s, cx - x, cy + 5 * s, dim);
+            hud.line(cx + x, cy - 5 * s, cx + x, cy + 5 * s, dim);
+        }
+        hud.text(cx - rr + 20 * s, cy - rr + 40 * s, "GUNNER SIGHT  x8", 14 * s, fg);
+    } else if (slot == static_cast<int>(Slot::AaGun)) {
+        // Lead-ring reticle: two rings, tick marks, centre dot.
+        ring(hud, cx, cy, 44 * s, 48, fg);
+        ring(hud, cx, cy, 96 * s, 64, dim);
+        for (int i = 0; i < 4; ++i) {
+            const float a = 1.5707963f * static_cast<float>(i);
+            hud.line(cx + std::cos(a) * 96 * s, cy + std::sin(a) * 96 * s, cx + std::cos(a) * 124 * s, cy + std::sin(a) * 124 * s, fg);
+            hud.line(cx + std::cos(a) * 44 * s, cy + std::sin(a) * 44 * s, cx + std::cos(a) * 30 * s, cy + std::sin(a) * 30 * s, fg);
+        }
+        hud.rect(cx - 1.5f * s, cy - 1.5f * s, 3 * s, 3 * s, fg);
+        hud.text(cx + 100 * s, cy + 100 * s, "LEAD", 13 * s, fg);
+    } else if (slot == static_cast<int>(Slot::Helicopter)) {
+        // Horizon line from the view pitch, altitude tape (left), speed tape (right), heading.
+        const Vec3 d = normalize(hint.target - hint.eye);
+        const float pitchDeg = degrees(std::asin(clampf(d.y, -1.0f, 1.0f)));
+        const float ppd = H / hint.fovDeg;
+        const float hy = cy + pitchDeg * ppd;
+        hud.line(cx - 220 * s, hy, cx - 50 * s, hy, fg);
+        hud.line(cx + 50 * s, hy, cx + 220 * s, hy, fg);
+        for (int k = -2; k <= 2; ++k) {
+            if (k == 0) continue;
+            const float y = hy - static_cast<float>(k) * 10.0f * ppd;
+            hud.line(cx - 40 * s, y, cx + 40 * s, y, dim);
+            std::snprintf(buf, sizeof(buf), "%d", k * 10);
+            hud.text(cx + 46 * s, y - 7 * s, buf, 12 * s, dim);
+        }
+        hud.line(cx - 18 * s, cy, cx - 6 * s, cy, fg);
+        hud.line(cx + 6 * s, cy, cx + 18 * s, cy, fg);
+        hud.line(cx, cy - 6 * s, cx, cy - 18 * s, fg);
+        static Vec3 prev{};
+        static float prevT = -1.0f, speed = 0.0f;
+        const float t = scene_->time(), alt = c.position().y;
+        if (prevT >= 0.0f && t > prevT + 1e-4f) speed += (length(c.position() - prev) / (t - prevT) - speed) * 0.1f;
+        if (t != prevT) {
+            prev = c.position();
+            prevT = t;
+        }
+        const auto tape = [&](float x, float value, float step, const char* label, bool leftSide) {
+            const float top = cy - 150 * s, bot = cy + 150 * s, ppu = (bot - top) / (step * 8.0f);
+            hud.line(x, top, x, bot, dim);
+            for (int k = -4; k <= 4; ++k) {
+                const float v = std::round(value / step) * step + static_cast<float>(k) * step;
+                const float y = cy - (v - value) * ppu;
+                if (y < top || y > bot) continue;
+                hud.line(x, y, x + (leftSide ? -8 : 8) * s, y, fg);
+                std::snprintf(buf, sizeof(buf), "%.0f", v);
+                hud.text(leftSide ? x - 14 * s - hud.textWidth(buf, 12 * s) : x + 12 * s, y - 6 * s, buf, 12 * s, dim);
+            }
+            std::snprintf(buf, sizeof(buf), "%s %.0f", label, value);
+            hud.rect(leftSide ? x - 86 * s : x + 4 * s, cy - 10 * s, 82 * s, 20 * s, Rgba{0, 0, 0, 0.55f});
+            hud.frame(leftSide ? x - 86 * s : x + 4 * s, cy - 10 * s, 82 * s, 20 * s, fg);
+            hud.text(leftSide ? x - 82 * s : x + 8 * s, cy - 8 * s, buf, 13 * s, fg);
+        };
+        tape(cx - 280 * s, alt, 5.0f, "ALT", true);
+        tape(cx + 280 * s, speed, 5.0f, "SPD", false);
+        const float hdg = std::fmod(degrees(std::atan2(d.x, d.z)) + 360.0f, 360.0f);
+        std::snprintf(buf, sizeof(buf), "HDG %03.0f", hdg);
+        hud.text(cx - hud.textWidth(buf, 14 * s) / 2, 40 * s, buf, 14 * s, fg);
+    } else {  // generic sight: open cross
+        hud.line(cx - 30 * s, cy, cx - 8 * s, cy, fg);
+        hud.line(cx + 8 * s, cy, cx + 30 * s, cy, fg);
+        hud.line(cx, cy - 30 * s, cx, cy - 8 * s, fg);
+        hud.line(cx, cy + 8 * s, cx, cy + 30 * s, fg);
+    }
 }
 
 // First-person thermal (FLIR-style) overlay: white symbology, compass tape, gimbal scales, telemetry, target box.
@@ -291,6 +496,7 @@ void App::drawHud(const CameraView& cam, int w, int h) {
     hud.setPalette(settings_.palette);
     if (thermalFirstPerson()) {
         drawThermalFpvHud(cam, w, h);
+        drawCombatFeed(w, h);
         if (paused_) hud.text(w * 0.5f - 40 * h / 900.0f, 110.0f * h / 900.0f, "PAUSED", 20 * h / 900.0f, kAmber);
         if (showHelp_) drawHelp(w, h);
         hud.end();
@@ -301,7 +507,7 @@ void App::drawHud(const CameraView& cam, int w, int h) {
     char line[160];
 
     hud.text(22 * s, 18 * s, "THERMALSENSE", 26 * s, kWhite);
-    hud.text(22 * s, 48 * s, "AUTONOMOUS UAV PATROL  //  F1 HELP", 13 * s, kDim);
+    hud.text(22 * s, 48 * s, "MILITARY BASE  //  F1 HELP  //  5-0 CONTROL", 13 * s, kDim);
     std::snprintf(line, sizeof(line), "VIEW %-10s EDGES %-11s SHADING %s", viewModeName(settings_.view),
                   edgeModeName(settings_.edges), overrideName(settings_.shading));
     hud.text(22 * s, 74 * s, line, 14 * s, kWhite);
@@ -338,20 +544,21 @@ void App::drawHud(const CameraView& cam, int w, int h) {
     if (showFeed_ && camera_.mode != CameraMode::UavCamera) drawUavFeed(w, h);
 
     const DroneState& d = scene_->drone;
-    const RoverState& r = scene_->rover;
     std::snprintf(line, sizeof(line), "UAV   %-9s alt %.1f m  gimbal %+4.0f/%3.0f deg  est (%.1f, %.1f)",
                   droneModeName(d.mode), d.position.y, d.gimbalYawDeg, d.gimbalPitchDeg, d.targetEstimate.x,
                   d.targetEstimate.z);
     hud.text(22 * s, H - 70 * s, line, 14 * s, modeColor(d.mode));
-    std::string ir;
-    for (bool b : r.sensors) ir += b ? '#' : '.';
-    std::snprintf(line, sizeof(line), "ROVER %-9s %.2f m/s  IR [%s]  pos (%.1f, %.1f)", r.hidden ? "HIDDEN" : "EXPOSED",
-                  0.5f * (r.leftSpeed + r.rightSpeed), ir.c_str(), r.position.x, r.position.z);
-    hud.text(22 * s, H - 48 * s, line, 14 * s, r.hidden ? kGreen : kAmber);
+    const Vec3 rp = sa::primaryRover(*scene_);
+    const bool hidden = sa::roverHidden(*scene_);
+    std::snprintf(line, sizeof(line), "ROVER %-9s pos (%.1f, %.1f)   %d ON SITE", hidden ? "HIDDEN" : "EXPOSED", rp.x, rp.z,
+                  static_cast<int>(sa::roverPositions(*scene_).size()));
+    hud.text(22 * s, H - 48 * s, line, 14 * s, hidden ? kGreen : kAmber);
     const std::string rate = fps_ > 0.0 ? std::to_string(static_cast<int>(fps_ + 0.5)) + " FPS" : "OFFLINE RENDER";
     std::snprintf(line, sizeof(line), "%s   %d DRAW CALLS   %lld TRIANGLES", rate.c_str(),
                   stats_.drawCalls + cvStats_.drawCalls, stats_.triangles + cvStats_.triangles);
     hud.text(22 * s, H - 26 * s, line, 13 * s, kDim);
+    if (camera_.mode == CameraMode::Possess) drawPossessHud(cam, w, h);
+    drawCombatFeed(w, h);
     if (paused_) hud.text(W / 2 - 40 * s, 20 * s, "PAUSED", 20 * s, kAmber);
     if (showHelp_) drawHelp(w, h);
     hud.end();

@@ -25,32 +25,16 @@
 #include "scene/Camera.h"
 #include "scene/Scene.h"
 #include "vision/ThermalTracker.h"
+#include "TestKit.h"
 
 using namespace ts;
 
 namespace {
 
-struct Result {
-    std::string id, description, expected, observed;
-    bool pass;
-};
-std::vector<Result> g_results;
-
-void record(const std::string& id, const std::string& desc, const std::string& expected, const std::string& observed,
-            bool pass) {
-    g_results.push_back({id, desc, expected, observed, pass});
-    std::printf("[%s] %-5s %s\n      expected: %s\n      observed: %s\n", pass ? "PASS" : "FAIL", id.c_str(),
-                desc.c_str(), expected.c_str(), observed.c_str());
-}
-
-std::string fmt(const char* f, ...) {
-    char buf[512];
-    va_list args;
-    va_start(args, f);
-    std::vsnprintf(buf, sizeof(buf), f, args);
-    va_end(args);
-    return buf;
-}
+using testkit::fmt;
+using testkit::record;
+using testkit::Result;
+std::vector<Result>& g_results = testkit::results();
 
 struct Bounds {
     Vec3 min{1e9f, 1e9f, 1e9f}, max{-1e9f, -1e9f, -1e9f};
@@ -845,6 +829,7 @@ int main(int argc, char** argv) {
     testAgentsV2();
     testHeatTrail();
     testWalkCamera();
+    for (const auto& g : testkit::groups()) g.second();   // tests/test_*.cpp groups
     int failed = 0;
     for (const Result& r : g_results) failed += r.pass ? 0 : 1;
     std::printf("\n%zu tests, %d failed\n", g_results.size(), failed);

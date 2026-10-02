@@ -249,11 +249,28 @@ uniform int uSpotShadowOn;
 uniform int uMoonShafts;
 out vec4 Fog;
 
-// Practical lights (lamps, fire, floodlight): up to 8, windowed inverse-square falloff (smooth cut-off at range).
+// Practical lights (lamps, fire, floodlight, explosion flashes): up to 16.
+#define TS_MAX_PRACTICALS 16
 uniform int uPracticalCount;
-uniform vec4 uPracticalPos[8];    // xyz position, w range
-uniform vec4 uPracticalColor[8];  // rgb linear radiance scale
-uniform vec4 uPracticalDir[8];    // xyz spot axis, w cos(cone) (-2 = omni)
+uniform vec4 uPracticalPos[16];    // xyz position, w range
+uniform vec4 uPracticalColor[16];  // rgb linear radiance scale, w 1 = indoors
+uniform vec4 uPracticalDir[16];    // xyz spot axis, w cos(cone) (-2 = omni)
+// Indoor volumes (underground bunker): no sky light, no moon / beacon / searchlight, light from lamps on the
+// same side of the walls only, thin fog, no rain. Boxes come from the scene's WalkSpace (max 8).
+uniform int uIndoorCount;
+uniform vec3 uIndoorMin[8];
+uniform vec3 uIndoorMax[8];
+float indoorMask(vec3 P) {
+    float m = 0.0;
+    for (int i = 0; i < 8; ++i) {
+        if (i >= uIndoorCount) break;
+        vec3 a = uIndoorMin[i] - P, b = P - uIndoorMax[i];
+        float outside = max(max(max(a.x, b.x), max(a.y, b.y)), max(a.z, b.z));
+        m = max(m, 1.0 - smoothstep(-0.2, 0.2, outside));
+    }
+    return m;
+}
+
 float practicalAttenuation(int i, vec3 P, out vec3 L) {
     vec3 d = uPracticalPos[i].xyz - P;
     float dist = max(length(d), 1e-3);
@@ -290,7 +307,7 @@ float spotVisibility(vec3 p) {
 
 float density(vec3 p) {
     float n = valueNoise(p.xz * 0.18 + vec2(p.y * 0.25 + uTime * 0.05, uTime * 0.02));
-    return uDensity * exp(-max(p.y, 0.0) * uHeightFalloff) * (0.45 + 1.1 * n);
+    return uDensity * exp(-max(p.y, 0.0) * uHeightFalloff) * (0.45 + 1.1 * n) * (1.0 - 0.75 * indoorMask(p));
 }
 
 // [t0, t1] where the ray o + t d (0 <= t <= tMax) is inside the searchlight's outer cone.
@@ -332,12 +349,14 @@ void main() {
         if (i >= uSteps) break;
         vec3 p = uCamPos + dir * (stepLen * (float(i) + jitter));
         float sigma = density(p);
-        vec3 light = uAmbientFog + uMoonColor * moonVisibility(p) * phMoon;
+        float inside = indoorMask(p);
+        vec3 light = (uAmbientFog + uMoonColor * moonVisibility(p) * phMoon) * (1.0 - inside);
         vec3 toBeacon = uBeaconPos - p;
         float db = length(toBeacon);
-        light += uBeaconColor / (1.0 + uBeaconAtt.x * db + uBeaconAtt.y * db * db) / (4.0 * 3.14159265);
-        for (int k = 0; k < 8; ++k) {   // halos of the lamps, fire and floodlight in the mist
+        light += uBeaconColor / (1.0 + uBeaconAtt.x * db + uBeaconAtt.y * db * db) / (4.0 * 3.14159265) * (1.0 - inside);
+        for (int k = 0; k < TS_MAX_PRACTICALS; ++k) {   // halos of the lamps, fire, flashes in the mist
             if (k >= uPracticalCount) break;
+            if (abs(uPracticalColor[k].w - inside) > 0.5) continue;
             vec3 Lk;
             light += uPracticalColor[k].rgb * practicalAttenuation(k, p, Lk) * 0.12;
         }

@@ -1,5 +1,7 @@
 #include "rendering/Renderer.h"
 
+#include "objects/BaseLayout.h"
+
 #include "ai/DroneController.h"
 #include "objects/Terrain.h"
 #include "primitives/Cube.h"
@@ -102,6 +104,9 @@ bool Renderer::init() {
 #endif
 #ifdef TS_HAS_PARTICLES
     ok = ok && particles_.init();
+#endif
+#ifdef TS_HAS_EFFECTS
+    ok = ok && effects_.init();
 #endif
     if (!ok) return false;
 
@@ -216,7 +221,7 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uGroundBounce", kGroundBounce);
     sh.set("uFogColor", kFogColor);
     sh.set("uEmissiveScale", hdr ? 8.0f : 1.0f);
-    sh.set("uWorldRadius", kTerrainRadius);
+    sh.set("uWorldRadius", layout::kBaseRadius);
     setShadowUniforms(sh, s);
     sh.set("uGroundExtent", GroundMap::extent());
     sh.set("uTrailExtent", HeatTrail::kHalfExtent);
@@ -225,6 +230,7 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uRain", s.rain);
     sh.set("uGroundDetail", qualityProfile(s.quality).groundDetail ? 1 : 0);
     setPracticalUniforms(sh, hdr && s.practicalsOn);
+    setIndoorUniforms(sh);
     sh.set("uFogDensity", hdr ? 0.018f : 0.028f * 10.0f / kTerrainRadius);
     sh.set("uTime", scene.time());
     sh.set("uGrain", s.grain);
@@ -286,7 +292,7 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
         return buckets.back().second;
     };
     for (const SceneNode* n : scene.leaves()) {
-        if (n->primitive == PrimitiveType::BeamCone) continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         // The gimbal camera hangs below the airframe, so the UAV's own parts are outside its view.
         if ((s.view == ViewMode::HeatRaw || s.hideUav) && n->object == "Autonomous UAV") continue;
@@ -322,7 +328,7 @@ void Renderer::drawTranslucent(const Scene& scene, const CameraView& cam, int w,
     glDepthMask(GL_FALSE);
     glDisable(GL_CULL_FACE);
     for (const SceneNode* n : scene.leaves()) {
-        if (n->material.opacity >= 1.0f || !inFrustum(*n, frustum)) continue;
+        if (!n->visible || n->material.opacity >= 1.0f || !inFrustum(*n, frustum)) continue;
         Shader& sh = programFor(*n, s);
         if (&sh != bound) {
             sh.use();
@@ -390,7 +396,7 @@ void Renderer::drawWire(const Scene& scene, const CameraView& cam, const RenderS
     const Mat4 vp = cam.proj * cam.view;
     const Frustum frustum(vp);
     for (const SceneNode* n : scene.leaves()) {
-        if (n->primitive == PrimitiveType::BeamCone || n->name == "Moon") continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon") continue;
         if (!inFrustum(*n, frustum)) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         const bool terrain = n->primitive == PrimitiveType::TerrainDisc;
@@ -459,9 +465,11 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
             drawFoliage(scene, cam, w, h, s, st);
         }
         surfaceWrites(false);
+        if (s.edges == EdgeMode::Solid) drawEffects(scene, cam, w, h, s, st, false);
         drawTranslucent(scene, cam, w, h, s, st);
         drawRain(scene, cam, w, h, s, st);
         drawParticles(scene, cam, w, h, s, st);
+        if (s.edges == EdgeMode::Solid) drawEffects(scene, cam, w, h, s, st, true);
         drawBeam(scene, cam, s, st);
     }
     surfaceWrites(false);

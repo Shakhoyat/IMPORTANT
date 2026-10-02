@@ -74,7 +74,8 @@ if(MINGW)
 endif()
 
 # ---- CPU-only unit tests --------------------------------------------------------------------
-add_executable(tests tests/test_main.cpp ${CORE_SOURCES})
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS tests/*.cpp)
+add_executable(tests ${TEST_SOURCES} ${CORE_SOURCES})
 ts_common(tests)
 if(MINGW)
   target_link_libraries(tests PRIVATE -static -static-libgcc -static-libstdc++)

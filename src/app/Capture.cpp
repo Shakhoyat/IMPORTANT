@@ -19,6 +19,7 @@
 #endif
 #include <windows.h>
 #endif
+#include "objects/BaseLayout.h"
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
 #include "primitives/Sphere.h"
@@ -53,7 +54,18 @@ struct Shot {
     Follow follow = Follow::Action;
     float yaw = 100, pitch = 30, dist = 24;
     int width = 1600, height = 900;
+    // v4: free camera at fixed world positions (or relative to the strike point), and scripted events.
+    bool custom = false;        // camera at eye -> aim (CameraMode::Free), fov camFov
+    bool rel = false;           // eye / aim are offsets from the strike point (position of the first kill)
+    Vec3 eye{0, 0, 0}, aim{0, 0, 0};
+    float camFov = 50.0f;
+    float walkFeet = -1e9f;     // walk camera: floor level to start from (default: terrain)
+    float afterImpact = -1.0f;  // >= 0: taken this many seconds after the missile of the scripted strike detonated
 };
+
+// The scripted sequence (directorScript) starts on the simulation clock at kScriptStart: shots with
+// time = kScriptStart + t see the world exactly as the video does t seconds into the director sequence.
+constexpr float kScriptStart = 60.0f;
 
 Shot isolated(const char* file, const char* object, Follow f, float dist, float yaw, float pitch, bool exploded) {
     Shot s{file, 30.0f};
@@ -99,8 +111,8 @@ std::vector<Shot> shotList() {
     Shot p = n; p.file = "bunker_all_phong"; p.shading = ShadingOverride::Phong; add(p);
     Shot q{"hierarchy_axes", 44.0f}; q.view = ViewMode::Visible; q.axes = true; q.follow = Follow::Uav; q.dist = 2.2f; q.pitch = 15; q.yaw = 120; q.hud = false; add(q);
     for (const auto& [name, dt] : std::initializer_list<std::pair<const char*, float>>{
-             {"cine_establishing", 6.0f}, {"cine_gate", 14.0f}, {"cine_chase", 22.0f}, {"cine_ground", 30.0f},
-             {"cine_watchtower", 43.0f}, {"cine_thermal_wide", 50.0f}, {"cine_low_angle", 58.0f}}) {
+             {"cine_establishing", 6.0f}, {"cine_gate", 2.5f}, {"cine_chase", 34.0f}, {"cine_ground", 41.0f},
+             {"cine_watchtower", 70.0f}, {"cine_thermal_wide", 103.0f}, {"cine_low_angle", 95.0f}}) {  // v4 director times
         Shot c{name, 44.0f};
         c.director = dt;
         c.width = 1920;
@@ -109,7 +121,7 @@ std::vector<Shot> shotList() {
     }
     // Rain: the same cinematic shots and the thermal view in a downpour.
     for (const auto& [name, dt] : std::initializer_list<std::pair<const char*, float>>{
-             {"rain_gate", 14.0f}, {"rain_chase", 22.0f}, {"rain_low_angle", 58.0f}}) {
+             {"rain_gate", 2.5f}, {"rain_chase", 34.0f}, {"rain_low_angle", 95.0f}}) {
         Shot c{name, 44.0f};
         c.director = dt;
         c.width = 1920;
@@ -164,6 +176,86 @@ std::vector<Shot> shotList() {
     Shot t = r; t.file = "hide_ztest_off"; t.depthTest = false; t.feed = false; add(t);
     Shot th{"thermal_fpv_hidden", 52.0f}; th.fpv = true; th.width = 1920; th.height = 1080; add(th);
     Shot u{"plan_topdown", 52.0f}; u.plan = true; u.view = ViewMode::Visible; u.pitch = 85; u.yaw = 0; u.dist = 44; u.feed = false; u.follow = Follow::None; add(u);
+
+    // ---- v4: the military base (1920x1080, visible, no HUD unless noted) --------------------------------------------
+    using namespace layout;
+    auto v4 = [&](const char* file, float time) {
+        Shot x{file, time};
+        x.view = ViewMode::Visible;
+        x.hud = false;
+        x.feed = false;
+        x.width = 1920;
+        x.height = 1080;
+        return x;
+    };
+    auto cam = [&](Shot x, Vec3 eye, Vec3 aim, float fov) {
+        x.custom = true;
+        x.eye = eye;
+        x.aim = aim;
+        x.camFov = fov;
+        return x;
+    };
+    auto walkAt = [&](Shot x, float px, float pz, float yaw, float pitch, float feet = -1e9f) {
+        x.cam = CameraMode::Walk;
+        x.walkX = px;
+        x.walkZ = pz;
+        x.walkYaw = yaw;
+        x.walkPitch = pitch;
+        x.walkFeet = feet;
+        return x;
+    };
+    // Static views before the script starts (t < kScriptStart).
+    add(cam(v4("base_overview", 55.0f), {-34.0f, 24.0f, 50.0f}, {0.0f, 0.5f, 6.0f}, 52.0f));
+    add(cam(v4("base_gate", 56.0f), {7.0f, 1.9f, 46.5f}, {0.0f, 1.6f, 34.0f}, 52.0f));
+    add(cam(v4("helipad", 57.0f), {12.0f, 3.2f, 25.0f}, {20.3f, 1.2f, 17.0f}, 50.0f));  // B2 proposal
+    add(cam(v4("radar", 58.0f), {17.0f, 4.8f, -9.0f}, {29.0f, 5.0f, -3.0f}, 55.0f));  // B2 proposal
+    add(cam(v4("tank_closeup", 59.0f), kMotorPool + Vec3{-5.5f, 2.2f, 5.0f}, kMotorPool + Vec3{0, 1.2f, 0}, 44.0f));  // B1 proposal
+    // Inside the bunker (walk camera, 1.7 m eye height on the WalkSpace floors). Doors open at script time 12.5 s.
+    add(walkAt(v4("bunker_ramp", kScriptStart + 8.0f), 0.0f, 11.5f, 180.0f, -10.0f));
+    add(walkAt(v4("bunker_door", kScriptStart + 10.0f), 0.0f, 7.0f, 180.0f, 0.0f));
+    add(walkAt(v4("bunker_tunnel", kScriptStart + 20.0f), 0.0f, 2.5f, 180.0f, 0.0f, kBunkerFloorY));
+    add(walkAt(v4("bunker_cic", kScriptStart + 21.0f), 0.0f, -5.0f, 165.0f, 0.0f, kBunkerFloorY));
+    // Scripted controllables: the director's inputs drive the helicopter (18-38 s), tank (32-46 s), AA gun (46-54 s).
+    Shot ht = v4("heli_takeoff", kScriptStart + 28.0f);
+    ht.director = 28.0f;
+    add(ht);
+    Shot tf2 = v4("tank_fire", kScriptStart + 41.7f);
+    tf2.director = 41.7f;
+    add(tf2);
+    Shot ag = v4("aa_gun_burst", kScriptStart + 48.5f);
+    ag.director = 48.5f;
+    add(ag);
+    Shot ags = v4("aa_gun_sight", kScriptStart + 51.5f);
+    ags.director = 51.5f;
+    add(ags);
+    // The UAV strike (script time 81 s): missile launch, impact in thermal FPV, then the explosion at fixed delays.
+    Shot ml = v4("uav_missile_launch", kScriptStart + 81.3f);
+    ml.follow = Follow::Uav;
+    ml.dist = 7.0f;
+    ml.yaw = 140;
+    ml.pitch = 12;
+    add(ml);
+    Shot sf = v4("thermal_fpv_strike", 0.0f);
+    sf.director = 84.0f;
+    sf.afterImpact = 0.0f;
+    sf.width = 1920;
+    add(sf);
+    Shot e1 = cam(v4("explosion_early", 0.0f), {5.0f, 1.6f, 6.5f}, {0.0f, 1.2f, 0.0f}, 46.0f);
+    e1.rel = true;
+    e1.afterImpact = 0.15f;
+    add(e1);
+    Shot e2 = cam(v4("explosion_mid", 0.0f), {7.0f, 2.2f, 8.5f}, {0.0f, 1.8f, 0.0f}, 48.0f);
+    e2.rel = true;
+    e2.afterImpact = 1.0f;
+    add(e2);
+    Shot e3 = cam(v4("explosion_smoke", 0.0f), {10.0f, 3.0f, 12.0f}, {0.0f, 4.0f, 0.0f}, 52.0f);
+    e3.rel = true;
+    e3.afterImpact = 5.0f;
+    add(e3);
+    Shot e4 = cam(v4("wreck_burning", 0.0f), {3.2f, 1.0f, 4.2f}, {0.0f, 0.5f, 0.0f}, 42.0f);
+    e4.rel = true;
+    e4.afterImpact = 9.0f;
+    add(e4);
     return s;
 }
 
@@ -202,21 +294,53 @@ int App::captureMode() {
     RenderTarget target;
     float t = 0.0f;
     float nextLog = 0.0f;
-    for (const Shot& shot : shots) {
-        while (t + 0.5f * kStep < shot.time) {  // advance the real simulation
-            step(kStep);
-            t += kStep;
-            if (t >= nextLog) {
-                const DroneState& d = scene_->drone;
-                const RoverState& r = scene_->rover;
-                char buf[256];
-                std::snprintf(buf, sizeof(buf), "t=%5.1f uav=%-9s pos(%5.2f,%5.2f,%5.2f) blobs=%d found=%d rover=%s (%5.2f,%5.2f)\n",
-                              t, droneModeName(d.mode), d.position.x, d.position.y, d.position.z, detection_.blobCount,
-                              detection_.found, r.hidden ? "HIDDEN " : "EXPOSED", r.position.x, r.position.z);
-                log << buf;
-                nextLog += 1.0f;
-            }
+    float impactT = -1.0f;
+    Vec3 strikePoint{0, 0, 0};
+    // One simulation step with the capture log (rover / UAV trace once per simulated second).
+    auto stepLogged = [&]() {
+        if (t >= kScriptStart && scriptClock_ < 0.0f) scriptClock_ = 0.0f;  // the director script starts here
+        step(kStep);
+        t += kStep;
+        if (t >= nextLog) {
+            const DroneState& d = scene_->drone;
+            const Vec3 r = sa::primaryRover(*scene_);
+            char buf[256];
+            std::snprintf(buf, sizeof(buf), "t=%5.1f uav=%-9s pos(%5.2f,%5.2f,%5.2f) blobs=%d found=%d rover=%s (%5.2f,%5.2f)\n",
+                          t, droneModeName(d.mode), d.position.x, d.position.y, d.position.z, detection_.blobCount,
+                          detection_.found, sa::roverHidden(*scene_) ? "HIDDEN " : "EXPOSED", r.x, r.z);
+            log << buf;
+            nextLog += 1.0f;
         }
+    };
+    // The scripted strike detonates some seconds after script time 81 s: run until the missile is gone.
+    auto findImpact = [&]() {
+        while (t < kScriptStart + 81.5f) stepLogged();
+        bool seen = false;
+        float waited = 0.0f;
+        while (waited < 8.0f) {
+            const Combat* combat = sa::combat(*scene_);
+            bool flying = false;
+            if (combat)
+                for (const Projectile& p : combat->projectiles())
+                    if (p.alive && p.kind == ProjectileKind::Missile) flying = true;
+            if (flying) seen = true;
+            if (seen && !flying) break;
+            stepLogged();
+            waited += kStep;
+        }
+        strikePoint = sa::primaryRover(*scene_);
+        if (!seen || waited >= 8.0f) {  // no missile flew (no combat wired yet / timeout): detonate on the rover
+            if (Combat* combat = sa::combat(*scene_)) combat->explode(strikePoint, 1.0f, 0);
+        }
+        impactT = t;
+    };
+    for (const Shot& shot : shots) {
+        float shotTime = shot.time;
+        if (shot.afterImpact >= 0.0f) {
+            if (impactT < 0.0f) findImpact();
+            shotTime = impactT + shot.afterImpact;
+        }
+        while (t + 0.5f * kStep < shotTime) stepLogged();
         if (!opt_.only.empty() && opt_.only.find("," + std::string(shot.file) + ",") == std::string::npos) continue;
         settings_ = RenderSettings{};
         settings_.view = shot.view;
@@ -246,10 +370,11 @@ int App::captureMode() {
 
         camera_ = Camera{};
         camera_.mode = shot.cam;
+        syncWalkWorld();  // WalkSpace floors / walls and the closed doors for the walk camera
         thermalFpv_ = shot.fpv;
         thermalFovDeg_ = shot.fov;
         if (shot.cam == CameraMode::Walk) {
-            camera_.placeWalk(shot.walkX, shot.walkZ);
+            camera_.placeWalk(shot.walkX, shot.walkZ, shot.walkFeet);
             camera_.walkYawDeg = shot.walkYaw;
             camera_.walkPitchDeg = shot.walkPitch;
         }
@@ -257,11 +382,20 @@ int App::captureMode() {
         camera_.pitchDeg = shot.pitch;
         camera_.distance = shot.dist;
         if (shot.follow == Follow::Uav) camera_.target = transformPoint(scene_->uav().root->world, {0, 0, 0});
-        if (shot.follow == Follow::Rover) camera_.target = scene_->rover.position + Vec3{0, 0.2f, 0};
+        if (shot.follow == Follow::Rover) camera_.target = sa::primaryRover(*scene_) + Vec3{0, 0.2f, 0};
         if (shot.follow == Follow::Bunker) camera_.target = {0, 1.3f, 0};
         if (shot.follow == Follow::Action)  // between the bunker and the rover, so both agents are in frame
-            camera_.target = lerp(Vec3{0, 0.8f, 0}, scene_->rover.position, 0.45f) + Vec3{0, 0.6f, 0};
+            camera_.target = lerp(Vec3{0, 0.8f, 0}, sa::primaryRover(*scene_), 0.45f) + Vec3{0, 0.6f, 0};
 
+        if (shot.custom) {  // fixed camera: eye -> aim (offsets from the strike point when 'rel')
+            const Vec3 base = shot.rel ? strikePoint : Vec3{0, 0, 0};
+            const Vec3 eye = base + shot.eye, aim = base + shot.aim, d = aim - eye;
+            camera_.mode = CameraMode::Free;
+            camera_.freePos = eye;
+            camera_.freeYawDeg = degrees(std::atan2(d.x, d.z));
+            camera_.freePitchDeg = degrees(std::asin(clampf(d.y / std::max(length(d), 1e-4f), -1.0f, 1.0f)));
+            camera_.fovDeg = shot.camFov;
+        }
         if (shot.director >= 0.0f) {
             camera_.mode = CameraMode::Cinematic;
             camera_.directorTime = shot.director;
@@ -315,12 +449,13 @@ int App::traceMode() {
         step(kStep);
         if (i % 15 != 0) continue;  // 4 samples per second
         const DroneState& d = scene_->drone;
-        const RoverState& r = scene_->rover;
-        const Vec3 diff{d.targetEstimate.x - r.position.x, 0.0f, d.targetEstimate.z - r.position.z};
+        const Vec3 rpos = sa::primaryRover(*scene_);
+        const bool rhidden = sa::roverHidden(*scene_);
+        const Vec3 diff{d.targetEstimate.x - rpos.x, 0.0f, d.targetEstimate.z - rpos.z};
         const float err = detection_.found && d.hasEstimate ? length(diff) : -1.0f;
         // Diagnostics: where the rover's motor box projects in the UAV image and the hottest pixel seen.
         const CameraView cv = uavCameraView(*scene_, static_cast<float>(kCvWidth) / kCvHeight, kCvFovYDeg);
-        const Vec3 motor = r.position + Vec3{0, 0.33f, 0};
+        const Vec3 motor = rpos + Vec3{0, 0.33f, 0};
         const Vec4 c = (cv.proj * cv.view) * Vec4{motor.x, motor.y, motor.z, 1.0f};
         const float u = c.w > 0 ? c.x / c.w : 9.0f, v = c.w > 0 ? c.y / c.w : 9.0f;
         const bool inView = c.w > 0 && std::fabs(u) <= 1.0f && std::fabs(v) <= 1.0f;
@@ -329,9 +464,9 @@ int App::traceMode() {
         char buf[400];
         std::snprintf(buf, sizeof(buf),
                       "%.2f,%s,%d,%d,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.1f,%.1f,%.3f,%d,%.3f,%.3f,%.2f,%d\n",
-                      i * kStep, droneModeName(d.mode), detection_.found, detection_.blobCount, r.hidden, d.position.x,
-                      d.position.y, d.position.z, r.position.x, r.position.z, d.targetEstimate.x, d.targetEstimate.z,
-                      err, d.gimbalYawDeg, d.gimbalPitchDeg, 0.5f * (r.leftSpeed + r.rightSpeed), inView, u, v,
+                      i * kStep, droneModeName(d.mode), detection_.found, detection_.blobCount, rhidden, d.position.x,
+                      d.position.y, d.position.z, rpos.x, rpos.z, d.targetEstimate.x, d.targetEstimate.z,
+                      err, d.gimbalYawDeg, d.gimbalPitchDeg, sa::roverSpeed(*scene_), inView, u, v,
                       length(motor - cv.position), peak);
         f << buf;
     }

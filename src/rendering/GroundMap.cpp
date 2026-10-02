@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "objects/BaseLayout.h"
 #include "objects/Terrain.h"
 
 namespace ts {
@@ -45,9 +46,38 @@ std::vector<Crown> crowns(const Scene& scene) {
     return out;
 }
 
+// Packed gravel / dirt mask (0..1) of the apron: roads, pads, vehicle parks and the ground around buildings.
+float apronGravel(float x, float z) {
+    using namespace layout;
+    auto disc = [](float x0, float z0, float rad, float x1, float z1, float soft) {
+        const float d = std::sqrt((x1 - x0) * (x1 - x0) + (z1 - z0) * (z1 - z0));
+        return 1.0f - smooth01(rad, rad + soft, d);
+    };
+    auto rect = [&](float cx, float cz, float hx, float hz, float yawDeg, float soft) {
+        const float yw = radians(yawDeg), s = std::sin(yw), c = std::cos(yw);
+        const float dx = x - cx, dz = z - cz;
+        const float u = std::fabs(dx * c - dz * s) - hx, v = std::fabs(dx * s + dz * c) - hz;
+        const float d = std::sqrt(std::max(u, 0.0f) * std::max(u, 0.0f) + std::max(v, 0.0f) * std::max(v, 0.0f));
+        return 1.0f - smooth01(0.0f, soft, d);
+    };
+    float g = 0.0f;
+    if (z > 17.0f) g = std::max(g, rect(0.0f, 27.0f, kRoadHalfWidth + 0.8f, 10.0f, 0.0f, 1.2f));  // road + shoulders
+    g = std::max(g, rect(0.0f, 36.0f, 8.0f, 4.0f, 0.0f, 2.0f));                                    // checkpoint
+    g = std::max(g, disc(kHelipad.x, kHelipad.z, kHelipadRadius + 2.0f, x, z, 3.0f));
+    g = std::max(g, rect(kRadarSite.x, kRadarSite.z, 4.0f, 4.0f, 0.0f, 3.0f));
+    g = std::max(g, disc(kAaGunSite.x, kAaGunSite.z, 5.0f, x, z, 2.5f));
+    g = std::max(g, rect(kMotorPool.x + 1.0f, kMotorPool.z + 1.0f, 9.0f, 8.0f, kTankParkYawDeg, 3.0f));
+    g = std::max(g, rect(kFuelDepot.x + 3.0f, kFuelDepot.z, 8.0f, 5.0f, 0.0f, 3.0f));
+    g = std::max(g, rect(kBarracks.x, kBarracks.z, 6.5f, 11.5f, 0.0f, 3.0f));
+    // Service track along the wall's inside and the inner-gate yard.
+    const float r = std::sqrt(x * x + z * z);
+    g = std::max(g, 0.7f * (1.0f - smooth01(0.7f, 2.2f, std::fabs(r - 31.0f))));
+    return clampf(g, 0.0f, 1.0f);
+}
+
 }  // namespace
 
-float GroundMap::extent() { return kTerrainRadius + 7.0f; }
+float GroundMap::extent() { return layout::kBaseRadius; }
 
 GroundMap::~GroundMap() {
     if (tex_) glDeleteTextures(1, &tex_);
@@ -62,12 +92,12 @@ void GroundMap::build(const Scene& scene) {
             const float x = -E + (static_cast<float>(i) + 0.5f) / kSize * 2.0f * E;
             const float z = -E + (static_cast<float>(j) + 0.5f) / kSize * 2.0f * E;
             const float r = std::sqrt(x * x + z * z);
-            const bool disc = r <= kTerrainRadius;
+            const bool disc = r <= layout::kBaseRadius;
 
             // Creek bed: wet core, damp banks (only where the creek actually crosses the disc).
             const float dc = std::fabs(z - creekCentreZ(x));
-            float wet = disc ? 1.0f - smooth01(kCreekHalfWidth * 0.55f, kCreekHalfWidth * 1.6f, dc) : 0.0f;
-            wet = std::max(wet, 0.35f * (1.0f - smooth01(-0.25f, -0.05f, disc ? terrainHeight(x, z) : 0.0f)));
+            float wet = r <= kTerrainRadius ? 1.0f - smooth01(kCreekHalfWidth * 0.55f, kCreekHalfWidth * 1.6f, dc) : 0.0f;
+            wet = std::max(wet, 0.35f * (1.0f - smooth01(-0.25f, -0.05f, r <= kTerrainRadius ? terrainHeight(x, z) : 0.0f)));
 
             // Vehicle track from the north gate to the bunker door: soft-edged mask (the shader computes the
             // lateral position of the tyre ruts analytically from the same centre line).
@@ -78,6 +108,9 @@ void GroundMap::build(const Scene& scene) {
             }
 
             // Forest floor under the crowns.
+            const float apron = smooth01(18.5f, 21.0f, r);
+            const float gravel = apronGravel(x, z) * apron;
+            track = std::max(track, gravel * 0.85f);
             float forest = 0.0f;
             for (const Crown& c : trees) {
                 const float d = std::sqrt((x - c.x) * (x - c.x) + (z - c.z) * (z - c.z));
@@ -87,11 +120,13 @@ void GroundMap::build(const Scene& scene) {
             // Meadow: patchy, none on the bunker pad, the track or the wet bed; thinner under trees.
             float meadow = 0.3f + 0.9f * noise2(x * 0.35f + 11.0f, z * 0.35f - 4.0f) + 0.25f * noise2(x * 1.3f, z * 1.3f);
             meadow *= smooth01(4.2f, 5.6f, r);
+            meadow *= 1.0f - apron * 0.45f;                       // apron: patches only
+            if (std::fabs(x) < 3.2f && z > 3.0f && z < 14.5f) meadow = 0.0f;  // trench strip
             meadow *= 1.0f - 0.92f * track;
             meadow *= 1.0f - 0.85f * wet;
             meadow *= 1.0f - 0.75f * forest;
-            if (disc && terrainNormal(x, z).y < 0.93f) meadow *= 0.55f;
-            if (r > kTerrainRadius) meadow *= 1.0f - smooth01(kTerrainRadius, E, r) * 0.6f;
+            if (r < kTerrainRadius && terrainNormal(x, z).y < 0.93f) meadow *= 0.55f;
+            meadow *= 1.0f - smooth01(layout::kBaseRadius - 3.0f, E, r) * 0.6f;
             meadow = clampf(meadow, 0.0f, 1.0f);
 
             unsigned char* t = &texels_[(static_cast<size_t>(j) * kSize + i) * 4];

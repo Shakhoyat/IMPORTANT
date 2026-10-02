@@ -74,5 +74,6 @@ void Shader::set(const char* name, float x, float y) { glUniform2f(location(name
 void Shader::set(const char* name, const Mat4& m) { glUniformMatrix4fv(location(name), 1, GL_FALSE, m.m); }
 void Shader::set(const char* name, const Mat3& m) { glUniformMatrix3fv(location(name), 1, GL_FALSE, m.m); }
 void Shader::setVec4Array(const char* name, const float* v, int count) { glUniform4fv(location(name), count, v); }
+void Shader::setVec3Array(const char* name, const float* v, int count) { glUniform3fv(location(name), count, v); }
 
 }  // namespace ts

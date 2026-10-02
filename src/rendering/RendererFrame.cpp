@@ -1,8 +1,10 @@
 // The v2 frame: shadow maps, depth/normal pre-pass, SSAO, volumetric fog, HDR scene, bloom and composite.
 #include <algorithm>
 
+#include "objects/BaseLayout.h"
 #include "objects/Terrain.h"
 #include "rendering/Renderer.h"
+#include "rendering/SceneAccess.h"
 
 namespace ts {
 
@@ -87,7 +89,7 @@ void Renderer::computeLightMatrices(const Scene& scene, const CameraView& cam, c
     const float aspect = cam.proj.at(1, 1) / cam.proj.at(0, 0);
     frame_.split = q.cascadeSplit;
     const Sphere nearSlice = frustumSliceSphere(inverse(cam.view), fovY, aspect, cam.nearZ, q.cascadeSplit);
-    const Sphere world{{0.0f, 1.5f, 0.0f}, kTerrainRadius + 3.0f};
+    const Sphere world{{0.0f, 1.5f, 0.0f}, layout::kBaseRadius + 3.0f};
     const Vec3 moonDir = scene.lights.moon.direction;
     frame_.moon[0] = fitDirectionalShadow(moonDir, nearSlice, q.moonShadowRes, kShadowCasterMargin);
     frame_.moon[1] = fitDirectionalShadow(moonDir, world, q.moonShadowRes, kShadowCasterMargin);
@@ -97,7 +99,7 @@ void Renderer::computeLightMatrices(const Scene& scene, const CameraView& cam, c
 
 namespace {
 
-bool isDynamic(const SceneNode& n) { return n.object == "Autonomous UAV" || n.object == "Target Rover"; }
+bool isDynamic(const SceneNode& n) { return n.dynamic || n.object == "Autonomous UAV" || n.object == "Target Rover"; }
 
 }  // namespace
 
@@ -105,7 +107,7 @@ void Renderer::drawDepthOnly(const Scene& scene, const Mat4& lightVP, Casters wh
     depth_->set("uLightVP", lightVP);
     const Frustum frustum(lightVP);
     for (const SceneNode* n : scene.leaves()) {
-        if (n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->object == "Backdrop") continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->object == "Backdrop") continue;
         if (n->material.opacity < 1.0f) continue;  // blur discs cast no shadow
         if (!inFrustum(*n, frustum)) continue;
         if (which == Casters::AllButUav && n->object == "Autonomous UAV") continue;  // the lamp is inside it
@@ -173,7 +175,7 @@ void Renderer::renderPrepass(const Scene& scene, const CameraView& cam, const Re
     prepass_->set("uProj", cam.proj);
     const Frustum frustum(cam.proj * cam.view);
     for (const SceneNode* n : scene.leaves()) {
-        if (n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->material.opacity < 1.0f) continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->material.opacity < 1.0f) continue;
         if (!inFrustum(*n, frustum)) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         prepass_->set("uModel", n->world);
@@ -258,34 +260,77 @@ void Renderer::renderFog(const Scene& scene, const CameraView& cam, const Render
     fog_->set("uSpotShadowOn", frame_.shadowMode == 2 ? 1 : 0);
     fog_->set("uMoonShafts", q.moonShafts && frame_.shadowMode > 0 ? 1 : 0);
     setPracticalUniforms(*fog_, s.practicalsOn);
+    setIndoorUniforms(*fog_);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     timer_.end();
 }
 
 void Renderer::gatherPracticals(const Scene& scene, const CameraView& cam) {
-    // The 8 practical lights that matter most for this view: closest to the camera relative to their range.
-    std::vector<std::pair<float, const SceneNode*>> ranked;
-    for (const SceneNode* n : scene.practicalLights()) {
-        const float d = length(transformPoint(n->world, {0, 0, 0}) - cam.position);
-        ranked.push_back({d / std::max(n->material.lightRange, 0.1f), n});
+    // Indoor volumes of the underground bunker (lights on the other side of its walls are skipped).
+    const WalkSpace* ws = sceneaccess::walkSpace(scene);
+    indoorCount_ = 0;
+    if (ws) {
+        for (const Box& b : ws->indoorVolumes()) {
+            if (indoorCount_ == 8) break;
+            const float mn[3] = {b.min.x, b.min.y, b.min.z}, mx[3] = {b.max.x, b.max.y, b.max.z};
+            for (int j = 0; j < 3; ++j) {
+                indoorMin_[3 * indoorCount_ + j] = mn[j];
+                indoorMax_[3 * indoorCount_ + j] = mx[j];
+            }
+            ++indoorCount_;
+        }
     }
-    std::sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    const bool camInside = sceneaccess::insideIndoor(ws, cam.position);
+
+    // The 16 lights that matter most for this view: lamps and fires of the scene plus transient lights from
+    // the combat simulation (blast flashes, burning wrecks, rocket motors), ranked by distance / range.
+    // Lights on the other side of the bunker walls rank last.
+    struct Candidate {
+        float score;
+        Vec3 pos, color, dir;
+        float range, cone;
+    };
+    std::vector<Candidate> ranked;
+    for (const SceneNode* n : scene.practicalLights()) {
+        const Material& m = n->material;
+        const float k = m.lightIntensity * clampf(m.emissive, 0.0f, 1.5f);
+        if (k <= 0.0f) continue;
+        const Vec3 p = transformPoint(n->world, {0, 0, 0});
+        const Vec3 c{std::pow(m.baseColor.x, 2.2f) * k, std::pow(m.baseColor.y, 2.2f) * k, std::pow(m.baseColor.z, 2.2f) * k};
+        ranked.push_back({length(p - cam.position) / std::max(m.lightRange, 0.1f), p, c,
+                          normalize(transformDirection(n->world, {0, 0, 1})), m.lightRange,
+                          m.lightConeDeg > 0.0f ? std::cos(radians(m.lightConeDeg)) : -2.0f});
+    }
+    if (const std::vector<DynamicLight>* dyn = sceneaccess::dynamicLights(scene)) {
+        for (const DynamicLight& l : *dyn) {
+            // Blasts are brief and bright: rank them ahead of ordinary lamps at the same distance.
+            ranked.push_back({0.5f * length(l.position - cam.position) / std::max(l.range, 0.1f), l.position, l.color,
+                              {0, 0, 1}, l.range, -2.0f});
+        }
+    }
+    for (Candidate& c : ranked) {
+        if (sceneaccess::insideIndoor(ws, c.pos) != camInside) c.score += 4.0f;
+    }
+    std::sort(ranked.begin(), ranked.end(), [](const Candidate& a, const Candidate& b) { return a.score < b.score; });
     practicalCount_ = std::min(static_cast<int>(ranked.size()), kMaxPracticals);
     for (int i = 0; i < practicalCount_; ++i) {
-        const SceneNode& n = *ranked[i].second;
-        const Material& m = n.material;
-        const Vec3 p = transformPoint(n.world, {0, 0, 0});
-        const Vec3 dir = normalize(transformDirection(n.world, {0, 0, 1}));
-        const float k = m.lightIntensity * clampf(m.emissive, 0.0f, 1.5f);
-        const Vec3 c{std::pow(m.baseColor.x, 2.2f) * k, std::pow(m.baseColor.y, 2.2f) * k, std::pow(m.baseColor.z, 2.2f) * k};
-        const float cone = m.lightConeDeg > 0.0f ? std::cos(radians(m.lightConeDeg)) : -2.0f;
-        const float vals[3][4] = {{p.x, p.y, p.z, m.lightRange}, {c.x, c.y, c.z, 0.0f}, {dir.x, dir.y, dir.z, cone}};
+        const Candidate& c = ranked[i];
+        const float inside = sceneaccess::insideIndoor(ws, c.pos) ? 1.0f : 0.0f;
+        const float vals[3][4] = {{c.pos.x, c.pos.y, c.pos.z, c.range}, {c.color.x, c.color.y, c.color.z, inside},
+                                  {c.dir.x, c.dir.y, c.dir.z, c.cone}};
         for (int j = 0; j < 4; ++j) {
             practicalPos_[4 * i + j] = vals[0][j];
             practicalColor_[4 * i + j] = vals[1][j];
             practicalDir_[4 * i + j] = vals[2][j];
         }
     }
+}
+
+void Renderer::setIndoorUniforms(Shader& sh) const {
+    sh.set("uIndoorCount", indoorCount_);
+    if (indoorCount_ == 0) return;
+    sh.setVec3Array("uIndoorMin", indoorMin_, indoorCount_);
+    sh.setVec3Array("uIndoorMax", indoorMax_, indoorCount_);
 }
 
 void Renderer::setPracticalUniforms(Shader& sh, bool enabled) {
@@ -416,6 +461,33 @@ void Renderer::drawParticles(const Scene& scene, const CameraView& cam, int w, i
     st.drawCalls += particles_.draw(cam.proj * cam.view, cam.position, prepare, scene.time());
 #else
     (void)scene; (void)cam; (void)w; (void)h; (void)s; (void)st;
+#endif
+}
+
+void Renderer::drawEffects(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
+                           FrameStats& st, bool transparent) {
+#ifdef TS_HAS_EFFECTS
+    if (s.view == ViewMode::Depth || s.view == ViewMode::Diagnostic || !s.isolate.empty()) return;
+    auto prepare = [&](Shader& sh) {
+        setFrameUniforms(sh, scene, cam, w, h, s);
+        sh.set("uHasSceneDepth", 0);
+    };
+    // Generic lambda: its body is only instantiated (and type-checked) when Scene provides combat().
+    auto draw = [&](const auto& sc) {
+        if constexpr (sceneaccess::HasCombat<std::decay_t<decltype(sc)>>::value) {
+            const auto& combat = sc.combat();
+            EffectsFrame f;
+            f.particles = &combat.particles();
+            f.projectiles = &combat.projectiles();
+            f.scorches = &combat.scorches();
+            const Mat4 vp = cam.proj * cam.view;
+            st.drawCalls += transparent ? effects_.drawTransparent(f, vp, cam.position, prepare, sc.time())
+                                        : effects_.drawOpaque(f, vp, cam.position, prepare, sc.time());
+        }
+    };
+    draw(scene);
+#else
+    (void)scene; (void)cam; (void)w; (void)h; (void)s; (void)st; (void)transparent;
 #endif
 }
 

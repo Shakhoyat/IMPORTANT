@@ -65,11 +65,28 @@ uniform float uRain;      // rain intensity (sky, fog, ripples)
 
 const float PI = 3.14159265;
 
-// Practical lights (lamps, fire, floodlight): up to 8, windowed inverse-square falloff (smooth cut-off at range).
+// Practical lights (lamps, fire, floodlight, explosion flashes): up to 16, windowed inverse-square falloff.
+#define TS_MAX_PRACTICALS 16
 uniform int uPracticalCount;
-uniform vec4 uPracticalPos[8];    // xyz position, w range
-uniform vec4 uPracticalColor[8];  // rgb linear radiance scale
-uniform vec4 uPracticalDir[8];    // xyz spot axis, w cos(cone) (-2 = omni)
+uniform vec4 uPracticalPos[16];    // xyz position, w range
+uniform vec4 uPracticalColor[16];  // rgb linear radiance scale, w 1 = the light is indoors
+uniform vec4 uPracticalDir[16];    // xyz spot axis, w cos(cone) (-2 = omni)
+// Indoor volumes (underground bunker): no sky light, no moon / beacon / searchlight, light from lamps on the
+// same side of the walls only, thin fog, no rain. Boxes come from the scene's WalkSpace (max 8).
+uniform int uIndoorCount;
+uniform vec3 uIndoorMin[8];
+uniform vec3 uIndoorMax[8];
+float indoorMask(vec3 P) {
+    float m = 0.0;
+    for (int i = 0; i < 8; ++i) {
+        if (i >= uIndoorCount) break;
+        vec3 a = uIndoorMin[i] - P, b = P - uIndoorMax[i];
+        float outside = max(max(max(a.x, b.x), max(a.y, b.y)), max(a.z, b.z));
+        m = max(m, 1.0 - smoothstep(-0.2, 0.2, outside));
+    }
+    return m;
+}
+
 float practicalAttenuation(int i, vec3 P, out vec3 L) {
     vec3 d = uPracticalPos[i].xyz - P;
     float dist = max(length(d), 1e-3);
@@ -156,8 +173,19 @@ Terms computeLight(vec3 P, vec3 N) {
     brdf(N, V, L, rad, F0, rough, t.d2, t.s2);
     t.irr += luma(rad * max(dot(N, L), 0.0));
 
-    for (int i = 0; i < 8; ++i) {      // practical lights join the (unshadowed) local-light terms
+    // Underground: the sky, the moon, the beacon and the UAV searchlight do not reach in.
+    float inside = indoorMask(P);
+    if (inside > 0.0) {
+        float out_ = 1.0 - inside;
+        t.amb *= mix(1.0, 0.012, inside);
+        t.sa *= mix(1.0, 0.012, inside);
+        t.d0 *= out_; t.s0 *= out_; t.d1 *= out_; t.s1 *= out_; t.d2 *= out_; t.s2 *= out_;
+        t.irr *= out_;
+    }
+
+    for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {      // practical lights join the (unshadowed) local-light terms
         if (i >= uPracticalCount) break;
+        if (abs(uPracticalColor[i].w - inside) > 0.5) continue;   // walls between indoors and outdoors
         float att = practicalAttenuation(i, P, L);
         if (att <= 0.0) continue;
         vec3 dd, ss;
@@ -309,6 +337,58 @@ vec3 surfaceAlbedo(vec3 P, vec3 N, vec3 base) {
     }
     if (uSurface == 9) return base * (0.8 + 0.3 * n1) * (0.9 + 0.2 * step(0.5, fract(side.x * 30.0 + side.y * 30.0)));  // woven
     if (uSurface == 10) return base * (0.85 + 0.3 * n2);
+    if (uSurface == 12) {         // corrugated sheet: ribs every 7.6 cm, dirt runs, rust at the bottom
+        float u = abs(N.y) > 0.7 ? P.x : (abs(N.x) > abs(N.z) ? P.z : P.x);
+        float rib = 0.5 + 0.5 * sin(u * 82.7);
+        float rust = smoothstep(0.55, 0.85, fbm(side * 3.1 + 5.0)) * (0.5 + 0.5 * smoothstep(0.8, 0.0, P.y + 0.3));
+        vec3 c = base * (0.78 + 0.32 * rib) * (0.85 + 0.25 * n1);
+        return mix(c, vec3(0.20, 0.10, 0.05), rust * 0.55);
+    }
+    if (uSurface == 13) {         // HESCO: welded wire grid (7.6 cm) over geotextile bags of sand
+        vec2 g = abs(fract(side * 13.0) - 0.5);
+        float wire = 1.0 - smoothstep(0.40, 0.47, max(g.x, g.y));
+        float bulge = valueNoise(side * 2.5) * 0.35 + 0.65;
+        vec3 fabric = base * bulge * (0.85 + 0.3 * n2);
+        return mix(fabric, vec3(0.32, 0.31, 0.29), (1.0 - wire) * 0.85);
+    }
+    if (uSurface == 14) {         // hazard stripes, worn
+        float s45 = step(0.5, fract((side.x + side.y) * 2.5));
+        vec3 c = mix(vec3(0.02, 0.02, 0.02), vec3(0.62, 0.45, 0.03), s45);
+        float wear = smoothstep(0.7, 0.8, fbm(side * 6.0));
+        return mix(c, vec3(0.25, 0.25, 0.26), wear) * (0.85 + 0.2 * n2);
+    }
+    if (uSurface == 15) {         // display: dark phosphor background, grid, rotating sweep, blips, text bars
+        vec2 q = fract(side * 0.9);
+        float grid = 1.0 - smoothstep(0.0, 0.02, min(abs(fract(q.x * 8.0) - 0.5), abs(fract(q.y * 8.0) - 0.5)) - 0.46);
+        vec2 c0 = q - 0.5;
+        float ang = atan(c0.y, c0.x), sweep = fract((ang / 6.2832) - uTime * 0.25);
+        float ring = smoothstep(0.012, 0.0, abs(length(c0) - 0.32)) + smoothstep(0.012, 0.0, abs(length(c0) - 0.18));
+        float trail = smoothstep(0.75, 1.0, sweep) * step(length(c0), 0.45);
+        float blip = step(0.985, hash21(floor(q * 24.0))) * smoothstep(0.6, 1.0, sweep);
+        float bars = step(0.86, q.y) * step(0.3, hash21(vec2(floor(q.x * 20.0), floor(uTime * 2.0))));
+        vec3 phosphor = base;
+        return phosphor * (0.10 + 0.25 * grid + 0.8 * trail + 0.6 * ring + 2.0 * blip + 0.5 * bars);
+    }
+    if (uSurface == 16) {         // asphalt: aggregate speckle, cracks, polished wheel lanes
+        float agg = valueNoise(side * 60.0);
+        float crack = smoothstep(0.02, 0.0, abs(fbm(side * 0.9) - 0.5)) * 0.6;
+        return base * (0.8 + 0.35 * agg) * (0.85 + 0.3 * n1) * (1.0 - crack);
+    }
+    if (uSurface == 17) {         // woodland camouflage: three large blobs over the base colour
+        float b1 = smoothstep(0.48, 0.52, fbm(side * 0.9 + 1.7)), b2 = smoothstep(0.55, 0.6, fbm(side * 1.3 - 4.2));
+        vec3 c = mix(base, base * vec3(0.55, 0.62, 0.45), b1);
+        c = mix(c, vec3(0.05, 0.045, 0.035), b2);
+        return c * (0.85 + 0.25 * n2);
+    }
+    if (uSurface == 18) {         // steel plate: 0.6 m panels, seam lines, rivet rows, worn bright edges
+        vec2 pnl = fract(side / 0.6);
+        float seam = 1.0 - smoothstep(0.0, 0.015, min(min(pnl.x, 1.0 - pnl.x), min(pnl.y, 1.0 - pnl.y)));
+        vec2 rv = fract(side / 0.6 * 8.0) - 0.5;
+        float rivet = smoothstep(0.18, 0.1, length(rv)) * step(min(min(pnl.x, 1.0 - pnl.x), min(pnl.y, 1.0 - pnl.y)), 0.06);
+        float wear = smoothstep(0.65, 0.8, fbm(side * 4.0));
+        vec3 c = base * (0.8 + 0.3 * n1) * (1.0 - 0.5 * seam) * (1.0 + 0.4 * rivet);
+        return mix(c, vec3(0.35, 0.35, 0.36), wear * 0.4);
+    }
     return base;
 }
 
@@ -425,7 +505,7 @@ vec3 terrainShade(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     // Wet ground mirrors the lamps: per-fragment GGX for the practical lights with the wet roughness.
     vec3 lampGlints = vec3(0.0);
     if (wetness > 0.3) {
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
             if (i >= uPracticalCount) break;
             vec3 Lp;
             float att = practicalAttenuation(i, P, Lp);
@@ -444,7 +524,7 @@ vec3 terrainShade(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
 vec3 compose(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     vec3 albedo = surfaceAlbedo(P, N, toLinear(uBaseColor));
     // Wet porous materials (concrete, wood, bark, sand, canvas...) darken; metal, glass and paint do not.
-    bool porous = uSurface == 1 || uSurface == 6 || uSurface == 7 || uSurface == 8 || uSurface == 9 || uSurface == 5;
+    bool porous = uSurface == 1 || uSurface == 6 || uSurface == 7 || uSurface == 8 || uSurface == 9 || uSurface == 5 || uSurface == 13 || uSurface == 16;
     if (porous && uHdr == 1) albedo *= 1.0 - 0.45 * uWetness;
     vec3 diffuse = t.amb * ao * (1.0 - uMetalness) + t.d0 * sm + t.d1 + t.d2 * ss;
     vec3 specular = t.s0 * sm + t.s1 + t.s2 * ss + t.sa * ao;
@@ -461,7 +541,7 @@ float fogAmount(vec3 P) {
     float dist = length(P - uCamPos);
     float fog = 1.0 - exp(-pow(uFogDensity * dist, 2.0));
     float rim = smoothstep(uWorldRadius * 3.5, uWorldRadius * 5.0, length(P.xz));   // far backdrop dissolves
-    return max(fog, rim);
+    return max(fog * (1.0 - 0.85 * indoorMask(P)), rim);
 }
 
 vec4 finalColor(vec3 lit, float heat, vec3 P) {

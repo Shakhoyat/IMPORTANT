@@ -212,7 +212,7 @@ void main() {
     vec3 d = uBeaconPos - vWorld;
     float dd = length(d);
     lit += albedo * uBeaconColor * mix(0.35, 1.0, abs(dot(N, d / dd))) / (1.0 + uBeaconAtt.x * dd + uBeaconAtt.y * dd * dd);
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);

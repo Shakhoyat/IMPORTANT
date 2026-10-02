@@ -1,5 +1,6 @@
 #include "objects/Backdrop.h"
 
+#include "objects/BaseLayout.h"
 #include "objects/Builder.h"
 #include "objects/PropKit.h"
 #include "objects/Terrain.h"
@@ -10,10 +11,10 @@ namespace {
 
 using P = PrimitiveType;
 
-constexpr int kNearHills = 12, kFarHills = 8, kTreelinePines = 30;
+constexpr int kNearHills = 12, kFarHills = 9, kTreelinePines = 46;
 constexpr float kRoadGapDeg = 14.0f;  // the treeline leaves the track's continuation (+Z) open
 
-float farGroundTop() { return terrainRimHeight() - kFarGroundGap; }
+float farGroundTop() { return layout::kApronLevel - kFarGroundGap; }
 
 // Yaw that lines a primitive's local X axis up with the tangent of a circle at polar angle a (from +X to +Z).
 float tangentYawDeg(float a) { return degrees(std::atan2(-std::cos(a), -std::sin(a))); }
@@ -28,10 +29,10 @@ void addHills(Builder& b, SceneNode* root) {
         for (int i = 0; i < count; ++i) {
             const float a = radians(360.0f * static_cast<float>(i) / static_cast<float>(count) + rng.range(-8.0f, 8.0f) +
                                     (ring == 0 ? 0.0f : 20.0f));
-            const float d = ring == 0 ? rng.range(38.0f, 48.0f) : rng.range(64.0f, 78.0f);
-            const float width = ring == 0 ? rng.range(28.0f, 40.0f) : rng.range(50.0f, 70.0f);
-            const float depth = ring == 0 ? std::min(22.0f, 2.0f * (d - 30.0f)) : 30.0f;
-            const float height = ring == 0 ? rng.range(3.0f, 6.0f) : rng.range(8.0f, 14.0f);
+            const float d = ring == 0 ? rng.range(55.0f, 70.0f) : rng.range(85.0f, 100.0f);
+            const float width = ring == 0 ? rng.range(40.0f, 58.0f) : rng.range(70.0f, 100.0f);
+            const float depth = ring == 0 ? std::min(26.0f, 2.0f * (d - 40.0f)) : 40.0f;
+            const float height = ring == 0 ? rng.range(5.0f, 9.0f) : rng.range(12.0f, 22.0f);
             b.part(hills, ring == 0 ? "Hill" : "Far hill", P::Sphere, {width, 2.0f * height, depth},
                    {0, tangentYawDeg(a), 0}, {d * std::cos(a), farGroundTop() - 0.3f, d * std::sin(a)},
                    ring == 0 ? nearHill : farHill, "Horizon silhouette");
@@ -41,11 +42,11 @@ void addHills(Builder& b, SceneNode* root) {
 
 void addTreeline(Builder& b, SceneNode* root) {
     const Material needles = mats::pineNeedles();
-    SceneNode* line = b.group(root, "Treeline", {0, 0, 0}, {0, 0, 0}, "Ring of tall pines behind the fence");
+    SceneNode* line = b.group(root, "Treeline", {0, 0, 0}, {0, 0, 0}, "Ring of tall pines behind the perimeter wall");
     PropRng rng(131u);
     for (int i = 0; i < kTreelinePines; ++i) {
         const float deg = 360.0f * static_cast<float>(i) / static_cast<float>(kTreelinePines) + rng.range(-4.0f, 4.0f);
-        const float d = rng.range(24.5f, 29.0f), h = rng.range(5.0f, 8.0f);
+        const float d = rng.range(38.0f, 45.0f), h = rng.range(6.0f, 10.0f);
         if (std::fabs(deg - 90.0f) < kRoadGapDeg) continue;
         const float a = radians(deg);
         SceneNode* pine = b.group(line, "Treeline pine", {d * std::cos(a), farGroundTop(), d * std::sin(a)},
@@ -60,7 +61,7 @@ void addTreeline(Builder& b, SceneNode* root) {
 
 void addFarTower(Builder& b, SceneNode* root) {
     const Material paint = makeMaterial({0.55f, 0.22f, 0.18f}, 0.14f, Surface::Paint, 0.5f, 0.6f);
-    const float a = radians(140.0f), d = 70.0f, top = 32.0f;
+    const float a = radians(140.0f), d = 100.0f, top = 38.0f;
     SceneNode* t = b.group(root, "Far radio tower", {d * std::cos(a), farGroundTop(), d * std::sin(a)}, {0, 20, 0},
                            "Distant lattice tower");
     auto leg = [top](float sx, float sz, float y) {
@@ -98,7 +99,7 @@ std::unique_ptr<SceneNode> buildBackdrop() {
     SceneNode* r = root.get();
 
     // Far ground: a flat 400 m cylinder (axis vertical) just below the terrain rim, so the horizon between the
-    // 20 m disc and the hills is solid ground. The terrain never dips below the rim, so it stays hidden inside.
+    // 36 m terrain mesh and the hills is solid ground. The terrain never dips below the rim, so it stays hidden inside.
     const Material ground = makeMaterial({0.30f, 0.29f, 0.24f}, 0.12f, Surface::Ground, 0.95f, 0.0f);
     b.part(r, "Far ground", P::Cylinder, {400.0f, 400.0f, 0.1f}, {90, 0, 0}, {0, farGroundTop() - 0.05f, 0}, ground,
            "Ground plane beyond the disc");

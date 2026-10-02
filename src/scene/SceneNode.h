@@ -39,6 +39,8 @@ struct SceneNode {
     bool explodable = true;  // pushed apart in the diagnostic "explode" view
     bool occluder = false;   // blocks line of sight / ground cells for the hide-and-seek logic
     bool obstacle = true;    // UAV collision avoidance keeps clear of it (false for thin wires, far ground)
+    bool visible = true;     // false: not drawn, casts no shadow (fired missile, removed wreck)
+    bool dynamic = false;    // moves (vehicles, doors, debris): never baked into the static shadow cache
 
     SceneNode* parent = nullptr;
     std::vector<std::unique_ptr<SceneNode>> children;

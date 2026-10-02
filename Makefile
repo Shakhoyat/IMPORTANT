@@ -31,7 +31,7 @@ EXPORTER = build/export_docs$(EXE)
 APP_SRC  = $(wildcard src/*.cpp src/*/*.cpp)
 CORE_SRC = $(filter-out src/main.cpp src/app/% src/rendering/%,$(APP_SRC))
 APP_OBJ  = $(patsubst src/%.cpp,$(OBJ)/%.o,$(APP_SRC)) $(OBJ)/glad.o
-TEST_OBJ = $(patsubst src/%.cpp,$(OBJ)/%.o,$(CORE_SRC)) $(OBJ)/tests/test_main.o
+TEST_OBJ = $(patsubst src/%.cpp,$(OBJ)/%.o,$(CORE_SRC)) $(patsubst tests/%.cpp,$(OBJ)/tests/%.o,$(wildcard tests/*.cpp))
 
 all: $(APP) $(TESTS)
 

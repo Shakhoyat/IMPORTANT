@@ -29,6 +29,7 @@ public:
     void set(const char* name, const Mat4& m);
     void set(const char* name, const Mat3& m);
     void setVec4Array(const char* name, const float* xyzw, int count);
+    void setVec3Array(const char* name, const float* xyz, int count);
 
 private:
     GLint location(const char* name);

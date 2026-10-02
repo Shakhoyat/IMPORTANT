@@ -1,18 +1,20 @@
-// Terrain: a 20 m radius disc of ground around the command bunker.
+// Terrain: a 36 m radius disc of ground (layout::kBaseRadius) around the underground command bunker. Inside
+// r = 20 m (kTerrainRadius, the compound) it has hills, creek, track and berm; outside it is the flat rim level.
 // Geometrically it is the cylinder's cap (centre + rings of points at phi_j = 2*pi*j/slices)
 // subdivided into concentric rings and displaced in y by a height function h(x, z).
 #pragma once
 
 #include <memory>
 
+#include "objects/BaseLayout.h"
 #include "primitives/MeshData.h"
 #include "scene/SceneNode.h"
 
 namespace ts {
 
 constexpr float kTerrainRadius = 20.0f;
-constexpr int kTerrainRings = 72;     // radial step 0.28 m
-constexpr int kTerrainSlices = 256;   // angular step 1.41 degrees (0.49 m at the rim)
+constexpr int kTerrainRings = 130;    // radial step 0.277 m over the 36 m mesh radius
+constexpr int kTerrainSlices = 384;   // angular step 0.94 degrees (0.59 m at r = 36 m, 0.33 m at r = 20 m)
 
 // Landscape features (all smooth, continuous):
 //   levelled pad (h = 0) under the bunker at the origin, rolling hills, a dry creek bed crossing the south
@@ -29,8 +31,10 @@ constexpr float kCreekHalfWidth = 1.2f;
 constexpr float kBermRadius = 17.4f;
 constexpr float kFenceRadius = 19.0f;
 
-// Vertices = 1 + rings * slices, triangles = slices * (2 * rings - 1).
-MeshData createTerrainDisc(int rings = kTerrainRings, int slices = kTerrainSlices, float radius = kTerrainRadius);
+// Vertices = 1 + rings * slices; triangles = slices * (2 * rings - 1) minus the ones whose centroid lies in the
+// entrance trench footprint (|x| < kRampHalfWidth + 0.35, kBlastDoorZ - 0.3 < z < kRampTopZ): the trench hole.
+// The terrain also stays >= kBunkerRoofTopY + 0.15 above every underground room (smooth mound).
+MeshData createTerrainDisc(int rings = kTerrainRings, int slices = kTerrainSlices, float radius = layout::kBaseRadius);
 
 std::unique_ptr<SceneNode> buildTerrain();
 

@@ -50,7 +50,8 @@ int App::recordMode() {
         std::fprintf(stderr, "--record: output path, --ffmpeg and --encoder must not contain \" & | ^ < > %% ! $ ` ;\n");
         return 1;
     }
-    // Warm-up: let the chase develop before the first frame.
+    // Warm-up (8 s, no inputs): the UAV patrol develops before the first frame; scripts are keyed to the director
+    // clock, which starts after it.
     for (int i = 0; i < 60 * 8; ++i) step(kSimStep);
 
     // x264 at constant quality, or NVENC (--encoder h264_nvenc / hevc_nvenc) on an NVIDIA GPU.
@@ -73,6 +74,7 @@ int App::recordMode() {
     settings_.quality = opt_.quality >= 0 ? quality : std::max(quality, Quality::Ultra);
     camera_ = Camera{};
     camera_.mode = CameraMode::Cinematic;
+    scriptClock_ = 0.0f;  // the director drives the tank, helicopter, AA gun, doors and the UAV strike
     RenderTarget target;
     if (!target.create(w, h, 0, false)) return 1;  // the renderer anti-aliases (MSAA + TAA) before this target
     std::vector<uint8_t> rgb;

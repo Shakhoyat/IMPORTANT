@@ -55,10 +55,10 @@ void App::updateTitle(double fps) {
         std::snprintf(thermal, sizeof(thermal), thermalFpv_ ? " FPV pal %d fov %.0f" : " EXT pal %d", settings_.palette,
                       thermalFovDeg_);
     std::snprintf(title, sizeof(title),
-                  "ThermalSense | %s %s%s | %s | %s | cam %s | UAV %s | rover %s | fx %s | %.0f FPS | %d draws | %lld tris",
+                  "ThermalSense | %s %s%s | %s | %s | cam %s%s%s | UAV %s | rover %s | fx %s | %.0f FPS | %d draws | %lld tris",
                   viewModeName(settings_.view), qualityName(settings_.quality), thermal, edgeModeName(settings_.edges),
-                  overrideName(settings_.shading), cameraModeName(camera_.mode), droneModeName(scene_->drone.mode),
-                  scene_->rover.hidden ? "HIDDEN" : "EXPOSED", fx, fps, stats_.drawCalls + cvStats_.drawCalls,
+                  overrideName(settings_.shading), cameraModeName(camera_.mode), possessed_ >= 0 ? " " : "", possessedName(),
+                  droneModeName(scene_->drone.mode), sa::roverHidden(*scene_) ? "HIDDEN" : "EXPOSED", fx, fps, stats_.drawCalls + cvStats_.drawCalls,
                   stats_.triangles + cvStats_.triangles);
     glfwSetWindowTitle(window_, title);
 }
@@ -79,7 +79,19 @@ void App::interactiveLoop() {
             camera_.moveFree((down(GLFW_KEY_W) - down(GLFW_KEY_S)) * speed, (down(GLFW_KEY_D) - down(GLFW_KEY_A)) * speed,
                              (down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN)) * speed);
         }
+        // Possessed object: sample the held keys (edges and mouse look come from the callbacks).
+        if (camera_.mode == CameraMode::Possess) {
+            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            held_.forward = down(GLFW_KEY_W) - down(GLFW_KEY_S);
+            held_.turn = down(GLFW_KEY_D) - down(GLFW_KEY_A);
+            held_.lift = down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN);
+            held_.aimYaw = down(GLFW_KEY_RIGHT) - down(GLFW_KEY_LEFT);
+            held_.aimPitch = down(GLFW_KEY_UP) - down(GLFW_KEY_DOWN);
+            held_.fire = down(GLFW_KEY_ENTER) > 0.0f || down(GLFW_KEY_KP_ENTER) > 0.0f || down(GLFW_KEY_LEFT_CONTROL) > 0.0f;
+            held_.boost = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
+        }
         // Walk: WASD, Shift = run.
+        syncWalkWorld();
         if (camera_.mode == CameraMode::Walk) {
             const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
             const bool run = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
@@ -138,16 +150,41 @@ void App::onKey(int key, int action, int) {
     if (action != GLFW_PRESS || opt_.mode != AppOptions::Mode::Interactive) return;  // benchmarks ignore input
     switch (key) {
         case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(window_, 1); break;
-        case GLFW_KEY_C: camera_.cycle(); break;
+        case GLFW_KEY_C:
+            if (camera_.mode == CameraMode::Possess) toggleSight();
+            else camera_.cycle();
+            break;
         case GLFW_KEY_K:
             if (camera_.mode == CameraMode::Cinematic) {
                 camera_.mode = CameraMode::Orbit;
+                scriptClock_ = -1.0f;
                 settings_.letterbox = 0.0f;
                 settings_.fade = 1.0f;
             } else {
+                // The sequence is scripted against a fresh world (same start as the recorded video).
+                possess(-1);
+                camera_.mode = CameraMode::Orbit;
+                restartWorld(8.0f);
                 camera_.mode = CameraMode::Cinematic;
                 camera_.directorTime = 0.0f;
+                scriptClock_ = 0.0f;
             }
+            break;
+        case GLFW_KEY_5: possessSlot(Slot::Tank); break;
+        case GLFW_KEY_6: possessSlot(Slot::Helicopter); break;
+        case GLFW_KEY_7: possessSlot(Slot::AaGun); break;
+        case GLFW_KEY_8: possessSlot(Slot::Radar); break;
+        case GLFW_KEY_9: possessSlot(Slot::Doors); break;
+        case GLFW_KEY_0: possessSlot(Slot::Uav); break;
+        case GLFW_KEY_LEFT_BRACKET: cyclePossession(-1); break;
+        case GLFW_KEY_RIGHT_BRACKET: cyclePossession(+1); break;
+        case GLFW_KEY_BACKSPACE: possess(-1); break;
+        case GLFW_KEY_BACKSLASH: actionEdge_ = true; break;
+        case GLFW_KEY_ENTER:
+        case GLFW_KEY_KP_ENTER:
+        case GLFW_KEY_LEFT_CONTROL:
+            firePressedEdge_ = true;
+            if (camera_.mode == CameraMode::Walk) interact();
             break;
         case GLFW_KEY_V:
             settings_.view = static_cast<ViewMode>((static_cast<int>(settings_.view) + 1) % 4);
@@ -210,7 +247,12 @@ void App::onMouseButton(int button, int) {
 }
 
 void App::onCursor(double x, double y) {
-    if (dragging_) camera_.drag(static_cast<float>(x - lastX_), static_cast<float>(y - lastY_));
+    if (dragging_ && camera_.mode == CameraMode::Possess) {  // mouse drag = aim delta of the possessed object
+        aimYawAcc_ += static_cast<float>(x - lastX_) * 0.15f;
+        aimPitchAcc_ -= static_cast<float>(y - lastY_) * 0.15f;
+    } else if (dragging_) {
+        camera_.drag(static_cast<float>(x - lastX_), static_cast<float>(y - lastY_));
+    }
     lastX_ = x;
     lastY_ = y;
 }

@@ -12,6 +12,10 @@
 #include "rendering/Foliage.h"
 #define TS_HAS_FOLIAGE 1
 #endif
+#if __has_include("rendering/Effects.h")
+#include "rendering/Effects.h"
+#define TS_HAS_EFFECTS 1
+#endif
 #if __has_include("rendering/Particles.h")
 #include "rendering/Particles.h"
 #define TS_HAS_PARTICLES 1
@@ -192,14 +196,20 @@ private:
     GLuint renderDof(GLuint image);
     void drawFoliage(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
     void drawParticles(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
+    // Explosions, smoke, tracers, missiles, scorch marks from the combat simulation (rendering/Effects).
+    void drawEffects(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st,
+                     bool transparent);
     void bindLightingTextures();
     void setShadowUniforms(Shader& sh, const RenderSettings& s);
     void gatherPracticals(const Scene& scene, const CameraView& cam);
     void setPracticalUniforms(Shader& sh, bool enabled);
-    static constexpr int kMaxPracticals = 8;
+    static constexpr int kMaxPracticals = 16;
     int practicalCount_ = 0;
     float practicalPos_[4 * kMaxPracticals] = {}, practicalColor_[4 * kMaxPracticals] = {},
           practicalDir_[4 * kMaxPracticals] = {};
+    int indoorCount_ = 0;
+    float indoorMin_[3 * 8] = {}, indoorMax_[3 * 8] = {};
+    void setIndoorUniforms(Shader& sh) const;
 
     std::unique_ptr<Shader> flat_, gouraud_, phong_, beam_, line_, sky_;
     std::unique_ptr<Shader> depth_, prepass_, ssao_, blur_, fog_, bloomDown_, bloomUp_, composite_;
@@ -209,6 +219,9 @@ private:
 #endif
 #ifdef TS_HAS_PARTICLES
     ParticleField particles_;
+#endif
+#ifdef TS_HAS_EFFECTS
+    EffectsRenderer effects_;
 #endif
     bool mrt_ = false;                  // the main scene target (with the surface attachment) is bound
     bool historyValid_ = false, adaptValid_ = false;

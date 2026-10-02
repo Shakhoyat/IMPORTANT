@@ -1,5 +1,6 @@
 #include "objects/Terrain.h"
 
+#include "objects/BaseLayout.h"
 #include "objects/Builder.h"
 
 namespace ts {
@@ -36,7 +37,8 @@ float rollingHills(float x, float z) {
 
 }  // namespace
 
-float trackCentreX(float z) { return 1.4f * std::sin(0.2f * (z - 3.0f)); }
+// The track runs dead straight into the entrance trench (x = 0 for z <= 13.5) and meanders as before further north.
+float trackCentreX(float z) { return 1.4f * std::sin(0.2f * (z - 3.0f)) * smoothstep(13.5f, 19.0f, z); }
 
 float creekCentreZ(float x) { return -9.5f + 2.2f * std::sin(0.17f * x + 0.6f) + 0.7f * std::sin(0.43f * x - 0.4f); }
 
@@ -59,6 +61,14 @@ float terrainHeight(float x, float z) {
     const float db = (r - kBermRadius) / 1.0f;
     const float creekGap = 1.0f - smoothstep(1.0f, 3.5f, dc);
     h += 0.45f * std::exp(-db * db) * (1.0f - trackMask(x, z, 1.5f, 3.2f)) * (1.0f - creekGap);
+    // Earth-covered bunker: the ground over every underground room never drops below the roof slab plus a
+    // 0.15 m soil layer (+ 8 cm margin). The floor level fades out smoothly (C1) over 2.5 m around the footprint.
+    {
+        const float dx = std::max(std::max(layout::kBunkerMinX - 0.3f - x, 0.0f), x - (layout::kBunkerMaxX + 0.3f));
+        const float dz = std::max(std::max(layout::kBunkerMinZ - 0.3f - z, 0.0f), z - (layout::kBunkerMaxZ + 0.3f));
+        const float m = 1.0f - smoothstep(0.0f, 2.5f, std::sqrt(dx * dx + dz * dz));
+        h = softFloor(h, lerpf(-3.0f, layout::kBunkerRoofTopY + 0.23f, m), 0.12f);
+    }
     // Flat creek bottom: never below the rim level (the backdrop's far ground must stay hidden under the disc).
     h = softFloor(h, kRimLevel + 0.03f, 0.08f);
     // Blend into the constant rim height over the last 1.3 m (the fence stands on this gentle slope).
@@ -87,12 +97,24 @@ MeshData createTerrainDisc(int rings, int slices, float radius) {
     }
     auto ring = [slices](int k, int j) { return static_cast<uint32_t>(1 + (k - 1) * slices + (j % slices)); };
 
+    // Triangles whose centroid lies inside the entrance trench footprint are dropped (the trench is a hole in
+    // the ground; the retaining walls and coping slabs of the bunker hide the ragged edge).
+    auto inTrench = [&mesh](uint32_t a, uint32_t b, uint32_t c) {
+        const Vec3 g = (mesh.vertices[a].position + mesh.vertices[b].position + mesh.vertices[c].position) / 3.0f;
+        return std::fabs(g.x) < layout::kRampHalfWidth + 0.35f && g.z > layout::kBlastDoorZ - 0.3f &&
+               g.z < layout::kRampTopZ;
+    };
+    auto emit = [&](uint32_t a, uint32_t b, uint32_t c) {
+        if (!inTrench(a, b, c)) mesh.indices.insert(mesh.indices.end(), {a, b, c});
+    };
+
     // Same index pattern as the sphere's polar cap and bands (CCW seen from +Y).
-    for (int j = 0; j < slices; ++j) mesh.indices.insert(mesh.indices.end(), {0u, ring(1, j + 1), ring(1, j)});
+    for (int j = 0; j < slices; ++j) emit(0u, ring(1, j + 1), ring(1, j));
     for (int k = 1; k < rings; ++k) {
         for (int j = 0; j < slices; ++j) {
             const uint32_t a0 = ring(k, j), a1 = ring(k, j + 1), b0 = ring(k + 1, j), b1 = ring(k + 1, j + 1);
-            mesh.indices.insert(mesh.indices.end(), {a0, a1, b0, a1, b1, b0});
+            emit(a0, a1, b0);
+            emit(a1, b1, b0);
         }
     }
     return mesh;
@@ -106,7 +128,7 @@ std::unique_ptr<SceneNode> buildTerrain() {
     ground.metalness = 0.0f;
     ground.surface = Surface::Ground;
     SceneNode* disc = b.part(root.get(), "Ground disc", PrimitiveType::TerrainDisc, {1, 1, 1}, {0, 0, 0},
-                             {0, 0, 0}, ground, "20 m radius height-field disc");
+                             {0, 0, 0}, ground, "36 m radius height-field disc with the trench hole");
     disc->explodable = false;
     return root;
 }

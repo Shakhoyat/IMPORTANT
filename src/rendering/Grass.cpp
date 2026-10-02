@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "objects/BaseLayout.h"
 #include "objects/Terrain.h"
 #include "primitives/Cube.h"
 #include "rendering/ShaderSources.h"
@@ -12,7 +13,9 @@ namespace ts {
 namespace {
 
 constexpr int kGrid = 10;  // culling cells per axis
-constexpr float kGrassRadius = kTerrainRadius + 7.0f;  // meadow continues onto the far ground, hiding the disc edge
+constexpr float kCompoundRadius = 20.0f;                        // inner compound: full density, terrain heights
+constexpr float kGrassRadius = layout::kBaseRadius;      // meadow continues onto the far ground, hiding the mesh edge
+constexpr float kApronDensity = 0.45f;                          // blades per m^2 on the apron relative to the compound
 
 struct Blade {
     float x, y, z, yaw;           // root position on the terrain, rotation about Y
@@ -54,7 +57,7 @@ float smoothstep01(float a, float b, float x) {
 float grassDensity(float x, float z) {
     const float r = std::sqrt(x * x + z * z);
     if (r > kGrassRadius || r < 4.6f) return 0.0f;
-    if (r > kTerrainRadius) return 0.8f * (1.0f - (r - kTerrainRadius) / (kGrassRadius - kTerrainRadius));
+    if (r > kCompoundRadius) return 0.5f * (1.0f - (r - kCompoundRadius) / (kGrassRadius - kCompoundRadius));
     if (z > 0.0f && std::fabs(x - trackCentreX(z)) < kTrackHalfWidth * 0.85f) return 0.0f;
     if (std::fabs(z - creekCentreZ(x)) < kCreekHalfWidth * 0.7f) return 0.1f;
     float d = 0.25f + 0.9f * noise2(x * 0.35f + 11.0f, z * 0.35f - 4.0f) + 0.3f * noise2(x * 1.3f, z * 1.3f);
@@ -142,7 +145,7 @@ void main() {
     vec3 d = uBeaconPos - vWorld;
     float dd = length(d);
     vLocalD = uBeaconColor * max(dot(N, d / dd), 0.2) / (1.0 + uBeaconAtt.x * dd + uBeaconAtt.y * dd * dd);
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);
@@ -243,34 +246,59 @@ void GrassField::setCount(int blades) {
     if (blades == count_) return;
     count_ = blades;
     std::vector<std::vector<Blade>> byCell(kGrid * kGrid);
-    Rng rng{0x9E3779B9u};
-    int placed = 0, attempts = 0;
-    // Tufts: a clump centre is accepted with the meadow density, then 7..12 blades fan out from it.
-    while (placed < blades && attempts < blades * 40) {
-        ++attempts;
-        const float cxw = (rng.next() * 2.0f - 1.0f) * kGrassRadius, czw = (rng.next() * 2.0f - 1.0f) * kGrassRadius;
-        const float density = map_ ? map_->meadow(cxw, czw) : grassDensity(cxw, czw);
-        if (rng.next() > density) continue;
-        const int bladesInTuft = 7 + static_cast<int>(rng.next() * 6.0f);
-        // Short turf everywhere, tall meadow (0.5-0.9 m) where the meadow density is high AND a large-scale
-        // noise says "uncut": patches of tall grass with soft edges instead of one uniform lawn.
-        const float tallness = smoothstep01(0.50f, 0.80f, density * 0.55f + 0.65f * noise2(cxw * 0.16f + 5.0f, czw * 0.16f - 9.0f));
-        const float shortH = (0.12f + 0.20f * rng.next()) * (0.6f + 0.6f * density);
-        const float tuftHeight = lerpf(shortH, 0.50f + 0.40f * rng.next(), tallness);
-        const float dry = rng.next() < 0.35f ? 0.6f + 0.4f * rng.next() : 0.3f * rng.next();  // straw vs green tufts
-        for (int k = 0; k < bladesInTuft && placed < blades; ++k) {
-            const float a = rng.next() * 2.0f * PI, rr = 0.07f * std::sqrt(rng.next());
-            const float x = cxw + std::cos(a) * rr, z = czw + std::sin(a) * rr;
-            const bool onDisc = x * x + z * z <= kTerrainRadius * kTerrainRadius;
-            const float y = onDisc ? terrainHeight(x, z) : terrainRimHeight() - 0.1f;  // far ground: just below the rim
-            // yaw = direction the blade fans out to (outward from the tuft centre); lean grows towards the rim
-            Blade b{x, y - 0.01f, z, a, tuftHeight * (0.55f + 0.6f * rng.next()),
-                    (0.007f + 0.008f * rng.next()) * (0.7f + 0.9f * tuftHeight),   // taller blades are a little broader
-                    (0.15f + 0.9f * rr / 0.07f * (0.4f + 0.6f * rng.next())) * (0.8f + 0.5f * tallness), clampf(dry + 0.15f * (rng.next() - 0.5f), 0.0f, 1.0f)};
-            const int cx = std::clamp(static_cast<int>((x + kGrassRadius) / (2 * kGrassRadius) * kGrid), 0, kGrid - 1);
-            const int cz = std::clamp(static_cast<int>((z + kGrassRadius) / (2 * kGrassRadius) * kGrid), 0, kGrid - 1);
-            byCell[cz * kGrid + cx].push_back(b);
-            ++placed;
+    auto meadowAt = [&](float x, float z) { return map_ ? map_->meadow(x, z) : grassDensity(x, z); };
+    // Blade budget: the compound keeps the density it had before the apron existed (v3 spread 'blades' over
+    // the compound plus a thin 7 m ring); the apron gets kApronDensity of that per m^2 (weighted by meadow).
+    double wCompound = 0.0, wApron = 0.0;
+    constexpr int kProbe = 160;
+    const float probeCell = 2.0f * kGrassRadius / kProbe;
+    for (int j = 0; j < kProbe; ++j)
+        for (int i = 0; i < kProbe; ++i) {
+            const float x = -kGrassRadius + (static_cast<float>(i) + 0.5f) * probeCell;
+            const float z = -kGrassRadius + (static_cast<float>(j) + 0.5f) * probeCell;
+            const float r = std::sqrt(x * x + z * z);
+            const double w = static_cast<double>(meadowAt(x, z)) * probeCell * probeCell;
+            if (r <= kCompoundRadius) wCompound += w;
+            else if (r <= kGrassRadius) wApron += w;
+        }
+    const double wOldRing = 165.0;  // v3 weighted area of the 20..27 m ring
+    const double perWeight = static_cast<double>(blades) / (wCompound + wOldRing + 1e-6);
+    const int budget[2] = {static_cast<int>(perWeight * wCompound), static_cast<int>(perWeight * kApronDensity * wApron)};
+    int placed = 0;
+    for (int zone = 0; zone < 2; ++zone) {
+        Rng rng{zone == 0 ? 0x9E3779B9u : 0x85EBCA6Bu};
+        const float extent = zone == 0 ? kCompoundRadius : kGrassRadius;
+        int zonePlaced = 0, attempts = 0;
+        // Tufts: a clump centre is accepted with the meadow density, then 7..12 blades fan out from it.
+        while (zonePlaced < budget[zone] && attempts < budget[zone] * 40 + 100) {
+            ++attempts;
+            const float cxw = (rng.next() * 2.0f - 1.0f) * extent, czw = (rng.next() * 2.0f - 1.0f) * extent;
+            const float r2 = cxw * cxw + czw * czw;
+            if (zone == 0 ? r2 > kCompoundRadius * kCompoundRadius : (r2 <= kCompoundRadius * kCompoundRadius || r2 > kGrassRadius * kGrassRadius)) continue;
+            const float density = meadowAt(cxw, czw);
+            if (rng.next() > density) continue;
+            const int bladesInTuft = 7 + static_cast<int>(rng.next() * 6.0f);
+            // Short turf everywhere, tall meadow (0.5-0.9 m) where the meadow density is high AND a large-scale
+            // noise says "uncut": patches of tall grass with soft edges instead of one uniform lawn.
+            const float tallness = smoothstep01(0.50f, 0.80f, density * 0.55f + 0.65f * noise2(cxw * 0.16f + 5.0f, czw * 0.16f - 9.0f));
+            const float shortH = (0.12f + 0.20f * rng.next()) * (0.6f + 0.6f * density);
+            const float tuftHeight = lerpf(shortH, 0.50f + 0.40f * rng.next(), tallness);
+            const float dry = rng.next() < 0.35f ? 0.6f + 0.4f * rng.next() : 0.3f * rng.next();  // straw vs green tufts
+            for (int k = 0; k < bladesInTuft && zonePlaced < budget[zone]; ++k) {
+                const float a = rng.next() * 2.0f * PI, rr = 0.07f * std::sqrt(rng.next());
+                const float x = cxw + std::cos(a) * rr, z = czw + std::sin(a) * rr;
+                const bool inCompound = x * x + z * z <= kCompoundRadius * kCompoundRadius;
+                const float y = inCompound ? terrainHeight(x, z) : layout::kApronLevel;
+                // yaw = direction the blade fans out to (outward from the tuft centre); lean grows towards the rim
+                Blade b{x, y - 0.01f, z, a, tuftHeight * (0.55f + 0.6f * rng.next()),
+                        (0.007f + 0.008f * rng.next()) * (0.7f + 0.9f * tuftHeight),   // taller blades are a little broader
+                        (0.15f + 0.9f * rr / 0.07f * (0.4f + 0.6f * rng.next())) * (0.8f + 0.5f * tallness), clampf(dry + 0.15f * (rng.next() - 0.5f), 0.0f, 1.0f)};
+                const int cx = std::clamp(static_cast<int>((x + kGrassRadius) / (2 * kGrassRadius) * kGrid), 0, kGrid - 1);
+                const int cz = std::clamp(static_cast<int>((z + kGrassRadius) / (2 * kGrassRadius) * kGrid), 0, kGrid - 1);
+                byCell[cz * kGrid + cx].push_back(b);
+                ++placed;
+                ++zonePlaced;
+            }
         }
     }
     std::vector<Blade> all;
