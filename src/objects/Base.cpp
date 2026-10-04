@@ -4,6 +4,7 @@
 #include <cstdio>
 
 #include "objects/PropKit.h"
+#include "objects/Structures.h"
 
 namespace ts {
 
@@ -33,31 +34,28 @@ float smooth01(float x) {
 float tangentYawDeg(float a) { return degrees(std::atan2(-std::cos(a), -std::sin(a))); }
 
 // ----- materials ------------------------------------------------------------------------------------------
-Material hescoMat() { return makeMaterial({0.27f, 0.25f, 0.19f}, 0.22f, Surface::Hesco, 0.92f, 0.0f); }
+Material hescoMat() { return makeMaterial({0.42f, 0.38f, 0.27f}, 0.22f, Surface::Hesco, 0.92f, 0.0f); }
 Material asphaltMat() { return makeMaterial({0.10f, 0.10f, 0.105f}, 0.28f, Surface::Asphalt, 0.82f, 0.0f); }
 Material paintWhite() { return makeMaterial({0.62f, 0.62f, 0.58f}, 0.26f, Surface::Paint, 0.55f, 0.0f); }
 Material paintYellow() { return makeMaterial({0.60f, 0.46f, 0.05f}, 0.26f, Surface::Paint, 0.55f, 0.0f); }
 Material paintRed() { return makeMaterial({0.50f, 0.04f, 0.03f}, 0.26f, Surface::Paint, 0.5f, 0.0f); }
 Material hazard() { return makeMaterial({0.5f, 0.4f, 0.05f}, 0.26f, Surface::Hazard, 0.55f, 0.0f); }
-Material corrugated(const Vec3& c) { return makeMaterial(c, 0.30f, Surface::Corrugated, 0.65f, 0.55f); }
-Material oliveCorr() { return corrugated({0.13f, 0.17f, 0.10f}); }
-Material tanCorr() { return corrugated({0.30f, 0.25f, 0.15f}); }
-Material rustCorr() { return corrugated({0.28f, 0.11f, 0.06f}); }
+Material corrugated(const Vec3& c) { return makeMaterial(c, 0.30f, Surface::Corrugated, 0.60f, 0.22f); }
+Material oliveCorr() { return corrugated({0.24f, 0.30f, 0.18f}); }
+Material tanCorr() { return corrugated({0.42f, 0.35f, 0.22f}); }
+Material rustCorr() { return corrugated({0.42f, 0.17f, 0.09f}); }
 Material blackRubber() { return makeMaterial({0.025f, 0.025f, 0.025f}, 0.30f, Surface::Rubber, 0.85f, 0.0f); }
-Material oliveFlat() { return makeMaterial({0.14f, 0.17f, 0.11f}, 0.35f, Surface::Paint, 0.6f, 0.2f); }
+Material oliveFlat() { return makeMaterial({0.22f, 0.26f, 0.17f}, 0.35f, Surface::Paint, 0.6f, 0.2f); }
 Material darkGlass() { return makeMaterial({0.03f, 0.04f, 0.05f}, 0.20f, Surface::Glass, 0.1f, 0.0f); }
-Material warmWindow() { return makeMaterial({1.0f, 0.62f, 0.28f}, 0.45f, Surface::Glass, 0.2f, 0.0f, 0.8f); }
-Material camo() { return makeMaterial({0.16f, 0.20f, 0.12f}, 0.22f, Surface::Camo, 0.85f, 0.0f); }
-Material woven() { return makeMaterial({0.14f, 0.17f, 0.10f}, 0.22f, Surface::Camo, 0.9f, 0.0f); }
-Material blueEmissive() { return makeMaterial({0.08f, 0.25f, 1.0f}, 0.40f, Surface::Glass, 0.2f, 0.0f, 1.0f); }
-Material bluePractical() { return asLight(blueEmissive(), 0.9f, 5.0f); }
-Material sodiumSpot() {
-    return asLight(makeMaterial({1.00f, 0.62f, 0.28f}, 0.70f, Surface::Glass, 0.05f, 0.0f, 1.0f), 8.0f, 24.0f, 34.0f);
+// Light discipline (v5): windows are blacked out, floodlights are dim hooded lamps, the rest are small tactical
+// markers (red / blue-green) that only mark doors, steps and the gate.
+Material blueEmissive() { return makeMaterial({0.08f, 0.25f, 1.0f}, 0.40f, Surface::Glass, 0.2f, 0.0f, 0.35f); }
+Material bluePractical() { return asLight(makeMaterial({0.08f, 0.25f, 1.0f}, 0.40f, Surface::Glass, 0.2f, 0.0f, 1.0f), 0.5f, 4.0f); }
+Material hoodedLamp(const Vec3& c, float intensity, float range, float coneDeg) {
+    return asLight(makeMaterial(c, 0.45f, Surface::Glass, 0.05f, 0.0f, 1.0f), intensity, range, coneDeg);
 }
-Material sodiumOmni() {
-    return asLight(makeMaterial({1.00f, 0.66f, 0.32f}, 0.60f, Surface::Glass, 0.05f, 0.0f, 1.0f), 3.2f, 11.0f);
-}
-Material sodiumLensOnly() { return makeMaterial({1.00f, 0.66f, 0.32f}, 0.55f, Surface::Glass, 0.05f, 0.0f, 1.0f); }
+Material tacRedMark() { return makeMaterial({1.0f, 0.05f, 0.03f}, 0.35f, Surface::Glass, 0.2f, 0.0f, 0.55f); }
+Material tacTealMark() { return makeMaterial({0.05f, 0.85f, 0.60f}, 0.35f, Surface::Glass, 0.2f, 0.0f, 0.55f); }
 Material fabric(const Vec3& c) { return makeMaterial(c, 0.28f, Surface::Plain, 0.9f, 0.0f); }
 
 // ----- primitive shorthands (positions are relative to the parent group; y is above the apron) ---------------
@@ -142,7 +140,7 @@ WallPlan planWall() {
 
 void addPerimeter(Builder& b, SceneNode* root) {
     SceneNode* wall = b.group(root, "HESCO perimeter", {0, G, 0}, {0, 0, 0}, "Bastion wall and concertina wire");
-    const Material hesco = hescoMat(), wire = mats::wire();
+    const Material hesco = hescoMat(), wire = makeMaterial({0.55f, 0.55f, 0.56f}, 0.15f, Surface::Metal, 0.45f, 0.35f);
     const WallPlan plan = planWall();
     for (int i = 0; i < plan.cells; ++i) {
         const float top = plan.top[static_cast<size_t>(i)];
@@ -172,11 +170,11 @@ void addPerimeter(Builder& b, SceneNode* root) {
             return c + n * (0.38f * std::cos(ang)) + Vec3{0, 0.38f * std::sin(ang), 0} + t * (0.14f * static_cast<float>(k) - 0.42f);
         };
         for (int k = 0; k < 6; ++k)
-            strut(b, coils, "Wire coil turn", P::Cylinder, ringPoint(k), ringPoint(k + 1), 0.018f, wire,
+            strut(b, coils, "Wire coil turn", P::Cylinder, ringPoint(k), ringPoint(k + 1), 0.035f, wire,
                   "One turn of a concertina coil");
         const Vec3 top0 = c + Vec3{0, 0.30f, 0};
         if (havePrev)
-            strut(b, coils, "Razor strand", P::Cylinder, prev, top0, 0.014f, wire, "Strand tying neighbouring coils");
+            strut(b, coils, "Razor strand", P::Cylinder, prev, top0, 0.03f, wire, "Strand tying neighbouring coils");
         prev = top0;
         havePrev = true;
     }
@@ -233,8 +231,8 @@ void addTower(Builder& b, SceneNode* parent, float angleDeg, int index) {
     const Vec3 aim = normalize(Vec3{0.35f, -(head.y + 0.0f), 12.0f});
     strut(b, t, "Floodlight bracket", P::Cylinder, {head.x, kPlat + 2.3f, 1.62f}, head, 0.06f, steel, "Lamp arm");
     b.part(t, "Floodlight housing", P::Cylinder, {0.36f, 0.36f, 0.34f}, alignZ(aim), head, steel, "Lamp body");
-    b.part(t, "Floodlight lens", P::Sphere, {0.32f, 0.32f, 0.06f}, alignZ(aim), head + aim * 0.18f, sodiumSpot(),
-           "Sodium floodlight (practical spot light)");
+    b.part(t, "Floodlight lens", P::Sphere, {0.32f, 0.32f, 0.06f}, alignZ(aim), head + aim * 0.18f, darkGlass(),
+           "Floodlight lens, switched off (light discipline)");
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -253,7 +251,7 @@ void addGate(Builder& b, SceneNode* root) {
     box(b, booth, "Booth floor", {2.4f, 0.2f, 2.4f}, {0, 0.1f, 0}, 0, conc, "Concrete plinth");
     box(b, booth, "Booth body", {2.2f, 2.3f, 2.2f}, {0, 1.35f, 0}, 0, tanCorr(), "Corrugated booth walls");
     box(b, booth, "Booth roof", {2.7f, 0.12f, 2.7f}, {0, 2.56f, 0}, 0, oliveCorr(), "Overhanging roof");
-    box(b, booth, "Booth window", {0.04f, 0.7f, 1.3f}, {-1.12f, 1.65f, 0}, 0, warmWindow(), "Lit window facing the road");
+    box(b, booth, "Booth window", {0.04f, 0.7f, 1.3f}, {-1.12f, 1.65f, 0}, 0, darkGlass(), "Blacked-out window facing the road");
     box(b, booth, "Booth door", {0.9f, 1.8f, 0.04f}, {0.3f, 1.1f, 1.12f}, 0, darkGlass(), "Door facing the outside");
     box(b, booth, "Booth AC unit", {0.7f, 0.5f, 0.35f}, {1.25f, 1.1f, -0.5f}, 90, mats::galvanized(), "Air conditioner");
     post(b, booth, "Booth antenna", 0.03f, 1.4f, {0.8f, 2.6f, -0.8f}, steel, "Radio antenna");
@@ -280,8 +278,12 @@ void addGate(Builder& b, SceneNode* root) {
     // Gate lamp.
     post(b, g, "Gate lamp pole", 0.12f, 5.4f, {-3.9f, 0, -2.4f}, steel, "Lamp pole");
     box(b, g, "Gate lamp arm", {1.4f, 0.07f, 0.07f}, {-3.2f, 5.35f, -2.4f}, 0, steel, "Lamp arm");
-    b.part(g, "Gate lamp", P::Sphere, {0.28f, 0.10f, 0.22f}, {0, 0, 0}, {-2.65f, 5.25f, -2.4f}, sodiumOmni(),
-           "Checkpoint sodium lamp (practical light)");
+    box(b, g, "Gate lamp hood", {0.42f, 0.04f, 0.34f}, {-2.65f, 5.36f, -2.4f}, 0, steel, "Hood that keeps the light pointing down");
+    b.part(g, "Gate lamp", P::Sphere, {0.20f, 0.20f, 0.08f}, {90, 0, 0}, {-2.65f, 5.22f, -2.4f},
+           hoodedLamp({1.0f, 0.22f, 0.08f}, 1.3f, 8.0f, 55.0f), "Dim red hooded checkpoint lamp pointing down (practical light)");
+    for (float s : {-1.0f, 1.0f})  // tactical markers on the inner faces of the gate posts
+        b.part(g, "Gate post marker", P::Sphere, {0.10f, 0.10f, 0.05f}, {0, 0, 0}, {s * (kGateHalfGap + 0.45f), 1.2f, 0.2f + 0.36f},
+               s < 0 ? tacRedMark() : tacTealMark(), "Tactical marker light on the gate post (emissive only)");
     // Czech hedgehogs outside the wall.
     for (float x : {-6.5f, 6.5f}) {
         SceneNode* h = b.group(g, "Tank trap", {x, 0.0f, 0.9f}, {0, x * 11.0f, 0}, "Czech hedgehog anti-tank obstacle");
@@ -334,10 +336,22 @@ void addHelipad(Builder& b, SceneNode* root) {
     // 16 blue perimeter lights; three of them are practical lights.
     for (int i = 0; i < 16; ++i) {
         const float a = kTwoPi * (static_cast<float>(i) + 0.5f) / 16.0f;
-        const bool practical = (i == 2 || i == 7 || i == 13);
+        const bool practical = (i == 7);
         b.part(h, "Perimeter light", P::Sphere, {0.2f, 0.07f, 0.2f}, {0, 0, 0},
                {4.85f * std::cos(a), 0.07f, 4.85f * std::sin(a)}, practical ? bluePractical() : blueEmissive(),
                practical ? "Blue edge light (practical)" : "Blue edge light (emissive only)");
+    }
+    // Floodlight on the north-west edge (the side the base looks at the pad from), clear of the rotor disc:
+    // lights the parked helicopter's flank instead of leaving it a silhouette against the moon.
+    {
+        const Vec3 pp{-6.2f, 0.0f, 4.0f};
+        const Vec3 head{pp.x, 4.2f, pp.z};
+        const Vec3 aim = normalize(Vec3{0.0f, 1.0f, 0.0f} - head);
+        post(b, h, "Pad floodlight pole", 0.14f, 4.0f, pp, mats::towerSteel(), "Mast of the helipad floodlight");
+        b.part(h, "Pad floodlight housing", P::Cylinder, {0.36f, 0.36f, 0.3f}, alignZ(aim), head, mats::towerSteel(), "Lamp body");
+        b.part(h, "Pad floodlight lens", P::Sphere, {0.32f, 0.32f, 0.05f}, alignZ(aim), head + aim * 0.17f,
+               hoodedLamp({1.0f, 0.46f, 0.20f}, 2.0f, 13.0f, 38.0f),
+               "Dim hooded lamp over the helipad edge (practical spot light)");
     }
 }
 
@@ -395,21 +409,25 @@ void addMotorPool(Builder& b, SceneNode* root) {
     // Two trucks under the camouflage net.
     truck(b, mp, at(5.9f, 1.4f), yaw);
     truck(b, mp, at(8.9f, 1.4f), yaw + 180.0f);
-    SceneNode* net = b.group(mp, "Camouflage net bay", {0, 0, 0}, {0, 0, 0}, "Net over the vehicle bay");
-    const float so0 = 4.2f, so1 = 10.6f, fo0 = -3.0f, fo1 = 6.0f;
-    const float poleH[3][3] = {{3.5f, 3.2f, 3.5f}, {3.2f, 3.4f, 3.2f}, {3.5f, 3.2f, 3.6f}};
-    for (int i = 0; i < 3; ++i)
-        for (int j = 0; j < 3; ++j) {
-            const float u = (static_cast<float>(i) + 0.5f) / 3.0f, v = (static_cast<float>(j) + 0.5f) / 3.0f;
-            const Vec3 c = at(lerpf(so0, so1, u), lerpf(fo0, fo1, v));
-            box(b, net, "Camo net panel", {(so1 - so0) / 3.0f + 0.1f, 0.05f, (fo1 - fo0) / 3.0f + 0.1f},
-                {c.x, poleH[i][j] - 0.1f, c.z}, yaw, i == 1 ? woven() : camo(), "Woven camouflage netting");
-        }
-    for (float so : {so0, 0.5f * (so0 + so1), so1})
-        for (float fo : {fo0, fo1}) {
-            const Vec3 c = at(so, fo);
-            post(b, net, "Net pole", 0.10f, 3.5f, c, mats::fenceWood(), "Net support pole");
-        }
+    // Camouflage net over the two trucks: sagging between poles (>= 3.2 m above the ground), with gaps.
+    {
+        const float so0 = 4.2f, so1 = 10.6f, fo0 = -3.0f, fo1 = 6.0f;
+        const Vec3 c = at(0.5f * (so0 + so1), 0.5f * (fo0 + fo1));
+        addCamoNet(b, mp, {c.x, 0.0f, c.z}, yaw, so1 - so0, fo1 - fo0, 3.9f, 0.32f, 0x4e7b01u);
+    }
+    // Floodlight pole behind the tank spot, aimed at the parking box.
+    {
+        const Vec3 pp = at(-3.9f, 5.6f);  // front-left corner of the park (north-west of the tank), clear of the 6 x 9 m box
+        const Vec3 head{pp.x, 5.4f, pp.z};
+        const Vec3 target = Vec3{0.0f, 1.0f, 0.0f};
+        const Vec3 aim = normalize(target - head);
+        post(b, mp, "Floodlight pole", 0.16f, 5.2f, pp, mats::towerSteel(), "Mast of the motor-pool floodlight");
+        box(b, mp, "Floodlight arm", {0.1f, 0.1f, 0.5f}, {pp.x, 5.3f, pp.z}, yaw, mats::towerSteel(), "Lamp bracket");
+        b.part(mp, "Floodlight housing", P::Cylinder, {0.42f, 0.42f, 0.36f}, alignZ(aim), head, mats::towerSteel(), "Lamp body");
+        b.part(mp, "Floodlight lens", P::Sphere, {0.38f, 0.38f, 0.06f}, alignZ(aim), head + aim * 0.2f,
+               hoodedLamp({1.0f, 0.50f, 0.22f}, 2.4f, 13.0f, 42.0f),
+               "Dim hooded lamp over the motor pool (practical spot light)");
+    }
     // Parking spot marking: four flush yellow bars around the 9 x 6 m tank spot.
     SceneNode* mk = b.group(root, "Tank spot marking", {kMotorPool.x, G, kMotorPool.z}, {0, yaw, 0}, "Painted parking box");
     flush(b, mk, "Spot line", {6.0f, 0.012f, 0.12f}, {0, 0.012f, 4.5f}, 0, paintYellow(), "Front line");
@@ -418,7 +436,7 @@ void addMotorPool(Builder& b, SceneNode* root) {
     flush(b, mk, "Spot line", {0.12f, 0.012f, 9.0f}, {-3.0f, 0.012f, 0}, 0, paintYellow(), "Left line");
 }
 
-void lightTower(Builder& b, SceneNode* p, float x, float z, float yaw, bool practical) {
+void lightTower(Builder& b, SceneNode* p, float x, float z, float yaw, bool /*practical: the tower stays dark*/) {
     SceneNode* t = b.group(p, "Light tower", {x, 0, z}, {0, yaw, 0}, "Trailer-mounted mast with four lamp heads");
     const Material steel = mats::towerSteel(), od = oliveFlat();
     box(b, t, "Trailer", {1.5f, 0.5f, 2.4f}, {0, 0.55f, 0}, 0, od, "Generator trailer");
@@ -430,9 +448,8 @@ void lightTower(Builder& b, SceneNode* p, float x, float z, float yaw, bool prac
     for (int i = 0; i < 4; ++i) {
         const float x0 = -0.55f + 0.37f * static_cast<float>(i);
         box(b, t, "Lamp head", {0.3f, 0.22f, 0.2f}, {x0, 7.3f, 0.12f}, 0, steel, "Lamp housing");
-        const bool lit = (i == 1 && practical);
-        b.part(t, "Lamp lens", P::Cube, {0.26f, 0.18f, 0.03f}, {25, 0, 0}, {x0, 7.28f, 0.23f},
-               lit ? sodiumSpot() : sodiumLensOnly(), lit ? "Sodium flood (practical light)" : "Sodium flood (emissive only)");
+        b.part(t, "Lamp lens", P::Cube, {0.26f, 0.18f, 0.03f}, {25, 0, 0}, {x0, 7.28f, 0.23f}, darkGlass(),
+               "Flood lens, switched off (light discipline)");
     }
 }
 
@@ -472,7 +489,7 @@ void addBarracks(Builder& b, SceneNode* root) {
     SceneNode* bar = b.group(root, "Barracks", {0, G, 0}, {0, 0, 0}, "Three Quonset huts with sandbag blast walls");
     const float a0 = std::atan2(kBarracks.z, kBarracks.x);
     constexpr float kHutR = 27.0f, kRad = 2.2f, kLen = 8.5f, kSpacing = 6.2f;
-    const Material tin = corrugated({0.17f, 0.20f, 0.14f}), ac = mats::galvanized(), steel = mats::towerSteel();
+    const Material tin = corrugated({0.30f, 0.34f, 0.24f}), ac = mats::galvanized(), steel = mats::towerSteel();
     for (int k = -1; k <= 1; ++k) {
         const float a = a0 + static_cast<float>(k) * kSpacing / kHutR;
         const Vec3 ctr{kHutR * std::cos(a), 0.0f, kHutR * std::sin(a)};
@@ -484,15 +501,48 @@ void addBarracks(Builder& b, SceneNode* root) {
         const float zEnd = 0.5f * kLen + 0.03f;
         b.part(h, "Hut door", P::Cube, {0.95f, 1.9f, 0.08f}, {0, 0, 0}, {-0.5f, 0.95f, zEnd}, makeMaterial({0.07f, 0.09f, 0.07f}, 0.3f, Surface::Paint, 0.6f, 0.2f), "Entrance door in the end wall");
         b.part(h, "Hut door step", P::Cube, {1.2f, 0.18f, 0.6f}, {0, 0, 0}, {-0.5f, 0.09f, zEnd + 0.3f}, mats::concrete(), "Concrete step");
-        b.part(h, "Hut window", P::Cube, {0.7f, 0.5f, 0.08f}, {0, 0, 0}, {0.95f, 1.35f, zEnd}, k == 0 ? warmWindow() : darkGlass(), k == 0 ? "Lit window" : "Window (dark)");
+        b.part(h, "Hut window", P::Cube, {0.7f, 0.5f, 0.08f}, {0, 0, 0}, {0.95f, 1.35f, zEnd}, darkGlass(), "Blacked-out window");
         b.part(h, "Hut AC unit", P::Cube, {0.9f, 0.6f, 0.4f}, {0, 0, 0}, {0.9f, 0.75f, -zEnd - 0.2f}, ac, "Air conditioner on the rear wall");
         b.part(h, "Hut AC fan", P::Cylinder, {0.45f, 0.45f, 0.05f}, {0, 0, 0}, {0.9f, 0.75f, -zEnd - 0.43f}, steel, "Condenser fan");
+        // Windows along both flanks (lit in the two outer huts) and a practical door lamp above the entrance.
+        for (float side : {-1.0f, 1.0f})
+            for (float wz : {-2.4f, 0.0f, 2.4f}) {
+                const float th = radians(32.0f);
+                b.part(h, "Hut flank window", P::Cube, {0.7f, 0.03f, 0.5f}, {0, 0, side * (degrees(th) - 90.0f)},
+                       {side * (kRad + 0.01f) * std::cos(th), 0.15f + (kRad + 0.01f) * std::sin(th), wz}, darkGlass(),
+                       "Blacked-out window in the hut flank");
+            }
+        box(b, h, "Hut door lamp hood", {0.3f, 0.04f, 0.26f}, {-0.5f, 2.2f, zEnd + 0.16f}, 0, steel, "Hood over the door lamp");
+        b.part(h, "Hut door lamp", P::Sphere, {0.14f, 0.14f, 0.06f}, {90, 0, 0}, {-0.5f, 2.13f, zEnd + 0.16f},
+               k == 0 ? hoodedLamp({1.0f, 0.10f, 0.05f}, 0.8f, 5.0f, 60.0f) : tacRedMark(),
+               k == 0 ? "Dim red hooded lamp above the door (practical light)" : "Dim red door marker (emissive only)");
+        b.part(h, "Door step marker", P::Sphere, {0.09f, 0.04f, 0.09f}, {0, 0, 0}, {-0.1f, 0.2f, zEnd + 0.55f}, tacTealMark(),
+               "Blue-green tactical marker on the step (emissive only)");
         post(b, h, "Hut stove pipe", 0.12f, 0.8f, {-0.6f, 2.0f, -1.5f}, steel, "Chimney");
         // Blast wall: three sandbag courses, 1.8 m in front of the door.
         const float wz = zEnd + 2.0f;
         for (int r = 0; r < 3; ++r)
             box(b, h, "Blast wall course", {3.0f - 0.3f * static_cast<float>(r), 0.4f, 0.6f}, {0, 0.2f + 0.4f * static_cast<float>(r), wz}, 0, mats::sandbag(), "Sandbag blast wall in front of the door");
     }
+}
+
+// Tyre tracks: pairs of dark flush strips along the service ring from the road to the motor pool and the helipad.
+void addTyreTracks(Builder& b, SceneNode* root) {
+    SceneNode* t = b.group(root, "Tyre tracks", {0, G, 0}, {0, 0, 0}, "Worn dirt tracks of vehicles driving the service ring");
+    const Material mud = makeMaterial({0.035f, 0.03f, 0.024f}, 0.2f, Surface::Plain, 0.95f, 0.0f);
+    auto arc = [&](float a0, float a1, float rad, float w) {
+        const int n = std::max(1, static_cast<int>(std::fabs(a1 - a0) / 6.0f));
+        for (int i = 0; i < n; ++i) {
+            const float a = radians(a0 + (a1 - a0) * (static_cast<float>(i) + 0.5f) / static_cast<float>(n));
+            const float len = radians(std::fabs(a1 - a0)) / static_cast<float>(n) * rad + 0.15f;
+            const float yaw = degrees(std::atan2(-std::sin(a), std::cos(a)));
+            for (float off : {-w, w})
+                box(b, t, "Tyre track", {0.24f, 0.012f, len}, {(rad + off) * std::cos(a), 0.006f, (rad + off) * std::sin(a)}, yaw, mud,
+                    "Rut of a vehicle tyre in the packed dirt");
+        }
+    };
+    arc(92.0f, 215.0f, 21.4f, 0.6f);  // road -> west -> motor pool
+    arc(88.0f, 58.0f, 21.4f, 0.6f);   // road -> east towards the helipad
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -580,6 +630,7 @@ BaseRig buildBase() {
     addMotorPool(b, r);
     addDepot(b, r);
     addBarracks(b, r);
+    addTyreTracks(b, r);
     addAaSurround(b, r);
     addRadarSurround(b, r);
     // Static parts of the poles of the animated objects are inside their own roots.
@@ -622,7 +673,7 @@ GateBarrier::GateBarrier() {
     box(b, arm_, "Counterweight", {0.3f, 0.34f, 0.26f}, {0.62f, -0.12f, 0}, 0, mats::concrete(), "Concrete counterweight");
     b.part(arm_, "Pivot bolt", P::Cylinder, {0.12f, 0.12f, 0.6f}, {0, 0, 0}, {0, 0, 0}, steel, "Pivot axle along Z");
     armLamp_ = b.part(arm_, "Boom tip lamp", P::Sphere, {0.12f, 0.12f, 0.12f}, {0, 0, 0}, {-kArmLen, 0.12f, 0}, makeMaterial({1.0f, 0.3f, 0.05f}, 0.4f, Surface::Glass, 0.1f, 0.0f, 0.1f), "Amber lamp at the tip");
-    Material lamp = asLight(makeMaterial({1.0f, 0.28f, 0.04f}, 0.45f, Surface::Glass, 0.1f, 0.0f, 0.1f), 2.4f, 6.0f);
+    Material lamp = asLight(makeMaterial({1.0f, 0.15f, 0.03f}, 0.45f, Surface::Glass, 0.1f, 0.0f, 0.1f), 1.0f, 4.5f);
     lamp_ = b.part(r, "Warning lamp", P::Sphere, {0.22f, 0.22f, 0.22f}, {0, 0, 0}, {0, 1.3f, 0}, lamp, "Amber warning lamp (practical light), blinks while moving");
     lamp_->animation = "Blinks 3 Hz while the boom moves";
     finalizeFlags(*r);
@@ -737,12 +788,12 @@ WavingFlag::WavingFlag() {
     const Vec3 aim = normalize(Vec3{0.0f, 8.0f - head.y, -1.2f - head.z});
     b.part(r, "Flag spot housing", P::Cylinder, {0.34f, 0.34f, 0.3f}, alignZ(aim), head, mats::towerSteel(), "Ground spotlight body");
     b.part(r, "Flag spot lens", P::Sphere, {0.3f, 0.3f, 0.05f}, alignZ(aim), head + aim * 0.16f,
-           asLight(makeMaterial({1.0f, 0.82f, 0.55f}, 0.55f, Surface::Glass, 0.05f, 0.0f, 1.0f), 6.0f, 15.0f, 22.0f), "Flag spotlight (practical spot light)");
+           darkGlass(), "Flag spotlight lens, switched off (light discipline)");
     box(b, r, "Flag spot stand", {0.2f, 0.12f, 0.2f}, {0, 0.06f, 1.9f}, 0, mats::concrete(), "Spot footing");
 
     hoist_ = b.group(r, "Flag hoist", {0.13f, 8.95f, 0.0f}, {0, 0, 0}, "Attachment to the halyard; turns downwind");
     hoist_->animation = "Yaw follows the wind; roll droops the flag when the wind is weak";
-    const Material bands[3] = {fabric({0.36f, 0.03f, 0.03f}), fabric({0.40f, 0.40f, 0.34f}), fabric({0.03f, 0.06f, 0.20f})};
+    const Material bands[3] = {fabric({0.65f, 0.05f, 0.05f}), fabric({0.75f, 0.74f, 0.66f}), fabric({0.06f, 0.12f, 0.40f})};
     SceneNode* parent = hoist_;
     for (int i = 0; i < kStrips; ++i) {
         SceneNode* g = b.group(parent, "Flag strip", {i == 0 ? 0.0f : kStripWidth, 0, 0}, {0, 0, 0}, "One 0.2 m strip of cloth, child of the previous strip");

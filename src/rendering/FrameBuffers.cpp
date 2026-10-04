@@ -156,11 +156,11 @@ bool FrameBuffers::ensure(int width, int height, int samples, int fogDivisor, in
     ok = dof.create(std::max(1, width / 2), std::max(1, height / 2), GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
     ok = dofCombined.create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
     int bw = std::max(1, width / 4), bh = std::max(1, height / 4);
-    ok = flare.create(bw, bh, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
-    ok = streak.create(bw, bh, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
+    ok = flare.create(bw, bh, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
+    ok = streak.create(bw, bh, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
     for (int i = 0; i < kBloomLevels && bw >= 2 && bh >= 2; ++i) {
         bloom.emplace_back();
-        ok = bloom.back().create(bw, bh, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, GL_LINEAR) && ok;
+        ok = bloom.back().create(bw, bh, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
         bw /= 2;
         bh /= 2;
     }

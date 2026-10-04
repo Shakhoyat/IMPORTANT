@@ -17,7 +17,8 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from wb_common import OUT, S_BEHAV, S_COVER, S_HIER, S_MAT, S_TEST, S_TRACE, load_json  # noqa: E402
+from wb_common import (OUT, S_AUDIT, S_BEHAV, S_COMBAT, S_COVER, S_CTRL, S_HIER, S_MAT, S_TEST, S_TRACE, load_json,
+                       matrix_components)  # noqa: E402
 from wb_transforms import C_M, C_WERR, TOLERANCE  # noqa: E402
 
 ERRORS = ("#VALUE!", "#REF!", "#NAME?", "#DIV/0!", "#N/A", "#NUM!", "#NULL!")
@@ -116,6 +117,19 @@ def main():
     if engine == "auto":
         engine = "libreoffice" if exe else ("excel" if _has_excel() else "formulas")
     print("recalculating with", engine, "...")
+    global OUT
+    reduced = None
+    if engine == "formulas":
+        # The pure-Python engine cannot digest the 40 000 matrix formulas of the full workbook in reasonable time /
+        # memory, so it recalculates a REDUCED workbook built by the same code (all sheets complete, but sheets 4 / 5
+        # with only 8 group nodes + 2 leaves per root). The full workbook is still checked numerically below.
+        reduced = os.path.join(os.path.dirname(OUT), "build", "wb_verify.xlsx")
+        import wb_common
+        wb_common.set_leaves(2, 8)
+        subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "build_workbook.py"),
+                        "--out", reduced, "--leaves", "2", "--groups", "8"], check=True, capture_output=True)
+        OUT = reduced
+        print("  reduced workbook:", reduced)
     if engine == "libreoffice":
         values = evaluate_libreoffice(exe)
     elif engine == "excel":
@@ -129,7 +143,8 @@ def main():
         print("  FLAG", k, v)
     for k, v in errs[:20]:
         print("  ERROR", k, v)
-    comps = load_json("build/scene_export.json")["components"]
+    all_comps = load_json("build/scene_export.json")["components"]
+    comps = matrix_components(all_comps)   # the rows that carry Excel formulas (sheets 4 + 5)
     mat, hier = S_MAT.upper(), S_HIER.upper()
     first = 6
     worst_code = worst_py = worst_world = 0.0
@@ -150,25 +165,50 @@ def main():
             worst_world = max(worst_world, e)
         else:
             missing += 1
+    # Full-scene check in Python (rows without Excel formulas too): M from S / R / T, then world = parent x M.
+    worst_all_local = worst_all_world = 0.0
+    wmap = {}
+    for c in all_comps:
+        R = _rot(c["R_deg"])
+        m = [[R[a][b] * c["S"][b] if b < 3 else c["T"][a] for b in range(4)] + [] for a in range(3)]
+        worst_all_local = max(worst_all_local, max(abs(m[a][b] - c["local_matrix"][a * 4 + b]) for a in range(3) for b in range(4)))
+        par = wmap.get(c.get("parent_id"))
+        if par is None:
+            w = m
+        else:
+            w = [[sum(par[a][k] * m[k][b] for k in range(3)) + (par[a][3] if b == 3 else 0.0) for b in range(4)] for a in range(3)]
+        wmap[c["id"]] = w
+        worst_all_world = max(worst_all_world, max(abs(w[a][b] - c["world_matrix"][a * 4 + b]) for a in range(3) for b in range(4)))
     col_err = values.get((mat, "D3"))
     print(f"  formula errors: {len(errs)}")
     print(f"  sheet 4: max |M_excel - M_code|   = {worst_code:.3e} (sheet cell D3 says {col_err})")
     print(f"  sheet 4: max |M_excel - M_python| = {worst_py:.3e}")
     print(f"  sheet 5: max |W_excel - W_code|   = {worst_world:.3e}")
     print(f"  non-numeric matrix cells: {missing}")
+    print(f"  all {len(all_comps)} components (python): max |M - M_code| = {worst_all_local:.3e}, "
+          f"max |W - W_code| = {worst_all_world:.3e}   (Excel formulas cover {len(comps)})")
     kpis = [("cover: parts", S_COVER, "A11"), ("cover: meshes", S_COVER, "B11"), ("cover: triangles", S_COVER, "C11"),
             ("cover: tests", S_COVER, "D11"), ("cover: pass rate", S_COVER, "E11"), ("cover: best FPS", S_COVER, "F11"),
             ("cover: matrix error", S_COVER, "G11"), ("sheet 4 verdict", S_MAT, "F3"), ("sheet 5 verdict", S_HIER, "C3"),
             ("sheet 10 pass rate", S_TEST, "H3"), ("sheet 12 detection", S_BEHAV, "B8"),
-            ("sheet 12 median error", S_BEHAV, "B10"), ("sheet 13 verified", S_TRACE, "D3")]
+            ("sheet 12 median error", S_BEHAV, "B10"), ("sheet 13 verified", S_TRACE, "D3"),
+            ("cover: possessable", S_COVER, "A14"), ("cover: practical lights", S_COVER, "B14"),
+            ("cover: walk floors/walls", S_COVER, "C14"), ("cover: particle types", S_COVER, "D14"),
+            ("cover: audit verified", S_COVER, "E14"), ("cover: audit pending", S_COVER, "F14"),
+            ("sheet 14 possessable", S_CTRL, "B3"), ("sheet 17 CHECK count", S_AUDIT, "J3"),
+            ("sheet 16 cycle check", S_COMBAT, None)]
     for label, sheet, cell in kpis:
+        if cell is None:
+            continue
         print(f"  {label:24s} = {values.get((sheet.upper(), cell))}")
-    ok = not errs and not flags and missing == 0 and max(worst_code, worst_world) <= TOLERANCE and worst_py <= 1e-9
+    ok = (not errs and not flags and missing == 0 and max(worst_code, worst_world) <= TOLERANCE and worst_py <= 1e-9
+          and max(worst_all_local, worst_all_world) <= TOLERANCE)
     if not ok:
         print("  failed:", ", ".join(n for n, bad in (("formula errors", errs), ("flagged cells", flags),
                                                       ("non-numeric matrix cells", missing),
                                                       ("matrix tolerance", max(worst_code, worst_world) > TOLERANCE),
-                                                      ("python cross-check", worst_py > 1e-9)) if bad))
+                                                      ("python cross-check", worst_py > 1e-9),
+                                                      ("full-scene python check", max(worst_all_local, worst_all_world) > TOLERANCE)) if bad))
     print("RESULT:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

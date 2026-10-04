@@ -90,6 +90,32 @@ UavRig buildUav() {
     b.part(rig.gimbalPitch, "Thermal camera", P::Cube, {0.03f, 0.025f, 0.035f}, {0, 0, 0}, {0, 0.042f, 0.0f}, carbon,
            "Camera used by the tracker");
 
+    // Launcher: a rail under each side of the body carrying two small rounds (body cylinder, cone nose,
+    // four fins). A launched round's group is hidden and comes back after the reload time.
+    const Material rail = withPbr({{0.20f, 0.21f, 0.20f}, 0.40f, 0.0f, 0.5f, 64.0f}, Surface::Metal, 0.45f, 0.7f);
+    const Material round = withPbr({{0.32f, 0.34f, 0.28f}, 0.45f, 0.0f, 0.5f, 64.0f}, Surface::Paint, 0.4f, 0.1f);
+    const Material seeker = withPbr({{0.05f, 0.05f, 0.06f}, 0.45f, 0.0f, 0.9f, 128.0f}, Surface::Glass, 0.08f, 0.0f);
+    for (int side = 0; side < 2; ++side) {
+        const float sx = side == 0 ? 1.0f : -1.0f;
+        SceneNode* pylon = b.group(r, side == 0 ? "Launcher rail L" : "Launcher rail R", {0.105f * sx, -0.075f, 0.0f},
+                                   {0, 0, 0}, "Under-body launcher rail");
+        b.part(pylon, "Rail", P::Cube, {0.012f, 0.012f, 0.22f}, {0, 0, 0}, {0, 0.012f, 0}, rail, "Launch rail");
+        b.part(pylon, "Rail strut", P::Cube, {0.008f, 0.02f, 0.008f}, {0, 0, 0}, {0, 0.025f, 0.05f}, rail, "Strut to the frame");
+        for (int k = 0; k < 2; ++k) {
+            const int idx = side * 2 + k;
+            SceneNode* m = b.group(pylon, "Round", {0.022f * (k == 0 ? -1.0f : 1.0f), -0.008f, 0.0f}, {0, 0, 0},
+                                   "One round on the rail");
+            m->animation = "Hidden at launch, reappears after the reload";
+            b.part(m, "Round body", P::Cylinder, {0.022f, 0.022f, 0.17f}, {0, 0, 0}, {0, 0, 0}, round, "Airframe tube");
+            b.part(m, "Round nose", P::Cone, {0.022f, 0.022f, 0.04f}, {0, 0, 0}, {0, 0, 0.105f}, seeker, "Seeker dome");
+            for (int f = 0; f < 4; ++f) {
+                b.part(m, "Round fin", P::Cube, {0.002f, 0.03f, 0.03f}, {0, 0, 45.0f + 90.0f * f}, {0, 0, -0.07f}, rail,
+                       "Tail fin");
+            }
+            rig.missiles[idx] = m;
+        }
+    }
+
     b.setShading(ShadingModel::Beam);
     rig.beam = b.part(rig.gimbalPitch, "Light cone", P::BeamCone, {1, 1, 1}, {0, 0, 0}, {0, 0, 1}, beam,
                       "Visible cone of the spotlight");

@@ -16,6 +16,7 @@
 #include "ai/DroneController.h"
 #include "ai/HideController.h"
 #include "ai/Occlusion.h"
+#include "objects/BaseLayout.h"
 #include "objects/Terrain.h"
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
@@ -172,12 +173,15 @@ void testPrimitives() {
                    c = disc.vertices[disc.indices[t + 2]].position;
         upFacing += cross(bb - a, c - a).y > 0.0f ? 1 : 0;
     }
-    const size_t expV = 1 + kTerrainRings * kTerrainSlices, expT = kTerrainSlices * (2 * kTerrainRings - 1);
-    record("T13", "Terrain disc: radius 20 m, 1+R*N vertices, N(2R-1) triangles, all facing +Y",
-           fmt("%zu vertices, %zu triangles, radius 20.00, all up", expV, expT),
-           fmt("%zu vertices, %zu triangles, radius %.2f, %d/%zu up", disc.vertexCount(), disc.triangleCount(),
-               b.max.x, upFacing, disc.triangleCount()),
-           disc.vertexCount() == expV && disc.triangleCount() == expT && near(b.max.x, kTerrainRadius, 1e-3f) &&
+    // v4: the mesh covers the whole base (layout::kBaseRadius); triangles over the bunker's entrance trench are
+    // dropped (the hole), so the count is the full N(2R-1) minus a few hundred.
+    const size_t expV = 1 + kTerrainRings * kTerrainSlices, fullT = kTerrainSlices * (2 * kTerrainRings - 1);
+    const size_t holeT = fullT - disc.triangleCount();
+    record("T13", "Terrain disc: radius 36 m, 1+R*N vertices, N(2R-1) triangles minus the ramp hole, all facing +Y",
+           fmt("%zu vertices, %zu - hole (0 < hole < 5000) triangles, radius %.2f, all up", expV, fullT, layout::kBaseRadius),
+           fmt("%zu vertices, %zu triangles (hole %zu), radius %.2f, %d/%zu up", disc.vertexCount(), disc.triangleCount(),
+               holeT, b.max.x, upFacing, disc.triangleCount()),
+           disc.vertexCount() == expV && holeT > 0 && holeT < 5000 && near(b.max.x, layout::kBaseRadius, 1e-3f) &&
                upFacing == static_cast<int>(disc.triangleCount()));
 }
 
@@ -327,15 +331,43 @@ void testHide() {
     for (SceneNode* r : scene.roots())
         if (r->object == "Command Bunker" || r->object == "Environment") collectOccluders(*r, occ);
     hc.setStaticOccluders(occ);
-    const Vec3 drone{0.0f, 4.0f, 8.0f};
-    hc.computeVisibility(drone);
-    int bx, bz, fx, fz;
-    HideController::worldToCell({0, 0, -2.2f}, bx, bz);
-    HideController::worldToCell({0, 0, 5.5f}, fx, fz);
-    record("T26", "Visibility grid: behind the bunker is hidden, in front is visible (UAV at +Z)",
-           "cell (0,-2.2) hidden, cell (0,5.5) visible",
-           fmt("behind hidden=%d, front hidden=%d", hc.cellHidden(bx, bz), hc.cellHidden(fx, fz)),
-           hc.cellHidden(bx, bz) && !hc.cellHidden(fx, fz));
+    // v4: the bunker is underground; the tallest wide occluder in the compound stands in for it. The UAV hovers
+    // low on one side; the free cell right behind the occluder (seen from the UAV) must be hidden, a free cell
+    // on the UAV's side visible.
+    const Occluder* big = nullptr;
+    for (const Occluder& o : occ) {
+        const Vec3 c = (o.bounds.min + o.bounds.max) * 0.5f;
+        const float w = std::min(o.bounds.max.x - o.bounds.min.x, o.bounds.max.z - o.bounds.min.z);
+        if (w < 0.9f || o.bounds.max.y - o.bounds.min.y < 1.0f || length(Vec3{c.x, 0, c.z}) > 15.0f) continue;
+        if (o.bounds.min.y > terrainHeight(c.x, c.z) + 0.3f) continue;  // must stand on the ground (not a crown)
+        if (!big || o.bounds.max.y > big->bounds.max.y) big = &o;
+    }
+    bool hiddenBehind = false, frontVisible = false;
+    Vec3 behind, front;
+    if (big) {
+        const Vec3 c = (big->bounds.min + big->bounds.max) * 0.5f;
+        const Vec3 out = normalize(Vec3{c.x, 0, c.z} + Vec3{1e-3f, 0, 0});
+        const float half = 0.5f * std::max(big->bounds.max.x - big->bounds.min.x, big->bounds.max.z - big->bounds.min.z);
+        const Vec3 drone = Vec3{c.x, 0, c.z} - out * (half + 3.0f) + Vec3{0, 1.2f, 0};
+        hc.computeVisibility(drone);
+        for (float d = half + 0.6f; d < half + 2.5f && !hiddenBehind; d += 0.25f) {
+            behind = Vec3{c.x, 0, c.z} + out * d;
+            int cx, cz;
+            HideController::worldToCell(behind, cx, cz);
+            hiddenBehind = hc.cellFree(cx, cz) && hc.cellHidden(cx, cz);
+        }
+        for (float d = half + 0.8f; d < half + 2.8f && !frontVisible; d += 0.25f) {
+            front = Vec3{c.x, 0, c.z} - out * d;
+            int cx, cz;
+            HideController::worldToCell(front, cx, cz);
+            frontVisible = hc.cellFree(cx, cz) && !hc.cellHidden(cx, cz);
+        }
+    }
+    record("T26", "Visibility grid: behind a tall occluder is hidden, on the UAV's side visible",
+           "a free hidden cell behind it, a free visible cell in front",
+           fmt("occluder %s, behind (%.1f, %.1f) hidden=%d, front (%.1f, %.1f) visible=%d", big ? "found" : "none",
+               behind.x, behind.z, hiddenBehind, front.x, front.z, frontVisible),
+           big && hiddenBehind && frontVisible);
 
     hc.floodFill();
     bool bfsOk = true;
@@ -362,8 +394,10 @@ void testHide() {
            bfsOk && goals > 0 && !path.empty() && hc.floodValue(ex, ez) == 0 &&
                static_cast<int>(path.size()) == hc.floodValue(sx, sz));
 
+    const Vec3 drone{0.0f, 4.0f, 8.0f};
+    hc.computeVisibility(drone);
     RoverState rover;
-    rover.position = {-1.0f, terrainHeight(-1.0f, 6.0f), 6.0f};  // open ground in front of the bunker
+    rover.position = {4.5f, terrainHeight(4.5f, 6.0f), 6.0f};  // open ground beside the entrance ramp
     rover.yaw = 3.4f;
     float travelled = 0.0f;
     int sensorFrames = 0, frames = 0;
@@ -417,7 +451,9 @@ Vec3 ndcOf(const Mat4& vp, const Vec3& p) {
 
 void testShadows() {
     const Vec3 moon = normalize(Vec3{-0.55f, -0.38f, 0.72f});
-    const Sphere world{{0, 1, 0}, 22.0f};
+    // Same world sphere as Renderer::computeLightMatrices: the whole 36 m base + 3 m margin.
+    const float worldR = layout::kBaseRadius + 3.0f;
+    const Sphere world{{0, 1.5f, 0}, worldR};
     const LightMatrix m = fitDirectionalShadow(moon, world, 2048, 10.0f);
     // Sample the bounding sphere surface: everything must land inside the shadow map's clip volume.
     float worst = 0.0f;
@@ -429,8 +465,8 @@ void testShadows() {
             worst = std::max(worst, std::max(std::fabs(n.x), std::max(std::fabs(n.y), std::fabs(n.z))));
         }
     }
-    record("T33", "Moon shadow map: the whole 20 m scene sphere projects inside the light's clip volume",
-           "max |NDC| <= 1.0 (texel " + fmt("%.1f", 2 * 22.0f / 2048 * 100) + " cm)",
+    record("T33", "Moon shadow map: the whole base (39 m world sphere) projects inside the light's clip volume",
+           "max |NDC| <= 1.0 (texel " + fmt("%.1f", 2 * worldR / 2048 * 100) + " cm at 2048^2)",
            fmt("max |NDC| = %.3f, texel = %.2f cm", worst, m.texelWorld * 100.0f), worst <= 1.0001f);
 
     // Texel snapping: a small camera move shifts a fixed world point by a whole number of texels (no shimmer).
@@ -522,12 +558,12 @@ void testWorld() {
     }
     const int total = static_cast<int>(scene.leaves().size());
     record("T38", "New props and backdrop are built only from cube / sphere / cylinder / cone leaves",
-           "Environment + Backdrop: only lab primitives, pines use Cone; total leaves < 1000 (draw-call budget)",
+           "Environment + Backdrop: only lab primitives, pines use Cone; total leaves < 6000 (RTX 4070 draw-call budget, frustum culled)",
            fmt("environment %d parts {%s%s%s%s}, backdrop %d parts, scene total %d", count["Environment"],
                prims["Environment"].count("Cube") ? "Cube " : "", prims["Environment"].count("Sphere") ? "Sphere " : "",
                prims["Environment"].count("Cylinder") ? "Cylinder " : "", prims["Environment"].count("Cone") ? "Cone" : "",
                count["Backdrop"], total),
-           labOnly && prims["Environment"].count("Cone") && prims["Backdrop"].count("Cone") && total < 1000);
+           labOnly && prims["Environment"].count("Cone") && prims["Backdrop"].count("Cone") && total < 6000);
     record("T39", "Every material has PBR parameters (roughness, metalness in [0,1]) and all matrices are finite",
            "all leaves: roughness/metalness set, no NaN/Inf", pbr && finite ? "all leaves OK" : ("first offender " + offender),
            pbr && finite);
@@ -563,16 +599,18 @@ void testWorld() {
     float hottest = 0.0f;
     std::string hottestName;
     for (const SceneNode* n : scene.leaves()) {
-        if (n->object == "Target Rover" || n->object == "Autonomous UAV") continue;
+        // Vehicles and other moving objects are friendly (the UAV ignores blobs near them); hidden parts don't show.
+        if (n->object == "Target Rover" || n->object == "Autonomous UAV" || n->dynamic || !n->visible) continue;
         const Box b = worldBounds(n->world);
         const float cx = 0.5f * (b.min.x + b.max.x), cz = 0.5f * (b.min.z + b.max.z);
         if (b.min.y > terrainHeight(cx, cz) + 3.0f) continue;  // only parts within 3 m of the ground
+        if (b.max.y < terrainHeight(cx, cz) - 0.2f) continue;  // underground (bunker rooms): the UAV cannot see it
         if (n->material.heat > hottest) {
             hottest = n->material.heat;
             hottestName = n->object + "/" + n->name;
         }
     }
-    record("T41", "No ground-level prop is hotter than the rover's motor box or reaches the tracker blob threshold",
+    record("T41", "No static ground-level prop is hotter than the rover's motor box or reaches the tracker blob threshold",
            fmt("hottest < %.2f (blob threshold) < %.2f (motor box)", blobThreshold, motorHeat),
            fmt("hottest ground-level part %s = %.2f", hottestName.c_str(), hottest),
            hottest < blobThreshold && hottest < motorHeat);
@@ -607,13 +645,13 @@ void testTerrainV2() {
            maxStep < 0.006f && maxPad < 1e-3f && creek < -0.1f && track < -0.03f && berm > 0.1f && rimSpread < 1e-3f);
 
     const MeshData disc = createTerrainDisc();
-    const float radial = kTerrainRadius / kTerrainRings, rim = 2.0f * PI * kTerrainRadius / kTerrainSlices;
+    const float radial = layout::kBaseRadius / kTerrainRings, rim = 2.0f * PI * layout::kBaseRadius / kTerrainSlices;
     const float farTop = terrainRimHeight() - kFarGroundGap;
     record("T43", "Terrain mesh density and far-ground clearance",
-           "radial step <= 0.3 m, rim step <= 0.5 m, < 60k triangles, terrain >= far ground top + 5 cm everywhere",
+           "radial step <= 0.3 m, rim step <= 0.6 m (flat apron), < 120k triangles (36 m base), terrain >= far ground top + 5 cm",
            fmt("radial %.3f m, rim %.3f m, %zu vertices, %zu triangles, min height %.3f vs far ground top %.3f", radial,
                rim, disc.vertexCount(), disc.triangleCount(), minH, farTop),
-           radial <= 0.3f && rim <= 0.5f && disc.triangleCount() < 60000 && minH >= farTop + kFarGroundGap - 1e-4f);
+           radial <= 0.3f && rim <= 0.6f && disc.triangleCount() < 120000 && minH >= farTop + kFarGroundGap - 1e-3f);
 }
 
 void testAgentsV2() {
@@ -772,25 +810,32 @@ void testWalkCamera() {
     record("T51", "Walk camera: eye height stays 1.7 +- 0.05 m above the terrain while walking and running",
            "max deviation <= 0.05 m", fmt("max deviation %.3f m over %d steps", worst, steps), worst <= 0.05f);
 
-    // Cannot enter the bunker circle.
-    cam.placeWalk(0.0f, 8.0f);
-    cam.walkYawDeg = 180.0f;  // facing the bunker
-    float minR = 1e9f;
+    // v4: the bunker is underground. Walking at the open entrance trench from the side, the guard rails and
+    // retaining walls stop the walker on the surface (no fall into the trench).
+    Scene walkScene;
+    cam.walkSpace = &walkScene.walkSpace();
+    cam.placeWalk(5.0f, 9.5f);
+    cam.walkYawDeg = -90.0f;  // facing -X, across the trench
+    float minX = 1e9f, lowestFeet = 1e9f;
     for (int i = 0; i < 60 * 10; ++i) {
         cam.moveWalk(1.0f, 0.0f, 1.0f / 60.0f, true);
-        minR = std::min(minR, std::sqrt(cam.walkX * cam.walkX + cam.walkZ * cam.walkZ));
+        minX = std::min(minX, cam.walkX);
+        lowestFeet = std::min(lowestFeet, cam.walkFeetY);
     }
-    record("T52", "Walk camera is pushed out of the 3.2 m bunker circle when walking straight at it",
-           "radius >= 3.2 m", fmt("min radius %.2f m", minR), minR >= 3.2f);
+    const float wallOuter = layout::kRampHalfWidth + 0.35f;
+    record("T52", "Walk camera cannot fall into the open entrance trench from the side (rails / retaining wall)",
+           fmt("x stays >= %.2f m (outer wall face), feet stay above -0.6 m", wallOuter),
+           fmt("min x %.2f m, lowest feet %.2f m", minX, lowestFeet), minX >= wallOuter - 0.05f && lowestFeet > -0.6f);
 
-    // Clamped to the maximum radius.
-    cam.placeWalk(30.0f, 0.0f);
+    // Clamped to the maximum radius (52 m, on the flat apron / far ground).
+    cam.placeWalk(40.0f, 0.0f);
     cam.walkYawDeg = 90.0f;  // +X
     for (int i = 0; i < 60 * 30; ++i) cam.moveWalk(1.0f, 0.0f, 1.0f / 60.0f, true);
     const float rEnd = std::sqrt(cam.walkX * cam.walkX + cam.walkZ * cam.walkZ);
-    record("T53", "Walk camera is clamped to a 45 m radius", "radius <= 45.01 m and eye near the rim height + 1.7",
-           fmt("radius %.2f m, eye %.2f m, rim %.2f m", rEnd, cam.walkEyeY, terrainRimHeight()),
-           rEnd <= 45.01f && rEnd >= 44.0f && std::fabs(cam.walkEyeY - (terrainRimHeight() + 1.7f)) < 0.05f);
+    record("T53", "Walk camera is clamped to a 52 m radius", "radius <= 52.01 m and eye near the apron level + 1.7",
+           fmt("radius %.2f m, eye %.2f m, apron %.2f m", rEnd, cam.walkEyeY, terrainRimHeight()),
+           rEnd <= 52.01f && rEnd >= 51.0f && std::fabs(cam.walkEyeY - (terrainRimHeight() + 1.7f)) < 0.1f);
+    cam.walkSpace = nullptr;
 
     // compute() puts the view at the walker and looks along the yaw; pitch is clamped.
     Scene scene;

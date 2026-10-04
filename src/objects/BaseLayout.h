@@ -42,6 +42,16 @@ constexpr Vec3 kFuelDepot{-6.0f, kApronLevel, -28.5f};
 constexpr float kRoadHalfWidth = 2.2f;                     // inner gate (0, 19) -> outer gate, along +Z
 
 // Intruder rovers spawn at the inner compound's edge (forest cover) and are destroyed by the UAV.
-constexpr int kRoverCount = 3;
+constexpr int kRoverCount = 3;      // v4: intruders built at start (v5: up to kMaxRovers, spawned in waves)
+constexpr int kMaxRovers = 6;       // v5: intruder slots (most alive at once)
+constexpr float kSpawnRadius = 16.8f;
+// v5: what the intruders try to reach (assets of the camp inside the compound); a rover within
+// kBreachRadius of its objective is a breach.
+constexpr Vec3 kObjectives[5] = {{0.0f, 0.0f, 14.6f},    // bunker entrance ramp
+                                 {-3.6f, 0.0f, 1.6f},    // bunker beacon / vent mast (the bunker below)
+                                 {10.5f, 0.0f, 10.0f},   // watchtower
+                                 {-13.0f, 0.0f, 6.0f},   // radio mast
+                                 {-9.2f, 0.0f, -3.8f}};  // supply tent
+constexpr float kBreachRadius = 2.0f;
 
 }  // namespace ts::layout

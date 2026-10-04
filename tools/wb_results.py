@@ -146,6 +146,19 @@ def _idx(letter):
 
 
 # ---- 10 Testing -----------------------------------------------------------------------------------------
+def _test_files():
+    """Test ID -> tests/<file>.cpp that records it (scanned from the sources)."""
+    import glob
+    import os
+    import re
+    out = {}
+    for f in sorted(glob.glob(path("tests/*.cpp"))):
+        rel = "tests/" + os.path.basename(f)
+        for tid in re.findall(r'"(T\d+[a-z]?)"', open(f, encoding="utf-8", errors="ignore").read()):
+            out.setdefault(tid, rel)
+    return out
+
+
 def build_testing(wb, ctx):
     ws = wb[S_TEST]
     tests, visual, refs = ctx["tests"], ctx["visual"], ctx["refs"]
@@ -153,12 +166,13 @@ def build_testing(wb, ctx):
           "Automated unit/integration tests (build/tests.exe -> build/test_results.json), visual checks of real "
           "captures (docs/visual_tests.json) and behaviour checks computed live from the trace (sheet 12). The pass "
           "rate is a formula; status cells are conditionally formatted.", span=7)
+    files = _test_files()
     h, first = 5, 6
     header(ws, h, ["Test ID", "Category", "Description", "Expected result", "Observed result", "Status",
                    "Evidence"])
     r = first
     for t in tests:
-        _test_row(ws, r, t["id"], "Automated (tests/test_main.cpp)", t, "build/test_results.json")
+        _test_row(ws, r, t["id"], "Automated (%s)" % files.get(t["id"], "tests/test_main.cpp"), t, "build/test_results.json")
         r += 1
     for v in visual:
         ev = v.get("evidence", "")

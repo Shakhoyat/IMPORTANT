@@ -291,17 +291,18 @@ TS_TEST_GROUP(Base) {
         ClearZone strip{"trench", 0, 8.5f, 2.5f, 5.0f, 0, false};
         const ClearZone foot{"bunker footprint", 0.0f, -2.25f, 5.5f, 6.25f, 0, false};
         int inFoot = 0;
+        std::string hitName;
         forLeaves(*env, [&](SceneNode& n) {
             if (n.occluder) ++occluders;
             if (n.name == "Moon") return;
             const Box b = worldBounds(n.world);
             if (b.max.y <= 0.0f) return;
             if (partHits(strip, n)) ++inStrip;
-            if (b.min.y < 1.2f && partHits(foot, n)) ++inFoot;
+            if (b.min.y < 1.2f && partHits(foot, n)) { ++inFoot; if (hitName.empty()) hitName = n.name + fmt(" at %.1f,%.1f", n.world.at(0, 3), n.world.at(2, 3)); }
         });
         constexpr int kOriginalOccluders = 477;  // v3 environment
         record("T78", "compound: trench strip and bunker footprint free of props; >= 70% of the v3 occluders kept",
-               "strip 0, footprint 0, occluders >= 334", fmt("strip %d, footprint %d, occluders %d (v3: %d)", inStrip, inFoot, occluders, kOriginalOccluders),
+               "strip 0, footprint 0, occluders >= 334", fmt("strip %d, footprint %d %s, occluders %d (v3: %d)", inStrip, inFoot, hitName.c_str(), occluders, kOriginalOccluders),
                inStrip == 0 && inFoot == 0 && occluders >= static_cast<int>(0.7f * kOriginalOccluders));
     }
 

@@ -9,7 +9,7 @@ namespace {
 const SlotInfo kSlots[kSlotCount] = {
     {Slot::Tank, '5', "TANK", {"TANK", "MBT", nullptr}},
     {Slot::Helicopter, '6', "HELICOPTER", {"HELI", nullptr, nullptr}},
-    {Slot::AaGun, '7', "AA GUN", {"AA GUN", "AA-GUN", "ANTI-AIR"}},
+    {Slot::AaGun, '7', "AA GUN", {"AA GUN", "GATLING", "AA-1"}},
     {Slot::Radar, '8', "RADAR", {"RADAR", nullptr, nullptr}},
     {Slot::Doors, '9', "BLAST DOORS", {"DOOR", nullptr, nullptr}},
     {Slot::Uav, '0', "UAV", {"UAV", "DRONE", nullptr}},

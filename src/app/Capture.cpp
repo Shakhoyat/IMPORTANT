@@ -60,6 +60,8 @@ struct Shot {
     Vec3 eye{0, 0, 0}, aim{0, 0, 0};
     float camFov = 50.0f;
     float walkFeet = -1e9f;     // walk camera: floor level to start from (default: terrain)
+    int possess = -1;           // Slot to take control of (HUD drawn, chase or sight view)
+    bool sight = false;
     float afterImpact = -1.0f;  // >= 0: taken this many seconds after the missile of the scripted strike detonated
 };
 
@@ -205,29 +207,55 @@ std::vector<Shot> shotList() {
         return x;
     };
     // Static views before the script starts (t < kScriptStart).
-    add(cam(v4("base_overview", 55.0f), {-34.0f, 24.0f, 50.0f}, {0.0f, 0.5f, 6.0f}, 52.0f));
+    add(cam(v4("base_overview", 55.0f), {-30.0f, 17.0f, 44.0f}, {2.0f, 0.5f, 4.0f}, 56.0f));
     add(cam(v4("base_gate", 56.0f), {7.0f, 1.9f, 46.5f}, {0.0f, 1.6f, 34.0f}, 52.0f));
     add(cam(v4("helipad", 57.0f), {12.0f, 3.2f, 25.0f}, {20.3f, 1.2f, 17.0f}, 50.0f));  // B2 proposal
-    add(cam(v4("radar", 58.0f), {17.0f, 4.8f, -9.0f}, {29.0f, 5.0f, -3.0f}, 55.0f));  // B2 proposal
-    add(cam(v4("tank_closeup", 59.0f), kMotorPool + Vec3{-5.5f, 2.2f, 5.0f}, kMotorPool + Vec3{0, 1.2f, 0}, 44.0f));  // B1 proposal
+    add(cam(v4("radar", 58.0f), {21.0f, 6.5f, -12.5f}, {29.0f, 5.0f, -3.0f}, 50.0f));  // B2 proposal
+    add(cam(v4("motor_pool", 58.5f), {-12.0f, 2.2f, -4.0f}, {-21.0f, 1.2f, -15.0f}, 50.0f));  // A2: sodium floodlight on the tank park
+    add(cam(v4("tank_closeup", 59.0f), {-14.2f, 1.3f, -13.9f}, {-22.0f, 1.2f, -16.0f}, 44.0f));  // B1 proposal
     // Inside the bunker (walk camera, 1.7 m eye height on the WalkSpace floors). Doors open at script time 12.5 s.
     add(walkAt(v4("bunker_ramp", kScriptStart + 8.0f), 0.0f, 11.5f, 180.0f, -10.0f));
     add(walkAt(v4("bunker_door", kScriptStart + 10.0f), 0.0f, 7.0f, 180.0f, 0.0f));
     add(walkAt(v4("bunker_tunnel", kScriptStart + 20.0f), 0.0f, 2.5f, 180.0f, 0.0f, kBunkerFloorY));
-    add(walkAt(v4("bunker_cic", kScriptStart + 21.0f), 0.0f, -5.0f, 165.0f, 0.0f, kBunkerFloorY));
+    add(walkAt(v4("bunker_cic", kScriptStart + 21.0f), 0.0f, -2.0f, 160.0f, -3.0f, kBunkerFloorY));
+    Shot possess_doors = v4("possess_doors", kScriptStart + 21.5f);
+    possess_doors.possess = static_cast<int>(Slot::Doors);
+    possess_doors.sight = false;
+    possess_doors.hud = true;
+    add(possess_doors);
     // Scripted controllables: the director's inputs drive the helicopter (18-38 s), tank (32-46 s), AA gun (46-54 s).
     Shot ht = v4("heli_takeoff", kScriptStart + 28.0f);
     ht.director = 28.0f;
     add(ht);
+    Shot possess_heli_cockpit = v4("possess_heli_cockpit", kScriptStart + 29.0f);
+    possess_heli_cockpit.possess = static_cast<int>(Slot::Helicopter);
+    possess_heli_cockpit.sight = true;
+    possess_heli_cockpit.hud = true;
+    add(possess_heli_cockpit);
+    Shot possess_tank_sight = v4("possess_tank_sight", kScriptStart + 38.0f);
+    possess_tank_sight.possess = static_cast<int>(Slot::Tank);
+    possess_tank_sight.sight = true;
+    possess_tank_sight.hud = true;
+    add(possess_tank_sight);
     Shot tf2 = v4("tank_fire", kScriptStart + 41.7f);
     tf2.director = 41.7f;
     add(tf2);
     Shot ag = v4("aa_gun_burst", kScriptStart + 48.5f);
     ag.director = 48.5f;
     add(ag);
+    Shot possess_aa_sight = v4("possess_aa_sight", kScriptStart + 50.0f);
+    possess_aa_sight.possess = static_cast<int>(Slot::AaGun);
+    possess_aa_sight.sight = true;
+    possess_aa_sight.hud = true;
+    add(possess_aa_sight);
     Shot ags = v4("aa_gun_sight", kScriptStart + 51.5f);
     ags.director = 51.5f;
     add(ags);
+    Shot possess_uav_manual = v4("possess_uav_manual", kScriptStart + 55.0f);
+    possess_uav_manual.possess = static_cast<int>(Slot::Uav);
+    possess_uav_manual.sight = true;
+    possess_uav_manual.hud = true;
+    add(possess_uav_manual);
     // The UAV strike (script time 81 s): missile launch, impact in thermal FPV, then the explosion at fixed delays.
     Shot ml = v4("uav_missile_launch", kScriptStart + 81.3f);
     ml.follow = Follow::Uav;
@@ -252,7 +280,7 @@ std::vector<Shot> shotList() {
     e3.rel = true;
     e3.afterImpact = 5.0f;
     add(e3);
-    Shot e4 = cam(v4("wreck_burning", 0.0f), {3.2f, 1.0f, 4.2f}, {0.0f, 0.5f, 0.0f}, 42.0f);
+    Shot e4 = cam(v4("wreck_burning", 0.0f), {2.4f, 0.9f, 2.8f}, {0.0f, 0.4f, 0.0f}, 46.0f);
     e4.rel = true;
     e4.afterImpact = 9.0f;
     add(e4);
@@ -369,6 +397,7 @@ int App::captureMode() {
         scene_->updateWorld();
 
         camera_ = Camera{};
+        possess(-1);
         camera_.mode = shot.cam;
         syncWalkWorld();  // WalkSpace floors / walls and the closed doors for the walk camera
         thermalFpv_ = shot.fpv;
@@ -387,6 +416,11 @@ int App::captureMode() {
         if (shot.follow == Follow::Action)  // between the bunker and the rover, so both agents are in frame
             camera_.target = lerp(Vec3{0, 0.8f, 0}, sa::primaryRover(*scene_), 0.45f) + Vec3{0, 0.6f, 0};
 
+        if (shot.possess >= 0) {
+            possessSlot(static_cast<Slot>(shot.possess));
+            camera_.possessSight = shot.sight;
+            if (shot.sight && shot.possess == static_cast<int>(Slot::Uav)) settings_.view = ViewMode::Thermal;
+        }
         if (shot.custom) {  // fixed camera: eye -> aim (offsets from the strike point when 'rel')
             const Vec3 base = shot.rel ? strikePoint : Vec3{0, 0, 0};
             const Vec3 eye = base + shot.eye, aim = base + shot.aim, d = aim - eye;

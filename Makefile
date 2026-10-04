@@ -68,7 +68,7 @@ $(EXPORTER): $(EXPORT_SRC) $(wildcard src/*/*.h)
 docs: $(EXPORTER)
 	./$(EXPORTER) build/scene_export.json
 	@if [ -x $(TESTS) ]; then ./$(TESTS) build/test_results.json || true; fi
-	python tools/build_workbook.py
+	uv run --with openpyxl --with pillow --with pypdf python tools/build_workbook.py
 
 run: $(APP)
 	./$(APP)

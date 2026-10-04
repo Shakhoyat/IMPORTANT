@@ -476,7 +476,7 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
     if (overlay || s.edges == EdgeMode::XRay) drawWire(scene, cam, s, st);
 }
 
-void Renderer::captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats) {
+void Renderer::captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats, int uav) {
     timer_.begin("uav camera (CV)");
     GLint previous = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous);
@@ -486,7 +486,7 @@ void Renderer::captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, 
     s.grain = 0.0f;
     const bool mrt = mrt_;
     mrt_ = false;
-    const CameraView cam = uavCameraView(scene, static_cast<float>(kCvWidth) / kCvHeight, kCvFovYDeg);
+    const CameraView cam = uavCameraView(scene, static_cast<float>(kCvWidth) / kCvHeight, kCvFovYDeg, uav);
     drawScene(scene, cam, kCvWidth, kCvHeight, s, stats);
     cvTarget_.read(heat);
     mrt_ = mrt;

@@ -39,12 +39,12 @@ void AaGun::buildRig() {
     root_->animation = "Static pedestal; mount yaw / cradle pitch / barrel spin below";
     SceneNode* r = root_.get();
 
-    const Material paint = makeMaterial({0.11f, 0.13f, 0.09f}, 0.25f, Surface::Paint, 0.55f, 0.3f);
-    const Material steel = makeMaterial({0.07f, 0.075f, 0.075f}, 0.3f, Surface::Metal, 0.5f, 0.7f);
-    const Material gunMetal = makeMaterial({0.05f, 0.052f, 0.055f}, 0.35f, Surface::Metal, 0.42f, 0.85f);
+    const Material paint = makeMaterial({0.26f, 0.29f, 0.19f}, 0.25f, Surface::Camo, 0.55f, 0.3f);
+    const Material steel = makeMaterial({0.2f, 0.205f, 0.2f}, 0.3f, Surface::SteelPlate, 0.5f, 0.7f);
+    const Material gunMetal = makeMaterial({0.16f, 0.165f, 0.17f}, 0.35f, Surface::Metal, 0.42f, 0.85f);
     const Material concrete = makeMaterial({0.16f, 0.16f, 0.15f}, 0.2f, Surface::Concrete, 0.9f, 0.0f);
-    const Material dome = makeMaterial({0.42f, 0.44f, 0.45f}, 0.22f, Surface::Paint, 0.35f, 0.0f);
-    const Material glass = makeMaterial({0.03f, 0.05f, 0.06f}, 0.2f, Surface::Glass, 0.1f, 0.0f);
+    const Material dome = makeMaterial({0.7f, 0.72f, 0.74f}, 0.22f, Surface::Paint, 0.35f, 0.0f);
+    const Material glass = makeMaterial({0.1f, 0.2f, 0.24f}, 0.2f, Surface::Glass, 0.05f, 0.0f, 0.04f);
     const Material brass = makeMaterial({0.5f, 0.38f, 0.1f}, 0.5f, Surface::Metal, 0.4f, 0.9f);
     auto camoPart = [&](SceneNode* n) { camoParts_.push_back(n); camoBase_.push_back(n->material.baseColor); return n; };
 

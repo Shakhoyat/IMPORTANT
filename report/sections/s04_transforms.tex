@@ -1,0 +1,121 @@
+% =====================================================================
+\section{Transformations and Hierarchies}\label{sec:transform}
+The model matrix of a node and its world matrix are
+\begin{equation}
+  M = T(\vect t)\,R_y(\psi)\,R_x(\theta)\,R_z(\varphi)\,S(\vect s),\qquad
+  W_\text{node} = W_\text{parent}\,M ,
+\end{equation}
+\begin{equation}
+  T=\begin{bmatrix}1&0&0&t_x\\0&1&0&t_y\\0&0&1&t_z\\0&0&0&1\end{bmatrix},\;
+  S=\begin{bmatrix}s_x&0&0&0\\0&s_y&0&0\\0&0&s_z&0\\0&0&0&1\end{bmatrix},\;
+  R_y(\psi)=\begin{bmatrix}\cos\psi&0&\sin\psi&0\\0&1&0&0\\-\sin\psi&0&\cos\psi&0\\0&0&0&1\end{bmatrix}.
+\end{equation}
+The primitive is scaled first, then rotated about its own centre, then placed; the other order would scale the
+translation too (test T14: $(1,0,0)\xrightarrow{S(2)}(2,0,0)\xrightarrow{R_z(90^\circ)}(0,2,0)\xrightarrow{T(1,2,3)}(1,4,3)$).
+Normals use $(M^{-1})^T$ (T15, T16). The same rule is applied at every level: a leaf inherits the product of all its
+ancestors' $M$. The animation code of every v4 object only writes the \emph{local} transform of a few group nodes
+(for instance a track link's translation, a blade's flap angle, a door's $x$ offset); \code{Scene::updateWorld()}
+then recomputes all world matrices top-down in one pass. The pipeline of one vertex is
+\begin{equation}
+  \vect p_\text{clip}=P\,V\,W_\text{parent}\,T R S\,\vect p_\text{local}.
+\end{equation}
+
+\subsection{Worked $M=T\cdot R\cdot S$ examples}
+Table~\ref{tab:mexamples} lists values copied from \code{build/scene\_export.json} (the Excel workbook rebuilds
+$T$, $R$, $S$ and $M$ for every part with cell formulas and checks them against the code; the v2 check gave a maximum
+difference of $1.7\times10^{-5}$ and has to be repeated for the v4 parts, see the audit). Three of them are expanded
+to full matrices below.
+
+\begin{table}[h]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Example parts. $S$ in metres, $R$ in degrees ($R_y,R_x,R_z$ order as in the code), $T$ in metres in the
+parent's frame. The last column says which ancestor transform moves the part.}
+\label{tab:mexamples}
+\begin{tabular}{@{}p{2.5cm}l p{2.5cm} p{1.7cm} p{3.2cm} p{3.2cm}@{}}
+\toprule
+Part (id) & Prim. & $S$ & $R$ & $T$ & Driven by\\\midrule
+Track link L17 (TNK-59) & cube & $0.55,\,0.08,\,0.33$ & $R_x=56.74$ & $0,\,0.8242,\,3.2181$ & arc-length parameter (every frame)\\
+Track link L03 (TNK-45) & cube & $0.55,\,0.08,\,0.33$ & $0$ & $0,\,1.05,\,-1.7244$ & same; on the top run\\
+Blade 1 (HEL-31) & cube & $0.22,\,0.03,\,3.9$ & $0$ & $0,\,0,\,1.95$ & flap node: $R_x=-\beta$, $R_z$=feather; spin node $R_y$\\
+Gatling barrel 2 (AAG-31) & cyl. & $0.07,\,0.07,\,2$ & $0$ & $0.121,\,0.07,\,1$ & cluster node $R_z$ = spin angle\\
+Array tile c2 r2 (RDR-58) & cube & $0.64,\,0.78,\,0.05$ & $R_y=15$ & $-1.294,\,0,\,0.17$ & azimuth / elevation nodes\\
+Door leaf plate (BNK-97) & cube & $1.45,\,2.6,\,0.35$ & $0$ & $0,\,0,\,0$ & leaf node: $T_x=\pm1.5\,s(t)$\\
+Wheel L (ROV-05) & cyl. & $0.16,\,0.16,\,0.07$ & $R_y=90$ & $0.25,\,0.08,\,-0.22$ & wheel node $R_z$ = roll angle\\
+Missile fin (UAV-55) & cube & $0.002,\,0.03,\,0.03$ & $R_z=45$ & $0,\,0,\,-0.07$ & round node (hidden at launch)\\\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Track link L17 (on the front arc).} With $R_x(\varphi)$ turning the link's local $+y$ onto the outward
+normal of the track path ($\varphi=56.74^\circ$, $\cos\varphi=0.548$, $\sin\varphi=0.836$):
+\begin{equation}
+M=\begin{bmatrix}0.55&0&0&0\\0&0.08\cos\varphi&-0.33\sin\varphi&0.8242\\0&0.08\sin\varphi&0.33\cos\varphi&3.2181\\0&0&0&1\end{bmatrix}
+=\begin{bmatrix}0.55&0&0&0\\0&0.0439&-0.2760&0.8242\\0&0.0669&0.1810&3.2181\\0&0&0&1\end{bmatrix}
+\end{equation}
+which equals the exported \code{local\_matrix} to the printed digits.
+
+\paragraph{Radar array tile c2 r2.} Column $k$ of the 7 columns sits on an arc of radius $R_a=5$\,m at angle
+$\theta_k=(k-4)\cdot7.5^\circ$: $T_x=R_a\sin\theta_k$, $T_z=R_a(1-\cos\theta_k)$ and $R_y=-\theta_k$ (for $k=2$,
+$\theta=-15^\circ$, giving $T=(-1.294,0,0.17)$ and $R_y=15^\circ$):
+\begin{equation}
+M=T R_y(15^\circ)S=\begin{bmatrix}0.64\cos15^\circ&0&0.05\sin15^\circ&-1.294\\0&0.78&0&0\\-0.64\sin15^\circ&0&0.05\cos15^\circ&0.17\\0&0&0&1\end{bmatrix}
+=\begin{bmatrix}0.618&0&0.0129&-1.294\\0&0.78&0&0\\-0.166&0&0.0483&0.17\\0&0&0&1\end{bmatrix}.
+\end{equation}
+
+\paragraph{Rover wheel and why $R_z$ is the spin.} Because $M=T R_y R_x R_z S$, a cylinder (axis $z$) is scaled
+first, then spun about its own axis by $R_z$, \emph{then} turned onto the $x$ axis by $R_y(90^\circ)$:
+\begin{equation}
+M_\text{wheel}=T\,R_y(90^\circ)\,R_z(\omega t)\,S=
+\begin{bmatrix}0&0&0.07&0.25\\0&0.16&0&0.08\\-0.16&0&0&-0.22\\0&0&0&1\end{bmatrix}\quad(\omega t=0).
+\end{equation}
+
+\paragraph{A deep chain: the helicopter blade.}
+\begin{equation}
+W_\text{blade}=M_\text{root}M_\text{body}M_\text{head}M_\text{tpp}(\tau_f,\tau_l)\,R_y(\Psi)\,M_\text{pivot}(\psi_i)\,
+M_\text{flap}(-\beta,\vartheta)\,M_\text{blade},
+\end{equation}
+with the root carrying world position and yaw, the body the damped-spring pitch and roll, the tip-path-plane node
+the cyclic tilts $(\tau_f,\tau_l)$, the spin node the rotor azimuth $\Psi$, the pivot the blade's $72^\circ$ offset,
+and the flap node the coning/cyclic flap $\beta$ and the collective feather $\vartheta$ (Section~\ref{sec:control}).
+
+\subsection{The explode view}
+Key \texttt{E} pushes the parts of the \emph{bunker, UAV and rover} (the three v1 composite objects) apart:
+\code{updateNode()} multiplies the translation of every explodable node by $1+0.7\,e$ with $e\in[0,1]$ eased in by the
+application, so at $e=1$ each translation is 1.7 times longer. Only the local translation is scaled, so the children
+follow their parent's scaled position and a rigid sub-assembly (a wheel with its hub) opens up as a hierarchy rather than
+a cloud. The v4 machines (tank, helicopter, AA gun, radar, base) are not exploded: their transforms are written by
+their own animation code every frame. The exploded views for the UAV, rover and bunker are Fig.~\ref{fig:explode}.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.24\linewidth}\pictwo{iso_uav_assembled}{\linewidth}\caption{UAV}\end{subfigure}
+  \begin{subfigure}{0.24\linewidth}\pictwo{iso_uav_exploded}{\linewidth}\caption{UAV, exploded}\end{subfigure}
+  \begin{subfigure}{0.24\linewidth}\pictwo{iso_rover_exploded}{\linewidth}\caption{Rover, exploded}\end{subfigure}
+  \begin{subfigure}{0.24\linewidth}\pictwo{iso_bunker_exploded}{\linewidth}\caption{Old surface bunker, exploded}\end{subfigure}
+  \caption{Construction view (keys \texttt{V}, \texttt{E}): cyan = cube, magenta = sphere, amber = cylinder,
+  green = cone. The v2 captures are reused: the bunker view shows the v2 surface bunker. A v4 explode capture of the
+  underground bunker has not been rendered (see the audit).}
+  \label{fig:explode}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=4mm and 5mm, every node/.style={font=\small},
+  box/.style={draw,rounded corners=2pt,minimum height=6.5mm,align=center,fill=blue!5},
+  arr/.style={-{Latex[length=2mm]},thick}]
+  \node[box] (a) {local\\unit primitive};
+  \node[box,right=of a] (b) {$M=TRS$\\component};
+  \node[box,right=of b] (c) {$W_\text{parent}M$\\world};
+  \node[box,right=of c] (d) {$V=\text{lookAt}$\\eye space};
+  \node[box,right=of d] (e) {$P$ perspective\\clip space};
+  \node[box,right=of e] (f) {$\div w$, viewport\\+ Z-buffer};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e,e/f} \draw[arr] (\x)--(\y);
+\end{tikzpicture}
+\caption{Vertex pipeline: $\vect p_\text{clip}=P\,V\,W_\text{parent}\,T R S\,\vect p_\text{local}$.}
+\label{fig:transform}
+\end{figure}
+
+\paragraph{Local axes.} Key \texttt{H} draws the local axes of the UAV hierarchy (UAV, gimbal yaw, gimbal pitch) and the
+rover (capture \code{hierarchy\_axes}). The searchlight shows why the order matters:
+$W_\text{lamp}=W_\text{UAV}\,M_\text{yaw}(\psi_g)\,M_\text{pitch}(\theta_g)$; the spotlight sits at the lens of
+$W_\text{lamp}$ and points along its local $+z$ axis (T21: the lamp moved 0.776\,m when the body moved 0.750\,m).

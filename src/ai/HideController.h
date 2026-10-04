@@ -10,6 +10,8 @@
 // feeds a PD controller that sets the left/right wheel speeds of a differential drive.
 #pragma once
 
+#include <cstdint>
+
 #include <vector>
 
 #include "ai/Occlusion.h"
@@ -19,6 +21,8 @@ namespace ts {
 constexpr float kCellSize = 0.5f;
 constexpr int kGridCells = 80;          // 80 x 80 cells over [-20, 20] m
 constexpr int kIrSensorCount = 5;
+constexpr float kEvadeRadius = 7.0f;     // a UAV this close (horizontal) makes an infiltrating rover hide
+constexpr float kEvadeTime = 4.0f;       // s of hiding before infiltrating again
 
 struct RoverState {
     Vec3 position{6.0f, 0.0f, 7.5f};  // open ground east of the track
@@ -36,6 +40,14 @@ public:
 
     // 'observer' = where the rover believes the UAV camera is (it can hear the rotors).
     void update(float dt, const Vec3& observer, RoverState& rover);
+    // v5: several observers (both UAVs). With an objective set the rover INFILTRATES: weighted MicroMouse flood
+    // fill from the objective (cost = 1 per cell + exposure to any UAV + a per-rover random noise field, so every
+    // rover takes its own route); when a UAV comes within kEvadeRadius it switches to HIDING for a while.
+    void update(float dt, const std::vector<Vec3>& observers, RoverState& rover);
+    void setObjective(const Vec3& objective, uint32_t seed);
+    void clearObjective() { infiltrate_ = false; }
+    bool evading() const { return evadeTime_ > 0.0f; }
+    const Vec3& objective() const { return objective_; }
 
     // --- read-only access for tests, diagnostics and the report ---
     bool cellFree(int cx, int cz) const;
@@ -48,6 +60,8 @@ public:
     // Individual steps, public so they can be unit-tested in isolation.
     void computeVisibility(const Vec3& observer);
     void floodFill();                                         // BFS distance from hidden cells
+    void floodFillToObjective(const std::vector<Vec3>& observers);  // weighted (Dijkstra) field from the objective
+    float noiseAt(int cx, int cz) const;                      // per-rover random cost field, 0..1
     std::vector<Vec3> descend(int startX, int startZ) const;  // walk to decreasing flood values
 
 private:
@@ -70,6 +84,11 @@ private:
     float lastError_ = 0.0f;
     float lostTime_ = 0.0f;
     float blockedTime_ = 0.0f;  // seconds the way ahead has been blocked
+    bool infiltrate_ = false;
+    Vec3 objective_;
+    uint32_t seed_ = 1;
+    float evadeTime_ = 0.0f;    // > 0: hiding from a close UAV
+    std::vector<Vec3> observers_;
 };
 
 }  // namespace ts

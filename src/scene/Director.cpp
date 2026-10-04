@@ -49,14 +49,6 @@ Vec3 slotPos(const Scene& scene, Slot slot, const Vec3& fallback) {
     return i >= 0 ? c[i]->position() : fallback;
 }
 
-bool slotHint(const Scene& scene, Slot slot, bool sight, CameraHint& out) {
-    const std::vector<Controllable*> c = sa::controllables(scene);
-    const int i = resolveSlot(c, slot);
-    if (i < 0) return false;
-    out = c[i]->camera(sight);
-    return true;
-}
-
 float terrainGuess(float x, float z) {
     return std::sqrt(x * x + z * z) <= kTerrainRadius ? terrainHeight(x, z) : terrainRimHeight();
 }
@@ -196,30 +188,19 @@ DirectorShot directorShot(const Scene& scene, float t) {
             s.target = slotPos(scene, Slot::Tank, kMotorPool + Vec3{0, 1.2f, 0}) + Vec3{0, 1.0f, 0};
             s.fovDeg = 42.0f;
             break;
-        case kShotTank: {  // chase camera behind the tank as it drives out and fires
-            CameraHint h;
-            if (slotHint(scene, Slot::Tank, false, h)) {
-                s.eye = h.eye;
-                s.target = h.target;
-                s.fovDeg = h.fovDeg;
-            } else {
-                s.eye = kMotorPool + Vec3{-8.0f, 3.0f, -8.0f};
-                s.target = kMotorPool + Vec3{6.0f, 1.0f, 6.0f};
-            }
+        case kShotTank: {  // high three-quarter follow camera (the turret chase view clips the containers)
+            const Vec3 tank = slotPos(scene, Slot::Tank, kMotorPool);
+            const float a = radians(lerpf(20.0f, 70.0f, ease(u)));
+            s.eye = tank + Vec3{std::sin(a) * 9.0f, 6.5f, std::cos(a) * 9.0f};
+            s.target = tank + Vec3{0, 1.3f, 0};
+            s.fovDeg = 46.0f;
             break;
         }
-        case kShotAaGun: {  // beside the gun, then through its lead-ring sight
+        case kShotAaGun: {  // low beside the pit, tilting up with the tracer stream (the sight view is all muzzle flash)
             const Vec3 gun = slotPos(scene, Slot::AaGun, kAaGunSite + Vec3{0, 1.5f, 0});
-            CameraHint h;
-            if (u > 0.5f && slotHint(scene, Slot::AaGun, true, h)) {
-                s.eye = h.eye;
-                s.target = h.target;
-                s.fovDeg = h.fovDeg;
-            } else {
-                s.eye = kAaGunSite + Vec3{-7.0f, 1.3f, 5.5f};
-                s.target = gun + Vec3{0, 2.0f + 5.0f * u, 0};
-                s.fovDeg = 50.0f;
-            }
+            s.eye = kAaGunSite + Vec3{lerpf(-7.5f, -6.0f, u), 1.2f, lerpf(5.0f, 7.0f, u)};
+            s.target = gun + Vec3{0, 1.0f + 9.0f * ease(u), 0};
+            s.fovDeg = lerpf(48.0f, 58.0f, u);
             break;
         }
         case kShotBunker: {  // first-person walk: down the ramp, through the blast doors, along the tunnel into the CIC

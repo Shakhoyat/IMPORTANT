@@ -66,6 +66,17 @@ bool DroneController::imagePointToGround(float u, float v, const Mat4& cameraWor
     return false;
 }
 
+Vec3 DroneController::pixelRay(float u, float v, const Mat4& cameraWorld) {
+    const float aspect = static_cast<float>(kCvWidth) / static_cast<float>(kCvHeight);
+    const float ty = std::tan(radians(kCvFovYDeg) * 0.5f), tx = ty * aspect;
+    return normalize(transformDirection(cameraWorld, normalize(Vec3{-u * tx, v * ty, 1.0f})));
+}
+
+void DroneController::faceTowards(float dt, const Vec3& target, float rateDeg, DroneState& s) const {
+    const Vec3 d = target - s.position;
+    yawTowards(dt, degrees(std::atan2(d.x, d.z)), rateDeg, s);
+}
+
 void DroneController::yawTowards(float dt, float desiredDeg, float rateDeg, DroneState& s) const {
     const float diff = wrapDeg(desiredDeg - s.yawDeg);
     s.yawDeg = wrapDeg(s.yawDeg + clampf(diff, -rateDeg * dt, rateDeg * dt));
@@ -119,7 +130,22 @@ void DroneController::pointGimbalAt(float dt, const Vec3& target, DroneState& s)
     s.gimbalPitchDeg = lerpf(s.gimbalPitchDeg, clampf(pitch, 5.0f, 88.0f), k);
 }
 
-void DroneController::update(float dt, float time, const Detection& det, const Mat4& cameraWorld, DroneState& s) {
+void DroneController::update(float dt, float time, const Detection& detIn, const Mat4& cameraWorld, DroneState& s) {
+    // ---- 0. Target discrimination: blobs on a known wreck are not new targets ----
+    for (Ignore& z : ignore_) z.timeLeft -= dt;
+    ignore_.erase(std::remove_if(ignore_.begin(), ignore_.end(), [](const Ignore& z) { return z.timeLeft <= 0.0f; }),
+                  ignore_.end());
+    Detection det = detIn;
+    if (det.found && (!ignore_.empty() || !friendly_.empty())) {
+        Vec3 hit;
+        if (imagePointToGround(det.u, det.v, cameraWorld, hit)) {
+            for (const Ignore& z : ignore_)
+                if (length(horizontal(hit - z.point)) < kWreckIgnoreRadius) det.found = false;
+            for (const Vec3& f : friendly_)
+                if (length(horizontal(hit - f)) < kFriendlyRadius) det.found = false;
+        }
+    }
+
     // ---- 1. Vision bookkeeping and state transitions ----
     if (det.found) {
         ++s.framesSeen;
@@ -147,6 +173,20 @@ void DroneController::update(float dt, float time, const Detection& det, const M
         s.mode = DroneMode::Search;
         orbitAngle_ = std::atan2(s.position.z, s.position.x);
     }
+
+    // ---- 1b. Launcher: hold the target for kLockTime, then request a round (the scene releases it) ----
+    s.launchCooldown = std::max(0.0f, s.launchCooldown - dt);
+    s.lockTime = (s.mode == DroneMode::Track && det.found) ? s.lockTime + dt : 0.0f;
+    if (!s.manual && s.lockTime >= kLockTime && s.launchCooldown <= 0.0f && s.hasEstimate) {
+        const Vec3& e = s.targetEstimate;
+        const bool keepOut = hasKeepOut_ && e.x > keepOut_.min.x && e.x < keepOut_.max.x && e.z > keepOut_.min.z &&
+                             e.z < keepOut_.max.z;
+        if (!keepOut) {
+            s.launchRequest = true;
+            s.launchCooldown = kLaunchInterval;
+        }
+    }
+    if (s.manual) return;  // flown by the user: no autonomous behaviour
 
     // ---- 2. Behaviour of the current mode ----
     if (s.mode == DroneMode::Track) {

@@ -29,7 +29,18 @@ struct DroneState {
     bool hasEstimate = false;
     float timeSinceSeen = 1e3f;
     int framesSeen = 0, framesLost = 0;
+    // Launcher (game logic): a round is released once the target has stayed in the camera for kLockTime.
+    float lockTime = 0.0f;       // seconds the current target has been held continuously
+    float launchCooldown = 0.0f; // seconds until the next round may be released
+    bool launchRequest = false;  // set by the controller, consumed (and cleared) by the scene
+    bool manual = false;         // flown by the user: only the vision bookkeeping runs
+    int launched = 0;
 };
+
+constexpr float kLockTime = 1.5f;        // s of continuous track before a launch
+constexpr float kLaunchInterval = 4.0f;  // s between rounds
+constexpr float kWreckIgnoreRadius = 2.5f, kWreckIgnoreTime = 30.0f;
+constexpr float kFriendlyRadius = 4.5f;
 
 class DroneController {
 public:
@@ -40,6 +51,20 @@ public:
 
     // Ray through a normalised image point (u right, v up) of the gimbal camera, intersected with the terrain.
     static bool imagePointToGround(float u, float v, const Mat4& cameraWorld, Vec3& hit);
+    // A destroyed target stays hot for a while: detections whose ground point lies near it are ignored.
+    void ignoreNear(const Vec3& point, float seconds) { ignore_.push_back({point, seconds}); }
+    // Friend-or-foe: hot blobs within kFriendlyRadius of a friendly vehicle (tank, helicopter, AA gun...) are
+    // never targets. Refreshed by the scene every frame.
+    void setFriendly(const std::vector<Vec3>& positions) { friendly_ = positions; }
+    // Rounds are not released at targets inside this keep-out box (the bunker entrance ramp).
+    void setKeepOut(const Box& b) { keepOut_ = b; hasKeepOut_ = true; }
+    // Flight primitives for the squad (v5): fly towards a goal with obstacle avoidance and the boundary clamp,
+    // turn the body towards a point, and the world direction of a camera pixel ray.
+    void flyTo(float dt, const Vec3& goal, float maxSpeed, DroneState& s) { flyTowards(dt, goal, maxSpeed, s); }
+    void faceTowards(float dt, const Vec3& target, float rateDeg, DroneState& s) const;
+    static Vec3 pixelRay(float u, float v, const Mat4& cameraWorld);
+    // Smoothly turns the gimbal towards a world point (used by manual flight with gimbal assist).
+    void aimGimbalAt(float dt, const Vec3& target, DroneState& s) const { pointGimbalAt(dt, target, s); }
 
 private:
     void flyTowards(float dt, const Vec3& goal, float maxSpeed, DroneState& s);
@@ -48,6 +73,11 @@ private:
 
     std::vector<Box> obstacles_;
     float orbitAngle_ = 1.57f;
+    struct Ignore { Vec3 point; float timeLeft; };
+    std::vector<Ignore> ignore_;
+    std::vector<Vec3> friendly_;
+    Box keepOut_;
+    bool hasKeepOut_ = false;
 };
 
 }  // namespace ts

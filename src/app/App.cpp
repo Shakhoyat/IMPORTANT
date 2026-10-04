@@ -153,7 +153,9 @@ int App::run() {
     if (opt_.mode == AppOptions::Mode::Benchmark) return benchmarkMode();
     if (opt_.mode == AppOptions::Mode::Trace) return traceMode();
     if (opt_.mode == AppOptions::Mode::Record) return recordMode();
+    audioLive_ = !headless_ && audio_.startDevice();  // silent when there is no sound device
     interactiveLoop();
+    if (audioLive_) audio_.stop();
     return 0;
 }
 
@@ -170,10 +172,12 @@ void App::syncWalkWorld() {
 void App::forceStrike() {
     Combat* combat = sa::combat(*scene_);
     if (!combat) return;
-    const Vec3 target = sa::primaryRover(*scene_) + Vec3{0, 0.3f, 0};
+    if (!sa::anyAlive(*scene_)) return;
+    const Vec3 target = sa::primaryRover(*scene_) + Vec3{0, 0.15f, 0};
     const Vec3 uav = transformPoint(scene_->uav().root->world, {0, 0, 0}) + Vec3{0, -0.2f, 0};
-    combat->setDesignator(0, target, true);
-    combat->fireMissile(uav, normalize(target - uav), 0, 0);
+    // Designator 100 is ours (the scene owns id 0 and rewrites it every frame from the gimbal).
+    combat->setDesignator(100, target, true);
+    combat->fireMissile(uav, normalize(target - uav), 100, 0);
     strikeTimer_ = 6.0f;
 }
 
@@ -214,8 +218,13 @@ void App::gatherControl(ControlInput& in, const ControlInput*& ip, int& index) {
         if (ds.strike && !scriptStrikePrev_) forceStrike();
         scriptStrikePrev_ = ds.strike;
         if (ds.slot >= 0) {
-            index = resolveSlot(sa::controllables(*scene_), static_cast<Slot>(ds.slot));
+            const std::vector<Controllable*> list = sa::controllables(*scene_);
+            index = resolveSlot(list, static_cast<Slot>(ds.slot));
             if (index >= 0) ip = &in;
+            // Doors: the script means "open them". The rig may already be open, and the action is a toggle.
+            if (index >= 0 && ds.slot == static_cast<int>(Slot::Doors) && in.actionPressed &&
+                list[index]->status().find("OPEN") != std::string::npos)
+                in.actionPressed = false;
         }
         return;
     }
@@ -240,19 +249,28 @@ void App::step(float dt) {
         int index = -1;
         gatherControl(in, ip, index);
         sa::update(*scene_, dt, detection_, ip, index);
+        if (audioLive_) audio_.pollEvents(*scene_);  // events of every simulation step reach the mixer
         if (scriptClock_ >= 0.0f) scriptClock_ += dt;
         if (strikeTimer_ > 0.0f) {  // keep the laser spot on the rover while the missile flies
             strikeTimer_ -= dt;
-            if (Combat* combat = sa::combat(*scene_)) combat->setDesignator(0, sa::primaryRover(*scene_) + Vec3{0, 0.3f, 0}, true);
+            if (Combat* combat = sa::combat(*scene_)) combat->setDesignator(100, sa::primaryRover(*scene_) + Vec3{0, 0.15f, 0}, true);
         }
         updateCombatFeed();
     }
     scene_->explode = lerpf(scene_->explode, exploded_ ? 1.0f : 0.0f, std::min(1.0f, 4.0f * dt));
     scene_->updateWorld();
     // The UAV looks at the world through its own thermal camera; the tracker only sees these pixels.
+    // v5: both UAVs' thermal images -> CV image stage (threshold, despeckle, components, moments) -> the
+    // squad's shared multi-target tracker (submitted for the next scene update).
     cvStats_ = {};
-    renderer_->captureUavCamera(*scene_, uavImage_, cvStats_);
-    if (!paused_) detection_ = tracker_.process(uavImage_, kCvWidth, kCvHeight);
+    for (int u = 0; u < kUavCount; ++u) {
+        std::vector<uint8_t>& img = u == 0 ? uavImage_ : uavImage2_;
+        renderer_->captureUavCamera(*scene_, img, cvStats_, u);
+        if (paused_) continue;
+        const std::vector<Measurement2D> blobs = cv::detectTargets(img, kCvWidth, kCvHeight, CvConfig{}, &cvFrame_[u]);
+        scene_->submitVision(u, blobs, scene_->cameraWorld(u));
+    }
+    if (!paused_) detection_ = tracker_.process(uavImage_, kCvWidth, kCvHeight);  // v4 single-target view (UAV 0 feed)
 }
 
 void App::updateCombatFeed() {
@@ -333,6 +351,15 @@ void App::renderFrame(int w, int h, bool withHud) {
     // optionally zoomed; the airframe itself is behind the lens.
     const bool fpv = thermalFirstPerson();
     CameraView cam = fpv ? uavCameraView(*scene_, aspect, thermalFovDeg_) : camera_.compute(*scene_, aspect);
+    if (audioLive_) {  // listener = the camera the player sees through
+        const double now = nowSeconds();
+        const float frameDt = audioClock_ < 0.0 ? 1.0f / 60.0f : static_cast<float>(std::min(0.1, now - audioClock_));
+        audioClock_ = now;
+        const Vec3 fwd{-cam.view.at(2, 0), -cam.view.at(2, 1), -cam.view.at(2, 2)};
+        const Vec3 up{cam.view.at(1, 0), cam.view.at(1, 1), cam.view.at(1, 2)};
+        audio_.setMasterVolume(paused_ ? 0.0f : 1.0f);
+        audio_.update(*scene_, cam.position, fwd, up, frameDt);
+    }
     RenderSettings s = settings_;
     s.hideUav = fpv || (camera_.mode == CameraMode::UavCamera);
     bool uavView = fpv || camera_.mode == CameraMode::UavCamera;

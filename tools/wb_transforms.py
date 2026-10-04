@@ -4,12 +4,14 @@ All matrix elements are element-wise Excel formulas (no MMULT / array formulas),
 Excel or LibreOffice version. The code-exported matrices sit next to them with a max-abs-error column.
 """
 from openpyxl.formatting.rule import CellIsRule
-from openpyxl.styles import Alignment, Font
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
+import wb_common  # noqa: E402
 from wb_common import (BOLD, FAIL_FILL, FMT_3, FMT_SCI, HILITE_FILL, INPUT_FILL, PASS_FILL, S_HIER, S_MAT,
-                       TOTAL_FILL, col, define_name, finish, nowrap, header, prim_fill, put, section, title, widths)
+                       TOTAL_FILL, articulation_chains, matrix_components, col, define_name, finish, nowrap, header, prim_fill, put, section, title, widths)
 
+JOINT_FILL = PatternFill("solid", fgColor="DBEAFE")
 TOLERANCE = 1e-4  # acceptance limit for |Excel - code|: float32 round-off of the program, not a measurement
 C_S, C_R, C_T = 7, 10, 13          # first column of S, R(deg), T on sheet 4
 C_ROT, C_M, C_CODE = 16, 25, 37    # first column of R (3x3), M (3x4 formula), M (3x4 code)
@@ -39,12 +41,17 @@ def _m_formulas(r):
 
 def build_matrices(wb, ctx):
     ws = wb[S_MAT]
-    comps = ctx["scene"]["components"]
+    all_comps = ctx["scene"]["components"]
+    comps = matrix_components(all_comps)
+    ctx["mat_subset"] = comps
+    note = (f"Formula volume is bounded: this sheet carries every group node and the first {wb_common.LEAVES_PER_ROOT} leaves of "
+            f"each root tree ({len(comps)} of {len(all_comps)} components, tree order); the remaining parts are listed "
+            "with S / R / T on sheet 3 and are checked against the code's matrices by tools/verify_workbook.py. ")
     title(ws, "4  Transformation Matrices (M1, M2, M3 ...): M = T x R x S with R = Ry x Rx x Rz",
           "One row per component (Lab-04 sheet p3: 'table maintain'). Blue = S, R, T exported by the program. "
           "R (3x3) and M (3x4; the 4th row is always 0 0 0 1) are Excel formulas: R_ij expanded from Ry*Rx*Rz, "
           "M_ij = R_ij * S_j and M_i4 = T_i. The code's own matrix (Transform::matrix(), exported row-major) is "
-          "imported next to it; the last column is max|M_excel - M_code|. A step-by-step 4x4 worked example "
+          "imported next to it; the last column is max|M_excel - M_code|. " + note + "A step-by-step 4x4 worked example "
           f"(select any ID) is at column {col(C_EX)}.", span=20)
     h, first = 5, 6
     last = first + len(comps) - 1
@@ -199,13 +206,17 @@ def _lamp_chain(comps):
 
 def build_hierarchy(wb, ctx):
     ws = wb[S_HIER]
-    comps = ctx["scene"]["components"]
+    comps = ctx["mat_subset"]
+    all_comps = ctx["scene"]["components"]
     mat_rows = ctx["mat"]["rows"]
     title(ws, "5  Hierarchy: parent -> child tree with world matrices (world = parent_world x M)",
           "Tree in depth-first order (indent = depth). Blue: world matrix exported by the program at t = 0. White: "
           "the same world matrix rebuilt in Excel from the M formulas of sheet 4, multiplying down the tree "
           "(root: world = M). The highlighted chain is the hierarchical searchlight: UAV -> gimbal yaw -> gimbal "
-          "pitch -> lamp.", span=16)
+          f"pitch -> lamp. Same subset as sheet 4 ({len(comps)} of {len(all_comps)} nodes: all group nodes + the first "
+          f"{wb_common.LEAVES_PER_ROOT} leaves per root). v4: blue rows are animated joints (tank turret / gun / tracks, helicopter "
+          "rotor head, radar head, blast-door leaves, flag segments ...), column AI gives the exported animation text "
+          "and the table at column AK the deepest joint chain of every controllable object.", span=16)
     h, first = 4, 5
     hdr = (["Node (tree)", "ID", "Primitive", "Parent ID", "Depth", "World x", "World y", "World z"]
            + [f"W{n[1:]} (code)" for n in M_NAMES] + [f"W{n[1:]} (Excel)" for n in M_NAMES]
@@ -229,10 +240,14 @@ def build_hierarchy(wb, ctx):
             put(ws, r, C_WXL + k, f, "0.0000")
         diffs = ",".join(f"ABS({col(C_WEX + k)}{r}-{col(C_WXL + k)}{r})" for k in range(12))
         put(ws, r, C_WERR, f"=MAX({diffs})", FMT_SCI)
+        put(ws, r, C_WERR + 2, c["animation"] or "")
         if c["id"] in chain:
             for k in range(1, 6):
                 ws.cell(row=r, column=k).fill = HILITE_FILL
                 ws.cell(row=r, column=k).font = BOLD
+        elif c["primitive"] == "Group" and c["animation"]:
+            for k in range(1, 6):
+                ws.cell(row=r, column=k).fill = JOINT_FILL
         elif depth == 0:
             for k in (1, 2, 4, 5):
                 ws.cell(row=r, column=k).fill = TOTAL_FILL
@@ -252,8 +267,22 @@ def build_hierarchy(wb, ctx):
                                                       fill=FAIL_FILL))
     ctx["refs"]["world_err"] = f"'{S_HIER}'!$B$3"
     define_name(wb, "WorldMaxError", S_HIER, "B3")
-    widths(ws, [34, 9, 12, 9, 6, 9, 9, 9] + [9] * 24 + [12])
+    header(ws, h, ["Animation (exported)"], start_col=C_WERR + 2)
+    _joint_chain_table(ws, ctx, C_WERR + 4)
+    widths(ws, [34, 9, 12, 9, 6, 9, 9, 9] + [9] * 24 + [12, 3, 50, 3, 22, 80, 8, 8])
     finish(ws, h, freeze="C5")
+
+
+def _joint_chain_table(ws, ctx, left):
+    section(ws, 3, left, "Deepest joint chain of every controllable (exported tree)")
+    header(ws, 4, ["Controllable", "Chain (root -> deepest animated group)", "Levels", "Animated groups"],
+           start_col=left)
+    for i, ch in enumerate(articulation_chains(ctx["scene"]["components"], ctx["scene"].get("controllables", []))):
+        r = 5 + i
+        put(ws, r, left, ch["name"], font=BOLD)
+        put(ws, r, left + 1, " -> ".join(ch["path"]))
+        put(ws, r, left + 2, ch["levels"], "0", INPUT_FILL)
+        put(ws, r, left + 3, ch["joints"], "0", INPUT_FILL)
 
 
 def _world_formulas(c, r, rows, mrow):

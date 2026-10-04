@@ -143,7 +143,7 @@ public:
     void drawScene(const Scene& scene, const CameraView& cam, int width, int height, const RenderSettings& s,
                    FrameStats& stats);
     // Renders the UAV camera view as a raw heat image into an off-screen target and reads it back.
-    void captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats);
+    void captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats, int uav = 0);
     GLuint uavCameraTexture() const { return cvTarget_.texture(); }
     // Small rotating cube / sphere / cylinder / cone in corner viewports (diagnostic legend).
     static constexpr int kLegendCount = 4;
@@ -176,6 +176,7 @@ private:
         Mat4 viewProj, viewProjJ;   // unjittered / jittered (what the depth buffer holds)
         float dt = 1.0f / 60.0f;    // seconds since the previous frame (temporal adaptation)
         float jitterUV[2] = {0.0f, 0.0f};  // screen offset of the current TAA jitter (UV units)
+        bool cameraIndoor = false;  // inside the bunker: no lens flare (screens / tubes would ghost everywhere)
         RenderSettings settings;
         CameraView cam;
         float time = 0.0f;

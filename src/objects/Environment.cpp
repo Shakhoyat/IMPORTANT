@@ -27,24 +27,27 @@ void addStructures(Builder& b, SceneNode* r) {
     addSandbagArc(b, r, 5.2f, 15.0f, 1.4f, 25.0f, 165.0f, 7, 3);   // guard post inside the gate
     addSandbagArc(b, r, -10.0f, 10.5f, 1.5f, -40.0f, 250.0f, 8, 2);  // machine-gun nest, opening to the south-east
     addCamoTent(b, r, kTentX, kTentZ, 20.0f);
-    addSupplyCache(b, r, -3.9f, 2.0f, 15.0f, 2);   // original cache beside the bunker
-    addSupplyCache(b, r, -6.6f, -6.0f, -25.0f, 0);  // pallet next to the tent
-    addSupplyCache(b, r, 3.6f, -2.1f, 40.0f, 1);   // fuel for the bunker generator
+    addSupplyCache(b, r, -7.3f, 1.2f, 15.0f, 2);   // original cache, moved off the bunker footprint
+    addSupplyCache(b, r, -7.2f, -7.9f, -25.0f, 0);  // pallet next to the tent
+    addSupplyCache(b, r, 8.2f, -3.4f, 40.0f, 1);   // fuel for the bunker generator
     addRadioMast(b, r, kMastX, kMastZ);
+    addMilitaryDressing(b, r);
     addPracticalLights(b, r);
 }
 
 std::vector<Footprint> structureFootprints() {
     return {{kTowerX, kTowerZ, 2.2f}, {5.2f, 15.0f, 2.0f}, {-10.0f, 10.5f, 2.2f}, {kTentX, kTentZ, 3.0f},
-            {-3.9f, 2.0f, 1.6f},      {-6.6f, -6.0f, 1.5f}, {3.6f, -2.1f, 1.2f},    {kMastX, kMastZ, 4.2f},
-            {-6.2f, 3.6f, 1.5f},      {5.9f, 5.1f, 1.5f},   {-4.6f, -6.6f, 1.5f},   {6.0f, 6.0f, 1.0f}};
+            {-7.3f, 1.2f, 1.6f},      {-7.2f, -7.9f, 1.5f}, {8.2f, -3.4f, 1.2f},    {kMastX, kMastZ, 4.2f},
+            {-6.2f, 3.6f, 1.5f},      {5.9f, 5.1f, 1.5f},   {-8.0f, -6.6f, 1.5f},   {6.0f, 6.0f, 1.0f},
+            {8.2f, 1.6f, 2.0f},       {9.9f, -1.6f, 1.5f},  {-6.4f, 17.0f, 2.2f},   {-12.8f, 8.2f, 1.6f},
+            {3.3f, 17.6f, 1.8f},      {-3.3f, 16.2f, 1.8f}, {-3.4f, 7.5f, 1.0f}};
 }
 
 void addVegetation(Builder& b, SceneNode* r) {
     // The three original round trees (kept for continuity with the v1 report figures).
     addRoundTree(b, r, -6.2f, 3.6f, 1.0f);
     addRoundTree(b, r, 5.9f, 5.1f, 0.85f);
-    addRoundTree(b, r, -4.6f, -6.6f, 1.1f);
+    addRoundTree(b, r, -8.0f, -6.6f, 1.1f);
 
     std::vector<Footprint> clear = structureFootprints();
     addForestPatch(b, r, 14.0f, -3.0f, 3.2f, 7, 2, 11u, clear);   // east wood
@@ -61,8 +64,8 @@ void addVegetation(Builder& b, SceneNode* r) {
     struct BushSpot {
         float x, z, size, yaw;
     };
-    const BushSpot bushes[] = {{-12.0f, -8.4f, 1.0f, 10},  {-7.5f, -8.6f, 0.8f, 60},  {-1.0f, -7.6f, 0.9f, 120},
-                               {5.5f, -4.6f, 1.1f, 30},    {10.5f, -5.6f, 0.9f, 80},  {12.5f, -7.6f, 0.8f, 150},
+    const BushSpot bushes[] = {{-12.0f, -8.4f, 1.0f, 10},  {-7.5f, -8.6f, 0.8f, 60},  {-1.0f, -11.3f, 0.9f, 120},
+                               {7.0f, -5.6f, 1.1f, 30},    {10.5f, -5.6f, 0.9f, 80},  {12.5f, -7.6f, 0.8f, 150},
                                {-15.8f, 3.5f, 1.0f, 45},   {-12.5f, 13.5f, 0.9f, 15}, {9.0f, 14.6f, 1.0f, 100},
                                {-4.2f, 16.3f, 0.9f, 70},   {16.2f, 1.0f, 1.1f, 20},   {3.2f, 9.5f, 0.7f, 140},
                                {-3.8f, 10.0f, 0.8f, 35},   {7.6f, -3.6f, 0.8f, 95}};
@@ -72,13 +75,13 @@ void addVegetation(Builder& b, SceneNode* r) {
 
 void addRocks(Builder& b, SceneNode* r) {
     SceneNode* rocks = b.group(r, "Rocks", {0, 0, 0}, {0, 0, 0}, "Boulders and creek stones");
-    addRock(b, rocks, 4.3f, -3.7f, {1.1f, 0.7f, 0.9f}, 20.0f);
-    addRock(b, rocks, -3.3f, -4.1f, {0.8f, 0.55f, 0.7f}, 65.0f);
+    addRock(b, rocks, 7.4f, -4.6f, {1.1f, 0.7f, 0.9f}, 20.0f);
+    addRock(b, rocks, -6.8f, -5.0f, {0.8f, 0.55f, 0.7f}, 65.0f);
     addRock(b, rocks, 6.9f, -1.4f, {0.6f, 0.4f, 0.7f}, 10.0f);
     addRock(b, rocks, -7.1f, -1.1f, {0.9f, 0.6f, 0.8f}, 80.0f);
     addRock(b, rocks, 3.8f, 7.0f, {0.7f, 0.45f, 0.6f}, 35.0f);
     // Stones in the dry creek bed and an outcrop on the berm.
-    for (float x : {-11.0f, -5.5f, 0.5f, 6.0f, 11.5f}) {
+    for (float x : {-11.0f, -5.5f, 8.0f, 6.0f, 11.5f}) {
         const float z = creekCentreZ(x) + 0.3f * std::sin(3.0f * x);
         addRock(b, rocks, x, z, {0.55f, 0.35f, 0.5f}, 25.0f * x);
     }

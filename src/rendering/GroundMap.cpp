@@ -110,6 +110,13 @@ void GroundMap::build(const Scene& scene) {
             // Forest floor under the crowns.
             const float apron = smooth01(18.5f, 21.0f, r);
             const float gravel = apronGravel(x, z) * apron;
+            // Damp hollows / mud puddles scattered over the apron (the shader turns wet > 0.3 into mud and ponds);
+            // never on the road itself.
+            {
+                const float nb = noise2(x * 0.24f + 3.0f, z * 0.24f - 7.0f) * 0.7f + noise2(x * 0.9f, z * 0.9f) * 0.3f;
+                const float blob = smooth01(0.66f, 0.74f, nb) * apron * (1.0f - 0.8f * gravel);
+                wet = std::max(wet, 0.75f * blob);
+            }
             track = std::max(track, gravel * 0.85f);
             float forest = 0.0f;
             for (const Crown& c : trees) {

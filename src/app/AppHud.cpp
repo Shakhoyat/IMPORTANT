@@ -247,7 +247,7 @@ void App::drawPossessHud(const CameraView& cam, int w, int h) {
             hud.line(cx - x, cy - 5 * s, cx - x, cy + 5 * s, dim);
             hud.line(cx + x, cy - 5 * s, cx + x, cy + 5 * s, dim);
         }
-        hud.text(cx - rr + 20 * s, cy - rr + 40 * s, "GUNNER SIGHT  x8", 14 * s, fg);
+        hud.text(cx + rr - 170 * s, cy + rr - 30 * s, "GUNNER SIGHT  x8", 14 * s, fg);
     } else if (slot == static_cast<int>(Slot::AaGun)) {
         // Lead-ring reticle: two rings, tick marks, centre dot.
         ring(hud, cx, cy, 44 * s, 48, fg);

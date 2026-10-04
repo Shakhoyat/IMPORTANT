@@ -106,15 +106,15 @@ void Tank::buildRig() {
     root_->explodable = false;
     SceneNode* r = root_.get();
 
-    const Material camo = makeMaterial({0.10f, 0.12f, 0.075f}, 0.25f, Surface::Camo, 0.7f, 0.0f);
-    const Material camoDark = makeMaterial({0.075f, 0.09f, 0.06f}, 0.25f, Surface::Camo, 0.72f, 0.0f);
-    const Material steel = makeMaterial({0.05f, 0.052f, 0.05f}, 0.27f, Surface::Metal, 0.55f, 0.6f);
-    const Material trackMat = makeMaterial({0.07f, 0.06f, 0.05f}, 0.30f, Surface::Metal, 0.62f, 0.55f);
-    const Material rubber = makeMaterial({0.035f, 0.035f, 0.035f}, 0.30f, Surface::Rubber, 0.85f, 0.0f);
-    const Material gunMetal = makeMaterial({0.08f, 0.085f, 0.08f}, 0.35f, Surface::Metal, 0.5f, 0.7f);
-    const Material glass = makeMaterial({0.03f, 0.05f, 0.06f}, 0.2f, Surface::Glass, 0.1f, 0.0f);
+    const Material camo = makeMaterial({0.24f, 0.27f, 0.15f}, 0.25f, Surface::Camo, 0.62f, 0.0f);
+    const Material camoDark = makeMaterial({0.17f, 0.20f, 0.12f}, 0.25f, Surface::Camo, 0.66f, 0.0f);
+    const Material steel = makeMaterial({0.16f, 0.165f, 0.16f}, 0.27f, Surface::SteelPlate, 0.5f, 0.6f);
+    const Material trackMat = makeMaterial({0.19f, 0.16f, 0.13f}, 0.30f, Surface::Metal, 0.55f, 0.6f);
+    const Material rubber = makeMaterial({0.09f, 0.09f, 0.09f}, 0.30f, Surface::Rubber, 0.8f, 0.0f);
+    const Material gunMetal = makeMaterial({0.22f, 0.225f, 0.22f}, 0.35f, Surface::Metal, 0.42f, 0.8f);
+    const Material glass = makeMaterial({0.10f, 0.20f, 0.24f}, 0.2f, Surface::Glass, 0.05f, 0.0f, 0.04f);
     const Material hot = makeMaterial({0.07f, 0.06f, 0.055f}, 0.85f, Surface::Metal, 0.6f, 0.5f);
-    const Material lampOff = makeMaterial({1.0f, 0.93f, 0.75f}, 0.3f, Surface::Glass, 0.15f, 0.0f);
+    const Material lampOff = makeMaterial({1.0f, 0.9f, 0.65f}, 0.3f, Surface::Glass, 0.08f, 0.0f, 0.25f);
     const Material tailRed = makeMaterial({0.8f, 0.05f, 0.03f}, 0.3f, Surface::Glass, 0.2f, 0.0f, 0.5f);
 
     auto camoPart = [&](SceneNode* n) { camoParts_.push_back(n); camoBase_.push_back(n->material.baseColor); return n; };
@@ -144,7 +144,12 @@ void Tank::buildRig() {
     for (int s = -1; s <= 1; s += 2) {
         b.part(h, s < 0 ? "Exhaust pipe R" : "Exhaust pipe L", P::Cylinder, {0.13f, 0.13f, 0.5f}, {0, 0, 0}, {0.9f * s, 1.0f, -3.1f}, hot, "Exhaust stub (hot)");
         b.part(h, s < 0 ? "Front fender R" : "Front fender L", P::Cube, {0.7f, 0.05f, 1.3f}, {8, 0, 0}, {1.1f * s, 1.18f, 2.55f}, camoDark, "Mud guard over the idler");
-        headlight_[s < 0 ? 1 : 0] = b.part(h, s < 0 ? "Headlight R" : "Headlight L", P::Cube, {0.22f, 0.16f, 0.14f}, {4, 0, 0}, {1.15f * s, 1.3f, 3.05f}, lampOff, "Practical headlight (on while driving)");
+        b.part(h, s < 0 ? "Headlight housing R" : "Headlight housing L", P::Cube, {0.3f, 0.22f, 0.2f}, {4, 0, 0}, {1.15f * s, 1.3f, 3.0f}, steel, "Armoured lamp housing");
+        headlight_[s < 0 ? 1 : 0] = b.part(h, s < 0 ? "Headlight lens R" : "Headlight lens L", P::Sphere, {0.2f, 0.2f, 0.1f}, {4, 0, 0}, {1.15f * s, 1.3f, 3.1f}, lampOff, "Headlight lens: glows and lights the ground while driving");
+        b.part(h, s < 0 ? "Tow hook R" : "Tow hook L", P::Cube, {0.12f, 0.12f, 0.2f}, {0, 0, 0}, {0.8f * s, 0.5f, 3.12f}, steel, "Front tow eye");
+        b.part(h, s < 0 ? "Spare links R" : "Spare links L", P::Cube, {0.5f, 0.3f, 0.06f}, {-25, 0, 0}, {0.55f * s, 1.0f, 3.0f}, trackMat, "Spare track links bolted to the glacis");
+        b.part(h, s < 0 ? "Stowage box R" : "Stowage box L", P::Cube, {0.5f, 0.3f, 0.9f}, {0, 0, 0}, {1.2f * s, 1.42f, 0.6f}, camoDark, "Fender stowage box");
+        b.part(h, s < 0 ? "Fender lamp R" : "Fender lamp L", P::Cube, {0.1f, 0.08f, 0.1f}, {0, 0, 0}, {1.35f * s, 1.25f, 3.0f}, tailRed, "Blackout marker lamp");
         b.part(h, s < 0 ? "Tail light R" : "Tail light L", P::Cube, {0.14f, 0.1f, 0.06f}, {0, 0, 0}, {1.1f * s, 1.15f, -2.98f}, tailRed, "Rear marker light");
     }
     for (int s = -1; s <= 1; s += 2)
@@ -444,7 +449,7 @@ void Tank::update(const WorldContext& w, const ControlInput* in) {
     for (int s = 0; s < 2; ++s)
         for (SceneNode* l : links_[s]) l->material.heat = 0.30f + 0.15f * speedFrac;
     for (SceneNode* hl : headlight_) {
-        hl->material.emissive = lightsOn_ ? 2.0f : 0.0f;
+        hl->material.emissive = lightsOn_ ? 6.0f : 0.25f;
         hl->material.lightIntensity = lightsOn_ ? 9.0f : 0.0f;
         hl->material.lightRange = 26.0f;
         hl->material.lightConeDeg = 30.0f;

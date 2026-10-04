@@ -61,8 +61,8 @@ Material warningSign() { return makeMaterial({0.80f, 0.65f, 0.10f}, 0.20f, Surfa
 Material aviationLight() {
     return asLight(makeMaterial({1.00f, 0.08f, 0.05f}, 0.50f, Surface::Glass, 0.10f, 0.0f, 1.0f), 1.6f, 4.0f);
 }
-Material floodLens() {  // watchtower floodlight: a real spot light aimed along the lens axis
-    return asLight(makeMaterial({1.00f, 0.90f, 0.72f}, 0.68f, Surface::Glass, 0.05f, 0.0f, 1.0f), 9.0f, 24.0f, 26.0f);
+Material floodLens() {  // watchtower floodlight lens: switched off (light discipline), a dark glass disc
+    return makeMaterial({0.05f, 0.06f, 0.06f}, 0.20f, Surface::Glass, 0.10f, 0.0f, 0.0f);
 }
 Material concrete() { return makeMaterial({0.44f, 0.43f, 0.40f}, 0.30f, Surface::Concrete, 0.85f, 0.0f); }
 }  // namespace mats

@@ -1,4 +1,5 @@
 #include "objects/Bunker.h"
+#include "objects/Structures.h"
 
 #include <algorithm>
 #include <cmath>
@@ -157,14 +158,18 @@ BunkerRig buildBunker() {
     const Material fabric = makeMaterial({0.16f, 0.19f, 0.13f}, 0.35f, S::Paint, 0.85f, 0.0f);
     const Material earth = makeMaterial({0.17f, 0.14f, 0.10f}, 0.15f, S::Ground, 0.95f, 0.0f);
     const Material sand = makeMaterial({0.40f, 0.36f, 0.26f}, 0.27f, S::Sand, 0.95f, 0.0f);
-    const Material screenGreen = makeMaterial({0.15f, 0.95f, 0.35f}, 0.45f, S::Screen, 0.30f, 0.0f, 0.85f);
-    const Material screenAmber = makeMaterial({1.00f, 0.60f, 0.12f}, 0.45f, S::Screen, 0.30f, 0.0f, 0.80f);
+    // Displays glow softly (x8 HDR emissive scale in the renderer): readable, not floodlights.
+    const Material screenGreen = makeMaterial({0.15f, 0.95f, 0.35f}, 0.45f, S::Screen, 0.30f, 0.0f, 0.12f);
+    const Material screenAmber = makeMaterial({1.00f, 0.60f, 0.12f}, 0.45f, S::Screen, 0.30f, 0.0f, 0.10f);
     const Material ledMat = makeMaterial({0.20f, 1.00f, 0.30f}, 0.40f, S::Plain, 0.30f, 0.0f, 1.0f);
     const Material exitSign = makeMaterial({0.10f, 0.95f, 0.30f}, 0.40f, S::Plain, 0.30f, 0.0f, 0.9f);
-    const Material fluorLit = asLight(makeMaterial({0.85f, 0.95f, 1.00f}, 0.42f, S::Plain, 0.40f, 0.0f, 1.0f), 1.7f, 6.5f);
+    const Material fluorLit = asLight(makeMaterial({0.85f, 0.95f, 1.00f}, 0.42f, S::Plain, 0.40f, 0.0f, 1.0f), 3.2f, 9.0f);
     const Material fluorDim = makeMaterial({0.85f, 0.95f, 1.00f}, 0.42f, S::Plain, 0.40f, 0.0f, 0.9f);
-    const Material redLit = asLight(makeMaterial({1.00f, 0.05f, 0.03f}, 0.45f, S::Glass, 0.20f, 0.0f, 1.0f), 0.9f, 3.5f);
-    const Material sodium = asLight(makeMaterial({1.00f, 0.62f, 0.28f}, 0.52f, S::Glass, 0.10f, 0.0f, 1.0f), 2.4f, 6.5f);
+    const Material taskLamp = asLight(makeMaterial({1.00f, 0.60f, 0.22f}, 0.5f, S::Glass, 0.1f, 0.0f, 1.0f), 1.6f, 4.5f);
+    const Material redLit = asLight(makeMaterial({1.00f, 0.05f, 0.03f}, 0.45f, S::Glass, 0.20f, 0.0f, 1.0f), 1.4f, 4.5f);
+    // Light discipline (v5): the entrance only shows dim red hooded lamps.
+    const Material sodium = asLight(makeMaterial({1.00f, 0.14f, 0.05f}, 0.45f, S::Glass, 0.10f, 0.0f, 1.0f), 0.9f, 4.0f);
+    const Material landingLamp = asLight(makeMaterial({1.00f, 0.12f, 0.05f}, 0.45f, S::Glass, 0.10f, 0.0f, 1.0f), 1.0f, 6.0f, 55.0f);
     const Material beaconAmberLit =
         asLight(makeMaterial({1.00f, 0.55f, 0.05f}, 0.55f, S::Glass, 0.10f, 0.0f, 0.0f), 3.0f, 7.0f);
     const Material beaconAmber = makeMaterial({1.00f, 0.55f, 0.05f}, 0.55f, S::Glass, 0.10f, 0.0f, 0.0f);
@@ -173,6 +178,8 @@ BunkerRig buildBunker() {
     const Material beaconRed = makeMaterial({1.00f, 0.18f, 0.08f}, 0.60f, S::Glass, 0.10f, 0.0f, 1.0f);
     const Material generatorMat = makeMaterial({0.28f, 0.33f, 0.24f}, 0.70f, S::Paint, 0.50f, 0.5f);
     const Material warmMetal = makeMaterial({0.30f, 0.20f, 0.12f}, 0.80f, S::Metal, 0.55f, 0.8f);
+    // The exhaust riser reaches the surface: kept below the UAV tracker's blob threshold (0.80).
+    const Material exhaustPipe = makeMaterial({0.30f, 0.20f, 0.12f}, 0.62f, S::Metal, 0.55f, 0.8f);
 
     // ---------------------------------------------------------------- helpers
     auto cube = [&](SceneNode* p, const char* name, Vec3 mn, Vec3 mx, const Material& m, const char* purpose,
@@ -292,6 +299,9 @@ BunkerRig buildBunker() {
             under(b.part(trench, "Drain grate bar", P::Cube, {0.03f, 0.04f, 0.50f}, {0, 0, 0}, {-1.2f + 0.48f * i, kF + 0.045f, 6.5f}, galv,
                          "Grate bar"));
     }
+    // Cool floodlight on the landing so the doors are lit.
+    under(b.part(trench, "Landing lamp housing", P::Cube, {0.30f, 0.12f, 0.20f}, {0, 0, 0}, {1.35f, kF + 2.6f, 5.6f}, darkMetal, "Floodlight bracket on the trench"));
+    under(b.part(trench, "Landing floodlight", P::Sphere, {0.18f, 0.18f, 0.06f}, {90, 0, 0}, {1.15f, kF + 2.55f, 5.6f}, landingLamp, "Dim red hooded lamp over the landing, pointing down (practical light)"));
     // Sodium wall lamps (practical lights) low on the retaining walls.
     {
         const struct { float x, z; } lamps[4] = {{-1.5f, 5.0f}, {1.5f, 7.6f}, {-1.5f, 10.2f}, {1.5f, 5.0f}};
@@ -300,8 +310,14 @@ BunkerRig buildBunker() {
             const float s = l.x < 0 ? 1.0f : -1.0f;
             under(b.part(trench, "Wall lamp housing", P::Cube, {0.18f, 0.12f, 0.22f}, {0, 0, 0}, {l.x + 0.09f * s, y, l.z}, darkMetal, "Cage lamp bracket"));
             under(b.part(trench, "Wall lamp", P::Sphere, {0.12f, 0.12f, 0.12f}, {0, 0, 0}, {l.x + 0.20f * s, y - 0.02f, l.z}, sodium,
-                         "Low wattage sodium lamp (practical light)"));
+                         "Dim red lamp low on the retaining wall (practical light)"));
         }
+    }
+    // Camouflage net over the entrance trench: poles outside the walls, net >= 3.2 m above the ground so
+    // nothing walking in the trench or on the coping touches it.
+    {
+        const float gy = groundBeside(6.0f, 12.0f);
+        addCamoNet(b, trench, {0.0f, gy, 9.0f}, 0.0f, 5.0f, 8.0f, 3.9f, 0.35f, 0x7e11u);
     }
     // Portal: head wall with earth berm, hazard frame, signage.
     {
@@ -317,8 +333,7 @@ BunkerRig buildBunker() {
                      "Hazard striped header above the doors"));
         under(b.part(trench, "Warning sign", P::Cube, {0.9f, 0.35f, 0.03f}, {0, 0, 0}, {0.0f, kC + 0.60f, kDoorZ1 + 0.02f}, screenAmber,
                      "Restricted area sign (lit panel)"));
-        tallyScreen(trench->children.back().get(), 0.35f);
-        trench->children.back()->material.emissive = 0.35f;
+        tallyScreen(trench->children.back().get(), 0.25f);
     }
 
     // ---------------------------------------------------------------- blast doors (animated by BlastDoors)
@@ -446,12 +461,11 @@ BunkerRig buildBunker() {
     SceneNode* cic = b.group(r, "Command room", {0, 0, 0}, {0, 0, 0}, "Command information centre with consoles, plotting table and servers");
     {
         for (float z : {-3.2f, -7.4f})
-            for (float x : {-3.2f, 3.2f}) fixture(cic, x, z, z > -5.0f ? true : x < 0, z > -5.0f ? "CIC tube (light)" : "CIC tube");
+            for (float x : {-3.2f, 3.2f}) fixture(cic, x, z, (x < 0) == (z > -5.0f), "CIC tube (light)");
         // Third light over the table, red emergency lamps.
         fixture(cic, 0.0f, -5.4f, true, "CIC tube (light)");
         under(b.part(cic, "Emergency lamp", P::Sphere, {0.14f, 0.12f, 0.14f}, {0, 0, 0}, {-5.05f, kC - 0.45f, -2.4f}, redLit, "Red emergency lamp"));
-        under(b.part(cic, "Emergency lamp", P::Sphere, {0.14f, 0.12f, 0.14f}, {0, 0, 0}, {5.05f, kC - 0.45f, -7.9f}, fluorDim, "Dark emergency lamp"));
-        cic->children.back()->material = makeMaterial({1.0f, 0.05f, 0.03f}, 0.4f, S::Glass, 0.2f, 0.0f, 1.0f);
+        under(b.part(cic, "Emergency lamp", P::Sphere, {0.14f, 0.12f, 0.14f}, {0, 0, 0}, {5.05f, kC - 0.45f, -7.9f}, makeMaterial({1.0f, 0.05f, 0.03f}, 0.4f, S::Glass, 0.2f, 0.0f, 1.0f), "Red emergency lamp (unlit)"));
         for (float z : {-2.4f, -6.5f, -7.9f})
             cube(cic, "Wall rib W", {-5.2f, kF, z - 0.15f}, {-5.08f, kC, z + 0.15f}, concreteIn, "Pilaster");
         for (float z : {-2.6f, -4.7f, -6.4f})
@@ -473,11 +487,11 @@ BunkerRig buildBunker() {
         solid(cic, "Plotting table base", {-1.2f, kF, -7.0f}, {1.2f, kF + 0.85f, -5.8f}, wood, "Central plotting table");
         {
             SceneNode* top = cube(cic, "Plotting table top", {-1.25f, kF + 0.85f, -7.05f}, {1.25f, kF + 0.90f, -5.75f}, screenGreen, "Glowing map table top");
-            tallyScreen(top, 0.7f);
+            tallyScreen(top, 0.10f);
         }
         // Wall map on the south wall.
         cube(cic, "Wall map frame", {-2.7f, kF + 1.05f, -8.2f}, {1.7f, kF + 2.45f, -8.13f}, darkMetal, "Frame of the situation map");
-        tallyScreen(cube(cic, "Wall map screen", {-2.6f, kF + 1.12f, -8.13f}, {1.6f, kF + 2.38f, -8.10f}, screenGreen, "Wall situation map"), 0.8f);
+        tallyScreen(cube(cic, "Wall map screen", {-2.6f, kF + 1.12f, -8.13f}, {1.6f, kF + 2.38f, -8.10f}, screenGreen, "Wall situation map"), 0.11f);
         // Four operator consoles with a desk, a tilted keyboard screen and an upright monitor; chairs.
         const struct { float x, z; bool amber; } cons[4] = {{-3.2f, -3.4f, false}, {3.2f, -3.4f, true}, {-3.2f, -5.6f, true}, {3.0f, -5.4f, false}};
         for (const auto& c : cons) {
@@ -485,10 +499,15 @@ BunkerRig buildBunker() {
             SceneNode* tilt = b.part(cic, "Console keyboard screen", P::Cube, {1.3f, 0.04f, 0.45f}, {-18, 0, 0}, {c.x, kF + 0.78f, c.z + 0.05f},
                                      c.amber ? screenAmber : screenGreen, "Sloped console display");
             tilt->obstacle = false;
-            tallyScreen(tilt, 0.75f);
+            tallyScreen(tilt, 0.13f);
             SceneNode* mon = cube(cic, "Console monitor", {c.x - 0.5f, kF + 0.95f, c.z - 0.30f}, {c.x + 0.5f, kF + 1.50f, c.z - 0.25f},
                                   c.amber ? screenGreen : screenAmber, "Upright monitor");
-            tallyScreen(mon, 0.85f);
+            tallyScreen(mon, 0.14f);
+            if (c.amber) {
+                under(b.part(cic, "Task lamp arm", P::Cylinder, {0.03f, 0.03f, 0.35f}, {90, 0, 0}, {c.x + 0.65f, kF + 0.93f, c.z - 0.2f}, darkMetal, "Desk lamp arm"));
+                under(b.part(cic, "Task lamp", P::Sphere, {0.13f, 0.10f, 0.13f}, {0, 0, 0}, {c.x + 0.65f, kF + 1.14f, c.z - 0.2f}, taskLamp,
+                             "Amber desk task lamp (practical light)"));
+            }
             const float cz = c.z + 0.75f;
             cube(cic, "Chair seat", {c.x - 0.25f, kF + 0.42f, cz - 0.25f}, {c.x + 0.25f, kF + 0.48f, cz + 0.25f}, rubber, "Operator chair seat");
             cube(cic, "Chair back", {c.x - 0.25f, kF + 0.48f, cz + 0.22f}, {c.x + 0.25f, kF + 0.95f, cz + 0.27f}, rubber, "Operator chair back");
@@ -555,13 +574,13 @@ BunkerRig buildBunker() {
         under(b.part(plant, "Generator cylinder head", P::Cylinder, {0.25f, 0.25f, 0.30f}, {90, 0, 0}, {3.6f, kF + 1.15f, 2.6f}, warmMetal, "Hot cylinder head"));
         pipe(plant, "Exhaust pipe", {3.9f, kF + 1.1f, 2.6f}, {4.55f, kF + 1.9f, 2.4f}, 0.12f, warmMetal, "Exhaust pipe leaving the engine");
         vcyl(plant, "Exhaust silencer", {4.55f, kF + 2.1f, 2.4f}, 0.30f, 0.60f, darkMetal, "Silencer");
-        vcyl(plant, "Exhaust riser", {4.55f, 0.5f * (kF + 2.4f + kRoofTop + 0.6f), 2.4f}, 0.12f, (kRoofTop + 0.6f) - (kF + 2.4f), warmMetal,
+        vcyl(plant, "Exhaust riser", {4.55f, 0.5f * (kF + 2.4f + kRoofTop + 0.6f), 2.4f}, 0.12f, (kRoofTop + 0.6f) - (kF + 2.4f), exhaustPipe,
              "Exhaust riser up through the roof to the vent stack");
         solid(plant, "Control cabinet", {4.7f, kF, 1.0f}, {5.2f, kF + 1.9f, 1.8f}, paintOlive, "Generator control cabinet");
         solid(plant, "Switchgear cabinet", {4.7f, kF, 0.0f}, {5.2f, kF + 1.9f, 0.8f}, paintGrey, "Switchgear");
         {
             SceneNode* d = cube(plant, "Cabinet display", {4.66f, kF + 1.3f, 1.1f}, {4.70f, kF + 1.6f, 1.7f}, screenAmber, "Generator status display");
-            tallyScreen(d, 0.7f);
+            tallyScreen(d, 0.12f);
         }
         // Fuel tank (horizontal cylinder along X) on two saddles.
         under(b.part(plant, "Fuel tank", P::Cylinder, {1.0f, 1.0f, 2.2f}, {0, 90, 0}, {3.4f, kF + 0.85f, -1.0f}, paintOlive, "Day fuel tank"));
@@ -586,7 +605,7 @@ BunkerRig buildBunker() {
     SceneNode* shaft = b.group(r, "Exit shaft", {0, 0, 0}, {0, 0, 0}, "Emergency exit: ladder up to the surface hatch");
     {
         const float top = shaftTop - 0.15f;
-        under(b.part(shaft, "Shaft lamp", P::Sphere, {0.14f, 0.14f, 0.14f}, {0, 0, 0}, {4.0f, kC - 0.3f, -7.6f}, fluorLit, "Caged lamp (practical light)"));
+        under(b.part(shaft, "Shaft lamp", P::Sphere, {0.14f, 0.14f, 0.14f}, {0, 0, 0}, {4.0f, kC - 0.3f, -7.6f}, fluorDim, "Caged lamp"));
         for (float x : {4.3f, 4.8f})
             vcyl(shaft, "Ladder rail", {x, 0.5f * (kF + top), -8.1f}, 0.05f, top - kF, galv, "Ladder side rail");
         for (float y = kF + 0.35f; y < top - 0.1f; y += 0.30f)

@@ -1,0 +1,83 @@
+% =====================================================================
+\section{Results, Limitations and Conclusion}\label{sec:results}
+\subsection{What was measured}
+\begin{table}[h]
+\centering\small
+\caption{Quantities taken from the program output of this report's build (not from memory).}
+\label{tab:measure}
+\begin{tabular}{@{}p{8.7cm}p{7.2cm}@{}}
+\toprule
+Quantity & Value (source)\\\midrule
+Leaf parts in the scene, in 14 export objects & \nLeaves{} (\code{scene\_export.json}, Table~\ref{tab:parts})\\
+Parts with emissive $>0$ & \nEmissive{} (\code{scene\_export.json})\\
+Track links of the tank & \nTrackLinks{} (export; T80)\\
+Mesh memory, indexed vs non-indexed & \memIndexed{} B vs \memNonIndexed{} B (Table~\ref{tab:memory})\\
+Automated tests & \nTests{} run, \nPass{} pass, \nFail{} fail (\code{test\_results.json})\\
+Terrain & 49\,921 vertices, 97\,440 triangles, 36\,m radius (T13, T61)\\
+Bunker clear height / walk eye height & 2.60\,m / 1.7\,m (T62, T51)\\
+Missile: first launch request after lock & 1.53\,s (T108); detonation 0.50\,m from the spot (T100)\\
+Shell range on level ground & 203.8\,m, $-0.24$\,\% from theory (T101)\\
+Debris: pieces at rest within 8\,s & 23 of 23 (T106)\\
+180\,s headless run: UAV max radius, min clearance, rover hidden & 15.57\,m, 5.62\,m, 61\,\% of frames (T45)\\
+Full base, 120\,s simulated & 9 controllables (7 possessable), finite state (T113)\\
+\textbf{FPS / ms per frame on the RTX 4070} & \sNM; command in Section~\ref{sec:platform}\\\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Historical performance (v2, not v4).} The only measured frame times in the repository are from the v2 renderer on an AMD Radeon integrated GPU at $1280\times720$
+(\code{build/benchmark.json}, 29~Sep, 805 parts): v1 look 32.2\,FPS (31.0\,ms), LOW 18.2\,FPS, HIGH 14.7\,FPS (67.9\,ms), ULTRA 4.9\,FPS (202.7\,ms), shadow maps costing 16.2\,ms and 4$\times$ MSAA 9.3\,ms.
+They describe a scene of 805 parts and a different renderer; they are given only so that the old report's table is not lost. \textbf{No v4 frame time exists}, neither on the integrated GPU nor on an RTX 4070, and the
+EPIC preset has been exercised only on llvmpipe. The GPU timer labels in Section~\ref{sec:pipeline} are what \cli{benchmark} reports on the RTX machine. The part counts grew from 805 to \nLeaves{}
+(the grass alone was 35\,000 instanced blades on HIGH, 450\,000 on EPIC), so the v2 numbers must not be extrapolated.
+
+\subsection{Figures}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.495\linewidth}\picfour{base_gate}{\linewidth}\caption{Base gate}\end{subfigure}
+  \begin{subfigure}{0.495\linewidth}\picfour{helipad}{\linewidth}\caption{Helipad}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.495\linewidth}\picthree{cine_establishing}{\linewidth}\caption{v3 establishing shot of the compound}\end{subfigure}
+  \begin{subfigure}{0.495\linewidth}\picthree{cine_chase}{\linewidth}\caption{v3 searchlight shaft (volumetric)}\end{subfigure}
+  \caption{Results gallery: v4 base and the v3 cinematic shots (EPIC captures made on llvmpipe).}
+  \label{fig:results}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.325\linewidth}\pictwo{scene_xray}{\linewidth}\caption{X-ray edges (by primitive)}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\pictwo{scene_depth}{\linewidth}\caption{Z-buffer contents}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\pictwo{hide_ztest_off}{\linewidth}\caption{Depth test off (key \texttt{Z})}\end{subfigure}
+  \caption{Diagnostic rendering (v2 captures). The Z-buffer view shows $z_\text{lin}=2nf/(f+n-z_\text{ndc}(f-n))$; hidden-line draws depth-tested edges over solids pushed back with
+  \code{glPolygonOffset}, x-ray disables the depth test and colours all edges by primitive. The depth test keeps the rover hidden behind occluders (proposal \S3).}
+  \label{fig:diag}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.325\linewidth}\pictwo{compare_v1}{\linewidth}\caption{v1 renderer (key \texttt{N})}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\pictwo{compare_v2}{\linewidth}\caption{full pipeline}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\pictwo{ablate_shadows}{\linewidth}\caption{shadow maps off}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.325\linewidth}\pictwo{scene_thermal_whitehot}{\linewidth}\caption{white-hot palette}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\pictwo{thermal_footprints}{\linewidth}\caption{warm tyre tracks}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\pictwo{rain_thermal}{\linewidth}\caption{thermal view in rain}\end{subfigure}
+  \caption{v2 carry-over: same camera and time with the v1 look, the full pipeline and shadows off (surface bunker); thermal palettes, footprints and rain-cooled ground.}
+  \label{fig:compare}
+\end{figure}
+
+\subsection{Limitations}
+\begin{itemize}
+  \item \textbf{Verification environment.} Every capture and test run was produced with Mesa llvmpipe (a CPU renderer); no run on a real GPU, no frame-time measurement, no NVENC encoding test.
+  The visual tuning (explosion brightness, interior exposure) was done on llvmpipe images.
+  \item \textbf{Windows.} The Windows executable is cross-compiled with zig; it has never been run natively, and the committed executable predates v4.
+  \item \textbf{Soft particles.} The effect shader supports a soft depth fade but the renderer passes \code{uHasSceneDepth=0}, so smoke clips hard against geometry.
+  \item \textbf{Combat scope.} Hit tests use spheres (the rovers, radius 0.4\,m) and boxes (static solids), not the part meshes. The tank shell and the AA tracers use the same
+  target spheres as the UAV missile, but the player must aim them by hand; the player's machines have no damage state other than camouflage scorching, and nothing can hit the UAV.
+  \item \textbf{Behaviour statistics.} The tracking statistics of v2 (TRACK 57\,\%, detection 51\,\%) were not re-measured with three intruders that are destroyed and respawn; \code{-{}-trace} is available.
+  \item \textbf{Exporter.} The exporter labels the new surfaces 12--18 as ``Other'' and the terrain mesh function string with radius 20 (stale labels), and the workbook is updated by another engineer.
+\end{itemize}
+
+\subsection{Conclusion}
+ThermalSense v4 turns the v3 patrol compound into a night military base without leaving the lab's rules: \nLeaves{} parts, all unit cubes, spheres, cylinders and cones with $T\,R\,S$ transforms,
+share six indexed meshes. It adds an underground, walkable bunker with eased blast doors, an apron with a HESCO wall and an animated flag, windsock and gate, and six more machines with
+non-trivial motion (arc-length track links, skid steer with a stabilised turret, a cyclic rotor with a spring-damper attitude, a spooling Gatling gun, three radar modes). The UAV's thermal vision drives
+a complete engagement chain (lock, launch rules, proportional-navigation missile, blast, rigid-body debris, burning wreck, respawn) that is deterministic and covered by \nTests{} CPU tests, all passing.
+The remaining work is measurement, not construction: FPS on the RTX 4070, a native Windows run, and a re-measured behaviour trace. The audit in Appendix~\ref{app:audit} lists every item and its evidence.

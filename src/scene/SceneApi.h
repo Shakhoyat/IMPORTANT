@@ -129,9 +129,23 @@ inline std::vector<Vec3> roverPositions(const Scene& s) {
     detail::roverImpl(s, out, detail::Pri<2>{});
     return out;
 }
+// The rover the cameras and scripted strikes care about: the most recent burning wreck (< 15 s old), else the first
+// rover that is alive, else the first intruder.
 inline Vec3 primaryRover(const Scene& s) {
-    const std::vector<Vec3> r = roverPositions(s);
-    return r.empty() ? Vec3{6.0f, 0.0f, 7.5f} : r.front();
+    const auto& in = s.intruders();
+    const Intruder* wreck = nullptr;
+    for (const auto& i : in)
+        if (i->life == Intruder::Life::Wreck && i->timer < 15.0f && (!wreck || i->timer < wreck->timer)) wreck = i.get();
+    if (wreck) return wreck->wreckPosition;
+    for (const auto& i : in)
+        if (i->life == Intruder::Life::Alive) return i->state.position;
+    return in.empty() ? Vec3{6.0f, 0.0f, 7.5f} : in.front()->state.position;
+}
+// True while some rover is alive (a strike has a target).
+inline bool anyAlive(const Scene& s) {
+    for (const auto& i : s.intruders())
+        if (i->life == Intruder::Life::Alive) return true;
+    return false;
 }
 // Ground speed of the first rover, m/s (0 if unknown).
 inline float roverSpeed(const Scene& s) { return detail::speedImpl(s, detail::Pri<1>{}); }

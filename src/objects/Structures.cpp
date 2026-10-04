@@ -1,5 +1,8 @@
 #include "objects/Structures.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "objects/PropKit.h"
 #include "objects/Terrain.h"
 
@@ -141,21 +144,23 @@ void addSandbagArc(Builder& b, SceneNode* parent, float cx, float cz, float radi
 
 void addPracticalLights(Builder& b, SceneNode* parent) {
     const Material steel = mats::towerSteel();
-    Material sodium = asLight(makeMaterial({1.00f, 0.70f, 0.42f}, 0.52f, Surface::Glass, 0.1f, 0.0f, 1.0f), 3.2f, 7.5f);
+    // Hooded dim red lamps pointing straight down (light discipline); only the one at the gate end is a practical light.
+    const Material redLamp = asLight(makeMaterial({1.00f, 0.20f, 0.08f}, 0.45f, Surface::Glass, 0.1f, 0.0f, 1.0f), 1.1f, 6.0f, 50.0f);
+    const Material redMark = makeMaterial({1.00f, 0.20f, 0.08f}, 0.40f, Surface::Glass, 0.1f, 0.0f, 0.5f);
     SceneNode* lamps = b.group(parent, "Lamp posts", {0, 0, 0}, {0, 0, 0}, "Track lighting");
     for (float z : {6.5f, 13.0f}) {
-        const float x = trackCentreX(z) + 1.75f;
+        const float x = 3.6f;  // east of the trench strip (|x| < 2.5) that holds the bunker ramp
         SceneNode* post = b.group(lamps, "Lamp post", onGround(x, 0.0f, z), {0, 0, 0}, "Sodium street lamp");
         solid(b.part(post, "Lamp pole", P::Cylinder, {0.09f, 0.09f, 3.2f}, {90, 0, 0}, {0, 1.6f, 0}, steel, "Pole"));
-        b.part(post, "Lamp arm", P::Cube, {0.7f, 0.05f, 0.05f}, {0, 0, 0}, {-0.33f, 3.15f, 0}, steel, "Arm over the track");
-        b.part(post, "Lamp head", P::Cube, {0.34f, 0.08f, 0.2f}, {0, 0, 0}, {-0.62f, 3.12f, 0}, steel, "Lamp head");
-        b.part(post, "Sodium lamp", P::Sphere, {0.2f, 0.07f, 0.14f}, {0, 0, 0}, {-0.62f, 3.06f, 0}, sodium,
-               "Street lamp (practical light)");
+        b.part(post, "Lamp arm", P::Cube, {0.4f, 0.05f, 0.05f}, {0, 0, 0}, {-0.2f, 3.15f, 0}, steel, "Arm over the track");
+        b.part(post, "Lamp head", P::Cube, {0.34f, 0.08f, 0.2f}, {0, 0, 0}, {-0.42f, 3.12f, 0}, steel, "Lamp head");
+        b.part(post, "Dim red lamp", P::Sphere, {0.16f, 0.16f, 0.05f}, {90, 0, 0}, {-0.42f, 3.05f, 0}, z > 10.0f ? redLamp : redMark,
+               z > 10.0f ? "Dim red hooded lamp pointing down (practical light)" : "Dim red hooded lamp (emissive only)");
     }
     // Fire barrel inside the guard post's sandbag arc: warm, flickering, visible in both views.
     SceneNode* fire = b.group(parent, "Fire barrel", onGround(5.3f, 0.0f, 15.35f), {0, 0, 0}, "Guards' brazier");
     solid(b.part(fire, "Barrel", P::Cylinder, {0.5f, 0.5f, 0.78f}, {90, 0, 0}, {0, 0.39f, 0}, mats::rustDrum(), "Brazier drum"));
-    Material embers = asLight(makeMaterial({1.00f, 0.42f, 0.10f}, 0.74f, Surface::Plain, 0.9f, 0.0f, 1.0f), 5.0f, 9.0f);
+    Material embers = asLight(makeMaterial({1.00f, 0.42f, 0.10f}, 0.74f, Surface::Plain, 0.9f, 0.0f, 1.0f), 1.5f, 5.0f);  // banked embers, hidden in the sandbag arc
     b.part(fire, "Fire embers", P::Sphere, {0.42f, 0.16f, 0.42f}, {0, 0, 0}, {0, 0.8f, 0}, embers,
            "Burning wood (flickering practical light)");
 }
@@ -181,10 +186,18 @@ void addCamoTent(Builder& b, SceneNode* parent, float x, float z, float yawDeg) 
     for (float px : {-2.1f, 2.1f})
         for (float pz : {-1.7f, 1.7f})
             b.part(t, "Net pole", P::Cylinder, {0.05f, 0.05f, 1.6f}, {90, 0, 0}, {px, 0.6f, pz}, pole, "Net support");
-    Material lantern = asLight(makeMaterial({1.00f, 0.70f, 0.36f}, 0.55f, Surface::Glass, 0.1f, 0.0f, 1.0f), 1.8f, 5.0f);
+    const Material lantern = makeMaterial({0.10f, 0.08f, 0.05f}, 0.30f, Surface::Glass, 0.2f, 0.0f, 0.0f);
     b.part(t, "Lantern", P::Sphere, {0.12f, 0.16f, 0.12f}, {0, 0, 0}, {0.9f, 1.42f, 0.0f}, lantern,
-           "Oil lantern hanging from the ridge (practical light)");
+           "Oil lantern hanging from the ridge, shuttered and dark (light discipline)");
 }
+
+namespace {
+// Stencilled lettering block on top of a crate: a flush dark-yellow Paint slab.
+void stencil(Builder& b, SceneNode* c, const Vec3& crateTop, float yaw) {
+    const Material ink = makeMaterial({0.55f, 0.50f, 0.12f}, 0.28f, Surface::Paint, 0.6f, 0.0f);
+    b.part(c, "Crate stencil", P::Cube, {0.34f, 0.006f, 0.12f}, {0, yaw, 0}, crateTop + Vec3{0, 0.004f, 0}, ink, "Stencilled ammunition marking");
+}
+}  // namespace
 
 void addSupplyCache(Builder& b, SceneNode* parent, float x, float z, float yawDeg, int variant) {
     const Material wood = mats::crateWood(), olive = mats::oliveDrum(), rust = mats::rustDrum();
@@ -195,6 +208,7 @@ void addSupplyCache(Builder& b, SceneNode* parent, float x, float z, float yawDe
         solid(b.part(c, "Crate", P::Cube, {0.6f, 0.6f, 0.6f}, {0, 0, 0}, {-0.32f, 0.42f, -0.22f}, wood, "Ammo crate"));
         solid(b.part(c, "Crate", P::Cube, {0.6f, 0.6f, 0.6f}, {0, 6, 0}, {0.32f, 0.42f, -0.2f}, wood, "Ammo crate"));
         solid(b.part(c, "Crate", P::Cube, {0.55f, 0.45f, 0.55f}, {0, -10, 0}, {0.0f, 0.945f, -0.2f}, wood, "Ammo crate"));
+        stencil(b, c, {0.0f, 1.17f, -0.2f}, -10.0f);
         solid(b.part(c, "Fuel drum", P::Cylinder, drum, {90, 0, 0}, {0.95f, 0.3f, 0.2f}, olive, "Fuel drum"));
         solid(b.part(c, "Fuel drum", P::Cylinder, drum, {90, 0, 0}, {0.95f, 0.3f, -0.3f}, rust, "Fuel drum"));
     } else if (variant == 1) {
@@ -206,6 +220,7 @@ void addSupplyCache(Builder& b, SceneNode* parent, float x, float z, float yawDe
         solid(b.part(c, "Crate", P::Cube, {0.6f, 0.6f, 0.6f}, {0, 0, 0}, {0, 0.3f, 0}, wood, "Supply crate"));
         solid(b.part(c, "Crate", P::Cube, {0.6f, 0.6f, 0.6f}, {0, 12, 0}, {0.65f, 0.3f, 0.05f}, wood, "Supply crate"));
         solid(b.part(c, "Crate", P::Cube, {0.55f, 0.5f, 0.55f}, {0, -8, 0}, {0.3f, 0.85f, 0.0f}, wood, "Supply crate"));
+        stencil(b, c, {0.3f, 1.10f, 0.0f}, -8.0f);
         solid(b.part(c, "Fuel drum", P::Cylinder, drum, {90, 0, 0}, {-0.55f, 0.3f, 0.75f}, olive, "Fuel drum"));
         solid(b.part(c, "Fuel drum", P::Cylinder, drum, {90, 0, 0}, {-0.05f, 0.3f, 1.05f}, olive, "Fuel drum"));
     }
@@ -250,6 +265,172 @@ void addRadioMast(Builder& b, SceneNode* parent, float x, float z) {
                              "Guy wire");
         w->obstacle = false;
         solid(b.part(m, "Guy anchor", P::Cube, {0.3f, 0.25f, 0.3f}, {0, 0, 0}, {ax, ay + 0.05f, az}, pad, "Anchor block"));
+    }
+}
+
+
+void addMilitaryDressing(Builder& b, SceneNode* parent) {
+    SceneNode* m = b.group(parent, "Military dressing", {0, 0, 0}, {0, 0, 0}, "HESCO blocks, jersey barriers, fighting positions, signs");
+    const Material hesco = makeMaterial({0.27f, 0.25f, 0.19f}, 0.22f, Surface::Hesco, 0.92f, 0.0f);
+    const Material conc = mats::concrete(), steel = mats::towerSteel();
+    // HESCO blocks: a wall of three cells beside the road and a pair near the machine-gun nest.
+    struct H { float x, z, yaw; int n, tiers; };
+    for (const H& h : {H{-6.4f, 17.0f, 0.0f, 3, 2}, H{-12.8f, 8.2f, 60.0f, 2, 1}}) {
+        SceneNode* g = b.group(m, "HESCO blocks", onGround(h.x, 0.0f, h.z), {0, h.yaw, 0}, "Sand-filled bastion cells");
+        for (int t = 0; t < h.tiers; ++t)
+            for (int i = 0; i < h.n; ++i)
+                solid(b.part(g, "HESCO cell", P::Cube, {1.03f, 1.4f, 1.06f}, {0, 0, 0},
+                             {(static_cast<float>(i) - 0.5f * (h.n - 1)) * 1.05f, 0.7f + 1.4f * t, 0}, hesco, "Wire-mesh cell filled with sand"));
+    }
+    // Jersey barriers: chicane inside the inner gate.
+    for (const Vec3 p : {Vec3{3.3f, 0, 17.6f}, Vec3{-3.3f, 0, 16.2f}}) {
+        SceneNode* j = b.group(m, "Jersey barrier", onGround(p.x, 0.0f, p.z), {0, 0, 0}, "Precast vehicle barrier");
+        solid(b.part(j, "Jersey foot", P::Cube, {0.6f, 0.3f, 3.0f}, {0, 0, 0}, {0, 0.15f, 0}, conc, "Wide base"));
+        solid(b.part(j, "Jersey body", P::Cube, {0.3f, 0.55f, 2.96f}, {0, 0, 0}, {0, 0.575f, 0}, conc, "Sloped upper part"));
+    }
+    // Fighting position: sandbag ring with a crate stack, east of the bunker.
+    addSandbagArc(b, m, 8.2f, 1.6f, 1.3f, 200.0f, 520.0f, 9, 3);
+    addSupplyCache(b, m, 9.9f, -1.6f, 70.0f, 2);
+    // Vehicle-track sign beside the entrance ramp.
+    SceneNode* sg = b.group(m, "Track sign", onGround(-3.4f, 0.0f, 7.5f), {0, 0, 0}, "TRACKED VEHICLES sign");
+    solid(b.part(sg, "Sign post", P::Cylinder, {0.07f, 0.07f, 1.9f}, {90, 0, 0}, {0, 0.95f, 0}, steel, "Sign pole"));
+    b.part(sg, "Sign board", P::Cube, {0.8f, 0.55f, 0.03f}, {0, 0, 0}, {0, 1.75f, 0.04f}, mats::warningSign(), "Tracked-vehicle route sign");
+    b.part(sg, "Sign arrow", P::Cube, {0.45f, 0.08f, 0.01f}, {0, 0, 0}, {0, 1.75f, 0.065f}, makeMaterial({0.03f, 0.03f, 0.03f}, 0.2f, Surface::Paint, 0.6f, 0.0f), "Direction bar");
+    b.part(sg, "Sign arrow head", P::Cube, {0.16f, 0.16f, 0.01f}, {0, 0, 45}, {0.22f, 1.75f, 0.065f}, makeMaterial({0.03f, 0.03f, 0.03f}, 0.2f, Surface::Paint, 0.6f, 0.0f), "Arrow head");
+}
+
+}  // namespace ts
+
+// ---------------------------------------------------------------------------------------------------------
+// v5 camp helpers
+// ---------------------------------------------------------------------------------------------------------
+namespace ts {
+
+SceneNode* addCamoNet(Builder& b, SceneNode* parent, const Vec3& ground, float yawDeg, float width, float depth,
+                      float poleHeight, float sag, uint32_t seed, float holeHalfX, float holeZ0, float holeZ1) {
+    using Pm = PrimitiveType;
+    sag = std::max(0.0f, sag);
+    poleHeight = std::max(poleHeight, kNetMinHeight + 0.35f + sag);  // lowest panel centre >= 3.55 m
+    const Material camo = makeMaterial({0.16f, 0.20f, 0.12f}, 0.20f, Surface::Camo, 0.88f, 0.0f);
+    const Material woven = makeMaterial({0.12f, 0.15f, 0.09f}, 0.20f, Surface::Camo, 0.92f, 0.0f);
+    const Material pole = mats::fenceWood(), rope = mats::wire();
+    SceneNode* g = b.group(parent, "Camouflage net", ground, {0, yawDeg, 0},
+                           "Camouflage net on poles: thin cubes sagging between the supports, with gaps");
+    PropRng rng(seed);
+    const int nx = std::max(2, static_cast<int>(std::lround(width / 1.15f)));
+    const int nz = std::max(2, static_cast<int>(std::lround(depth / 1.15f)));
+    const float cw = width / static_cast<float>(nx), cd = depth / static_cast<float>(nz);
+    auto height = [&](float u, float v) { return poleHeight - sag * std::sin(PI * u) * std::sin(PI * v); };
+    for (int i = 0; i < nx; ++i)
+        for (int j = 0; j < nz; ++j) {
+            if (rng.next() < 0.12f) continue;  // open gap in the netting
+            const float u = (static_cast<float>(i) + 0.5f) / static_cast<float>(nx);
+            const float v = (static_cast<float>(j) + 0.5f) / static_cast<float>(nz);
+            const float x = (u - 0.5f) * width, z = (v - 0.5f) * depth;
+            if (holeHalfX > 0.0f && std::fabs(x) < holeHalfX && z > holeZ0 && z < holeZ1) continue;
+            const float dhdu = -sag * PI * std::cos(PI * u) * std::sin(PI * v);
+            const float dhdv = -sag * PI * std::sin(PI * u) * std::cos(PI * v);
+            const float pitch = degrees(std::atan(-dhdv / depth));  // about X: raises or lowers +Z
+            const float roll = degrees(std::atan(dhdu / width));    // about Z
+            const float s = rng.range(0.82f, 0.98f);
+            SceneNode* n = b.part(g, "Camo net panel", Pm::Cube, {cw * s, 0.035f, cd * s},
+                                  {pitch, rng.range(-6.0f, 6.0f), roll}, {x, height(u, v), z},
+                                  (i + j) % 3 == 1 ? woven : camo, "Netting panel between the poles");
+            n->obstacle = false;
+        }
+    // Poles at the four corners (and mid-edge for long sides), ropes along the edges.
+    std::vector<Vec3> tops;
+    const int px = width > 5.5f ? 2 : 1, pz = depth > 5.5f ? 2 : 1;
+    for (int i = 0; i <= px; ++i)
+        for (int j = 0; j <= pz; ++j) {
+            const bool edge = (i == 0 || i == px || j == 0 || j == pz);
+            if (!edge) continue;
+            const float x = (static_cast<float>(i) / static_cast<float>(px) - 0.5f) * width;
+            const float z = (static_cast<float>(j) / static_cast<float>(pz) - 0.5f) * depth;
+            SceneNode* p = b.part(g, "Net pole", Pm::Cylinder, {0.10f, 0.10f, poleHeight + 0.1f}, {90, 0, 0},
+                                  {x, 0.5f * (poleHeight + 0.1f), z}, pole, "Net support pole");
+            p->obstacle = false;
+        }
+    const Vec3 c[4] = {{-0.5f * width, poleHeight + 0.05f, -0.5f * depth}, {0.5f * width, poleHeight + 0.05f, -0.5f * depth},
+                       {0.5f * width, poleHeight + 0.05f, 0.5f * depth}, {-0.5f * width, poleHeight + 0.05f, 0.5f * depth}};
+    for (int k = 0; k < 4; ++k) {
+        SceneNode* r = strut(b, g, "Net edge rope", Pm::Cylinder, c[k], c[(k + 1) % 4], 0.02f, rope, "Rope tensioning the net edge");
+        r->obstacle = false;
+    }
+    return g;
+}
+
+SceneNode* addRevetment(Builder& b, SceneNode* parent, const Vec3& ground, float yawDeg, float halfW, float halfD,
+                        float height) {
+    using Pm = PrimitiveType;
+    const Material earth = makeMaterial({0.13f, 0.105f, 0.075f}, 0.15f, Surface::Ground, 0.95f, 0.0f);
+    const Material bag = mats::sandbag();
+    SceneNode* g = b.group(parent, "Earth revetment", ground, {0, yawDeg, 0},
+                           "U-shaped earth wall around a vehicle bay, open at the rear (local -Z)");
+    // One straight wall running along local Z centred on (cx, cz): 'len' long, inner face at x = cx - side * 0.45.
+    auto wall = [&](float cx, float cz, float len, float outward /* +1: outer face towards +X */) {
+        const float h = height;
+        SceneNode* core = b.part(g, "Revetment core", Pm::Cube, {0.8f, 0.85f * h, len}, {0, 0, 0}, {cx, 0.425f * h, cz}, earth,
+                                 "Compacted earth core of the wall");
+        (void)core;
+        // Outer slope: a slab leaning against the core, top towards the core (roll about the wall axis).
+        b.part(g, "Revetment slope (outer)", Pm::Cube, {0.55f, 1.05f * h, len}, {0, 0, outward * 28.0f},
+               {cx + outward * 0.62f, 0.45f * h, cz}, earth, "Outer slope of the earth wall");
+        // Inner face: steeper slab.
+        b.part(g, "Revetment slope (inner)", Pm::Cube, {0.35f, 0.95f * h, len}, {0, 0, -outward * 10.0f},
+               {cx - outward * 0.47f, 0.47f * h, cz}, earth, "Steep inner face of the wall");
+        // Sandbag crest, one running course.
+        const int n = std::max(2, static_cast<int>(len / 0.55f));
+        for (int k = 0; k < n; ++k)
+            b.part(g, "Revetment sandbag", Pm::Cylinder, {0.28f, 0.17f, 0.5f}, {0, 90, 0},
+                   {cx, 0.85f * h + 0.07f, cz + (static_cast<float>(k) + 0.5f) / static_cast<float>(n) * len - 0.5f * len}, bag,
+                   "Sandbag on the crest of the revetment");
+    };
+    const float wx = halfW + 0.45f;
+    wall(-wx, 0.0f, 2.0f * halfD + 1.2f, -1.0f);  // left (outer side towards -X)
+    wall(wx, 0.0f, 2.0f * halfD + 1.2f, 1.0f);    // right
+    // Front wall across +Z (rotate the same profile by 90 deg: built as three cubes along X).
+    {
+        const float h = height, zf = halfD + 0.45f, len = 2.0f * wx + 1.2f;
+        b.part(g, "Revetment core", Pm::Cube, {len, 0.85f * h, 0.8f}, {0, 0, 0}, {0, 0.425f * h, zf}, earth, "Compacted earth core of the front wall");
+        b.part(g, "Revetment slope (outer)", Pm::Cube, {len, 1.05f * h, 0.55f}, {-28, 0, 0}, {0, 0.45f * h, zf + 0.62f}, earth, "Outer slope of the front wall");
+        b.part(g, "Revetment slope (inner)", Pm::Cube, {len - 1.0f, 0.95f * h, 0.35f}, {10, 0, 0}, {0, 0.47f * h, zf - 0.47f}, earth, "Steep inner face of the front wall");
+        const int n = std::max(2, static_cast<int>(len / 0.55f));
+        for (int k = 0; k < n; ++k)
+            b.part(g, "Revetment sandbag", Pm::Cylinder, {0.28f, 0.17f, 0.5f}, {0, 0, 0},
+                   {(static_cast<float>(k) + 0.5f) / static_cast<float>(n) * len - 0.5f * len, 0.85f * h + 0.07f, zf}, bag,
+                   "Sandbag on the crest of the revetment");
+    }
+    return g;
+}
+
+void addCutBranches(Builder& b, SceneNode* parent, const Vec3& ground, float yawDeg, float dist, float length,
+                    uint32_t seed) {
+    using Pm = PrimitiveType;
+    PropRng rng(seed);
+    const Material leaf = mats::pineNeedles(), wood = mats::bark(), green = mats::leaves();
+    SceneNode* g = b.group(parent, "Cut branches", ground, {0, yawDeg, 0}, "Branches and brush propped against a vehicle to break its outline");
+    const int n = std::max(3, static_cast<int>(length / 0.9f));
+    for (int i = 0; i < n; ++i) {
+        const float z = (static_cast<float>(i) / static_cast<float>(n - 1) - 0.5f) * length + rng.range(-0.2f, 0.2f);
+        const float lean = rng.range(14.0f, 28.0f);  // top leans towards the vehicle (-X of the group)
+        const float len = rng.range(1.5f, 2.2f);
+        const Vec3 base{dist + rng.range(-0.15f, 0.3f), 0.0f, z};
+        const Vec3 top = base + Vec3{-std::sin(radians(lean)) * len, std::cos(radians(lean)) * len, rng.range(-0.2f, 0.2f)};
+        SceneNode* st = strut(b, g, "Cut branch stem", Pm::Cylinder, base, top, 0.05f, wood, "Cut branch leaning on the vehicle");
+        st->obstacle = false;
+        const Vec3 mid = (base + top) * 0.5f;
+        const float r = rng.range(0.45f, 0.65f);
+        SceneNode* f = b.part(g, "Cut branch foliage", Pm::Sphere, {r, 1.2f * len * 0.7f, r}, {0, rng.range(0, 90.0f), lean}, mid, i % 2 ? leaf : green,
+                              "Leafy crown of the cut branch");
+        f->obstacle = false;
+        b.part(g, "Cut branch tip", Pm::Cone, {0.35f, 0.35f, 0.5f}, {-90, 0, lean}, top + Vec3{0, 0.1f, 0}, leaf, "Needle tuft at the tip")->obstacle = false;
+    }
+    // Brush pile at the foot.
+    for (int i = 0; i < 3; ++i) {
+        const float r = rng.range(0.35f, 0.55f);
+        b.part(g, "Brush clump", Pm::Sphere, {2.0f * r, 1.2f * r, 2.0f * r}, {0, rng.range(0, 360.0f), 0},
+               {dist + 0.45f, 0.3f * r, (static_cast<float>(i) - 1.0f) * length * 0.35f}, green, "Low brush at the foot of the branches")->obstacle = false;
     }
 }
 

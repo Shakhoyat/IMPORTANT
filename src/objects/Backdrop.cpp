@@ -100,7 +100,7 @@ std::unique_ptr<SceneNode> buildBackdrop() {
 
     // Far ground: a flat 400 m cylinder (axis vertical) just below the terrain rim, so the horizon between the
     // 36 m terrain mesh and the hills is solid ground. The terrain never dips below the rim, so it stays hidden inside.
-    const Material ground = makeMaterial({0.30f, 0.29f, 0.24f}, 0.12f, Surface::Ground, 0.95f, 0.0f);
+    const Material ground = makeMaterial({0.085f, 0.080f, 0.060f}, 0.12f, Surface::Ground, 0.95f, 0.0f);
     b.part(r, "Far ground", P::Cylinder, {400.0f, 400.0f, 0.1f}, {90, 0, 0}, {0, farGroundTop() - 0.05f, 0}, ground,
            "Ground plane beyond the disc");
     addHills(b, r);

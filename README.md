@@ -2,12 +2,19 @@
 
 Md. Shakhoyat Rahman Shujon, Roll 2107104. Computer Graphics Lab project (OpenGL 3.3 core, GLFW, GLAD).
 
-A night-time patrol of a 20 m radius compound. A quadcopter finds a small ground robot **from its own
-thermal camera images** (blob detection on a 320x240 heat image) and follows it with a searchlight. The
-robot uses **MicroMouse flood-fill planning + line-follower control** to keep an obstacle between itself
-and the UAV. Every object (805 parts: bunker, UAV, rover, watchtower, fence, forest, boulders, grass...)
-is built only from the lab's unit primitives (cube, sphere, cylinder; the cone and the light frustum are
-the cylinder generator with a different top radius). No model files and no image textures are used.
+A night-time **military base** (v4): a 36 m radius base with an inner 20 m patrol compound. A quadcopter
+finds intruder ground robots **from its own thermal camera images** (blob detection on a 320x240 heat image),
+holds them in its camera and releases rail-mounted rounds that home on the camera's aim point; a hit throws the
+rover's parts as rigid-body debris and leaves a burning wreck that is cleared and replaced by a new intruder.
+The rovers use **MicroMouse flood-fill planning + line-follower control** to stay out of the UAV's sight.
+
+v4 adds an **underground command bunker you can walk through** (entrance ramp, steel blast doors, tunnel,
+command room, generator and bunk rooms, exit shaft), the **base apron** (HESCO perimeter with concertina wire,
+4 guard towers, gate with boom barrier, helipad, motor pool, Quonset barracks, fuel depot, waving flag,
+windsock) and **7 objects you can control** (keys 5-0): tank with animated tracks, helicopter, AA Gatling gun,
+air-defence radar, blast doors, gate barrier and the UAV itself. Every object (about 3,000 parts) is built
+only from the lab's unit primitives (cube, sphere, cylinder; the cone and the light frustum are the cylinder
+generator with a different top radius). No model files and no image textures are used.
 
 The renderer aims at a modern game-like night (v3, tuned for an RTX 4070 12 GB): GGX/Cook-Torrance lighting
 (flat / Gouraud / Phong still decide *where* it is evaluated), cascaded moon shadows + searchlight shadows,
@@ -105,7 +112,7 @@ ThermalSense.exe --benchmark build/benchmark.json   FPS per preset + per-feature
 ThermalSense.exe --trace build/trace.csv 180        log UAV / rover behaviour (4 Hz) for 180 s
 ThermalSense.exe --record report/demo.mp4 60 [--ffmpeg PATH]   1080p cinematic video (needs ffmpeg)
 build/export_docs.exe build/scene_export.json       GPU-free export of every part, matrix and mesh
-build/tests.exe build/test_results.json             55 automated tests (no GPU needed; build/tests on Linux)
+build/tests.exe build/test_results.json             120 automated tests (no GPU needed; build/tests on Linux)
 python tools/build_workbook.py                      rebuild ThermalSense_Graphics_Documentation.xlsx
 python tools/verify_workbook.py                     recalculate every formula and check it
 ```
@@ -135,6 +142,30 @@ python tools/verify_workbook.py                     recalculate every formula an
 | `M` | MicroMouse flood field and the line-follower guide line |
 | `I` | indexed / non-indexed drawing |
 | `U`, `Tab`, `Space`, `F12`, `Esc` | UAV feed, HUD, pause, screenshot, quit |
+
+### Controlling objects (v4)
+
+| Key | Action |
+|-----|--------|
+| `5` `6` `7` `8` `9` `0` | take control of: tank, helicopter, AA gun, radar, blast doors, UAV |
+| `[` / `]` | cycle through every controllable object (incl. the gate barrier) |
+| `Backspace` | release control |
+| `W` `S` / `A` `D` / `PgUp` `PgDn` | drive / steer / climb (tank, helicopter, UAV) |
+| arrows, mouse drag | aim (turret and gun, AA mount, searchlight, radar sector, UAV gimbal) |
+| `Enter` or `Left Ctrl` | fire / transmit (tank gun, AA burst, UAV round); in walk mode: open/close the nearest door or barrier |
+| `\` | action: helicopter start-up / land, radar mode, door toggle, UAV gimbal assist |
+| `Shift` | boost |
+| `C` (while controlling) | chase camera / gun sight / cockpit |
+
+### Game rules (v4)
+
+| Rule | Value |
+|------|-------|
+| Intruders | 3 rovers, entering at 0 / 7 / 14 s from three forest sectors |
+| UAV launch | after the target has been held in the thermal camera for 1.5 s; 4 rail rounds, 10 s reload, 4 s between rounds |
+| Rounds | homing on the camera's aim point (laser spot), proximity fuse 0.5 m, blast damage radius 1.6 m |
+| Discrimination | ignores blobs within 2.5 m of a wreck for 30 s and within 4.5 m of friendly vehicles; never fires at the bunker ramp |
+| Wreck | debris pieces settle (restitution 0.3), the hull burns 15 s and cools (40 s), removed after 25 s, a new intruder 3 s later |
 
 ## Quality presets
 
@@ -195,11 +226,14 @@ Matrices* rebuilds every M with formulas and checks it against the code (max dif
 | File | Content |
 |------|---------|
 | `src/` | source code (primitives, objects, rendering, scene, ai, vision, app) |
-| `tests/test_main.cpp` | 55 automated tests (CPU only) |
+| `tests/test_*.cpp` | 120 automated tests (CPU only; `tests/TestKit.h`, IDs by area) |
 | `ThermalSense_Graphics_Documentation.xlsx` | 14-sheet workbook: cover/KPIs, primitives, vertex data, object construction, transformation matrices (formulas), hierarchy, geometry, lighting, shading, render pipeline, testing, performance, behaviour, traceability |
 | `report/main.tex`, `report/main.pdf` | 7-page report |
 | `report/figures/` | screenshots captured from the program |
 | `report/demo.mp4` | 60 s cinematic demo (1080p) |
 | `docs/PLAN.md`, `docs/PLAN_V2.md`, `docs/PLAN_V3.md` | requirement checklist, the v2 plan, the v3 plan (RTX target, first-person thermal) |
+| `docs/V4_PROGRESS.md`, `docs/v4_notes/` | v4 status / to-do (recovery file) and every engineer's design notes |
+| `report/figures_v4/` | v4 captures: base, bunker interior, vehicles, explosions, possession HUDs |
+| `report/ThermalSense_Presentation.pptx`, `report/demo_v4.mp4` | 10-slide presentation (outline on slide 2) and the 2-minute demo video |
 | `report/figures_v3/` | v3 captures (EPIC): first-person thermal, walk camera, cinematic shots |
 | `docs/visual_tests.json` | observations of the captured screenshots (used by the workbook) |

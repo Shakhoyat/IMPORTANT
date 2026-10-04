@@ -47,13 +47,13 @@ Helicopter::Helicopter() {
     root_->animation = "Position and yaw from the flight model";
     SceneNode* r = root_.get();
 
-    const Material paint = withPbr({{0.045f, 0.055f, 0.045f}, 0.30f, 0.0f, 0.45f, 64.0f}, Surface::Paint, 0.38f, 0.1f);
-    const Material paintLight = withPbr({{0.07f, 0.08f, 0.065f}, 0.30f, 0.0f, 0.40f, 48.0f}, Surface::Paint, 0.45f, 0.1f);
-    const Material glass = withPbr({{0.015f, 0.025f, 0.03f}, 0.10f, 0.0f, 1.0f, 160.0f}, Surface::Glass, 0.05f, 0.0f);
-    const Material metal = withPbr({{0.12f, 0.12f, 0.13f}, 0.35f, 0.0f, 0.80f, 96.0f}, Surface::Metal, 0.35f, 0.9f);
-    const Material skidMat = withPbr({{0.03f, 0.03f, 0.035f}, 0.25f, 0.0f, 0.5f, 48.0f}, Surface::Metal, 0.45f, 0.8f);
+    const Material paint = withPbr({{0.10f, 0.125f, 0.085f}, 0.30f, 0.0f, 0.45f, 64.0f}, Surface::Camo, 0.42f, 0.1f);
+    const Material paintLight = withPbr({{0.14f, 0.16f, 0.12f}, 0.30f, 0.0f, 0.40f, 48.0f}, Surface::Paint, 0.5f, 0.1f);
+    const Material glass = withPbr({{0.03f, 0.05f, 0.06f}, 0.10f, 0.0f, 1.0f, 160.0f}, Surface::Glass, 0.03f, 0.1f);
+    const Material metal = withPbr({{0.22f, 0.22f, 0.24f}, 0.35f, 0.0f, 0.80f, 96.0f}, Surface::Metal, 0.38f, 0.9f);
+    const Material skidMat = withPbr({{0.09f, 0.09f, 0.10f}, 0.25f, 0.0f, 0.5f, 48.0f}, Surface::Metal, 0.5f, 0.8f);
     const Material hot = withPbr({{0.10f, 0.09f, 0.08f}, 0.95f, 0.0f, 0.6f, 48.0f}, Surface::Metal, 0.55f, 0.8f);
-    const Material blade = withPbr({{0.025f, 0.025f, 0.03f}, 0.25f, 0.0f, 0.45f, 48.0f}, Surface::Plain, 0.40f, 0.2f);
+    const Material blade = withPbr({{0.06f, 0.06f, 0.07f}, 0.25f, 0.0f, 0.45f, 48.0f}, Surface::Plain, 0.40f, 0.2f);
     const Material tip = withPbr({{0.55f, 0.50f, 0.10f}, 0.25f, 0.0f, 0.35f, 32.0f}, Surface::Paint, 0.50f, 0.0f);
     const Material rubber = withPbr({{0.02f, 0.02f, 0.02f}, 0.25f, 0.0f, 0.1f, 8.0f}, Surface::Rubber, 0.9f, 0.0f);
     Material blur{{0.10f, 0.10f, 0.11f}, 0.25f, 0.0f, 0.2f, 16.0f};

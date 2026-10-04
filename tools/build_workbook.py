@@ -1,4 +1,5 @@
-"""Builds ThermalSense_Graphics_Documentation.xlsx (14 sheets) from files produced by the program itself.
+"""Builds ThermalSense_Graphics_Documentation.xlsx (18 sheets: 14 from v3 + 14 Controllable Objects, 15 Bunker & Base,
+16 Combat & Effects, 17 Audit) from files produced by the program itself.
 
 Inputs (regenerate them first with `mingw32-make docs`):
   build/scene_export.json   build/export_docs.exe (or ThermalSense.exe --export-docs): primitives, components,
@@ -21,7 +22,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from summarize_trace import summarize  # noqa: E402
-from wb_common import (AUTHOR, BOLD, DARK, FORMULA_FILL, INPUT_FILL, OUT, PRIM_COLOURS, ROLL, SHEET_ORDER,  # noqa: E402
+from wb_common import (AUTHOR, BOLD, DARK, S_AUDIT, S_BASE, S_COMBAT, S_CTRL, FORMULA_FILL, INPUT_FILL, OUT, PRIM_COLOURS, ROLL, SHEET_ORDER,  # noqa: E402
                        SUBTITLE_FONT, S_BEHAV, S_COVER, S_GEOM, S_HIER, S_INV, S_LIGHT, S_MAT, S_OBJ, S_PERF, S_PIPE,
                        S_SHADE, S_TEST, S_TRACE, S_VERT, image, link, load_json, path, prim_fill, put, section,
                        widths)
@@ -30,6 +31,8 @@ from wb_lighting import build_lighting, build_shading  # noqa: E402
 from wb_pipeline import build_pipeline  # noqa: E402
 from wb_results import build_behaviour, build_performance, build_testing  # noqa: E402
 from wb_trace import build_traceability  # noqa: E402
+from wb_v4 import build_bunker_base, build_combat, build_controllables  # noqa: E402
+from wb_audit import build_audit  # noqa: E402
 from wb_transforms import build_hierarchy, build_matrices  # noqa: E402
 
 INPUT_FILES = ["build/scene_export.json", "build/test_results.json", "build/benchmark.json", "build/trace.csv",
@@ -48,7 +51,11 @@ SHEET_INFO = {
     S_TEST: "All tests with pass-rate KPI, conditional formatting and evidence links",
     S_PERF: "Measured FPS / frame time / submitted geometry + charts",
     S_BEHAV: "UAV tracking vs hiding rover: detection %, tracking error, hide events + time series",
-    S_TRACE: "Requirement -> file -> sheet -> test -> report section",
+    S_TRACE: "Requirement -> file -> sheet -> test -> report section (R01-R26 + V4-01..14)",
+    S_CTRL: "7 possessable objects + animated scenery: DOF, joints, technique, limits, parts, cameras (exported + design notes)",
+    S_BASE: "Underground bunker and base apron: sections, site plan, walk-space floors / walls / indoor volumes, practical lights",
+    S_COMBAT: "Weapons, guidance, fuse, damage radius, measured particle census, wreck / respawn timings, IFF + keep-out rules",
+    S_AUDIT: "Requirement-by-requirement checklist: lab sheet, proposal, user v2-v4 requests, course checklist",
 }
 
 
@@ -91,16 +98,39 @@ def build_cover(wb, ctx):
             horizontal="center", wrap_text=True)
     ws.row_dimensions[11].height = 36
     ws.row_dimensions[12].height = 24
-    section(ws, 14, 1, "Index (click a sheet name)")
+    tiles2 = [("Possessable objects", f"={refs['ctrl_possessable']}" if "ctrl_possessable" in refs else "n/a", "0", "sheet 14"),
+              ("Practical lights", f"={refs['practicals']}" if "practicals" in refs else "n/a", "0", "sheet 15"),
+              ("Walk floors / walls", (f"={refs['walk_floors']}&\" / \"&{refs['walk_walls']}" if "walk_floors" in refs else "n/a"),
+               None, "walk space, sheet 15"),
+              ("Particle types", f"={refs['particle_types']}" if "particle_types" in refs else "n/a", "0", "measured, sheet 16"),
+              ("Audit verified", f"={refs['audit_verified']}&\" / \"&{refs['audit_items']}" if "audit_items" in refs else "n/a", None,
+               "sheet 17"),
+              ("Audit pending", f"={refs['audit_pending']}" if "audit_pending" in refs else "n/a", "0", "sheet 17"),
+              ("Sheets", len(SHEET_ORDER), "0", "this workbook")]
+    for k, (label, f, fmt, note) in enumerate(tiles2):
+        c = 1 + k
+        a = ws.cell(row=13, column=c, value=label)
+        a.font, a.fill, a.alignment = Font(bold=True, color="D1D5DB", size=9), tile_fill, Alignment(horizontal="center")
+        v = ws.cell(row=14, column=c, value=f)
+        v.font, v.fill = Font(bold=True, color="FFFFFF", size=18), tile_fill
+        v.alignment = Alignment(horizontal="center", vertical="center")
+        if fmt:
+            v.number_format = fmt
+        n = ws.cell(row=15, column=c, value=note)
+        n.font, n.fill, n.alignment = Font(italic=True, color="9CA3AF", size=8), tile_fill, Alignment(
+            horizontal="center", wrap_text=True)
+    ws.row_dimensions[14].height = 36
+    ws.row_dimensions[15].height = 24
+    section(ws, 17, 1, "Index (click a sheet name)")
     for i, name in enumerate(SHEET_ORDER):
-        r = 15 + i
+        r = 18 + i
         put(ws, r, 1, i)
         c = put(ws, r, 2, name)
         link(c, name, "A1", name)
         ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=3)
         put(ws, r, 4, SHEET_INFO.get(name, ""))
         ws.merge_cells(start_row=r, start_column=4, end_row=r, end_column=7)
-    _legend(ws, 15 + len(SHEET_ORDER) + 1)
+    _legend(ws, 18 + len(SHEET_ORDER) + 1)
     image(ws, "I4", path("report/figures/scene_visible.png"), width=560)
     ws["I3"] = "Hero shot: report/figures/scene_visible.png (captured by ThermalSense.exe --capture)"
     ws["I3"].font = SUBTITLE_FONT
@@ -137,6 +167,9 @@ def _arg(flag, default):
 
 
 def main():
+    if _arg("--leaves", None):
+        import wb_common
+        wb_common.set_leaves(_arg("--leaves", None), _arg("--groups", None))
     scene = load_json("build/scene_export.json")
     if scene is None or "mesh_samples" not in scene:
         sys.exit("build/scene_export.json missing or old - run `mingw32-make docs` (build/export_docs.exe) first")
@@ -166,6 +199,10 @@ def main():
         build_behaviour(wb, ctx)
     build_testing(wb, ctx)
     build_performance(wb, ctx)
+    build_controllables(wb, ctx)
+    build_combat(wb, ctx)   # after sheet 14 (weapon rows read its spec table)
+    build_bunker_base(wb, ctx)
+    build_audit(wb, ctx)
     build_traceability(wb, ctx)
     build_cover(wb, ctx)
     wb.active = 0

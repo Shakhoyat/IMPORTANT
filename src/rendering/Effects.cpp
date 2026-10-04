@@ -100,12 +100,9 @@ float softDepth(float radius) {
 }
 vec2 rot(vec2 p, float a) { float c = cos(a), s = sin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
 // Blackbody-like ramp: 0 black, deep red, orange, yellow, white-yellow
-vec3 bb(float T) {
-    vec3 c = mix(vec3(0.0), vec3(0.45, 0.03, 0.0), smoothstep(0.0, 0.2, T));
-    c = mix(c, vec3(1.0, 0.28, 0.03), smoothstep(0.15, 0.45, T));
-    c = mix(c, vec3(1.0, 0.62, 0.14), smoothstep(0.4, 0.7, T));
-    c = mix(c, vec3(1.0, 0.90, 0.60), smoothstep(0.65, 1.0, T));
-    return c;
+vec3 bb(float T) {   // continuous power curves (no plateaus): red first, then green, then blue
+    T = clamp(T, 0.0, 1.0);
+    return vec3(pow(T, 0.45), pow(T, 1.9), 0.85 * pow(T, 4.5));
 }
 vec3 fogLit(vec3 lit) { return uVolumetric == 1 || uHdr != 1 ? lit : lit * (1.0 - fogAmount(vWorld)); }
 
@@ -132,7 +129,7 @@ void main() {
         float n = fbm(q + vec2(0.0, -age * 0.25));
         float n2 = valueNoise(q * 3.1 + 7.0);
         float d = r + (n - 0.5) * 0.95 + (n2 - 0.5) * 0.25 + t * 0.35;
-        float dens = smoothstep(1.0, 0.2, d);
+        float dens = smoothstep(1.0, 0.2, d) * smoothstep(1.45, 1.0, r);   // envelope: never cut by the quad edge
         vec3 albedo; float op;
         if (kind == 1)      { albedo = vec3(0.085, 0.080, 0.076); op = 0.92; }
         else if (kind == 2) { albedo = vec3(0.34, 0.34, 0.35);    op = 0.38; }
@@ -171,14 +168,14 @@ void main() {
         vec2 qf = q * 0.9 + vec2(0.0, -age * 2.2);
         float n = fbm(qf);
         float n2 = fbm(qf * 2.3 + vec2(3.0, -age * 3.1));
-        float d = r + (n - 0.5) * 0.95 + (n2 - 0.5) * 0.4;
-        float T = clamp(1.0 - d, 0.0, 1.0);
-        T = T * T * (3.0 - 2.0 * T);
+        float n3 = valueNoise(qf * 6.0 + age);
+        float d = r + (n - 0.5) * 0.95 + (n2 - 0.5) * 0.4 + (n3 - 0.5) * 0.18;
+        float T = clamp(1.0 - d, 0.0, 1.0) * smoothstep(1.45, 0.95, r);   // envelope: never cut by the quad edge
         float life = max(1.0 - t, 0.0);
         T *= pow(life, 0.6) * mix(0.65, 1.0, clamp(heat, 0.0, 1.0));
-        float cov = smoothstep(0.0, 0.2, T);
-        emit = bb(T) * (1.5 + 16.0 * T * T) * bright * cov * soft;
-        alpha = 0.5 * smoothstep(0.35, 0.95, t) * smoothstep(1.05, 0.4, d) * soft;   // soot edge darkens old flames
+        float cov = smoothstep(0.0, 0.35, T);
+        emit = bb(T) * (0.5 + 5.0 * T * T) * bright * cov * soft;
+        alpha = (0.45 * smoothstep(0.1, 0.7, t) + 0.25) * smoothstep(0.45, 0.95, d) * smoothstep(1.3, 0.8, d) * smoothstep(1.45, 1.0, r) * soft;   // soot edge darkens old flames
         emit = fogLit(emit);
         h = heat * mix(1.0, 0.75, t) * (0.85 + 0.15 * smoothstep(0.0, 0.5, T));
         cover = max(cov * 0.95, alpha) * soft;
@@ -187,7 +184,7 @@ void main() {
         // ---- flash: very bright short sphere ----
         float g = exp(-r * r * 6.0) * smoothstep(1.0, 0.6, r);
         float f = pow(max(1.0 - t, 0.0), 1.5);
-        emit = fogLit(mix(vec3(1.0, 0.55, 0.2), vec3(1.0, 0.92, 0.75), g) * g * f * bright * 18.0 * soft);
+        emit = fogLit(mix(vec3(1.0, 0.55, 0.2), vec3(1.0, 0.92, 0.75), g) * g * f * bright * 7.0 * soft);
         h = 1.0;
         cover = g * f;
         if (cover < 0.003) discard;
@@ -205,10 +202,10 @@ void main() {
     } else if (kind == 7) {
         // ---- shock wave: thin bright ring racing across the ground ----
         float R = length(L);
-        float ring = smoothstep(0.80, 0.93, R) * smoothstep(1.0, 0.94, R);
+        float ring = smoothstep(0.86, 0.95, R) * smoothstep(1.0, 0.96, R);
         float f = (1.0 - t) * (1.0 - t);
         float breakup = 0.65 + 0.35 * valueNoise(rot(L, ang) * 9.0);
-        emit = fogLit(vec3(1.0, 0.82, 0.62) * ring * f * breakup * bright * 3.0);
+        emit = fogLit(vec3(1.0, 0.82, 0.62) * ring * f * breakup * bright * 0.15);
         h = 0.45 * heat;
         cover = ring * f * 0.7;
         if (cover < 0.004) discard;
@@ -257,6 +254,8 @@ void main() {
         FragColor = vec4(c.rgb * a, a);
         return;
     }
+    float dither = 1.0 + (hash21(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) * 0.3;
+    emit *= dither; body *= dither;
     vec4 c = finalColor(vec3(0.0), 0.0, vWorld);   // keeps the surface target written; colour is ours
     FragColor = vec4(body + emit, clamp(alpha, 0.0, 1.0));
 }

@@ -30,8 +30,12 @@ S_TEST = "10 Testing"
 S_PERF = "11 Performance"
 S_BEHAV = "12 Behaviour"
 S_TRACE = "13 Traceability"
+S_CTRL = "14 Controllable Objects"
+S_BASE = "15 Bunker & Base"
+S_COMBAT = "16 Combat & Effects"
+S_AUDIT = "17 Audit"
 SHEET_ORDER = [S_COVER, S_INV, S_VERT, S_OBJ, S_MAT, S_HIER, S_GEOM, S_LIGHT, S_SHADE, S_PIPE, S_TEST, S_PERF,
-               S_BEHAV, S_TRACE]
+               S_BEHAV, S_TRACE, S_CTRL, S_BASE, S_COMBAT, S_AUDIT]
 
 AUTHOR = "Md. Shakhoyat Rahman Shujon"
 ROLL = "2107104"
@@ -53,6 +57,7 @@ FAIL_FILL = PatternFill(fill_type="solid", start_color="FEE2E2", end_color="FEE2
 PENDING_FILL = PatternFill(fill_type="solid", start_color="FEF9C3", end_color="FEF9C3")
 INPUT_FILL = PatternFill("solid", fgColor="EFF6FF")      # values imported from the program's exports
 FORMULA_FILL = PatternFill("solid", fgColor="FFFFFF")    # computed by Excel
+NOTE_FILL = PatternFill("solid", fgColor="FEF3C7")       # hand-maintained text "from design notes" (not exported)
 HILITE_FILL = PatternFill("solid", fgColor="FDE68A")
 TOTAL_FILL = PatternFill("solid", fgColor="E5E7EB")
 THIN = Side(style="thin", color="D1D5DB")
@@ -225,3 +230,77 @@ def image(ws, anchor, src, box=None, width=None):
     im.save(out)
     ws.add_image(XLImage(out), anchor)
     return im.height
+
+
+# ---- transform sheets: bounded formula volume -----------------------------------------------------------
+LEAVES_PER_ROOT = 80   # sheets 4 and 5 carry Excel formulas for every group node + the first N leaves of each root
+
+
+GROUPS_PER_ROOT = None   # None = all group nodes; a number only in the reduced verification workbook
+
+
+def set_leaves(n, groups=None):
+    """Used by `build_workbook.py --leaves N [--groups G]`: reduced workbook for the slow pure-Python formula engine."""
+    global LEAVES_PER_ROOT, GROUPS_PER_ROOT
+    LEAVES_PER_ROOT = int(n)
+    GROUPS_PER_ROOT = int(groups) if groups else None
+
+
+def matrix_components(comps, per_root=None):
+    """Subset of the exported components that gets Excel matrix formulas (sheets 4 + 5): every group node (so
+    each articulation chain is complete) and the first `per_root` leaves of every root tree, in tree order.
+    A leaf's parent is always a group, so the subset is closed under 'parent of'. Sheet 3 lists all components."""
+    per_root = LEAVES_PER_ROOT if per_root is None else per_root
+    keep, kept_ids, taken, groups = [], set(), 0, 0
+    for c in comps:
+        if c.get("depth", 0) == 0:
+            taken = groups = 0
+        if c["primitive"] == "Group":
+            groups += 1
+            if GROUPS_PER_ROOT is not None and groups > GROUPS_PER_ROOT:
+                continue
+            keep.append(c)
+            kept_ids.add(c["id"])
+        elif c.get("parent_id") in kept_ids or c.get("depth", 0) == 0:
+            taken += 1
+            if taken <= per_root:
+                keep.append(c)
+                kept_ids.add(c["id"])
+    return keep
+
+
+
+def articulation_chains(comps, controllables):
+    """For every controllable: the deepest chain of animated GROUP nodes (joints), as a list of node names from its
+    root, plus the number of animated groups. Everything is read from the exported component tree."""
+    by_id = {c["id"]: c for c in comps}
+    out = []
+    for ctl in controllables:
+        rid = ctl.get("root_id")
+        if rid not in by_id:
+            continue
+        # subtree = following comps until the next node of depth <= root depth
+        start = next(i for i, c in enumerate(comps) if c["id"] == rid)
+        d0 = comps[start].get("depth", 0)
+        sub = [comps[start]]
+        for c in comps[start + 1:]:
+            if c.get("depth", 0) <= d0:
+                break
+            sub.append(c)
+        joints = [c for c in sub if c["primitive"] == "Group" and c["animation"]]
+        deepest = max(joints, key=lambda c: c.get("depth", 0), default=comps[start])
+        path, cur = [], deepest
+        while cur is not None:
+            path.append(cur["name"])
+            cur = by_id.get(cur.get("parent_id")) if cur["id"] != rid else None
+        path = list(reversed(path))
+        runs = []  # "Flag strip x12" instead of twelve identical names
+        for nme in path:
+            if runs and runs[-1][0] == nme:
+                runs[-1][1] += 1
+            else:
+                runs.append([nme, 1])
+        out.append({"name": ctl["name"], "key": ctl.get("key", "-"),
+                    "path": [n if k == 1 else f"{n} x{k}" for n, k in runs],
+                    "levels": len(path), "joints": len(joints), "root_id": rid})
+    return out

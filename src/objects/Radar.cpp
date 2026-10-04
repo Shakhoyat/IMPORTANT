@@ -37,10 +37,10 @@ Radar::Radar() {
     SceneNode* r = root_.get();
 
     const Material concrete = makeMaterial({0.16f, 0.16f, 0.15f}, 0.12f, Surface::Concrete, 0.85f, 0.0f);
-    const Material steel = withPbr({{0.14f, 0.15f, 0.16f}, 0.28f, 0.0f, 0.7f, 64.0f}, Surface::Metal, 0.5f, 0.85f);
-    const Material dark = withPbr({{0.05f, 0.055f, 0.06f}, 0.28f, 0.0f, 0.5f, 48.0f}, Surface::Metal, 0.55f, 0.7f);
-    const Material tile = withPbr({{0.10f, 0.11f, 0.12f}, 0.30f, 0.0f, 0.6f, 64.0f}, Surface::Paint, 0.45f, 0.4f);
-    const Material white = withPbr({{0.20f, 0.21f, 0.20f}, 0.30f, 0.0f, 0.4f, 32.0f}, Surface::Paint, 0.5f, 0.1f);
+    const Material steel = withPbr({{0.30f, 0.31f, 0.32f}, 0.28f, 0.0f, 0.7f, 64.0f}, Surface::Metal, 0.5f, 0.85f);
+    const Material dark = withPbr({{0.13f, 0.14f, 0.15f}, 0.28f, 0.0f, 0.5f, 48.0f}, Surface::Metal, 0.55f, 0.7f);
+    const Material tile = withPbr({{0.20f, 0.23f, 0.22f}, 0.30f, 0.0f, 0.6f, 64.0f}, Surface::Paint, 0.45f, 0.4f);
+    const Material white = withPbr({{0.38f, 0.39f, 0.37f}, 0.30f, 0.0f, 0.4f, 32.0f}, Surface::Paint, 0.5f, 0.1f);
     const Material shelter = makeMaterial({0.07f, 0.09f, 0.06f}, 0.35f, Surface::Corrugated, 0.6f, 0.4f);
     const Material doorMat = makeMaterial({0.05f, 0.065f, 0.045f}, 0.30f, Surface::SteelPlate, 0.55f, 0.6f);
     Material beacon = asLight(Material{{1.0f, 0.05f, 0.03f}, 0.5f, 0.0f, 0.5f, 64.0f}, 2.5f, 14.0f);

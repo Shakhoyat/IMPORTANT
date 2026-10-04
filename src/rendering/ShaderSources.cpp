@@ -358,7 +358,7 @@ vec3 surfaceAlbedo(vec3 P, vec3 N, vec3 base) {
         return mix(c, vec3(0.25, 0.25, 0.26), wear) * (0.85 + 0.2 * n2);
     }
     if (uSurface == 15) {         // display: dark phosphor background, grid, rotating sweep, blips, text bars
-        vec2 q = fract(side * 0.9);
+        vec2 q = fract(side * 0.38 + 0.31);     // one display layout per ~2.6 m (no visible tiling on a console)
         float grid = 1.0 - smoothstep(0.0, 0.02, min(abs(fract(q.x * 8.0) - 0.5), abs(fract(q.y * 8.0) - 0.5)) - 0.46);
         vec2 c0 = q - 0.5;
         float ang = atan(c0.y, c0.x), sweep = fract((ang / 6.2832) - uTime * 0.25);
@@ -367,7 +367,7 @@ vec3 surfaceAlbedo(vec3 P, vec3 N, vec3 base) {
         float blip = step(0.985, hash21(floor(q * 24.0))) * smoothstep(0.6, 1.0, sweep);
         float bars = step(0.86, q.y) * step(0.3, hash21(vec2(floor(q.x * 20.0), floor(uTime * 2.0))));
         vec3 phosphor = base;
-        return phosphor * (0.10 + 0.25 * grid + 0.8 * trail + 0.6 * ring + 2.0 * blip + 0.5 * bars);
+        return phosphor * (0.12 + 0.25 * grid + 0.6 * trail + 0.45 * ring + 1.2 * blip + 0.35 * bars);
     }
     if (uSurface == 16) {         // asphalt: aggregate speckle, cracks, polished wheel lanes
         float agg = valueNoise(side * 60.0);
@@ -414,7 +414,8 @@ vec2 cellular(vec2 p) {   // x = distance to the nearest feature point, y = that
     return vec2(sqrt(best), id);
 }
 
-float trackCentreX(float z) { return 1.4 * sin(0.2 * (z - 3.0)); }   // same centre line as objects/Terrain.cpp
+// Same centre line as objects/Terrain.cpp: straight into the bunker ramp (z <= 13.5), the old curve further north.
+float trackCentreX(float z) { return 1.4 * sin(0.2 * (z - 3.0)) * smoothstep(13.5, 19.0, z); }
 
 float rutMask(vec2 p, float track) {
     if (track < 0.01) return 0.0;

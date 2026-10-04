@@ -281,6 +281,7 @@ void Renderer::gatherPracticals(const Scene& scene, const CameraView& cam) {
         }
     }
     const bool camInside = sceneaccess::insideIndoor(ws, cam.position);
+    frame_.cameraIndoor = camInside;
 
     // The 16 lights that matter most for this view: lamps and fires of the scene plus transient lights from
     // the combat simulation (blast flashes, burning wrecks, rocket motors), ranked by distance / range.
@@ -305,7 +306,7 @@ void Renderer::gatherPracticals(const Scene& scene, const CameraView& cam) {
         for (const DynamicLight& l : *dyn) {
             // Blasts are brief and bright: rank them ahead of ordinary lamps at the same distance.
             ranked.push_back({0.5f * length(l.position - cam.position) / std::max(l.range, 0.1f), l.position, l.color,
-                              {0, 0, 1}, l.range, -2.0f});
+                              l.direction, l.range, l.coneCos});
         }
     }
     for (Candidate& c : ranked) {
@@ -373,11 +374,28 @@ void Renderer::drawGrass(const Scene& scene, const CameraView& cam, int w, int h
     if (s.view == ViewMode::HeatRaw || s.view == ViewMode::Diagnostic || !s.isolate.empty()) return;
     grass_.setCount(qualityProfile(s.quality).grassBlades);
     if (grass_.count() <= 0) return;
-    // The rover pushes blades aside; the rotor wash flattens them under a low UAV.
+    // Rovers and vehicles push blades aside; rotor wash flattens them under a low UAV / helicopter. The shader
+    // takes two pushers: the two closest to the camera.
+    std::vector<GrassField::Pusher> pushers;
     const Vec3 uav = scene.drone.position;
     const float altitude = uav.y - terrainHeight(uav.x, uav.z);
-    GrassField::Pusher rover{scene.rover.position, 0.45f, 1.2f};
-    GrassField::Pusher wash{{uav.x, 0.0f, uav.z}, 2.4f, clampf(1.5f - 0.25f * altitude, 0.0f, 1.0f)};
+    pushers.push_back({{uav.x, 0.0f, uav.z}, 2.4f, clampf(1.5f - 0.25f * altitude, 0.0f, 1.0f)});
+    for (const auto& in : scene.intruders())
+        if (in->life == Intruder::Life::Alive) pushers.push_back({in->state.position, 0.45f, 1.2f});
+    for (const auto& c : scene.controllables()) {
+        if (!c->possessable()) continue;
+        const Vec3 p = c->position();
+        const float agl = p.y - terrainHeight(p.x, p.z);
+        const std::string name = c->name();
+        if (name.find("TANK") != std::string::npos) pushers.push_back({p, 2.2f, 1.4f});
+        else if (name.find("HELI") != std::string::npos && agl < 8.0f)
+            pushers.push_back({{p.x, 0.0f, p.z}, 5.0f, clampf(1.6f - 0.18f * agl, 0.0f, 1.2f)});
+    }
+    std::sort(pushers.begin(), pushers.end(), [&](const GrassField::Pusher& a, const GrassField::Pusher& b) {
+        return length(a.position - cam.position) - 3.0f * a.strength < length(b.position - cam.position) - 3.0f * b.strength;
+    });
+    while (pushers.size() < 2) pushers.push_back({{0, -100, 0}, 0.0f, 0.0f});
+    const GrassField::Pusher rover = pushers[0], wash = pushers[1];
     auto prepare = [&](Shader& sh) {
         setFrameUniforms(sh, scene, cam, w, h, s);
         sh.set("uBaseColor", primitiveColor(PrimitiveType::Cube));
@@ -468,9 +486,17 @@ void Renderer::drawEffects(const Scene& scene, const CameraView& cam, int w, int
                            FrameStats& st, bool transparent) {
 #ifdef TS_HAS_EFFECTS
     if (s.view == ViewMode::Depth || s.view == ViewMode::Diagnostic || !s.isolate.empty()) return;
+    // Soft particles: the depth pre-pass (rendered for SSAO / fog on HIGH and above) is not attached to the
+    // scene target, so sprites can read it to fade where they meet geometry.
+    const bool softDepth = (frame_.ao || frame_.fog) && fb_.prepassDepth != 0;
+    if (softDepth) {
+        glActiveTexture(GL_TEXTURE0 + 10);
+        glBindTexture(GL_TEXTURE_2D, fb_.prepassDepth);
+        glActiveTexture(GL_TEXTURE0);
+    }
     auto prepare = [&](Shader& sh) {
         setFrameUniforms(sh, scene, cam, w, h, s);
-        sh.set("uHasSceneDepth", 0);
+        sh.set("uHasSceneDepth", softDepth ? 1 : 0);
     };
     // Generic lambda: its body is only instantiated (and type-checked) when Scene provides combat().
     auto draw = [&](const auto& sc) {
@@ -762,6 +788,7 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     timer_.begin("bloom");
     if (bloom) renderBloom(image);
     timer_.end();
+    if (frame_.cameraIndoor) frame_.flare = false;
     if (frame_.flare) renderFlare();
     if (frame_.dof) image = renderDof(image);
 

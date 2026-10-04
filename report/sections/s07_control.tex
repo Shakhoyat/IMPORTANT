@@ -1,0 +1,185 @@
+% =====================================================================
+\section{Controllable Objects}\label{sec:control}
+v4 has seven user-controllable objects (the brief asked for at least five new ones): the UAV (manual flight),
+tank, helicopter, AA gun, radar, blast doors and gate barrier. A \emph{possessable} object implements the
+\code{Controllable} interface (\code{scene/Controllable.h}): the application samples one \code{ControlInput}
+(forward, turn, lift, aim axes, mouse look, \code{fire}, \code{firePressed}, \code{actionPressed}, \code{boost}) per frame
+and gives it to the possessed object only; all others get \code{nullptr} and run their idle behaviour. Each object
+owns its node tree and writes only local transforms in \code{update()}; it also provides a name, one help line, a status
+line for the HUD, a \code{CameraHint} (chase or first-person sight view) and optional \code{dynamicObstacles()} and \code{onBlast()}.
+Two animated objects, the flag and the windsock, are not possessable.
+
+\subsection{Key map}
+\begin{table}[h]
+\centering\small
+\caption{Key bindings (verified in \code{Interactive.cpp}, \code{Control.cpp}; F1 shows the same list in the program).}
+\label{tab:keys}
+\begin{tabular}{@{}p{3.6cm}p{12.4cm}@{}}
+\toprule
+Key & Action\\\midrule
+\texttt{5} \texttt{6} \texttt{7} & possess the tank / the helicopter / the AA gun\\
+\texttt{8} \texttt{9} \texttt{0} & possess the radar / the blast doors / the UAV (manual flight)\\
+\texttt{[} \texttt{]} & cycle through the possessable objects (the flag and windsock are skipped; 7 possessable)\\
+\texttt{Backspace} & release the possessed object (the UAV flies itself again)\\
+\texttt{W A S D} & drive / fly / turn (in walk mode: walk, \texttt{Shift} runs; free camera: move)\\
+\texttt{PgUp PgDn} & climb and descend (helicopter, UAV); free camera\\
+\texttt{Arrows}, mouse & aim: turret and gun, AA gun, gimbal, searchlight, radar (arrows held; mouse look as a delta)\\
+\texttt{Enter} / \texttt{L-Ctrl} & fire (tank shot, AA burst while held, UAV missile) or toggle (doors, barrier, searchlight, radar TX)\\
+\texttt{\textbackslash} & secondary action: start / land (helicopter), radar mode, gimbal assist (UAV), doors / barrier\\
+\texttt{Shift} & boost (tank $\times1.5$, helicopter 25\,m/s, UAV 9\,m/s)\\
+\texttt{C} & camera cycle: Orbit, Free, Chase, UAV CAM, Walk (T55); while possessing: switch chase view $\leftrightarrow$ sight\\
+\texttt{K} & cinematic director (restarts the world, 12 shots in 120\,s); again to leave\\
+\texttt{V} / \texttt{Y} / \texttt{T} / \texttt{Q} & view: thermal, visible, diagnostic, depth; first-person or external thermal; palette; force a NUC\\
+\texttt{X} \texttt{Z} & edges (solid, hidden-line, x-ray); depth test on/off\\
+\texttt{O} \texttt{F} \texttt{G} \texttt{P} & shading: per object, all Flat, all Gouraud, all Phong\\
+\texttt{1} \texttt{2} \texttt{3} \texttt{4} & toggle moon, beacon, searchlight, practical lights\\
+\texttt{B} \texttt{N} & PBR vs Blinn--Phong; full pipeline vs the v1 look\\
+\texttt{E} \texttt{H} \texttt{M} \texttt{I} & explode view; local axes; MicroMouse flood field and line guide; indexed or flat drawing\\
+\texttt{F5}--\texttt{F10} & quality preset; TAA; SSR; lens flare; auto-exposure; depth of field\\
+\texttt{L} \texttt{J} \texttt{R} & foliage cards; fireflies; rain\\
+\texttt{+} \texttt{-} & exposure\\
+\texttt{U} \texttt{Tab} \texttt{Space} \texttt{F1} \texttt{F12} \texttt{Esc} & UAV feed; HUD; pause; help; screenshot; quit\\\bottomrule
+\end{tabular}
+\end{table}
+
+In \emph{walk} mode, \texttt{Enter} (or \texttt{L-Ctrl}) toggles the blast door or the gate barrier nearest to the walker within
+3.5\,m by giving it one frame of possession with \code{actionPressed} set (\code{nearestToggle}; T128). Table~\ref{tab:ctl}
+summarises the machines; the following subsections give the motion technique, limits and cameras.
+
+\begin{table}[h]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Controllable objects. DOF = independently animated degrees of freedom.}
+\label{tab:ctl}
+\begin{tabular}{@{}clp{1.7cm}p{5.2cm}p{5.4cm}@{}}
+\toprule
+Key & Object (HUD name) & Class & Degrees of freedom & Camera views\\\midrule
+5 & MBT-1 TANK & \code{Tank} & position (x, z), yaw, left/right track, turret yaw, gun pitch, recoil, hull heave/pitch, 2 antennas, MG ring & chase (9\,m behind, 55$^\circ$), sight (28$^\circ$)\\
+6 & MH-6 HELICOPTER & \code{Helicopter} & position (3), yaw, pitch, roll, rotor speed, 5 blades (flap, feather), tail rotor, light pan/tilt & chase / cockpit\\
+7 & AA-1 GATLING & \code{AaGun} & mount yaw, cradle pitch, cluster spin, search antenna & chase / sight\\
+8 & AIR-DEFENCE RADAR & \code{Radar} & azimuth, elevation tilt, mode, TX lamp & side view (13\,m away), operator view along the beam (60$^\circ$)\\
+9 & BLAST DOORS & \code{BlastDoors} & two leaves (slide), beacon spinners & door camera at $(0,-0.3,9)$\\
+0 & UAV-1 DRONE & \code{DroneControl} & position (3), yaw, pitch, roll, gimbal yaw/pitch, rail rounds & chase / gimbal camera (40$^\circ$)\\
+-- (\texttt{[ ]}) & GATE BARRIER & \code{GateBarrier} & boom angle, lamps & near the gate\\\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------
+\subsection{Tank: arc-length track links, skid steer, stabilised turret}
+\paragraph{Track-link arc-length parameterisation.} The closed track path is a stadium in the hull's $(z,y)$ plane around the
+sprocket (rear, $z=-2.8$) and the idler (front, $z=2.8$), centre height 0.55\,m, radius $R=0.5$\,m. Its perimeter is
+$P=2(2.8-(-2.8))+2\pi R=14.342$\,m. The belt keeps one number per side, the travelled distance
+$\phi_\text{belt}\mathrel{+}=v_\text{track}\,\Delta t$; link $i$ of 40 sits at arc length
+$s_i=(\phi_\text{belt}+P\,i/40)\bmod P$, mapped by \code{tankpath::point(s)} to $(z,y,\varphi)$: top run
+forward, front arc, bottom run backward, rear arc. The link's translation is $(0,y,z)$ and its rotation $R_x(\varphi)$ turns
+its local $+y$ onto the outward normal. Road wheels, sprocket, idler and return rollers spin by
+$\phi_\text{belt}/r_\text{wheel}$, so the tread and the wheels agree. Verified: all 80 links stay on the path (T80,
+max distance 0\,m) and the belt advances by $v\,\Delta t$ (T81: 16.0000\,m for 16\,m).
+
+\paragraph{Skid steer.} Left and right track speeds are $v_{l,r}=f\pm1.2\,u$ with forward command $f$ (max 8\,m/s, 12\,m/s with
+boost, 3\,m/s reverse) and turn input $u$, approached with 3.5\,m/s$^2$ acceleration and 7\,m/s$^2$ braking. The body speed is
+$v=(v_l+v_r)/2$ and the yaw rate $\omega=(v_r-v_l)/2.2$ (track separation 2.2\,m; positive yaw is about $+Y$, so a right turn has
+negative $\omega$). Equal speeds drive a straight line (T82); $\pm1.2$\,m/s pivots at $-62.5^\circ$/s (T83). Collision uses
+an oriented-hull vs.\ box separating-axis test against the static solids; if the move is blocked the tank tries to pivot in
+place, then to slide straight, then stops; it stays within $r\le31$\,m (T87). The hull height is the mean of the terrain under
+four track corners (T86: worst error 2.3\,mm).
+
+\paragraph{Suspension, recoil and the stabilised turret.} The hull pitch is a damped spring
+$\ddot x=\omega^2(x_\text{target}-x)-2\zeta\omega\dot x$ with $\omega=2\pi\cdot1.6$, $\zeta=0.35$, driven by
+$x_\text{target}=\mathrm{clamp}(-0.012\,a,\pm0.06)$ (acceleration $a$): the tank squats when it accelerates and rocks back when it
+fires. The two antennas use the same spring with $\omega=2\pi\cdot2.2$, $\zeta=0.12$. The turret keeps its \emph{world} yaw when
+the hull turns (T84b: hull $-114.8^\circ$, turret world yaw unchanged at $-40^\circ$); it slews at 40$^\circ$/s, the gun at 20$^\circ$/s with
+elevation $-8\ldots+20^\circ$ (T84, mouse deltas are rate-limited). The gun fires a 120\,m/s shell with 0.35\,m barrel recoil that
+returns in 0.6\,s, 3.5\,s reload, 18 rounds (T85); the ballistic range matches $v^2\sin2\alpha/g$ within 0.24\,\% (T101).
+When idle the machine-gun ring sweeps on its own.
+
+% ---------------------------------------------------------------------
+\subsection{Helicopter: cyclic flapping and a spring-damper attitude model}
+\paragraph{State machine.} \emph{Parked, Startup, Hover, Fly, Landing.} The \code{\textbackslash} key starts the engine (the rotor
+spools up linearly in 6\,s, T90; nominal 300\,rpm = 5\,rev/s, the tail rotor turns 5$\times$ faster) or requests a landing. A landing
+is accepted only at ground speed $\le6$\,m/s, height $\le20$\,m and a slope $\le0.15$ under the skids; otherwise the
+status line gives the reason (T94, the steepest slope 0.31 was refused). Spool-down takes 8\,s. Released in flight the helicopter
+hovers in place (T95).
+
+\paragraph{Flight limits.} Cruise 15\,m/s, boost 25\,m/s, reverse 7\,m/s, climb 4\,m/s, 0.5--40\,m above ground, radius $\le60$\,m (T93),
+horizontal acceleration limited to 8\,m/s$^2$ (12 boosted), yaw rate 55$^\circ$/s.
+
+\paragraph{Spring-damper attitude.} Pitch and roll follow acceleration and turn rate through
+$\ddot x=\omega^2(x_\text{target}-x)-2\zeta\omega\dot x$ with $\omega=5$\,s$^{-1}$, $\zeta=0.8$, bounded to $22^\circ$ pitch and $25^\circ$ roll
+(T92: max pitch 22.2$^\circ$, roll 25.5$^\circ$ at 24.5\,m/s).
+
+\paragraph{Rotor cyclic.} The rotor head carries a tip-path-plane node that tilts by the cyclic angles $(\tau_f,\tau_l)$, which
+approach their targets exponentially ($T=0.2$\,s) (forward when accelerating, sideways in turns). Each of the five blades,
+spaced $72^\circ$ (T91), sits under a flap node whose rotation is $R_x(-\beta)$, $R_z(\vartheta)$ with
+$\beta=\beta_\text{cone}-\tfrac12\tau_f\cos\psi-\tfrac12\tau_l\sin\psi$ and the feather
+$\vartheta=\vartheta_\text{coll}+0.6(\tau_f\sin\psi-\tau_l\cos\psi)$ ($\psi$ is the blade azimuth); the blades droop at low rpm. A
+translucent blur disc fades in with rotor speed (T96: 0 $\to$ 0.26). Below 4\,m above ground and with the rotor above 60\,\% the
+helicopter kicks up dust through \code{Combat::emitDust}. Controls: \texttt{W/S} fly, \texttt{A/D} turn, \texttt{PgUp/PgDn} climb,
+\texttt{Shift} boost, arrows or mouse aim the searchlight (pan $\pm150^\circ$, tilt $-10\ldots90^\circ$ down), \texttt{Enter} toggles the
+searchlight, \texttt{\textbackslash} starts or lands.
+
+% ---------------------------------------------------------------------
+\subsection{AA Gatling gun: spin-up and tracers}
+The gun slews in azimuth at 60$^\circ$/s through 360$^\circ$ and in elevation from $-5^\circ$ to $+85^\circ$ (T89). While \texttt{Enter} is held the barrel
+cluster spins up linearly to $5$\,rev/s in 0.5\,s, coasts down in 1.5\,s, and rounds are released only at full spin: 30 rounds/s ($6$ barrels
+$\times5$ rev/s) as tracers at 1000\,m/s with a dispersion of 3.5\,mrad inside a random disc, from 1550 rounds (T88: first round at
+0.517\,s, 60 rounds in 2\,s; the spin goes 5.00 $\to$ 2.50 $\to$ 0.00\,rev/s). Casings fly out of the ejection port as a pool of 20 ballistic
+parts. Not possessed, the mount sweeps slowly and never fires (T89: idle moved 157$^\circ$, fired 0). The search antenna turns at 1\,rev/s
+(3\,rev/s when possessed). The sight camera sits on the cradle; the HUD adds a lead ring.
+
+% ---------------------------------------------------------------------
+\subsection{Radar: three modes}
+\emph{ROTATE}: azimuth advances 72$^\circ$/s (12\,rpm, one turn in 5\,s, T97); \emph{SECTOR}: a sine sweep of $\pm45^\circ$ around a centre
+that the user aims with the arrows, period 6\,s (T98); \emph{STOP}: manual azimuth. The elevation tilt is limited to $-5\ldots+20^\circ$
+(T99). \texttt{\textbackslash} cycles the modes, \texttt{Enter} toggles the transmit lamp, and the radar is back in ROTATE when released.
+Azimuth is measured clockwise from $+Z$, i.e.\ $-$yaw about $+Y$.
+
+% ---------------------------------------------------------------------
+\subsection{Blast doors: eased sliding leaves}
+The two leaves (each a 1.45\,m wide steel-plate assembly of six parts, opening 2.6\,m) slide 1.5\,m into the wall pockets with
+$x(t)=\pm1.5\,s(t)$, $s(u)=3u^2-2u^3$, over 4\,s. The state machine is Closed, Opening, Open, Closing and is reversible mid-way
+(T65: 4.02\,s one way, the status text shows ``BLAST DOORS CLOSING 49\,\%'' half-way). The doors \emph{start open}. Two beacon
+spinners turn at 300$^\circ$/s while the doors move. A closed door contributes a solid box to the walker's collision (T64, T121) and it is
+returned by \code{dynamicObstacles()} (the lowered barrier arm is the other one).
+
+% ---------------------------------------------------------------------
+\subsection{Gate barrier, windsock and flag}
+\textbf{Barrier.} The boom rotates $0\to85^\circ$ about its pivot in 2.5\,s with the same smoothstep easing
+$\alpha=85^\circ s(t)$; its warning lamp blinks at 3\,Hz while moving; below $15^\circ$ the arm adds an obstacle box (T73: half-way at 1.25\,s,
+tip height 6.04\,m). \textbf{Windsock.} A swivel follows the wind direction $200^\circ+25^\circ\sin(0.21t)+10^\circ\sin(0.57t+1.3)$; five chained
+segments droop by $20^\circ(1-w)+2.5^\circ$ plus a flutter with a phase lag down the chain ($w$ is the wind strength, 0.35--1, from the
+same function; T75: segment pitch 16$^\circ$ at $w=0.36$, 0.7$^\circ$ at $w=1$). \textbf{Flag.} Twelve strips in a chain, each yawed by a travelling
+sine wave $\mathrm{yaw}_i=A_i\sin(0.7\,i-\omega t)$, $A_i=(2+4w)(0.3+0.7\,i/11)$ and $\omega=2\pi(0.6+1.4w)$, plus a small pitch term; because the
+rotations accumulate down the chain the tip distance stays 2.50--2.52\,m (T74), i.e.\ the flag neither stretches nor collapses.
+
+% ---------------------------------------------------------------------
+\subsection{UAV in manual flight}
+Key \texttt{0} takes the drone: \texttt{W/S} forward/back (6\,m/s, 9\,m/s with Shift), \texttt{A/D} yaw 70$^\circ$/s, \texttt{PgUp/PgDn} climb 3\,m/s, with
+the velocity change limited to 4\,m/s$^2$, height 1--40\,m above ground and a horizontal limit at $r=34$\,m. Pitch and roll follow
+$4\,\mathbf v\cdot\hat f+3\,\mathbf a\cdot\hat f$ (clamped to $\pm18^\circ$) with exponential smoothing. The arrows or mouse turn the gimbal (60$^\circ$/s yaw, 40$^\circ$/s pitch,
+pitch 5--88$^\circ$); \texttt{\textbackslash} toggles \emph{gimbal assist}, in which the gimbal keeps following the tracked target while
+the user flies. \texttt{Enter} releases a rail round at the point where the camera centre meets the ground (Section~\ref{sec:game}).
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.325\linewidth}\picfour{possess_tank_sight}{\linewidth}\caption{Tank sight (\texttt{5})}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{possess_heli_cockpit}{\linewidth}\caption{Helicopter cockpit (\texttt{6})}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{possess_aa_sight}{\linewidth}\caption{AA gun sight (\texttt{7})}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.325\linewidth}\picfour{possess_uav_manual}{\linewidth}\caption{UAV, manual (\texttt{0})}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{possess_doors}{\linewidth}\caption{Blast doors (\texttt{9})}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{heli_takeoff}{\linewidth}\caption{Helicopter take-off}\end{subfigure}
+  \caption{Possession views with the HUD (captures from \code{Capture.cpp}).}
+  \label{fig:possess}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.325\linewidth}\picfour{tank_closeup}{\linewidth}\caption{Tank at the motor pool}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{tank_fire}{\linewidth}\caption{Tank firing}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{aa_gun_sight}{\linewidth}\caption{AA gun sight view}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.325\linewidth}\picfour{helipad}{\linewidth}\caption{Helipad and helicopter}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{radar}{\linewidth}\caption{Radar}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{aa_gun_burst}{\linewidth}\caption{AA gun burst}\end{subfigure}
+  \caption{The machines in the scene.}
+  \label{fig:machines}
+\end{figure}

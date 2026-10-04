@@ -6,6 +6,8 @@
 
 #include "rendering/Renderer.h"
 #include "scene/Camera.h"
+#include "vision/CvPipeline.h"
+#include "audio/AudioEngine.h"
 #include "scene/Control.h"
 #include "scene/SceneApi.h"
 #include "scene/Scene.h"
@@ -93,7 +95,11 @@ private:
     RenderSettings settings_;
     ThermalTracker tracker_;
     Detection detection_;
-    std::vector<uint8_t> uavImage_;
+    std::vector<uint8_t> uavImage_, uavImage2_;   // thermal images of UAV 0 / UAV 1 (320 x 240)
+    CvFrameStats cvFrame_[2];                     // CV statistics of the latest frame per UAV
+    audio::AudioEngine audio_;                    // procedural game sound (live playback when a device exists)
+    bool audioLive_ = false;
+    double audioClock_ = -1.0;
     FrameStats stats_, cvStats_;
 
     bool thermalFpv_ = true;         // thermal view = first-person gimbal camera, full screen (Y toggles)

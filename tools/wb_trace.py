@@ -10,7 +10,7 @@ import re
 from openpyxl.formatting.rule import FormulaRule
 
 from wb_common import (BOLD, FAIL_FILL, PASS_FILL, ROOT, S_BEHAV, S_GEOM, S_HIER, S_INV, S_LIGHT, S_MAT, S_OBJ,
-                       S_PERF, S_SHADE, S_TEST, S_TRACE, S_VERT, S_COVER, file_link, finish, header, link, path,
+                       S_PERF, S_SHADE, S_TEST, S_TRACE, S_VERT, S_COVER, S_BASE, S_COMBAT, S_CTRL, file_link, finish, header, link, path,
                        put, title, widths)
 
 # Requirement -> (workbook sheets, test IDs, report-section keyword). Authored cross-reference, validated below.
@@ -42,6 +42,43 @@ LINKS = {
     "R25": ([S_OBJ], ["T18"], "Object Construction"),
     "R26": ([S_PERF], [], "Results"),
 }
+
+
+# v4 requirements (docs/V4_PROGRESS.md "Request"): id -> (requirement, source, where (backticked files), sheets, tests, report keyword)
+V4_REQS = [
+    ("V4-01", "Military base look: HESCO wall, towers, helipad, motor pool, barracks, flag", "v4 request",
+     "`Base.cpp`, `Environment.cpp`, `Structures.cpp`, `BaseLayout.h`", [S_BASE], "T70-T79", "Base"),
+    ("V4-02", "Underground walkable command bunker (ramp, blast doors, tunnel, rooms)", "v4 request",
+     "`Bunker.cpp`, `WalkSpace.cpp`, `Terrain.cpp`", [S_BASE, S_HIER], "T60-T69 T120-T123 T126", "Bunker"),
+    ("V4-03", "UAV launches rail rounds at the intruder rovers", "v4 request",
+     "`Scene.cpp`, `Combat.cpp`, `DroneController.cpp`", [S_COMBAT], "T100 T108 T112", "Combat"),
+    ("V4-04", "Rovers explode (fireball, smoke, sparks, debris, scorch, burning wreck) and respawn", "v4 request",
+     "`Combat.cpp`, `Effects.cpp`, `Scene.cpp`", [S_COMBAT], "T101-T107", "Combat"),
+    ("V4-05", "Tank: skid steer, 80 track links, turret / gun / recoil", "v4 request (>= 5 controllables)",
+     "`Tank.cpp`", [S_CTRL, S_HIER], "T80-T87", "Controllable"),
+    ("V4-06", "AA gatling gun: 6-barrel spin, 30 rounds/s", "v4 request (>= 5 controllables)", "`AaGun.cpp`", [S_CTRL], "T88-T89", "Controllable"),
+    ("V4-07", "Helicopter: rotor head, spool-up, landing logic", "v4 request (>= 5 controllables)", "`Helicopter.cpp`", [S_CTRL, S_HIER], "T90-T96", "Controllable"),
+    ("V4-08", "Radar: rotate / sector / stop, 21-tile antenna", "v4 request (>= 5 controllables)", "`Radar.cpp`", [S_CTRL], "T97-T99", "Controllable"),
+    ("V4-09", "Blast doors and gate barrier (state machines, dynamic obstacles)", "v4 request (>= 5 controllables)",
+     "`Bunker.cpp`, `Base.cpp`", [S_CTRL], "T64 T65 T73", "Controllable"),
+    ("V4-10", "Possession keys, cycle, chase / sight cameras, HUD", "v4 request", "`Control.cpp`, `Interactive.cpp`, `AppHud.cpp`", [S_CTRL], "T127 T128", "Controllable"),
+    ("V4-11", "Friend-or-foe, wreck discrimination, ramp keep-out", "v4 request", "`DroneController.cpp`", [S_COMBAT], "T109-T111", "Combat"),
+    ("V4-12", "Walk camera in the bunker, camera shake, 120 s director", "v4 request", "`Camera.cpp`, `Director.cpp`", [S_BASE], "T120-T126 T129", "Walk"),
+    ("V4-13", "Full-base simulation stays finite; >= 7 possessable objects", "v4 request", "`Scene.cpp`", [S_CTRL], "T113", "Controllable"),
+    ("V4-14", "Workbook regenerated from program output, new sheets 14-17", "v4 request", "`build_workbook.py`, `DocExport.cpp`", [S_TRACE], "", ""),
+]
+
+
+def _expand_tests(spec, known):
+    import re as _re
+    out = []
+    for part in spec.split():
+        m = _re.fullmatch(r"T(\d+)-T(\d+)", part)
+        if m:
+            out += [f"T{n}" if n >= 100 else f"T{n:02d}" for n in range(int(m.group(1)), int(m.group(2)) + 1)]
+        else:
+            out.append(part)
+    return [t for t in out if t in known]
 
 
 def parse_requirements(rel="docs/PLAN.md"):
@@ -102,7 +139,7 @@ def resolve_files(where):
 def build_traceability(wb, ctx):
     ws = wb[S_TRACE]
     title(ws, "13  Traceability matrix",
-          "Requirement (docs/PLAN.md section 2) -> implementation files (resolved against src/) -> workbook sheet "
+          "Requirement (docs/PLAN.md section 2; V4-xx rows: the v4 request in docs/V4_PROGRESS.md) -> implementation files (resolved against src/) -> workbook sheet "
           "(hyperlink) -> tests -> report section (report/main.tex). 'Tests passing' is a formula that looks each "
           "listed test up in sheet 10.", span=10)
     h, first = 4, 5
@@ -112,11 +149,15 @@ def build_traceability(wb, ctx):
     sections = report_sections()
     t_first, t_last = ctx["test_rows"]
     ids, st = f"'{S_TEST}'!$A${t_first}:$A${t_last}", f"'{S_TEST}'!$F${t_first}:$F${t_last}"
-    reqs = parse_requirements()
-    for i, (rid, req, src, where) in enumerate(reqs):
+    reqs = [(a, b, c, d, None) for a, b, c, d in parse_requirements()]
+    reqs += [(rid, req, src, where, (sh, tl, kw)) for rid, req, src, where, sh, tl, kw in V4_REQS]
+    for i, (rid, req, src, where, v4) in enumerate(reqs):
         r = first + i
-        sheets, tests, sec_kw = LINKS.get(rid, ([], [], ""))
-        tests = [t for t in tests if t in known]
+        if v4:
+            sheets, tests, sec_kw = v4[0], _expand_tests(v4[1], known), v4[2]
+        else:
+            sheets, tests, sec_kw = LINKS.get(rid, ([], [], ""))
+            tests = [t for t in tests if t in known]
         files = resolve_files(where)
         put(ws, r, 1, rid, font=BOLD)
         put(ws, r, 2, req)
@@ -130,7 +171,7 @@ def build_traceability(wb, ctx):
             link(c, sheets[0], "A1", ", ".join(sheets))
         put(ws, r, 7, ", ".join(tests) or "-")
         if tests:
-            passed = "+".join(f'COUNTIFS({ids},"{t}",{st},"PASS")' for t in tests)
+            passed = "+".join(f'SUMPRODUCT(({ids}="{t}")*({st}="PASS"))' for t in tests)
             put(ws, r, 8, f'=({passed})&" / {len(tests)}"')
             put(ws, r, 10, f'=IF({passed}={len(tests)},"Verified","CHECK")', font=BOLD)
         else:

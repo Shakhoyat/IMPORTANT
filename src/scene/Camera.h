@@ -63,6 +63,6 @@ public:
 void applyShake(CameraView& v, float amount, float time);
 
 // The UAV's own thermal camera (also used by the tracker).
-CameraView uavCameraView(const Scene& scene, float aspect, float fovYDeg);
+CameraView uavCameraView(const Scene& scene, float aspect, float fovYDeg, int uav = 0);
 
 }  // namespace ts

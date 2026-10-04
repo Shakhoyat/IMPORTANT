@@ -30,8 +30,8 @@ const char* cameraModeName(CameraMode m) {
     return "?";
 }
 
-CameraView uavCameraView(const Scene& scene, float aspect, float fovYDeg) {
-    const Mat4& cam = scene.cameraWorld();
+CameraView uavCameraView(const Scene& scene, float aspect, float fovYDeg, int uav) {
+    const Mat4 cam = scene.cameraWorld(uav);
     CameraView v;
     v.position = transformPoint(cam, {0, 0, kLampFrontOffset + 0.03f});
     const Vec3 forward = normalize(transformDirection(cam, {0, 0, 1}));

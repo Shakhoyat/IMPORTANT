@@ -46,6 +46,8 @@ struct DynamicLight {          // explosion flashes, burning wrecks, rocket moto
     Vec3 position;
     Vec3 color;                // linear HDR colour already multiplied by the intensity
     float range = 6.0f;        // metres (smooth cut-off)
+    Vec3 direction{0.0f, 0.0f, 1.0f};  // spot axis (searchlights)
+    float coneCos = -2.0f;     // cos(half angle); -2 = omni-directional
 };
 
 struct ScorchMark {            // blackened, hot ground after a blast; cools and fades

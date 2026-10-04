@@ -1,5 +1,6 @@
 #include "objects/Vegetation.h"
 
+#include "objects/BaseLayout.h"
 #include "objects/PropKit.h"
 #include "objects/Terrain.h"
 
@@ -114,6 +115,9 @@ void addRock(Builder& b, SceneNode* parent, float x, float z, const Vec3& s, flo
 bool vegetationAllowed(float x, float z, const std::vector<Footprint>& keepClear, float margin) {
     const float r = std::sqrt(x * x + z * z);
     if (r > kTreeMaxRadius || r < kBunkerClearance) return false;
+    // Underground bunker footprint and the entrance trench strip (BaseLayout), with a margin.
+    if (x > layout::kBunkerMinX - 1.0f && x < layout::kBunkerMaxX + 1.0f && z > layout::kBunkerMinZ - 1.0f && z < layout::kBunkerMaxZ + 1.0f) return false;
+    if (std::fabs(x) < 4.2f && z > 3.0f && z < 14.5f) return false;
     if (z > 1.0f && std::fabs(x - trackCentreX(z)) < kTrackClearance) return false;
     if (std::fabs(z - creekCentreZ(x)) < kCreekClearance) return false;
     for (const Footprint& f : keepClear) {

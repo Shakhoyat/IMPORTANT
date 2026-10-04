@@ -1,8 +1,36 @@
 #include "scene/Scene.h"
 
+#include <algorithm>
+#include <cstdio>
+
 #include "objects/Backdrop.h"
+#include "objects/BaseLayout.h"
 #include "objects/Environment.h"
 #include "objects/Terrain.h"
+#if __has_include("objects/Base.h")
+#include "objects/Base.h"
+#define TS_SCENE_HAS_BASE 1
+#endif
+#if __has_include("objects/Tank.h")
+#include "objects/Tank.h"
+#define TS_SCENE_HAS_TANK 1
+#endif
+#if __has_include("objects/Helicopter.h")
+#include "objects/Helicopter.h"
+#define TS_SCENE_HAS_HELI 1
+#endif
+#if __has_include("objects/AaGun.h")
+#include "objects/AaGun.h"
+#define TS_SCENE_HAS_AAGUN 1
+#endif
+#if __has_include("objects/Launchers.h")
+#include "objects/Launchers.h"
+#define TS_SCENE_HAS_LAUNCHERS 1
+#endif
+#if __has_include("objects/Radar.h")
+#include "objects/Radar.h"
+#define TS_SCENE_HAS_RADAR 1
+#endif
 
 namespace ts {
 
@@ -20,116 +48,686 @@ void updateNode(SceneNode& node, const Mat4& parentWorld, float explode) {
     for (auto& c : node.children) updateNode(*c, node.world, explode);
 }
 
+void markDynamic(SceneNode& node) {
+    node.dynamic = true;
+    for (auto& c : node.children) markDynamic(*c);
+}
+
+void setVisible(SceneNode& node, bool v) {
+    node.visible = v;
+    for (auto& c : node.children) setVisible(*c, v);
+}
+
+void renameIds(SceneNode& node, const std::string& tag) {  // "UAV-07" -> "UAV2-07"
+    if (node.id.size() > 3) node.id = node.id.substr(0, 3) + tag + node.id.substr(3);
+    for (auto& c : node.children) renameIds(*c, tag);
+}
+
 constexpr float kBeamMaxLength = 25.0f;  // searchlight ray march range (m)
 constexpr float kBeamCoarseStep = 0.2f;
 constexpr float kBlinkPeriod = 1.5f, kBlinkOn = 0.5f;  // aviation lights: 0.5 s on every 1.5 s
+constexpr int kUavOwner[2] = {0, 10};                  // Combat owner ids of the two UAVs
 
 void collectBounds(const SceneNode& node, std::vector<Box>& out) {
-    if (node.isLeaf() && node.obstacle) out.push_back(worldBounds(node.world));
+    if (node.isLeaf() && node.obstacle && !node.dynamic) out.push_back(worldBounds(node.world));
     for (const auto& c : node.children) collectBounds(*c, out);
+}
+
+// Rotation by 'angle' radians about the unit vector 'a' (Rodrigues' formula).
+Mat4 axisRotation(const Vec3& a, float angle) {
+    const float c = std::cos(angle), s = std::sin(angle), t = 1.0f - c;
+    Mat4 r;
+    r.at(0, 0) = t * a.x * a.x + c;       r.at(0, 1) = t * a.x * a.y - s * a.z; r.at(0, 2) = t * a.x * a.z + s * a.y;
+    r.at(1, 0) = t * a.x * a.y + s * a.z; r.at(1, 1) = t * a.y * a.y + c;       r.at(1, 2) = t * a.y * a.z - s * a.x;
+    r.at(2, 0) = t * a.x * a.z - s * a.y; r.at(2, 1) = t * a.y * a.z + s * a.x; r.at(2, 2) = t * a.z * a.z + c;
+    return r;
+}
+
+// Deterministic pseudo-random numbers for debris (same blast -> same pieces).
+float hash01(uint32_t x) {
+    x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+    return static_cast<float>(x & 0xFFFFFF) / 16777216.0f;
+}
+
+bool isWreckCore(const SceneNode& n) {  // parts that stay together as the burning hull
+    return n.name == "Chassis" || n.name == "Upper hull" || n.name == "Motor + battery box";
+}
+
+Vec3 flat(const Vec3& v) { return {v.x, 0.0f, v.z}; }
+
+}  // namespace
+
+// ---------------------------------------------------------------- UAV 0 as a controllable object
+// Manual flight (key 0): W/S forward / back, A/D yaw, PgUp/PgDn climb, arrows / mouse aim the gimbal,
+// ENTER releases a rail round at the camera's aim point, BACKSLASH toggles gimbal assist (the gimbal keeps
+// following the tracked target while you fly). UAV 1 keeps flying with the squad.
+class DroneControl : public Controllable {
+public:
+    explicit DroneControl(Scene& s) : scene_(s) {}
+    const char* name() const override { return "UAV-1 DRONE"; }
+    const char* controls() const override {
+        return "W/S fly  A/D yaw  PGUP/PGDN climb  ARROWS gimbal  ENTER launch  \\ gimbal assist";
+    }
+    SceneNode* root() override { return scene_.uavs_[0].root.get(); }
+    Vec3 position() const override { return scene_.drone.position; }
+
+    void update(const WorldContext& w, const ControlInput* in) override {
+        if (!in) return;  // autonomous: the squad flies
+        DroneState& d = scene_.drone;
+        const float dt = w.dt;
+        if (in->actionPressed) assist_ = !assist_;
+        d.yawDeg += in->turn * 70.0f * dt;
+        const float yaw = radians(d.yawDeg);
+        const Vec3 fwd{std::sin(yaw), 0, std::cos(yaw)};
+        const float top = in->boost ? 9.0f : 6.0f;
+        const Vec3 desired = fwd * (in->forward * top) + Vec3{0, in->lift * 3.0f, 0};
+        Vec3 dv = desired - d.velocity;
+        const float maxDv = 4.0f * dt;
+        if (length(dv) > maxDv) dv = normalize(dv) * maxDv;
+        const Vec3 accel = dv / std::max(dt, 1e-3f);
+        d.velocity = d.velocity + dv;
+        d.position = d.position + d.velocity * dt;
+        const float ground = terrainHeight(d.position.x, d.position.z);
+        d.position.y = clampf(d.position.y, ground + 1.0f, ground + 40.0f);
+        const Vec3 fl{d.position.x, 0, d.position.z};
+        if (length(fl) > layout::kPerimeterRadius) {
+            const Vec3 c = normalize(fl) * layout::kPerimeterRadius;
+            d.position.x = c.x;
+            d.position.z = c.z;
+        }
+        const Vec3 left{std::cos(yaw), 0, -std::sin(yaw)};
+        const float tp = clampf(4.0f * dot(d.velocity, fwd) + 3.0f * dot(accel, fwd), -18.0f, 18.0f);
+        const float tr = clampf(-4.0f * dot(d.velocity, left) - 3.0f * dot(accel, left), -18.0f, 18.0f);
+        d.pitchDeg = lerpf(d.pitchDeg, tp, std::min(1.0f, 4.0f * dt));
+        d.rollDeg = lerpf(d.rollDeg, tr, std::min(1.0f, 4.0f * dt));
+        const Track* t = scene_.squad_.tracker().find(scene_.squad_.targetTrack());
+        if (assist_ && t) {
+            scene_.manualCtl_.aimGimbalAt(dt, t->position(), d);
+        } else {
+            d.gimbalYawDeg += in->aimYaw * 60.0f * dt + in->aimYawDelta;
+            d.gimbalPitchDeg = clampf(d.gimbalPitchDeg - in->aimPitch * 40.0f * dt - in->aimPitchDelta, 5.0f, 88.0f);
+        }
+        if (in->firePressed) scene_.launchRound();
+    }
+
+    CameraHint camera(bool firstPerson) const override {
+        CameraHint h;
+        const Mat4 cam = scene_.cameraWorld(0);
+        if (firstPerson) {
+            h.eye = transformPoint(cam, {0, 0, 0.06f});
+            h.target = h.eye + normalize(transformDirection(cam, {0, 0, 1})) * 10.0f;
+            h.fovDeg = 40.0f;
+            h.sight = true;
+            return h;
+        }
+        const DroneState& d = scene_.drone;
+        const float yaw = radians(d.yawDeg);
+        const Vec3 fwd{std::sin(yaw), 0, std::cos(yaw)};
+        h.eye = d.position - fwd * 3.2f + Vec3{0, 1.3f, 0};
+        h.target = d.position + fwd * 3.0f - Vec3{0, 0.8f, 0};
+        h.fovDeg = 55.0f;
+        return h;
+    }
+
+    std::string status() const override {
+        const DroneState& d = scene_.drone;
+        char buf[160];
+        std::snprintf(buf, sizeof(buf), "ALT %.1f M  SPD %.1f M/S  AMMO %d  LOCK %.1f S  %s  KILLS %d",
+                      d.position.y - terrainHeight(d.position.x, d.position.z), length(d.velocity),
+                      scene_.roundsReady(0), scene_.squad_.lock[0], assist_ ? "ASSIST" : "MANUAL", scene_.kills_);
+        return buf;
+    }
+
+private:
+    Scene& scene_;
+    bool assist_ = true;
+};
+
+// ---------------------------------------------------------------- construction
+
+namespace {
+
+std::vector<std::unique_ptr<Intruder>> makeIntruders() {
+    std::vector<std::unique_ptr<Intruder>> v;
+    for (int i = 0; i < layout::kMaxRovers; ++i) {
+        auto in = std::make_unique<Intruder>();
+        in->rig = buildRover();
+        in->spawnIndex = i;
+        if (i > 0) renameIds(*in->rig.root, std::to_string(i + 1));  // distinct part ids, same object name
+        markDynamic(*in->rig.root);
+        v.push_back(std::move(in));
+    }
+    return v;
 }
 
 }  // namespace
 
 Scene::Scene()
-    : terrain_(buildTerrain()),
+    : intruders_(makeIntruders()),
+      drone(squad_.drones[0]),
+      rover(intruders_[0]->state),
+      terrain_(buildTerrain()),
       environment_(buildEnvironment()),
       backdrop_(buildBackdrop()),
-      bunker_(buildBunker()),
-      rover_(buildRover()),
-      uav_(buildUav()) {
+      bunker_(buildBunker()) {
+    for (int i = 0; i < kUavCount; ++i) {
+        uavs_[i] = buildUav();
+        if (i > 0) renameIds(*uavs_[i].root, std::to_string(i + 1));
+        markDynamic(*uavs_[i].root);
+    }
+
+    // Controllable objects, in key order: 0 UAV, then the vehicles, doors, launchers, gate, animated scenery.
+    auto ctl = std::make_unique<DroneControl>(*this);
+    droneControl_ = ctl.get();
+    controllables_.push_back(std::move(ctl));
+#ifdef TS_SCENE_HAS_TANK
+    controllables_.push_back(makeTank());
+#endif
+#ifdef TS_SCENE_HAS_HELI
+    controllables_.push_back(makeHelicopter());
+#endif
+#ifdef TS_SCENE_HAS_AAGUN
+    controllables_.push_back(makeAaGun());
+#endif
+#ifdef TS_SCENE_HAS_RADAR
+    controllables_.push_back(makeRadar());
+#endif
+    if (bunker_.doors) controllables_.push_back(std::move(bunker_.doors));
+#ifdef TS_SCENE_HAS_LAUNCHERS
+    for (auto& o : makeLaunchers()) controllables_.push_back(std::move(o));
+#endif
+#ifdef TS_SCENE_HAS_BASE
+    {
+        BaseRig base = buildBase();
+        base_ = std::move(base.root);
+        for (auto& o : base.objects)
+            if (o->possessable()) controllables_.push_back(std::move(o));
+        for (auto& o : base.objects)
+            if (o) controllables_.push_back(std::move(o));
+    }
+#endif
+    for (size_t i = 1; i < controllables_.size(); ++i) markDynamic(*controllables_[i]->root());
+
+    collectSceneLists();
+    lights.moon.direction = moonLightDirection();
+
+    WorldContext w;
+    w.dt = 0.0f;
+    for (size_t i = 1; i < controllables_.size(); ++i) controllables_[i]->update(w, nullptr);
+    updateWorld();
+
+    // Static geometry: occluders for the rovers' planner, solids for UAV avoidance / projectiles / vehicles.
+    std::vector<Occluder> occluders;
+    collectOccluders(*bunker_.root, occluders);
+    collectOccluders(*environment_, occluders);
+    collectBounds(*bunker_.root, solids_);
+    collectBounds(*environment_, solids_);
+    if (base_) collectBounds(*base_, solids_);
+    squad_.setObstacles(solids_);
+    manualCtl_.setObstacles(solids_);
+    combat_.setObstacles(solids_);
+    squad_.setAssets(Mission::objectives());
+    // No rounds at targets on the bunker's entrance ramp (the camp's own doorway).
+    squad_.setKeepOut({{-layout::kRampHalfWidth - 3.0f, -10.0f, layout::kBlastDoorZ - 3.0f},
+                       {layout::kRampHalfWidth + 3.0f, 10.0f, layout::kRampTopZ + 3.0f}});
+    HideController planner;  // the free-cell grid is built once and shared by every slot
+    planner.setStaticOccluders(occluders);
+    for (auto& in : intruders_) {
+        in->hide = planner;
+        setVisible(*in->rig.root, false);
+    }
+
+    applyAgentStates();
+    updateWorld();
+    updateLightsAndBeam();
+    // The first wave's first rover is on the field from the start (where the v3 / v4 rover started).
+    std::vector<SpawnRequest> spawns;
+    mission_.update(0.0f, 0, layout::kMaxRovers, spawns, events_, 0.0f);
+    for (const SpawnRequest& r : spawns) spawnIntruder(r.position, r.yaw, r.objective, r.seed);
+    events_.clear();
+    applyAgentStates();
+    updateWorld();
+}
+
+Scene::~Scene() = default;
+
+void Scene::collectSceneLists() {
+    leaves_.clear();
+    practicals_.clear();
+    aviationLights_.clear();
     for (SceneNode* r : roots()) collectLeaves(*r, leaves_);
     for (SceneNode* n : leaves_) {
         if (n->name == "Aviation light") aviationLights_.push_back(n);
         if (n->material.lightIntensity > 0.0f) practicals_.push_back(n);
     }
-    lights.moon.direction = moonLightDirection();
-    updateWorld();
-
-    // Static geometry used by both agents: occluders for the rover, all solid parts for UAV collision avoidance.
-    std::vector<Occluder> occluders;
-    collectOccluders(*bunker_.root, occluders);
-    collectOccluders(*environment_, occluders);
-    hide_.setStaticOccluders(occluders);
-    std::vector<Box> solids;
-    collectBounds(*bunker_.root, solids);
-    collectBounds(*environment_, solids);
-    droneCtl_.setObstacles(solids);
-
-    rover.position.y = terrainHeight(rover.position.x, rover.position.z);
-    applyAgentStates();
-    updateWorld();
-    updateLightsAndBeam();
 }
 
 std::vector<SceneNode*> Scene::roots() const {
-    return {terrain_.get(), backdrop_.get(), environment_.get(), bunker_.root.get(), rover_.root.get(), uav_.root.get()};
+    std::vector<SceneNode*> r = {terrain_.get(), backdrop_.get(), environment_.get(), bunker_.root.get()};
+    for (const UavRig& u : uavs_) r.push_back(u.root.get());
+    if (base_) r.push_back(base_.get());
+    for (const auto& in : intruders_) r.push_back(in->rig.root.get());
+    for (const auto& c : controllables_) {
+        SceneNode* n = c->root();
+        if (n && !n->parent && std::find(r.begin(), r.end(), n) == r.end()) r.push_back(n);
+    }
+    return r;
+}
+
+std::vector<RoverState> Scene::rovers() const {
+    std::vector<RoverState> v;
+    for (const auto& in : intruders_) v.push_back(in->state);
+    return v;
+}
+
+int Scene::aliveIntruders() const {
+    int n = 0;
+    for (const auto& in : intruders_) n += in->life == Intruder::Life::Alive ? 1 : 0;
+    return n;
 }
 
 void Scene::updateWorld() {
-    const Mat4 id = Mat4::identity();
-    updateNode(*terrain_, id, 0.0f);
-    updateNode(*backdrop_, id, 0.0f);
-    updateNode(*environment_, id, 0.0f);  // props are not composites, they are never exploded
-    updateNode(*bunker_.root, id, explode);
-    updateNode(*rover_.root, id, explode);
-    updateNode(*uav_.root, id, explode);
+    for (SceneNode* r : roots()) {
+        const bool composite = r == bunker_.root.get() || r->object == "Autonomous UAV" || r->object == "Target Rover";
+        updateNode(*r, Mat4::identity(), composite ? explode : 0.0f);
+    }
+    // Pieces of destroyed rovers move on their own (rigid bodies), not with the hierarchy.
+    for (auto& in : intruders_) {
+        for (const DebrisPiece& p : in->debris) {
+            p.node->world = translate(p.position) * p.rotation * translate(p.centre0 * -1.0f) * p.world0;
+        }
+    }
 }
 
-void Scene::update(float dt, const Detection& det) {
+void Scene::submitVision(int uav, const std::vector<Measurement2D>& blobs, const Mat4& camera) {
+    if (uav < 0 || uav >= kUavCount) return;
+    vision_.blobs[uav] = blobs;
+    vision_.camera[uav] = camera;
+    vision_.valid[uav] = true;
+}
+
+// ---------------------------------------------------------------- per frame
+
+void Scene::update(float dt, const Detection& det, const ControlInput* input, int possessed) {
+    events_.clear();
     time_ += dt;
     lastDetection = det;
-    droneCtl_.update(dt, time_, det, cameraWorld(), drone);
-    // The rover only knows where the UAV is (it can hear the rotors), not what the camera sees.
-    hide_.update(dt, transformPoint(cameraWorld(), {0, 0, 0}), rover);
+
+    // Vision: frames submitted by the app (both UAVs' thermal images); unit tests feed UAV 0's v4 detection.
+    if (!vision_.valid[0] && !vision_.valid[1] && det.found) {
+        Measurement2D m;
+        m.u = det.u;
+        m.v = det.v;
+        m.area = det.area;
+        m.peak = 255;
+        vision_.blobs[0] = {m};
+        vision_.camera[0] = cameraWorld(0);
+        vision_.valid[0] = true;
+    }
+
+    // Squad: friendly vehicles, rounds on the rails, the two UAVs' flight, tracking and strikes.
+    const bool manualUav0 = possessed >= 0 && possessed < static_cast<int>(controllables_.size()) &&
+                            controllables_[possessed].get() == droneControl_;
+    std::vector<Vec3> friendly;
+    for (const auto& c : controllables_)
+        if (c.get() != droneControl_ && c->possessable()) friendly.push_back(c->position());
+    squad_.setFriendly(friendly);
+    const bool manual[kUavCount] = {manualUav0, false};
+    int ready[kUavCount];
+    for (int i = 0; i < kUavCount; ++i) ready[i] = roundsReady(i);
+    std::vector<LaunchOrder> orders;
+    squad_.update(dt, time_, vision_, manual, ready, orders, events_);
+    for (const LaunchOrder& o : orders) launchRound(o.uav, o.aim, o.designator);
+    vision_ = SquadFrame{};
+    for (int i = 0; i < kUavCount; ++i) {
+        squad_.drones[i].manual = manual[i];
+        if (squad_.designatorValid(i)) combat_.setDesignator(1 + i, squad_.designatorPoint(i), true);
+    }
+
+    // Controllable objects (the possessed one gets the user's input).
+    WorldContext w;
+    w.time = time_;
+    w.dt = dt;
+    w.combat = &combat_;
+    w.obstacles = &solids_;
+    w.wetness = wetness;
+    for (size_t i = 0; i < controllables_.size(); ++i) {
+        controllables_[i]->update(w, static_cast<int>(i) == possessed ? input : nullptr);
+    }
+
+    // Rail reload; manual laser spot (id 0) = UAV 0's camera centre.
+    for (int u = 0; u < kUavCount; ++u) {
+        for (int i = 0; i < kUavMissiles; ++i) {
+            if (railReload_[u][i] <= 0.0f) continue;
+            railReload_[u][i] -= dt;
+            if (railReload_[u][i] <= 0.0f) setVisible(*uavs_[u].missiles[i], true);  // a new round is on the rail
+        }
+    }
+    Vec3 spot;
+    const bool spotOk = designatorPoint(spot, 0);
+    combat_.setDesignator(0, spot, spotOk);
+
+    // Mission: waves of intruders.
+    if (missionOn_) {
+        int freeSlots = 0;
+        for (const auto& in : intruders_) freeSlots += in->life == Intruder::Life::Waiting ? 1 : 0;
+        std::vector<SpawnRequest> spawns;
+        mission_.update(dt, aliveIntruders(), freeSlots, spawns, events_, time_);
+        for (const SpawnRequest& r : spawns) spawnIntruder(r.position, r.yaw, r.objective, r.seed);
+    }
+    updateIntruders(dt);
+
+    std::vector<Target> targets;
+    for (size_t i = 0; i < intruders_.size(); ++i) {
+        const Intruder& in = *intruders_[i];
+        targets.push_back({static_cast<int>(i), in.state.position + Vec3{0, 0.15f, 0}, 0.4f,
+                           in.life == Intruder::Life::Alive});
+    }
+    combat_.setTargets(targets);
+    // UAV 1's searchlight is a dynamic spot light (UAV 0's is the shadowed light L2).
+    {
+        const Mat4& lamp = uavs_[1].gimbalPitch->world;
+        DynamicLight l;
+        l.position = transformPoint(lamp, {0, 0, kLampFrontOffset});
+        l.direction = normalize(transformDirection(lamp, {0, 0, 1}));
+        l.coneCos = std::cos(radians(kSpotOuterDeg));
+        l.color = lights.spot.color * (lights.spot.intensity * 0.6f);
+        l.range = 26.0f;
+        combat_.setExtraLights({l});
+    }
+    combat_.update(dt, time_);
+    applyBlasts();
+
     updateHeatTrail(dt);
     applyAgentStates();
     updateWorld();
     updateLightsAndBeam();
 }
 
+int Scene::roundsReady(int uav) const {
+    int n = 0;
+    for (float r : railReload_[uav]) n += r <= 0.0f ? 1 : 0;
+    return n;
+}
+
+bool Scene::designatorPoint(Vec3& p, int uav) const {
+    return DroneController::imagePointToGround(0.0f, 0.0f, cameraWorld(uav), p);
+}
+
+bool Scene::launchRound() {
+    Vec3 aim;
+    if (!designatorPoint(aim, 0)) return false;
+    return launchRound(0, aim, 0);
+}
+
+bool Scene::launchRound(int uav, const Vec3& aim, int designator) {
+    for (int i = 0; i < kUavMissiles; ++i) {
+        if (railReload_[uav][i] > 0.0f) continue;
+        const Vec3 pos = transformPoint(uavs_[uav].missiles[i]->world, {0, 0, 0.12f});
+        if (designator != 0) combat_.setDesignator(designator, aim, true);
+        combat_.fireMissile(pos, normalize(aim - pos), designator, kUavOwner[uav]);
+        setVisible(*uavs_[uav].missiles[i], false);
+        railReload_[uav][i] = kUavReloadTime;
+        ++squad_.drones[uav].launched;
+        if (designator == 0) {  // manual fire (the squad reports its own launches)
+            GameEvent ev;
+            ev.type = GameEventType::RoundLaunched;
+            ev.position = pos;
+            ev.uav = uav;
+            pushEvent(ev);
+        }
+        return true;
+    }
+    return false;
+}
+
+void Scene::applyBlasts() {
+    for (const BlastEvent& b : combat_.takeBlasts()) {
+        GameEvent ev;
+        ev.type = GameEventType::Explosion;
+        ev.position = b.position;
+        ev.value = static_cast<int>(b.power * 100.0f);
+        pushEvent(ev);
+        const float radius = Combat::kDamageRadiusPerPower * b.power;
+        for (size_t i = 0; i < intruders_.size(); ++i) {
+            Intruder& in = *intruders_[i];
+            if (in.life != Intruder::Life::Alive) continue;
+            const float d = length(in.state.position + Vec3{0, 0.15f, 0} - b.position);
+            if (d <= radius || b.directHit == static_cast<int>(i)) destroyIntruder(static_cast<int>(i), b.position, b.power);
+        }
+        for (auto& c : controllables_) {
+            if (length(c->position() - b.position) < 6.0f * b.power) c->onBlast(b.position, b.power);
+        }
+    }
+}
+
+int Scene::spawnIntruder(const Vec3& at, float yaw, const Vec3& objective, uint32_t seed) {
+    for (size_t i = 0; i < intruders_.size(); ++i) {
+        Intruder& in = *intruders_[i];
+        if (in.life != Intruder::Life::Waiting) continue;
+        // Snap to the nearest free planner cell (the spawn ring may cross a bush or a fence post).
+        int cx, cz;
+        HideController::worldToCell(at, cx, cz);
+        Vec3 p = at;
+        if (!in.hide.cellFree(cx, cz)) {
+            float best = 1e9f;
+            for (int dz = -6; dz <= 6; ++dz)
+                for (int dx = -6; dx <= 6; ++dx)
+                    if (in.hide.cellFree(cx + dx, cz + dz) && dx * dx + dz * dz < best) {
+                        best = static_cast<float>(dx * dx + dz * dz);
+                        p = HideController::cellCentre(cx + dx, cz + dz);
+                    }
+        }
+        RoverState fresh;
+        fresh.position = {p.x, terrainHeight(p.x, p.z), p.z};
+        fresh.yaw = yaw;
+        in.state = fresh;
+        in.objective = objective;
+        in.hide.setObjective(objective, seed);
+        in.life = Intruder::Life::Alive;
+        in.timer = 0.0f;
+        in.debris.clear();
+        setVisible(*in.rig.root, true);
+        return static_cast<int>(i);
+    }
+    return -1;
+}
+
+void Scene::destroyIntruder(int idx, const Vec3& blastPos, float power) {
+    Intruder& in = *intruders_[idx];
+    if (in.life != Intruder::Life::Alive) return;
+    in.life = Intruder::Life::Wreck;
+    in.timer = 0.0f;
+    in.wreckPosition = in.state.position;
+    in.state.leftSpeed = in.state.rightSpeed = 0.0f;
+    in.state.moving = false;
+    ++kills_;
+    // A kill while both UAVs' rounds were committed to this target counts as a combined strike.
+    const StrikeState& st = squad_.strike();
+    const Track* t = squad_.tracker().find(st.track);
+    const bool combined = st.combined && st.launched[0] && st.launched[1] && t &&
+                          length(flat(t->position() - in.state.position)) < 3.0f;
+    squad_.onKill(in.state.position);
+    mission_.onKill(combined, in.state.position, events_, time_);
+
+    std::vector<SceneNode*> parts;
+    collectLeaves(*in.rig.root, parts);
+    in.savedMaterials.clear();
+    in.debris.clear();
+    uint32_t seed = static_cast<uint32_t>(idx * 7919 + kills_ * 104729);
+    for (SceneNode* n : parts) {
+        in.savedMaterials.push_back({n, n->material});
+        Material& m = n->material;  // charred: dark, rough, hot (cools over the wreck's life)
+        m.baseColor = m.baseColor * 0.10f + Vec3{0.015f, 0.013f, 0.012f};
+        m.roughness = 0.95f;
+        m.metalness = 0.0f;
+        m.heat = 0.95f;
+        m.emissive = 0.0f;
+        m.lightIntensity = 0.0f;
+        if (isWreckCore(*n)) continue;
+        DebrisPiece p;
+        p.node = n;
+        p.world0 = n->world;
+        p.centre0 = transformPoint(n->world, {0, 0, 0});
+        p.position = p.centre0;
+        Vec3 away = p.centre0 - blastPos;
+        away.y = std::max(away.y, 0.0f) + 0.6f;
+        const float r1 = hash01(seed++), r2 = hash01(seed++), r3 = hash01(seed++), r4 = hash01(seed++);
+        p.velocity = normalize(away + Vec3{r1 - 0.5f, 0, r2 - 0.5f}) * ((2.5f + 3.5f * r3) * std::sqrt(power)) +
+                     Vec3{0, 1.5f + 3.0f * r4, 0};
+        p.spinAxis = normalize(Vec3{hash01(seed++) - 0.5f, hash01(seed++) - 0.5f, hash01(seed++) - 0.5f} + Vec3{0, 1e-3f, 0});
+        p.spinRate = 4.0f + 10.0f * hash01(seed++);
+        in.debris.push_back(p);
+    }
+    combat_.addScorch(in.state.position, 0.9f * power);
+}
+
+void Scene::updateDebris(Intruder& in, float dt) {
+    // Sub-steps of at most 1/120 s: gravity, ground contact with restitution 0.3, sliding friction.
+    const int steps = std::max(1, static_cast<int>(std::ceil(dt * 120.0f)));
+    const float h = dt / static_cast<float>(steps);
+    for (DebrisPiece& p : in.debris) {
+        if (p.resting) continue;
+        for (int k = 0; k < steps; ++k) {
+            p.velocity.y -= 9.81f * h;
+            p.position = p.position + p.velocity * h;
+            p.rotation = axisRotation(p.spinAxis, p.spinRate * h) * p.rotation;
+            const float ground = terrainHeight(p.position.x, p.position.z) + 0.03f;
+            if (p.position.y < ground) {
+                p.position.y = ground;
+                if (p.velocity.y < 0.0f) p.velocity.y = -0.3f * p.velocity.y;
+                p.velocity.x *= 0.7f;
+                p.velocity.z *= 0.7f;
+                p.spinRate *= 0.6f;
+                if (length(p.velocity) < 0.25f) {
+                    p.velocity = {0, 0, 0};
+                    p.spinRate = 0.0f;
+                    p.resting = true;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Scene::releaseSlot(Intruder& in) {
+    for (auto& [node, mat] : in.savedMaterials) node->material = mat;
+    in.savedMaterials.clear();
+    in.debris.clear();
+    in.hide.clearObjective();
+    in.life = Intruder::Life::Waiting;
+    in.timer = 0.0f;
+    setVisible(*in.rig.root, false);
+}
+
+void Scene::updateIntruders(float dt) {
+    std::vector<Vec3> observers;
+    for (int i = 0; i < kUavCount; ++i) observers.push_back(transformPoint(cameraWorld(i), {0, 0, 0}));
+    for (auto& ptr : intruders_) {
+        Intruder& in = *ptr;
+        switch (in.life) {
+            case Intruder::Life::Waiting:
+                break;
+            case Intruder::Life::Alive:
+                // The rovers know where the UAVs are (they hear the rotors), not what the cameras see.
+                in.hide.update(dt, observers, in.state);
+                if (length(flat(in.state.position - in.objective)) < layout::kBreachRadius) {
+                    // Breach: the rover reached the asset (marks it with a flare and withdraws from the game).
+                    combat_.muzzleFlash(in.state.position + Vec3{0, 0.4f, 0}, {0, 1, 0}, 0.6f);
+                    combat_.emitDust(in.state.position, 0.8f, 10);
+                    mission_.onBreach(in.state.position, events_, time_);
+                    releaseSlot(in);
+                }
+                break;
+            case Intruder::Life::Wreck: {
+                in.timer += dt;
+                updateDebris(in, dt);
+                const float burn = 1.0f - in.timer / kWreckBurnTime;
+                if (burn > 0.0f) combat_.emitBurn(in.wreckPosition + Vec3{0, 0.2f, 0}, burn, dt);
+                // The charred hull cools: apparent temperature 0.95 -> 0.3 with a 40 s time constant.
+                const float heat = 0.3f + 0.65f * std::exp(-in.timer / 40.0f);
+                for (auto& sm : in.savedMaterials) sm.first->material.heat = heat;
+                if (in.timer >= kWreckClearTime) {
+                    in.life = Intruder::Life::Gone;
+                    in.timer = 0.0f;
+                    setVisible(*in.rig.root, false);
+                }
+                break;
+            }
+            case Intruder::Life::Gone:
+                in.timer += dt;
+                if (in.timer >= kRespawnDelay) releaseSlot(in);
+                break;
+        }
+    }
+    // Base lost: every rover still on the field withdraws; the mission restarts at wave 1.
+    for (const GameEvent& e : events_) {
+        if (e.type != GameEventType::BaseLost) continue;
+        for (auto& ptr : intruders_)
+            if (ptr->life == Intruder::Life::Alive) releaseSlot(*ptr);
+    }
+}
+
 void Scene::updateHeatTrail(float dt) {
     // Cooling: tau = 45 s on dry ground, 15 s when soaked (evaporation carries the heat away).
     heatTrail_.decay(dt, lerpf(45.0f, 15.0f, clampf(wetness, 0.0f, 1.0f)));
-    const Vec3 f{std::sin(rover.yaw), 0.0f, std::cos(rover.yaw)}, l{std::cos(rover.yaw), 0.0f, -std::sin(rover.yaw)};
-    const Vec3 p = rover.position;
-    // Tyre friction: heat proportional to the distance each wheel rolls this step.
-    const float wheelZ[3] = {-0.22f, 0.0f, 0.22f};
-    for (float z : wheelZ) {
-        heatTrail_.deposit(p + f * z + l * (kRoverTrackWidth * 0.5f), 0.05f, 2.2f * std::fabs(rover.leftSpeed) * dt);
-        heatTrail_.deposit(p + f * z - l * (kRoverTrackWidth * 0.5f), 0.05f, 2.2f * std::fabs(rover.rightSpeed) * dt);
+    for (const auto& ptr : intruders_) {
+        const Intruder& in = *ptr;
+        const RoverState& rv = in.state;
+        if (in.life == Intruder::Life::Wreck) {  // the burning wreck heats the ground around it
+            if (in.timer < kWreckBurnTime) heatTrail_.deposit(in.wreckPosition, 0.5f, 0.25f * dt);
+            continue;
+        }
+        if (in.life != Intruder::Life::Alive) continue;
+        const Vec3 f{std::sin(rv.yaw), 0.0f, std::cos(rv.yaw)}, l{std::cos(rv.yaw), 0.0f, -std::sin(rv.yaw)};
+        const Vec3 p = rv.position;
+        // Tyre friction: heat proportional to the distance each wheel rolls this step.
+        const float wheelZ[3] = {-0.22f, 0.0f, 0.22f};
+        for (float z : wheelZ) {
+            heatTrail_.deposit(p + f * z + l * (kRoverTrackWidth * 0.5f), 0.05f, 2.2f * std::fabs(rv.leftSpeed) * dt);
+            heatTrail_.deposit(p + f * z - l * (kRoverTrackWidth * 0.5f), 0.05f, 2.2f * std::fabs(rv.rightSpeed) * dt);
+        }
+        // A parked rover's hot motor box warms the ground under it: a warm "parking spot" stays behind.
+        if (!rv.moving) heatTrail_.deposit(p - f * 0.14f, 0.22f, 0.06f * dt);
     }
-    // A parked rover's hot motor box warms the ground under it: a warm "parking spot" stays behind.
-    if (!rover.moving) heatTrail_.deposit(p - f * 0.14f, 0.22f, 0.06f * dt);
 }
 
 void Scene::applyAgentStates() {
-    // UAV body, rotors and gimbal (hierarchy: body -> gimbal yaw -> gimbal pitch -> lamp).
-    SceneNode& body = *uav_.root;
-    body.local.translation = drone.position + Vec3{0.0f, 0.03f * std::sin(1.7f * time_), 0.0f};
-    body.local.rotationDeg = {drone.pitchDeg, drone.yawDeg, drone.rollDeg};
-    for (int i = 0; i < 4; ++i) {
-        const float dir = (i == 0 || i == 3) ? 1.0f : -1.0f;  // diagonal pairs counter-rotate
-        uav_.rotors[i]->local.rotationDeg.y = std::fmod(dir * 2400.0f * time_ + 37.0f * i, 360.0f);
+    // UAV bodies, rotors and gimbals (hierarchy: body -> gimbal yaw -> gimbal pitch -> lamp).
+    for (int u = 0; u < kUavCount; ++u) {
+        const DroneState& d = squad_.drones[u];
+        SceneNode& body = *uavs_[u].root;
+        body.local.translation = d.position + Vec3{0.0f, d.manual ? 0.0f : 0.03f * std::sin(1.7f * time_ + 2.0f * u), 0.0f};
+        body.local.rotationDeg = {d.pitchDeg, d.yawDeg, d.rollDeg};
+        for (int i = 0; i < 4; ++i) {
+            const float dir = (i == 0 || i == 3) ? 1.0f : -1.0f;  // diagonal pairs counter-rotate
+            uavs_[u].rotors[i]->local.rotationDeg.y = std::fmod(dir * 2400.0f * time_ + 37.0f * i + 11.0f * u, 360.0f);
+        }
+        uavs_[u].gimbalYaw->local.rotationDeg.y = d.gimbalYawDeg;
+        uavs_[u].gimbalPitch->local.rotationDeg.x = d.gimbalPitchDeg;
     }
-    uav_.gimbalYaw->local.rotationDeg.y = drone.gimbalYawDeg;
-    uav_.gimbalPitch->local.rotationDeg.x = drone.gimbalPitchDeg;
 
-    // Rover body follows the terrain slope under its wheels.
-    SceneNode& rv = *rover_.root;
-    const float yaw = rover.yaw;
-    const Vec3 f{std::sin(yaw), 0, std::cos(yaw)}, l{std::cos(yaw), 0, -std::sin(yaw)};
-    const Vec3 p = rover.position;
-    const float hF = terrainHeight(p.x + f.x * 0.25f, p.z + f.z * 0.25f), hB = terrainHeight(p.x - f.x * 0.25f, p.z - f.z * 0.25f);
-    const float hL = terrainHeight(p.x + l.x * 0.25f, p.z + l.z * 0.25f), hR = terrainHeight(p.x - l.x * 0.25f, p.z - l.z * 0.25f);
-    rv.local.translation = p;
-    rv.local.rotationDeg = {-degrees(std::atan2(hF - hB, 0.5f)), degrees(yaw), degrees(std::atan2(hL - hR, 0.5f))};
-    for (int i = 0; i < 3; ++i) {
-        rover_.wheelsLeft[i]->local.rotationDeg.z = degrees(rover.leftWheelAngle);
-        rover_.wheelsRight[i]->local.rotationDeg.z = degrees(rover.rightWheelAngle);
+    // Rovers: body follows the terrain slope under its wheels (wrecks stay where they died).
+    for (auto& ptr : intruders_) {
+        Intruder& in = *ptr;
+        if (in.life != Intruder::Life::Alive) continue;
+        const RoverState& rs = in.state;
+        RoverRig& rig = in.rig;
+        SceneNode& rv = *rig.root;
+        const float yaw = rs.yaw;
+        const Vec3 f{std::sin(yaw), 0, std::cos(yaw)}, l{std::cos(yaw), 0, -std::sin(yaw)};
+        const Vec3 p = rs.position;
+        const float hF = terrainHeight(p.x + f.x * 0.25f, p.z + f.z * 0.25f), hB = terrainHeight(p.x - f.x * 0.25f, p.z - f.z * 0.25f);
+        const float hL = terrainHeight(p.x + l.x * 0.25f, p.z + l.z * 0.25f), hR = terrainHeight(p.x - l.x * 0.25f, p.z - l.z * 0.25f);
+        rv.local.translation = p;
+        rv.local.rotationDeg = {-degrees(std::atan2(hF - hB, 0.5f)), degrees(yaw), degrees(std::atan2(hL - hR, 0.5f))};
+        for (int i = 0; i < 3; ++i) {
+            rig.wheelsLeft[i]->local.rotationDeg.z = degrees(rs.leftWheelAngle);
+            rig.wheelsRight[i]->local.rotationDeg.z = degrees(rs.rightWheelAngle);
+        }
+        rig.scannerPivot->local.rotationDeg.y = std::fmod(90.0f * time_, 360.0f);
+        for (int i = 0; i < kIrSensorCount; ++i) rig.irSensors[i]->material.emissive = rs.sensors[i] ? 1.0f : 0.1f;
     }
-    rover_.scannerPivot->local.rotationDeg.y = std::fmod(90.0f * time_, 360.0f);
-    for (int i = 0; i < kIrSensorCount; ++i) rover_.irSensors[i]->material.emissive = rover.sensors[i] ? 1.0f : 0.1f;
 
     // Bunker: 1 Hz beacon pulse and spinning vent fans.
     const float pulse = 0.5f + 0.5f * std::sin(2.0f * PI * time_);
@@ -143,45 +741,51 @@ void Scene::applyAgentStates() {
     // Fire: two incommensurate sines + a faster flutter give a non-repeating flicker.
     const float flicker = 0.78f + 0.12f * std::sin(9.1f * time_) + 0.07f * std::sin(23.7f * time_ + 1.3f) +
                           0.03f * std::sin(61.0f * time_);
-    const float ph = std::fmod(time_, 1.0f);  // UAV strobe: two 60 ms flashes per second
-    const bool flash = ph < 0.06f || (ph > 0.18f && ph < 0.24f);
     for (SceneNode* p : practicals_) {
         if (p->name == "Fire embers") p->material.emissive = flicker;
-        if (p->name == "Strobe") p->material.emissive = flash ? 1.5f : 0.05f;
+        if (p->name == "Strobe" && p->object == "Autonomous UAV") {
+            // UAV strobes: two 60 ms flashes per second, the second UAV half a second later.
+            const float ph = std::fmod(time_ + (p->id.find("UAV2") == 0 ? 0.5f : 0.0f), 1.0f);
+            p->material.emissive = (ph < 0.06f || (ph > 0.18f && ph < 0.24f)) ? 1.5f : 0.05f;
+        }
     }
 }
 
 void Scene::updateLightsAndBeam() {
     lights.beacon.position = transformPoint(bunker_.beaconBulb->world, {0, 0, 0});
-
-    const Mat4& lamp = uav_.gimbalPitch->world;
-    lights.spot.position = transformPoint(lamp, {0, 0, kLampFrontOffset});
-    lights.spot.direction = normalize(transformDirection(lamp, {0, 0, 1}));
-    lights.spot.innerDeg = kSpotInnerDeg;
-    lights.spot.outerDeg = kSpotOuterDeg;
-
-    // Beam length = distance from the lens to the ground along the light axis: ray march in 20 cm steps,
-    // then refine the crossing by bisection (about 1 cm accuracy).
-    auto below = [this](float t) {
-        const Vec3 q = lights.spot.position + lights.spot.direction * t;
-        return q.y <= terrainHeight(q.x, q.z);
-    };
-    float len = kBeamMaxLength;
-    for (float t = 0.1f; t < kBeamMaxLength; t += kBeamCoarseStep) {
-        if (!below(t)) continue;
-        float lo = std::max(0.1f, t - kBeamCoarseStep), hi = t;
-        for (int i = 0; i < 5; ++i) {
-            const float mid = 0.5f * (lo + hi);
-            (below(mid) ? hi : lo) = mid;
+    for (int u = 0; u < kUavCount; ++u) {
+        const Mat4& lamp = uavs_[u].gimbalPitch->world;
+        const Vec3 pos = transformPoint(lamp, {0, 0, kLampFrontOffset});
+        const Vec3 dir = normalize(transformDirection(lamp, {0, 0, 1}));
+        if (u == 0) {  // UAV 0 = the shadowed searchlight L2
+            lights.spot.position = pos;
+            lights.spot.direction = dir;
+            lights.spot.innerDeg = kSpotInnerDeg;
+            lights.spot.outerDeg = kSpotOuterDeg;
         }
-        len = hi;
-        break;
+        // Beam length = distance from the lens to the ground along the light axis: ray march in 20 cm steps,
+        // then refine the crossing by bisection (about 1 cm accuracy).
+        auto below = [&](float t) {
+            const Vec3 q = pos + dir * t;
+            return q.y <= terrainHeight(q.x, q.z);
+        };
+        float len = kBeamMaxLength;
+        for (float t = 0.1f; t < kBeamMaxLength; t += kBeamCoarseStep) {
+            if (!below(t)) continue;
+            float lo = std::max(0.1f, t - kBeamCoarseStep), hi = t;
+            for (int i = 0; i < 5; ++i) {
+                const float mid = 0.5f * (lo + hi);
+                (below(mid) ? hi : lo) = mid;
+            }
+            len = hi;
+            break;
+        }
+        beamLength_[u] = len;
+        const float width = 2.0f * len * std::tan(radians(kSpotOuterDeg));
+        uavs_[u].beam->local.translation = {0, 0, kLampFrontOffset + 0.5f * len};
+        uavs_[u].beam->local.scale = {width, width, len};
+        uavs_[u].beam->world = lamp * uavs_[u].beam->local.matrix();
     }
-    beamLength_ = len;
-    const float width = 2.0f * len * std::tan(radians(kSpotOuterDeg));
-    uav_.beam->local.translation = {0, 0, kLampFrontOffset + 0.5f * len};
-    uav_.beam->local.scale = {width, width, len};
-    uav_.beam->world = lamp * uav_.beam->local.matrix();
 }
 
 }  // namespace ts

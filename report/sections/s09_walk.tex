@@ -1,0 +1,50 @@
+% =====================================================================
+\section{The Walkable Bunker}\label{sec:walk}
+The command bunker is underground, so the player has to walk into it. Two pieces implement this: the \code{WalkSpace}
+(floors, walls and indoor volumes, \code{scene/WalkSpace.h}) built by \code{Bunker.cpp}, and the \emph{walk camera}
+(\code{Camera::moveWalk}). Both are CPU-only and unit-tested (T50--T54, T60--T69, T120--T126).
+
+\subsection{WalkSpace}
+\begin{itemize}
+  \item \textbf{Floors.} A \code{WalkFloor} is a rectangle with a floor height at its low edge and one at its high edge along a slope axis (flat, along $x$ or along $z$) and a ceiling
+  height. The bunker defines 12: the entrance ramp (a linear slope along $z$ from the surface at $z=13$ to the floor level $-3.4$\,m at $z=6$), a level
+  approach, the door zone (with ceiling), the tunnel, the opening to the CIC, the command room ($x\in[-5.2,5.2]$, $z\in[-8.2,-2.1]$), the bunk room and its doorway, the generator room and its
+  doorway, the shaft entrance and the exit shaft (a floor whose ceiling is the hatch height). Outside every floor the walker stands on the terrain.
+  \item \textbf{Which floor.} \code{floorHeight(x,z,feetY)} returns the \emph{highest} floor region that contains $(x,z)$, lies at most a 0.45\,m step above the feet,
+  and whose ceiling is still above the feet. A walker on the earth mound above the rooms therefore stays on the terrain, and a walker in the tunnel is not pulled up onto the roof.
+  \item \textbf{Walls.} 36 axis-aligned wall boxes (retaining walls, cross walls, consoles and other furniture, door jambs). \code{collide()} pushes a vertical cylinder (radius 0.3\,m, feet to
+  head) out of every wall box and every extra box, in two passes to settle corners; boxes that end below the feet or begin above the head are ignored.
+  \item \textbf{Dynamic obstacles.} The closed blast door and a lowered barrier arm are passed as extra boxes every frame (T64, T121).
+  \item \textbf{Indoor volumes.} Five boxes (tunnel, CIC, bunk, generator, shaft) are uploaded to the shader as the indoor mask (Section~\ref{sec:shading}); the renderer reads the first eight.
+\end{itemize}
+The bunker part budget in test T66 reads: \bunkerBudget. T69: 12 floors, 36 walls, 5 indoor volumes.
+
+\subsection{Walk camera}
+Key \texttt{C} cycles Orbit, Free, Chase, UAV CAM and Walk (T55). In walk mode the eye is 1.7\,m above the walker's feet (T51: maximum deviation 0.013\,m over 2\,400 steps), the field of
+view is $60^\circ$, the speed is 1.6\,m/s (4.5\,m/s with Shift) and the body radius 0.3\,m. Long steps are split into $\le0.15$\,m pieces so a fast frame cannot tunnel through a door; after each piece
+the feet follow the floor (down the ramp: T120, maximum feet deviation 0\,m). The eye is limited to 0.15\,m below the ceiling (T123); a mouse-look pitch is clamped to $\pm80^\circ$
+(T54); the position is clamped to a 52\,m radius (T53) and the walker cannot fall into the open trench from the side (T52). A small head bob ($0.025\,\text{m}\cdot\sin$ of a speed-driven
+phase) is added to the rendered eye only.
+
+\subsection{Verified walk-through}
+T62 walks from the ramp top to the CIC centre in 367 steps with 0 wall contacts, a maximum step of 0.023\,m and a minimum head room of 2.60\,m. T121: with the doors closed the walker stops at
+$z=4.4$\,m (the door plane is at $z=4$) and never leaves the ramp ($|x|\le1.2$\,m). T122: with the doors open he reaches the CIC ($z=-6.0$\,m, feet $-3.40$\,m, smallest ceiling gap 0.90\,m).
+T126: the director's bunker shot descends the ramp, passes the door plane and ends in the rooms with a maximum vertical step of 0.118\,m, and T129 checks that the
+director opens the doors early. Walking up to a door and pressing \texttt{Enter} within 3.5\,m opens or closes it, and the door status appears in the HUD.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.49\linewidth}\picfour{bunker_ramp}{\linewidth}\caption{Entrance ramp (walk camera)}\end{subfigure}
+  \begin{subfigure}{0.49\linewidth}\picfour{bunker_door}{\linewidth}\caption{Blast doors}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.49\linewidth}\picfour{bunker_tunnel}{\linewidth}\caption{Tunnel}\end{subfigure}
+  \begin{subfigure}{0.49\linewidth}\picfour{bunker_cic}{\linewidth}\caption{Command room (CIC)}\end{subfigure}
+  \caption{Walking into the bunker (captures \code{bunker\_*}; eye heights 1.7\,m).}
+  \label{fig:bunkerwalk}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.49\linewidth}\picthree{walk_bunker}{\linewidth}\caption{v3 walk camera at the old bunker}\end{subfigure}
+  \begin{subfigure}{0.49\linewidth}\picthree{walk_forest}{\linewidth}\caption{v3 walk camera in the forest}\end{subfigure}
+  \caption{The walk camera introduced in v3 (EPIC captures).}
+\end{figure}

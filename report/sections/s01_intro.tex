@@ -1,0 +1,111 @@
+% =====================================================================
+\section{Introduction and Requirement History}\label{sec:intro}
+ThermalSense is an interactive OpenGL~3.3 (core profile) simulation, written in C++17 with GLFW and GLAD and no
+model or image files. Every visible solid is a \emph{part}: one of the lab's unit primitives drawn with its own
+$M=T\,R\,S$ matrix. The project grew in four stages, each one adding to the requirements of the previous one;
+Table~\ref{tab:history} lists them, and Table~\ref{tab:course} the course-level deliverables.
+
+\begin{table}[h]
+\centering\small
+\caption{Requirement history. The sources are the handwritten lab sheet (\texttt{graphics-lab-04.pdf}, 3 pages, a
+scan whose text was transcribed in \texttt{docs/PLAN.md}), the one-page proposal, the plan files and the v4 brief.}
+\label{tab:history}
+\begin{tabular}{@{}p{1.5cm}p{4.3cm}p{10.4cm}@{}}
+\toprule
+Stage & Source & Requirement and result\\\midrule
+Lab sheet & \texttt{graphics-lab-04.pdf}, p.\,1--3 &
+Canonical view volume; unit primitives centred at the origin (cube, sphere, cylinder, 36 slices = $10^\circ$);
+counter-clockwise front faces; indexed drawing (``technique 2'': 12 floats + 6 indices instead of 18 floats);
+VAO/VBO/EBO with an explicit layout; sphere built from one hemisphere and reflected; cylinder along the $z$ axis;
+a table of $S$, $R$, $T$ per component; $M=T\cdot R\cdot S$; the assignment is ``all objects only from
+primitives'' with an Excel table and an explanation. All items are implemented and tested (T01--T14).\\
+Proposal & \texttt{ThermalSense Project Proposal (1).pdf} &
+Command bunker with Flat shading, terrain with Gouraud, UAV with Phong, a moving rover; three light sources
+(directional lunar light, point bunker beacon, UAV spotlight); translation, rotation, scaling; a hierarchical
+searchlight; Z-buffer hiding the rover behind the bunker; wireframe hidden-line and overlapping-edge modes;
+camera controls and diagnostic toggles; thermal colour map. Implemented in v1 and kept in v4.\\
+v2 & \texttt{docs/PLAN\_V2.md} &
+20\,m compound, GGX/Cook--Torrance PBR, cascaded shadows, SSAO, volumetric fog, bloom, HDR with ACES, procedural
+materials, grass, rain with wet surfaces, thermal footprints, MicroMouse + line-follower rover, a computer-vision
+UAV, Excel workbook and a 7-page report.\\
+v3 & \texttt{docs/PLAN\_V3.md} &
+Remote RTX\,4070 target (EPIC preset), headless EGL, first-person FLIR thermal view with a sensor model, TAA,
+screen-space reflections, depth of field, motion blur, auto-exposure, lens flare, foliage cards, fireflies,
+a walk camera.\\
+v4 & \texttt{docs/v4\_notes/v4-brief.md}, \texttt{docs/V4\_PROGRESS.md} &
+Turn the compound into a military base; an underground walkable bunker; the UAV shoots the intruders and they
+explode; at least five new controllable objects with complex hierarchical motion; update the workbook and
+this report with an audit of every detail.\\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering\small
+\caption{Course checklist (from the project notes) and where it is met. ``Pending'' items are not part of this report.}
+\label{tab:course}
+\begin{tabular}{@{}p{6.1cm}p{9cm}l@{}}
+\toprule
+Item & Where / how & Status\\\midrule
+Dynamic and controllable objects & Seven possessable objects, Section~\ref{sec:control} & \sDone\\
+Complex motion & Track links, spring-damper attitude, rotor cyclic, Gatling spin-up, etc.\ (Section~\ref{sec:control}) & \sDone\\
+Report with an audit & This document, Appendix~\ref{app:audit} & \sDone\\
+Slide presentation (10 slides, outline on slide 2) & separate deliverable (not written by this report) & \sPart\\
+2-minute video at the end of the slides & \code{-{}-record} produces the 120\,s director sequence; the file is not part of this report & \sPart\\
+Excel workbook & updated in parallel by another engineer from \texttt{scene\_export.json} & \sPart\\\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Scope of v4.}
+The scene is a night-time base of 36\,m radius (terrain mesh) with a 34\,m HESCO perimeter, surrounded by a backdrop
+of hills and a tree line. In the middle of it lies the old 20\,m patrol compound where the UAV and the three intruder
+rovers play hide-and-seek; the command bunker is now buried under it. Figure~\ref{fig:plan} shows the site plan taken
+from \code{src/objects/BaseLayout.h}. All coordinates in this report are world metres, $+Z$ north, $+X$ east, $y$ up.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[scale=0.118,font=\scriptsize]
+  \draw[fill=black!4] (0,0) circle (36);
+  \draw[dashed] (0,0) circle (34);
+  \draw[fill=green!8,thin] (0,0) circle (20);
+  \node[above] at (0,20.5) {compound r\,=\,20};
+  % bunker footprint
+  \draw[fill=gray!35] (-5.5,-8.5) rectangle (5.5,4);
+  \node at (0,-2) {bunker (underground)};
+  % ramp
+  \draw[fill=gray!60] (-1.5,6) rectangle (1.5,13);
+  \node[right] at (1.6,9.5) {ramp};
+  % road
+  \draw[thick] (-2.2,19) -- (-2.2,34) (2.2,19) -- (2.2,34);
+  \node[above] at (0,34.3) {outer gate};
+  % helipad
+  \draw[fill=blue!15] (20.3,17) circle (5); \node at (20.3,17) {helipad};
+  % radar
+  \draw[fill=orange!30] (29,-3) circle (2.7); \node[below=2mm] at (29,-3) {radar};
+  % AA gun
+  \draw[fill=red!20] (21,-19) circle (3.5); \node[below=3mm] at (21,-19) {AA gun};
+  % motor pool
+  \draw[fill=olive!30,rotate around={45:(-22,-16)}] (-25,-19) rectangle (-19,-13); \node[below=4mm] at (-22,-16) {motor pool/tank};
+  % barracks
+  \draw[fill=brown!25] (-27,11) circle (4); \node at (-27,11) {barracks};
+  % depot
+  \draw[fill=yellow!25] (-6,-28.5) circle (3); \node[right=2mm] at (-6,-28.5) {fuel depot};
+  % flag
+  \fill (-4.5,27) circle (0.8); \node[left=1mm] at (-4.5,27) {flag};
+  % towers
+  \foreach \a in {60,130,245,340} {\fill[red!60!black] ({32.4*cos(\a)},{32.4*sin(\a)}) circle (1.1);}
+  % north arrow
+  \draw[-{Latex}] (-34,28) -- (-34,34) node[above] {$+Z$};
+  \draw[-{Latex}] (-34,28) -- (-28,28) node[right] {$+X$};
+\end{tikzpicture}
+\caption{Plan view of the site (from \code{BaseLayout.h}; tower angles are measured from $+X$ towards $+Z$ as in
+\code{Base.cpp}). Dark circles: the four guard towers at $r=32.4$\,m.}
+\label{fig:plan}
+\end{figure}
+
+\paragraph{Reading guide.}
+Sections~\ref{sec:prims}--\ref{sec:transform} cover the lab-sheet content (primitives, indexed rendering, object
+construction, $TRS$ hierarchies). Sections~\ref{sec:shading}--\ref{sec:pipeline} cover lighting and the render
+pipeline. Sections~\ref{sec:control}--\ref{sec:walk} cover the v4 game: controllable objects, combat and the walkable
+bunker. Sections~\ref{sec:platform}--\ref{sec:results} give the build, the tests and the results. All numbers are
+copied from the program output by \code{report/gen\_tables.py} or from the engineer notes in \code{docs/v4\_notes/};
+nothing is estimated. Where a number has not been measured, this is said explicitly.

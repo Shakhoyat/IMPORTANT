@@ -171,15 +171,21 @@ std::vector<Vec3> HideController::descend(int cx, int cz) const {
     std::vector<Vec3> path;
     if (!cellFree(cx, cz) || flood_[index(cx, cz)] < 0) return path;
     int lastDir = -1;
-    while (flood_[index(cx, cz)] > 0) {
-        // In a BFS field every downhill neighbour holds (value - 1). Among them keep the current
-        // heading when possible, so the route has few turns (like a MicroMouse speed run).
-        const int wanted = flood_[index(cx, cz)] - 1;
-        int bestDir = -1;
+    for (int guard = 0; guard < kGridCells * kGridCells && flood_[index(cx, cz)] > 0; ++guard) {
+        // Steepest descent: the neighbour with the smallest value (BFS field: value - 1; weighted field: the
+        // cheapest way on). Among equal values keep the current heading, so the route has few turns (like a
+        // MicroMouse speed run).
+        const int here = flood_[index(cx, cz)];
+        int bestDir = -1, bestVal = here;
         for (int d = 0; d < 4; ++d) {
             const int nx = cx + kDx[d], nz = cz + kDz[d];
-            if (!cellFree(nx, nz) || flood_[index(nx, nz)] != wanted) continue;
-            if (bestDir < 0 || d == lastDir) bestDir = d;
+            if (!cellFree(nx, nz)) continue;
+            const int v = flood_[index(nx, nz)];
+            if (v < 0 || v >= here) continue;
+            if (v < bestVal || (v == bestVal && d == lastDir)) {
+                bestVal = v;
+                bestDir = d;
+            }
         }
         if (bestDir < 0) break;
         cx += kDx[bestDir];
@@ -188,6 +194,62 @@ std::vector<Vec3> HideController::descend(int cx, int cz) const {
         path.push_back(cellCentre(cx, cz));
     }
     return path;
+}
+
+float HideController::noiseAt(int cx, int cz) const {
+    // Smooth value noise over the grid (cell size 4 cells), seeded per rover.
+    auto h = [this](int x, int z) {
+        uint32_t v = static_cast<uint32_t>(x) * 374761393u + static_cast<uint32_t>(z) * 668265263u + seed_ * 2246822519u;
+        v = (v ^ (v >> 13)) * 1274126177u;
+        return static_cast<float>((v ^ (v >> 16)) & 0xFFFF) / 65535.0f;
+    };
+    const float fx = cx / 4.0f, fz = cz / 4.0f;
+    const int ix = static_cast<int>(std::floor(fx)), iz = static_cast<int>(std::floor(fz));
+    float tx = fx - ix, tz = fz - iz;
+    tx = tx * tx * (3 - 2 * tx);
+    tz = tz * tz * (3 - 2 * tz);
+    return lerpf(lerpf(h(ix, iz), h(ix + 1, iz), tx), lerpf(h(ix, iz + 1), h(ix + 1, iz + 1), tx), tz);
+}
+
+void HideController::floodFillToObjective(const std::vector<Vec3>& observers) {
+    // Exposure: cells either UAV can see (computed from each observer, OR-ed).
+    std::vector<unsigned char> exposed(free_.size(), 0);
+    for (const Vec3& o : observers) {
+        computeVisibility(o);
+        for (size_t i = 0; i < exposed.size(); ++i) exposed[i] |= hidden_[i] ? 0 : (free_[i] ? 1 : 0);
+    }
+    // Dijkstra from the objective's cell: step cost (x16 fixed point) = 16 (one cell) + 40 if exposed + noise.
+    std::fill(flood_.begin(), flood_.end(), -1);
+    int gx, gz;
+    worldToCell(objective_, gx, gz);
+    nearestFreeCell(gx, gz);
+    using Item = std::pair<int, int>;  // cost, cell
+    std::priority_queue<Item, std::vector<Item>, std::greater<Item>> open;
+    flood_[index(gx, gz)] = 0;
+    open.push({0, index(gx, gz)});
+    while (!open.empty()) {
+        const auto [cost, cur] = open.top();
+        open.pop();
+        if (cost > flood_[cur]) continue;
+        const int cx = cur % kGridCells, cz = cur / kGridCells;
+        for (int d = 0; d < 4; ++d) {
+            const int nx = cx + kDx[d], nz = cz + kDz[d];
+            if (!cellFree(nx, nz)) continue;
+            const int ni = index(nx, nz);
+            const int step = 16 + (exposed[ni] ? 40 : 0) + static_cast<int>(24.0f * noiseAt(nx, nz));
+            if (flood_[ni] < 0 || cost + step < flood_[ni]) {
+                flood_[ni] = cost + step;
+                open.push({flood_[ni], ni});
+            }
+        }
+    }
+}
+
+void HideController::setObjective(const Vec3& objective, uint32_t seed) {
+    objective_ = objective;
+    seed_ = seed;
+    infiltrate_ = true;
+    replanTimer_ = kReplanPeriod;  // plan at the next update
 }
 
 void HideController::nearestFreeCell(int& cx, int& cz) const {
@@ -205,8 +267,12 @@ void HideController::nearestFreeCell(int& cx, int& cz) const {
 }
 
 void HideController::replan(const Vec3& observer, const RoverState& rover) {
-    computeVisibility(observer);
-    floodFill();
+    if (infiltrate_ && evadeTime_ <= 0.0f) {
+        floodFillToObjective(observers_.empty() ? std::vector<Vec3>{observer} : observers_);
+    } else {
+        computeVisibility(observer);
+        floodFill();
+    }
     int cx, cz;
     worldToCell(rover.position, cx, cz);
     nearestFreeCell(cx, cz);
@@ -319,6 +385,25 @@ void HideController::followLine(float dt, RoverState& rover) {
     rover.leftWheelAngle += rover.leftSpeed / kRoverWheelRadius * dt;
     rover.rightWheelAngle += rover.rightSpeed / kRoverWheelRadius * dt;
     rover.moving = std::fabs(v) > 0.01f || std::fabs(w) > 0.05f;
+}
+
+void HideController::update(float dt, const std::vector<Vec3>& observers, RoverState& rover) {
+    observers_ = observers;
+    // The nearest UAV (by ear): hide from it when it is close, otherwise keep infiltrating.
+    Vec3 nearest = observers.empty() ? Vec3{0, 50, 0} : observers.front();
+    float best = 1e9f;
+    for (const Vec3& o : observers) {
+        const float d = length(Vec3{o.x - rover.position.x, 0, o.z - rover.position.z});
+        if (d < best) {
+            best = d;
+            nearest = o;
+        }
+    }
+    const bool wasEvading = evadeTime_ > 0.0f;
+    if (infiltrate_ && best < kEvadeRadius) evadeTime_ = kEvadeTime;
+    else evadeTime_ = std::max(0.0f, evadeTime_ - dt);
+    if (wasEvading != (evadeTime_ > 0.0f)) replanTimer_ = kReplanPeriod;  // mode change: re-plan now
+    update(dt, nearest, rover);
 }
 
 void HideController::update(float dt, const Vec3& observer, RoverState& rover) {

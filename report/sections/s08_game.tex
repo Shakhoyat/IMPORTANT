@@ -1,0 +1,131 @@
+% =====================================================================
+\section{Game Logic}\label{sec:game}
+This section describes the game simulation as implemented: it is deterministic (fixed pseudo-random seeds, no wall-clock
+time), CPU-only and covered by tests T100--T113. The code lives in \code{Scene.cpp} (life cycle, blasts, debris),
+\code{Combat.cpp} (weapons, explosions, particles), \code{DroneController.cpp} (engagement rules) and
+\code{HideController.cpp} (the rover's planner).
+
+\subsection{Intruder life cycle}
+Three intruder rovers (\code{layout::kRoverCount}) share one geometry. Each has a \code{Life} state
+(Fig.~\ref{fig:life}). The first rover is alive at $t=0$; the other two enter after 7\,s and 14\,s at the compound's edge in forest
+cover, at one of three spawn points $(12.5,9)$, $(-13.5,2.5)$, $(5,-14.5)$ facing the centre.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=14mm and 18mm, every node/.style={font=\scriptsize},
+  st/.style={draw,rounded corners=2pt,minimum height=7mm,minimum width=18mm,align=center,fill=blue!5},
+  arr/.style={-{Latex[length=1.6mm]},thick}]
+  \node[st] (w) {Waiting\\timer 0 / 7 / 14\,s};
+  \node[st,right=of w] (a) {Alive\\hide planner runs};
+  \node[st,right=of a] (r) {Wreck\\burns 15\,s, removed 25\,s};
+  \node[st,right=of r] (g) {Gone\\3\,s};
+  \draw[arr] (w) -- (a);
+  \draw[arr] (a) -- node[above]{blast} (r);
+  \draw[arr] (r) -- node[above]{25\,s} (g);
+  \draw[arr] (g.south) -- ++(0,-8mm) -| node[pos=0.25,below]{respawn at next spawn point} (a.south);
+\end{tikzpicture}
+\caption{Intruder life cycle (\code{Intruder::Life}); constants \code{kWreckBurnTime}=15\,s, \code{kWreckClearTime}=25\,s,
+\code{kRespawnDelay}=3\,s.}
+\label{fig:life}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Alive.} The rover's \code{HideController} knows only where the UAV is (it ``hears the rotors''), not what
+  the camera sees. Heat footprints are laid under the wheels and the parked hull.
+  \item \textbf{Wreck.} \code{destroyIntruder()} counts a kill, stops the rover, remembers the wreck position, tells the drone to ignore it
+  (Section~\ref{sec:engage}), saves every part's material and replaces it by a charred one
+  (albedo $\times0.1+(0.015,0.013,0.012)$, roughness 0.95, metalness 0, heat 0.95, no emission or light), turns all parts except the hull core
+  (\emph{Chassis, Upper hull, Motor + battery box}) into rigid-body debris and adds a scorch mark.
+  \item \textbf{Burning.} For 15\,s the wreck emits fire, smoke and embers at rates proportional to the remaining burn fraction
+  (\code{emitBurn}); the hull cools as $h=0.3+0.65\,e^{-t/40\,\text{s}}$ (the thermal view shows the wreck cooling) and deposits heat on the
+  ground (0.25 per second into the footprint grid). After 25\,s the wreck is removed.
+  \item \textbf{Respawn.} After 3\,s the saved materials are restored, the state is reset and the next of three spawn points is used. T107 checks
+  wreck $\to$ gone $\to$ alive.
+\end{itemize}
+
+\subsection{Drone engagement rules}\label{sec:engage}
+The UAV's autonomy is the v2 thermal pipeline: a $320\times240$ raw heat image is read back each frame, pixels with $h\ge0.80$ form blobs by an
+8-neighbour flood fill, a blob needs a core $h\ge0.90$ and 2 pixels of area, and data association keeps the existing track (gate 0.45). The
+modes are SEARCH (a breathing orbit of radius $10.5\pm5$\,m at 7\,m height), TRACK (visual servo with gain $K=5$\,s$^{-1}$, stand-off orbit 5.5\,m at 4.6\,m height,
+coasting 45 frames = 0.75\,s through brief occlusions) and REACQUIRE (circle the last estimate, give up after 12\,s). The ground position of a blob is found by marching
+the pixel ray to the terrain. Autonomous flight stays inside $r=19.5$\,m; manual flight is limited to the 34\,m perimeter. On top of this v4 adds the weapon rules, all in \code{DroneController::update}:
+\begin{enumerate}
+  \item \textbf{Lock: 1.5\,s.} \code{lockTime} grows while the mode is TRACK and a blob is seen; at $\ge1.5$\,s (\code{kLockTime}), with no cooldown, the controller
+  sets \code{launchRequest}. T108 measures the first request at 1.53\,s.
+  \item \textbf{Rate and magazine.} At most one round per 4\,s (\code{kLaunchInterval}); four rail rounds (hidden when launched), each replaced after
+  10\,s (\code{kUavReloadTime}); T112: 4 launched, 0 ready, replaced after the reload.
+  \item \textbf{Laser spot.} The designator is the ground point at the centre of the gimbal image
+  (\code{DroneController::imagePointToGround(0,0)}); it is refreshed every frame, so the missile homes on what the camera sees.
+  \item \textbf{Friend or foe.} A hot blob whose ground point lies within 4.5\,m (\code{kFriendlyRadius}) of a friendly vehicle (tank, helicopter, AA gun,
+  any possessable object except the UAV) is never a target (T110).
+  \item \textbf{Keep-out zone.} No round is released at an estimate inside the box $x\in[-4.5,4.5]$, $z\in[1,16]$ around the bunker's entrance ramp (T111).
+  \item \textbf{Wreck discrimination.} A destroyed rover stays hot; detections whose ground point is within 2.5\,m of a wreck are ignored for 30\,s
+  (\code{kWreckIgnoreRadius}, \code{kWreckIgnoreTime}; T109: mode stays SEARCH, no lock).
+  \item \textbf{Manual flight} disables the autonomous launch; \texttt{Enter} fires at the camera's aim point.
+\end{enumerate}
+
+\subsection{Projectiles}
+\paragraph{Proportional-navigation homing.} A UAV missile starts at 8\,m/s and accelerates linearly to 60\,m/s in 0.4\,s. With a valid laser spot at
+$\vect r$ (vector from the missile), $\hat{\vect v}$ its heading, $V$ its speed and $\hat{\vect l}=\vect r/|\vect r|$ the line of sight,
+the commanded turn rate is
+\begin{equation}
+  \boldsymbol\omega=\frac{4V}{|\vect r|^2}\,(\hat{\vect v}\times\vect r)+2\,(\hat{\vect v}\times\hat{\vect l}),\qquad |\boldsymbol\omega|\le6\ \text{rad/s},
+\end{equation}
+and the heading is rotated about $\hat{\boldsymbol\omega}$ by $|\boldsymbol\omega|\Delta t$ (Rodrigues' formula). The first term is proportional navigation with $N=4$ for a
+stationary spot, the second a heading-error term. The turn rate limit models limited manoeuvrability; the proximity fuse radius is 0.5\,m, a closest-approach
+fuse fires within 3\,m of the spot, rounds without a valid spot use a height-above-ground fuse, and a round self-destructs after 6\,s (T100: a round launched
+$30^\circ$ off the line of sight detonates 0.50\,m from the spot after 0.32\,s). The simulation substeps are at most $1/120$\,s.
+
+\paragraph{Ballistic shell.} The tank shell has speed 120\,m/s and gravity 9.81\,m/s$^2$ (no drag); T101 finds a range of 203.8\,m against
+$v^2\sin2\alpha/g$ (within $-0.24$\,\%).
+
+\paragraph{Tracer and segment tests.} The AA tracer flies at 1000\,m/s for at most 2.5\,s with no blast at burn-out. At 1000\,m/s a round moves 16.7\,m per
+$1/60$\,s step, so impacts are tested as \emph{segments} from the previous to the new position against every target sphere (radius plus fuse), every static solid box
+(slab test) and the ground, taking the earliest entry parameter $t\in[0,1]$; there is no tunnelling (T102 finds the small target). Power: missile 1.0, shell 1.6, tracer
+impact 0.15 (a small puff, no shake).
+
+\subsection{Blast damage}
+A blast of power $p$ destroys every living intruder within $1.6\,p$ metres of the blast, or the one hit directly by the projectile (\code{kDamageRadiusPerPower}); T105: destroyed at $0.5\,r$,
+untouched at $3\,r$. Controllable objects within $6\,p$ metres receive \code{onBlast()}; the tank and the AA gun scorch (darken their camouflage). A blast with $p\ge0.3$
+spawns a flash (0.12\,s), a fireball of 10--25 fire puffs, a smoke column of 15--40 puffs with a 6--12\,s life, 30--60 sparks, 8--15 embers, a ground shock-wave ring, 10--20 dust
+puffs, a decaying point light, camera shake within 25\,m (decaying over 0.8\,s) and a scorch mark of radius $0.9\,p$ (cap 96 marks, 120\,s life). T103 checks that all seven main
+particle types appear, the light decays 1 $\to$ 0 and one scorch is left.
+
+\subsection{Rigid-body debris}
+Each non-core part becomes an independent rigid body. At the moment of the blast the part's world matrix $W_0$ and origin $\vect c_0$ are stored. The initial velocity points
+away from the blast with a lift,
+$\vect v_0=\mathrm{normalize}(\vect a+\text{jitter})\,(2.5+3.5\,r)\sqrt p+(0,1.5+3r',0)$ with $\vect a=\vect c_0-\vect b$, its $y$ component clamped to $\ge0$ and raised by 0.6\,m, and the spin has a pseudo-random axis and a rate of
+4--14\,rad/s. Each substep ($\le1/120$\,s) applies gravity, moves the body, and composes the rotation with a Rodrigues rotation about the spin axis. The world matrix is
+\begin{equation}
+  W(t)=T(\vect c(t))\,R(t)\,T(-\vect c_0)\,W_0 ,
+\end{equation}
+i.e.\ the part is rotated about its own origin and moved to the integrated position. On ground contact (terrain $+0.03$\,m): restitution 0.3 in the normal direction,
+horizontal speed $\times0.7$ and spin $\times0.6$ per contact; a piece comes to rest below 0.25\,m/s. T106: 23 pieces, peak height 3.25\,m, all at rest on top of the terrain within
+8\,s. Because the hull core stays and the other 23 parts fly, a wreck keeps a recognisable chassis.
+
+\subsection{The hiding planner: MicroMouse flood fill and line follower}
+\textbf{Planning.} The disc is split into $80\times80$ cells of 0.5\,m over $[-20,20]$\,m. A cell is a goal if segments from five body points to the UAV are blocked; each segment is tested
+against the exact occluder primitive after mapping it into the primitive's unit space with $W^{-1}$ (T31, T37; a bucket grid replaces brute force, 0 mismatches over 516 occluders, T44).
+A cell is drivable if short vertical segments through the robot's body miss every part, so the robot cannot drive under low branches. A breadth-first flood fill gives each cell its
+step distance $D$ to the nearest goal and the robot walks downhill ($D\to D-1$) like a MicroMouse (T27); the path is smoothed (Chaikin) into a virtual line.
+\textbf{Following.} Five IR sensors give the error $e=\overline{x}_\text{active}/0.12$, a PD controller sets $\omega=3.2e+0.25\dot e$, the differential drive uses $v_{L,R}=v\mp\omega W/2$, and
+when blocked the robot pivots and backs off at 0.12\,m/s (T28). The HUD key \texttt{M} draws the flood field and the line.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.325\linewidth}\picfour{thermal_fpv_strike}{\linewidth}\caption{Thermal FPV at the strike}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{uav_missile_launch}{\linewidth}\caption{Missile launch}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{explosion_early}{\linewidth}\caption{Explosion, +0.15\,s}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.325\linewidth}\picfour{explosion_mid}{\linewidth}\caption{Explosion, +1\,s}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{explosion_smoke}{\linewidth}\caption{Smoke column, +5\,s}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfour{wreck_burning}{\linewidth}\caption{Burning wreck, +9\,s}\end{subfigure}
+  \caption{The strike sequence (captures at the delays set in \code{Capture.cpp}).}
+  \label{fig:strike}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.49\linewidth}\picthree{thermal_fpv}{\linewidth}\caption{v3 first-person thermal view (FLIR HUD)}\end{subfigure}
+  \begin{subfigure}{0.49\linewidth}\picthree{thermal_fpv_hidden}{\linewidth}\caption{Rover hidden: UAV re-acquiring}\end{subfigure}
+  \caption{The thermal camera that the tracker and the player see (v3 captures).}
+\end{figure}
