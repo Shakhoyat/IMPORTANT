@@ -1,0 +1,43 @@
+% =====================================================================
+\section{Colour Interpolation and the Three Shading Models}\label{sec:interp}
+\pipestrip{5}
+Flat, Gouraud and Phong shading answer one question: \emph{where in a triangle is the lighting equation evaluated, and how are the values in between obtained?}
+
+\subsection{Barycentric interpolation}
+\autofig{diagrams}{B1_barycentric}
+Every pixel inside a triangle $\vect p_0,\vect p_1,\vect p_2$ has barycentric coordinates $(\lambda_0,\lambda_1,\lambda_2)$, $\lambda_i\ge0$, $\sum\lambda_i=1$. Any per-vertex quantity $a_i$ (colour, normal, light term) is blended linearly:
+\begin{equation}a=\lambda_0a_0+\lambda_1a_1+\lambda_2a_2 .\end{equation}
+Under perspective the hardware interpolates with the clip-space $w_i$:
+\begin{equation}\lambda_i'=\frac{\lambda_i/w_i}{\sum_j\lambda_j/w_j},\qquad a=\sum_i\lambda_i'a_i,\end{equation}
+so colours do not swim on slanted surfaces. Example: intensities $0.2,0.8,0.5$ with $\lambda=(0.2,0.3,0.5)$ give $0.53$.
+
+\subsection{Flat, Gouraud and Phong in one table}
+\begin{table}[h]
+\centering\small
+\caption{The three models as implemented (\code{ShaderSources.cpp}).}\label{tab:shademodels}
+\begin{tabular}{@{}llp{4.4cm}p{4.5cm}@{}}
+\toprule Model & Lighting evaluated & Interpolated across the triangle & Used for\\\midrule
+Flat & once per triangle, at its centroid, with the face normal $\vect N_f$ & nothing (the \code{flat} qualifier) & the bunker and base buildings: sharp architectural facets\\
+Gouraud & at every \emph{vertex} & the light terms (colours) & terrain, vegetation, props\\
+Phong & at every \emph{fragment} & the normal $\vect N$ (re-normalised) & UAV, rover, tank, helicopter, AA gun, radar: moving highlights\\\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Flat.} A geometry shader (Listing~\ref{lst:FlatGeom}) computes $\vect N_f=\mathrm{normalize}((\vect p_1-\vect p_0)\times(\vect p_2-\vect p_0))$, evaluates the light once at the centroid $(\vect p_0+\vect p_1+\vect p_2)/3$ and emits the same \code{flat} terms for all three vertices. A zero-area triangle falls back to an up normal.
+\lstFlatGeom
+\paragraph{Gouraud.} The vertex shader (Listing~\ref{lst:GouraudVert}) calls \code{computeLight(position, normal)} per vertex, with the normal transformed by $(M^{-1})^\top$; the light \emph{terms} are interpolated and the fragment shader multiplies them by the albedo.
+\lstGouraudVert
+\paragraph{Phong.} The fragment shader re-normalises the interpolated normal and calls \code{computeLight} per pixel: \code{FragColor = shadeFragment(computeLight(vWorld, N), vWorld, N)}.
+All three paths end in the same \code{shadeFragment}, so shadows, occlusion, procedural surfaces, fog and thermal output are identical; \emph{only the place where the lighting equation is evaluated differs}. Keys \texttt{O}\,\texttt{F}\,\texttt{G}\,\texttt{P} force one model for the whole scene (T19).
+
+\subsection{What the difference looks like}
+\autofig{figures_lab}{shading_sphere_compare}
+\autofig{diagrams}{B2_shading_models_real}
+\sheetfig{s08_shading}
+Gouraud can miss a highlight completely. With $(\vect N\!\cdot\!\vect H)^n$, $n=64$, a vertex whose normal is $20^\circ$ from $\vect H$ gets $\cos^{64}20^\circ\approx0.019$, while a pixel mid-triangle whose interpolated normal points at $\vect H$ gets $1.0$: per-vertex lighting sees only the dark corners, so the highlight vanishes or smears. Flat shading gives each facet a constant grey (exaggerated by \emph{Mach bands}); Gouraud removes the steps but keeps slope breaks at vertex lines. Figure~\ref{fig:shademodels} renders one object with all three models.
+\begin{figure}[h]
+\centering
+\piclab{shading_models}{\linewidth}
+\caption{The same sphere and cylinder under Flat, Gouraud and Phong shading (in-program render): facets, linear ramps with missing highlight, and a per-pixel highlight.}\label{fig:shademodels}
+\end{figure}
+\paragraph{Fragment-dependent factors.} Because Flat and Gouraud light before the fragment stage, shadow-map visibility, ambient occlusion and procedural relief (next chapter) are applied afterwards to the interpolated terms, which are therefore kept separate (moon, beacon, spotlight, practical lights) rather than summed.

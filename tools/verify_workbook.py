@@ -17,7 +17,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from wb_common import (OUT, S_AUDIT, S_BEHAV, S_COMBAT, S_COVER, S_CTRL, S_HIER, S_MAT, S_TEST, S_TRACE, load_json,
+from wb_common import (S_CVN, S_DAY, S_SOLD, S_RT, S_FX, S_GAME, S_V7T, OUT, S_AUDIT, S_BEHAV, S_COMBAT, S_COVER, S_CTRL, S_HIER, S_MAT, S_TEST, S_TRACE, load_json,
                        matrix_components)  # noqa: E402
 from wb_transforms import C_M, C_WERR, TOLERANCE  # noqa: E402
 
@@ -201,7 +201,49 @@ def main():
         if cell is None:
             continue
         print(f"  {label:24s} = {values.get((sheet.upper(), cell))}")
-    ok = (not errs and not flags and missing == 0 and max(worst_code, worst_world) <= TOLERANCE and worst_py <= 1e-9
+    # v6 sheets 21-23: every block is either data or an explicit "pending: ..." row (old export); when the data is
+    # there the Excel sun-elevation recomputation must match the exported grid and no v6 test may fail.
+    v6_ok = True
+    day, sold, cvn = S_DAY.upper(), S_SOLD.upper(), S_CVN.upper()
+    n_rows, n_ok, max_err = (values.get((day, c)) for c in ("B3", "F3", "D3"))
+    if isinstance(n_rows, (int, float)) and n_rows > 0:
+        good = n_ok == n_rows and isinstance(max_err, (int, float)) and max_err <= 0.05
+        v6_ok &= good
+        print(f"  sheet 21: {n_ok} / {n_rows} grid rows match the Excel sun elevation, max |diff| = {max_err} deg"
+              f"  [{'ok' if good else 'FAIL'}]")
+    else:
+        print("  sheet 21: pending (no exported day-cycle grid yet)")
+    n_sol = values.get((sold, "B3"))
+    print("  sheet 22: soldiers =", n_sol if isinstance(n_sol, (int, float)) else "pending (no exported garrison yet)")
+    t_all, t_pass, t_fail, t_pend = (values.get((cvn, c)) for c in ("B3", "D3", "F3", "H3"))
+    if isinstance(t_fail, (int, float)):
+        v6_ok &= t_fail == 0
+        print(f"  sheet 23: v6 tests {t_pass} pass / {t_fail} fail / {t_pend} pending of {t_all}  "
+              f"[{'ok' if t_fail == 0 else 'FAIL'}]")
+    else:
+        v6_ok = False
+        print("  sheet 23: KPI cells missing  [FAIL]")
+    pend = sum(1 for k, v in values.items() if k[0] in (day, sold, cvn) and str(v).startswith("pending"))
+    print(f"  sheets 21-23: {pend} 'pending:' cells")
+    # v7 sheets 24-27 (WP-W): every check cell evaluates to OK (a CHECK is already a flagged cell) and no v7 test fails.
+    v7_ok = True
+    rt, fx, gm, vt = S_RT.upper(), S_FX.upper(), S_GAME.upper(), S_V7T.upper()
+    for name, sh in ((S_RT, rt), (S_FX, fx), (S_GAME, gm)):
+        n_ok = sum(1 for k, v in values.items() if k[0] == sh and v == "OK")
+        n_chk = sum(1 for k, v in values.items() if k[0] == sh and v == "CHECK")
+        v7_ok &= n_ok > 0 and n_chk == 0
+        print(f"  sheet {name}: {n_ok} OK checks, {n_chk} CHECK  [{'ok' if n_ok > 0 and n_chk == 0 else 'FAIL'}]")
+    t_all, t_pass, t_fail, t_pend = (values.get((vt, c)) for c in ("B3", "D3", "F3", "H3"))
+    if isinstance(t_fail, (int, float)):
+        good = t_fail == 0 and t_pend == 0
+        v7_ok &= good
+        print(f"  sheet {S_V7T}: v7 tests {t_pass} pass / {t_fail} fail / {t_pend} pending of {t_all}  [{'ok' if good else 'FAIL'}]")
+    else:
+        v7_ok = False
+        print(f"  sheet {S_V7T}: KPI cells missing  [FAIL]")
+    pend7 = sum(1 for k, v in values.items() if k[0] in (rt, fx, gm, vt) and str(v).startswith("pending"))
+    print(f"  sheets 24-27: {pend7} 'pending' cells")
+    ok = (v6_ok and v7_ok and not errs and not flags and missing == 0 and max(worst_code, worst_world) <= TOLERANCE and worst_py <= 1e-9
           and max(worst_all_local, worst_all_world) <= TOLERANCE)
     if not ok:
         print("  failed:", ", ".join(n for n, bad in (("formula errors", errs), ("flagged cells", flags),
@@ -209,6 +251,10 @@ def main():
                                                       ("matrix tolerance", max(worst_code, worst_world) > TOLERANCE),
                                                       ("python cross-check", worst_py > 1e-9),
                                                       ("full-scene python check", max(worst_all_local, worst_all_world) > TOLERANCE)) if bad))
+    if not v6_ok:
+        print("  failed: v6 sheets 21-23")
+    if not v7_ok:
+        print("  failed: v7 sheets 24-27")
     print("RESULT:", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

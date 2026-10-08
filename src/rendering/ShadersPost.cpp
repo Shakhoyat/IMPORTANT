@@ -35,6 +35,12 @@ uniform vec2 uResolution;
 uniform vec3 uMoonDir;       // direction the moonlight travels
 uniform vec3 uFogColor;
 uniform float uRain;          // overcast: clouds close, stars and moon glow fade
+// v6 time of day (DayCycle -> Atmosphere)
+uniform float uDay;           // 0 night .. 1 day: weight of daySky()
+uniform float uNight;         // stars, Milky Way
+uniform vec3 uSunDir;         // direction sunlight travels
+uniform vec3 uSunColor;       // disc / halo radiance (0 with the sun below the horizon)
+uniform float uTwilight;      // warm horizon band around sunrise / sunset
 layout(location = 0) out vec4 FragColor;
 
 vec3 stars(vec3 dir, float scale, float threshold, float gain) {
@@ -95,7 +101,7 @@ vec3 nightSky(vec3 dir) {
         float dust = fbm(bp * 2.0) * (0.55 + 0.45 * fbm(bp * 6.0 + 4.0));
         float lane = smoothstep(0.42, 0.62, fbm(bp * 3.0 + 11.0)) * band;                  // dark lanes cut the band
         vec3 mwCol = mix(vec3(0.020, 0.024, 0.036), vec3(0.030, 0.026, 0.022), smoothstep(0.35, 0.7, fbm(bp + 20.0)));
-        c += mwCol * band * dust * (1.0 - 0.75 * lane) * horizonFade * clear;
+        c += mwCol * band * dust * (1.0 - 0.75 * lane) * horizonFade * clear * uNight;
 
         // Clouds. Cumulus (lower, broken) and cirrus (high, thin), drifting; denser in rain.
         float cover = 0.06 + 0.22 * uRain;
@@ -122,11 +128,57 @@ vec3 nightSky(vec3 dir) {
 
         // Stars fade near the horizon, near the moon and behind clouds
         float vis = smoothstep(0.02, 0.22, up) * (1.0 - smoothstep(0.94, 0.995, cosMoon)) * (1.0 - uRain) * (1.0 - cloudAlpha);
-        c += (stars(dir, 170.0, 0.975, 0.9) + stars(dir, 60.0, 0.992, 3.5) + band * stars(dir, 320.0, 0.94, 0.25)) * vis;
+        c += (stars(dir, 170.0, 0.975, 0.9) + stars(dir, 60.0, 0.992, 3.5) + band * stars(dir, 320.0, 0.94, 0.25)) * vis * uNight;
         c = mix(c, cloudLight, cloudAlpha);
     }
     c = mix(c, uFogColor, smoothstep(0.08, -0.05, up));   // horizon haze meets the fog colour
     c += (hash21(gl_FragCoord.xy) - 0.5) * 0.0008;         // dither: no banding in the dark gradient
+    return max(c, vec3(0.0));
+}
+
+// Day sky: Rayleigh-like blue gradient, Mie aureole and disc of the sun, twilight band, and the drifting
+// cumulus layer (cloudDensity, the same field that casts the cloud shadows on the ground).
+vec3 daySky(vec3 dir) {
+    vec3 toSun = normalize(-uSunDir);
+    float up = dir.y;
+    float cosS = dot(dir, toSun);
+    float bright = mix(0.03, 1.0, smoothstep(-0.10, 0.20, toSun.y));     // the whole dome dims at sunset
+    vec3 zenith = vec3(0.10, 0.22, 0.52), horizon = vec3(0.55, 0.66, 0.80);
+    float hz = pow(1.0 - clamp(up, 0.0, 1.0), 4.0);
+    vec3 c = mix(zenith, horizon, hz) * bright * (1.0 - 0.4 * uRain);
+    c += uSunColor * (0.06 * pow(max(cosS, 0.0), 8.0) + 0.30 * pow(max(cosS, 0.0), 160.0)) * (1.0 - 0.8 * uRain);   // aureole
+    vec2 sideXZ = normalize(dir.xz + 1e-5), sunXZ = normalize(toSun.xz + 1e-5);
+    float side = pow(max(dot(sideXZ, sunXZ), 0.0), 2.0);
+    c += uTwilight * exp(-max(up, 0.0) * 5.0) * (vec3(0.90, 0.38, 0.12) * (0.25 + 0.75 * side) + vec3(0.10, 0.06, 0.14)) * 0.8;
+    c += uSunColor * 40.0 * smoothstep(0.99994, 0.99997, cosS) * (1.0 - uRain);              // disc (~0.5 deg)
+    if (up > 0.0) {
+        // Cumulus layer: the shared cloudDensity field (it casts the ground's cloud shadows) plus two zero-mean
+        // detail octaves that erode the edges, faded out where the pixel footprint would alias them.
+        float t = (kCloudAltitude - uCamPos.y) / max(up, 0.03);
+        vec2 q = uCamPos.xz + dir.xz * t;
+        vec2 cp = (q + kCloudWind * uTime) * kCloudScale;                   // noise coordinates of the layer
+        float fw = length(fwidth(cp));                                      // noise cells per pixel
+        float detail = 1.0 - smoothstep(0.012, 0.05, fw);
+        float n = fbm(cp) + detail * (0.11 * (valueNoise(cp * 8.3 + 5.1) - 0.5) + 0.05 * (valueNoise(cp * 17.9 + 2.7) - 0.5));
+        float soft = 0.015 + 1.5 * fw;                                      // wider edge where cells shrink
+        float d = smoothstep(kCloudLo - soft, kCloudHi + soft, n);
+        // Light reaching this point of the layer: optical depth of three samples towards the sun (Beer-Lambert),
+        // "powder" darkening of thick cores, Henyey-Greenstein forward lobe for the silver linings.
+        float od = 0.0;
+        for (int k = 1; k <= 3; ++k) od += cloudDensity(q + sunXZ * (9.0 * float(k * k)), uTime) * (1.0 / float(k));
+        float sunT = exp(-0.9 * od - 0.6 * d);
+        float powder = 1.0 - 0.55 * exp(-4.0 * d);
+        float g = 0.62, hg = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosS, 1.5);   // 0.15 back .. 11 forward
+        float thin = (1.0 - d) * (1.0 - d);
+        vec3 skyAmb = mix(zenith, horizon, 0.45) * bright * (1.25 - 0.45 * d);           // blue sky light from above
+        vec3 baseTint = vec3(0.56, 0.59, 0.64) * bright * (0.55 + 0.45 * (1.0 - d));     // darker, greyer bases
+        vec3 cloud = baseTint * 0.55 + skyAmb * 0.55
+                   + uSunColor * (0.30 * sunT * powder + 0.075 * hg * thin * (0.35 + 0.65 * sunT));
+        cloud = mix(cloud, horizon * bright, 1.0 - exp(-t / 5200.0));                    // aerial perspective
+        float alpha = smoothstep(0.0, 0.5, d) * (0.6 + 0.35 * d) * smoothstep(0.015, 0.14, up);   // wispy, translucent rims
+        c = mix(c, cloud * (1.0 - 0.3 * uRain), alpha);
+    }
+    c = mix(c, uFogColor, smoothstep(0.06, -0.04, up));                    // horizon haze meets the fog colour
     return max(c, vec3(0.0));
 }
 
@@ -139,10 +191,13 @@ void main() {
         float h = 0.03 + 0.06 * (1.0 - smoothstep(-0.05, 0.6, up)) + 0.02 * uRain;
         FragColor = vec4(h, h, h, 1.0);
     } else if (uViewMode == 1 && uHdr == 1) {
-        FragColor = vec4(nightSky(dir), 1.0);
+        vec3 c = nightSky(dir);
+        if (uDay > 0.0) c = mix(c, daySky(dir), uDay);
+        FragColor = vec4(c, 1.0);
     } else if (uViewMode == 1) {
         vec3 c = mix(vec3(0.030, 0.038, 0.065), vec3(0.004, 0.006, 0.016), smoothstep(0.0, 0.7, up));
-        c += stars(dir, 110.0, 0.985, 1.0) * step(0.08, up);
+        c += stars(dir, 110.0, 0.985, 1.0) * step(0.08, up) * uNight;
+        if (uDay > 0.0) c = mix(c, vec3(1.0) - exp(-1.25 * daySky(dir)), uDay);   // v1 look: tone-mapped in place
         FragColor = vec4(c, 1.0);
     } else if (uViewMode == 2) {
         FragColor = vec4(mix(vec3(0.075, 0.08, 0.09), vec3(0.03, 0.035, 0.045), smoothstep(-0.2, 0.8, up)), 1.0);
@@ -247,6 +302,7 @@ uniform sampler2DShadow uSpotShadow;
 uniform mat4 uSpotVP;
 uniform int uSpotShadowOn;
 uniform int uMoonShafts;
+uniform float uHaloScale;      // v8: lamp halos in the mist (1 night .. ~0.1 in daylight: sunlit haze swamps them)
 out vec4 Fog;
 
 // Practical lights (lamps, fire, floodlight, explosion flashes): up to 16.
@@ -358,7 +414,7 @@ void main() {
             if (k >= uPracticalCount) break;
             if (abs(uPracticalColor[k].w - inside) > 0.5) continue;
             vec3 Lk;
-            light += uPracticalColor[k].rgb * practicalAttenuation(k, p, Lk) * 0.12;
+            light += uPracticalColor[k].rgb * practicalAttenuation(k, p, Lk) * (0.12 * uHaloScale);
         }
         float ext = exp(-sigma * stepLen);
         inscatter += trans * light * (1.0 - ext);   // energy-conserving single scattering step

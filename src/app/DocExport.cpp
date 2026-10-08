@@ -10,6 +10,11 @@
 #include <vector>
 
 #include "ai/DroneController.h"
+#include "ai/Squad.h"
+#include "objects/Launchers.h"
+#include "scene/Mission.h"
+#include "vision/CvPipeline.h"
+#include "vision/MultiTracker.h"
 #include "objects/AaGun.h"
 #include "objects/Base.h"
 #include "objects/BaseLayout.h"
@@ -24,7 +29,17 @@
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
 #include "primitives/Sphere.h"
+#include "scene/DayCycle.h"
+#include "scene/Gait.h"
+#include "scene/HudMath.h"
+#include "scene/Garrison.h"
 #include "scene/Scene.h"
+#include "vision/SensorModel.h"
+#include "math/ExplorerMath.h"     // v7 WP-W: Frame Explorer stage table + worked examples
+#include "raytrace/RayTracer.h"    // v7 WP-W: RT modes, trace settings, emitter power
+#include "raytrace/SceneBridge.h"  // v7 WP-W: BVH statistics of the camp
+#include "scene/CameraRig.h"       // v7 WP-W: camera blend constants
+#include "scene/Pov.h"             // v7 WP-W: possessable / POV sources
 
 namespace ts {
 
@@ -168,7 +183,7 @@ void writePrimitives(std::ostream& o, const std::vector<PrimInfo>& prims, std::m
     int next = static_cast<int>(prims.size()) + 1;
     for (const auto& kv : uses) {
         if (known.count(kv.first) || kv.first == PrimitiveType::None) continue;
-        char id[8];
+        char id[16];
         std::snprintf(id, sizeof(id), "P%02d", next++);
         std::ostringstream e;
         e << "    {\"id\": \"" << id << "\", \"type\": \"" << primitiveName(kv.first)
@@ -266,6 +281,20 @@ std::vector<Spec> specsFor(Controllable* c) {
              sp("reload time", Tank::kReload, "s"), sp("muzzle speed", Tank::kMuzzleSpeed, "m/s"),
              sp("recoil distance", Tank::kRecoilDistance, "m"), sp("recoil return time", Tank::kRecoilReturn, "s"),
              sp("start rounds", Tank::kStartRounds, "rounds")};
+    } else if (dynamic_cast<SamLauncher*>(c)) {
+        s = {sp("canisters", SamLauncher::kCanisters, "canisters"), sp("elevation min", SamLauncher::kElevMinDeg, "deg"),
+             sp("elevation max", SamLauncher::kElevMaxDeg, "deg"), sp("default elevation", SamLauncher::kDefaultElevDeg, "deg"),
+             sp("azimuth limit +-", SamLauncher::kAzLimitDeg, "deg"), sp("elevation rate", SamLauncher::kElevRate, "deg/s"),
+             sp("elevation accel", SamLauncher::kElevAccel, "deg/s2"), sp("azimuth rate", SamLauncher::kAzRate, "deg/s"),
+             sp("azimuth accel", SamLauncher::kAzAccel, "deg/s2"), sp("reload per canister", SamLauncher::kReloadSeconds, "s"),
+             sp("min fire elevation", SamLauncher::kMinFireElevDeg, "deg"), sp("round life", SamLauncher::kRoundLife, "s")};
+    } else if (dynamic_cast<MlrsTruck*>(c)) {
+        s = {sp("tube columns", MlrsTruck::kColumns, "tubes"), sp("tube rows", MlrsTruck::kRows, "tubes"),
+             sp("tubes", MlrsTruck::kTubes, "tubes"), sp("elevation min", MlrsTruck::kElevMinDeg, "deg"),
+             sp("elevation max", MlrsTruck::kElevMaxDeg, "deg"), sp("azimuth limit +-", MlrsTruck::kAzLimitDeg, "deg"),
+             sp("elevation rate", MlrsTruck::kElevRate, "deg/s"), sp("azimuth rate", MlrsTruck::kAzRate, "deg/s"),
+             sp("ripple interval", MlrsTruck::kRippleInterval, "s"), sp("reload after last tube", MlrsTruck::kReloadSeconds, "s"),
+             sp("rocket pool", MlrsTruck::kRocketPool, "rockets"), sp("rocket life", MlrsTruck::kRocketLife, "s")};
     } else if (dynamic_cast<AaGun*>(c)) {
         s = {sp("barrels", AaGun::kBarrels, "barrels"), sp("elevation min", AaGun::kPitchMinDeg, "deg"),
              sp("elevation max", AaGun::kPitchMaxDeg, "deg"), sp("slew rate", AaGun::kSlewDeg, "deg/s"),
@@ -317,6 +346,8 @@ std::string camJson(const CameraHint& h) {
 void writeControllables(std::ostream& o, Scene& scene) {
     o << "  \"controllables\": [\n";
     const auto& list = scene.controllables();
+    std::vector<Controllable*> rawList;
+    for (const auto& u : list) rawList.push_back(u.get());
     for (size_t i = 0; i < list.size(); ++i) {
         Controllable* c = list[i].get();
         SceneNode* r = c->root();
@@ -326,7 +357,8 @@ void writeControllables(std::ostream& o, Scene& scene) {
         if (r) collectAnimated(*r, anim);
         char key = '-';
         const int slot = slotOfName(c->name());
-        if (slot >= 0) key = slotInfo(static_cast<Slot>(slot)).key;
+        if (slot >= 0 && resolveSlot(rawList, static_cast<Slot>(slot)) == static_cast<int>(i))
+            key = slotInfo(static_cast<Slot>(slot)).key;
         const Vec3 p = c->position();
         o << "    {\"index\": " << i << ", \"key\": \"" << key << "\", \"name\": \"" << esc(c->name())
           << "\", \"controls\": \"" << esc(c->controls()) << "\", \"possessable\": " << (c->possessable() ? "true" : "false")
@@ -335,7 +367,7 @@ void writeControllables(std::ostream& o, Scene& scene) {
           << ", \"groups\": " << cn.groups << ", \"animated_nodes\": " << cn.animated << ", \"primitives\": " << primJson(cn)
           << ", \"position\": " << vec(p) << ", \"status\": \"" << esc(c->status())
           << "\", \"camera_chase\": " << camJson(c->camera(false)) << ", \"camera_sight\": " << camJson(c->camera(true))
-          << ", \"dynamic_obstacles\": " << c->dynamicObstacles().size() << ",\n      \"specs\": " << specsJson(specsFor(c))
+          << ", \"moves\": " << (c->moves() ? "true" : "false") << ", \"dynamic_obstacles\": " << c->dynamicObstacles().size() << ",\n      \"specs\": " << specsJson(specsFor(c))
           << ",\n      \"moving_parts\": [";
         for (size_t k = 0; k < anim.size(); ++k)
             o << (k ? ", " : "") << "{\"id\": \"" << esc(exportId(*anim[k])) << "\", \"name\": \"" << esc(anim[k]->name)
@@ -560,6 +592,451 @@ void writeSimulation(std::ostream& o) {
     o << "]},\n";
 }
 
+// ---- v5: squad, mission, tracker, CV, armour --------------------------------------------------------------
+std::string kv(const char* k, float v, const char* unit, const char* src) {
+    return std::string("{\"key\": \"") + k + "\", \"value\": " + numShort(v) + ", \"unit\": \"" + unit + "\", \"source\": \"" +
+           src + "\"}";
+}
+
+void writeV5(std::ostream& o, Scene& scene) {
+    MultiTracker mt;   // default member values = the live tracker's parameters
+    CvConfig cv;
+    o << "  \"v5\": {\n    \"squad\": [\n      "
+      << kv("kSquadLeadLock", kSquadLeadLock, "s", "Squad.h") << ",\n      " << kv("kSquadWingLock", kSquadWingLock, "s", "Squad.h") << ",\n      "
+      << kv("kSquadSoloLock", kSquadSoloLock, "s", "Squad.h") << ",\n      " << kv("kSquadWingWait", kSquadWingWait, "s", "Squad.h") << ",\n      "
+      << kv("kSquadStandOff", kSquadStandOff, "m", "Squad.h") << ",\n      " << kv("kSquadEngageAlt", kSquadEngageAlt, "m", "Squad.h") << ",\n      "
+      << kv("kSquadPatrolAlt", kSquadPatrolAlt, "m", "Squad.h") << ",\n      " << kv("kSquadReacquireTime", kSquadReacquireTime, "s", "Squad.h") << ",\n      "
+      << kv("Squad::kCount", static_cast<float>(Squad::kCount), "UAVs", "Squad.h") << "\n    ],\n";
+    o << "    \"flight_time\": [";
+    const float ds[] = {2, 4, 6, 8, 10, 12, 14, 16, 20, 25, 30, 40};
+    for (size_t i = 0; i < sizeof(ds) / sizeof(ds[0]); ++i)
+        o << (i ? ", " : "") << "{\"d\": " << ds[i] << ", \"t\": " << numShort(roundFlightTime(ds[i])) << "}";
+    o << "],\n    \"flight_model\": {\"launch_speed\": 8, \"accel\": 130, \"ramp_time\": 0.4, \"cruise_speed\": 60, \"fuse_m\": 0.5, \"source\": \"Squad.cpp roundFlightTime comment\"},\n";
+    o << "    \"mission\": [\n      "
+      << kv("kKillScore", kKillScore, "points", "Mission.h") << ",\n      " << kv("kCombinedBonus", kCombinedBonus, "points", "Mission.h") << ",\n      "
+      << kv("kBreachDamage", kBreachDamage, "% integrity", "Mission.h") << ",\n      " << kv("kSpawnInterval", kSpawnInterval, "s", "Mission.h") << ",\n      "
+      << kv("kWaveBreak", kWaveBreak, "s", "Mission.h") << ",\n      " << kv("kFirstWaveDelay", kFirstWaveDelay, "s", "Mission.h") << ",\n      "
+      << kv("kMaxRovers", static_cast<float>(layout::kMaxRovers), "slots", "BaseLayout.h") << ",\n      "
+      << kv("kRoverCount", static_cast<float>(layout::kRoverCount), "rovers", "BaseLayout.h") << ",\n      "
+      << kv("kSpawnRadius", layout::kSpawnRadius, "m", "BaseLayout.h") << ",\n      " << kv("kBreachRadius", layout::kBreachRadius, "m", "BaseLayout.h") << "\n    ],\n";
+    o << "    \"objectives\": [";
+    const auto objs = Mission::objectives();
+    for (size_t i = 0; i < objs.size(); ++i) o << (i ? ", " : "") << vec(objs[i]);
+    o << "],\n    \"tracker\": [\n      "
+      << kv("gateChi2", mt.gateChi2, "chi2 (2 dof, 99 %)", "MultiTracker.h") << ",\n      " << kv("accelNoise", mt.accelNoise, "m/s2", "MultiTracker.h") << ",\n      "
+      << kv("confirmHits", static_cast<float>(mt.confirmHits), "hits", "MultiTracker.h") << ",\n      " << kv("coastAfter", mt.coastAfter, "s", "MultiTracker.h") << ",\n      "
+      << kv("deleteAfter", mt.deleteAfter, "s", "MultiTracker.h") << ",\n      " << kv("mergeDistance", mt.mergeDistance, "m", "MultiTracker.h") << "\n    ],\n";
+    o << "    \"cv\": [\n      "
+      << kv("floor", cv.floor, "8-bit level (0.80)", "CvPipeline.h") << ",\n      " << kv("core", cv.core, "8-bit level (0.90)", "CvPipeline.h") << ",\n      "
+      << kv("minArea", static_cast<float>(cv.minArea), "px", "CvPipeline.h") << ",\n      " << kv("maxArea", static_cast<float>(cv.maxArea), "px", "CvPipeline.h") << ",\n      "
+      << kv("maxElongation", cv.maxElongation, "major/minor", "CvPipeline.h") << ",\n      " << kv("despeckle", cv.despeckle ? 1.0f : 0.0f, "bool", "CvPipeline.h") << ",\n      "
+      << kv("kCvWidth", static_cast<float>(kCvWidth), "px", "DroneController.h") << ",\n      " << kv("kCvHeight", static_cast<float>(kCvHeight), "px", "DroneController.h") << ",\n      "
+      << kv("kCvFovYDeg", kCvFovYDeg, "deg", "DroneController.h") << "\n    ],\n";
+    o << "    \"armour\": [\n      " << kv("kRoverHealth", kRoverHealth, "HP", "Scene.h") << ",\n      " << kv("kRoundDamage", kRoundDamage, "HP at centre of a power-1 blast (half at the edge)", "Scene.h")
+      << ",\n      " << kv("kUavReloadTime", kUavReloadTime, "s", "Scene.h") << ",\n      " << kv("kUavCount", static_cast<float>(kUavCount), "UAVs", "Scene.h") << "\n    ],\n";
+    o << "    \"uavs\": [";
+    for (int i = 0; i < kUavCount; ++i) {
+        const DroneState& d = scene.droneState(i);
+        Counts cn;
+        countNode(*scene.uav(i).root, cn);
+        o << (i ? ", " : "") << "{\"index\": " << i << ", \"position\": " << vec(d.position) << ", \"yaw_deg\": " << d.yawDeg
+          << ", \"role\": \"" << squadRoleName(scene.squad().roles[i]) << "\", \"parts\": " << cn.leaves << ", \"owner_id\": "
+          << (i == 0 ? kDroneOwner : 10) << ", \"rounds_ready\": " << scene.roundsReady(i) << "}";
+    }
+    o << "],\n    \"intruder_slots\": " << scene.intruders().size() << ",\n    \"controllables_total\": " << scene.controllables().size()
+      << ",\n    \"mission_initial\": {\"wave\": " << scene.mission().state().wave << ", \"integrity\": " << scene.mission().state().integrity << "}\n  },\n";
+}
+
+// ---- v6: day cycle grid, garrison, gait, sensor model, random routes, seeds (keys: docs/v6_notes/wp-e.md) ----------
+const char* eventTypeName(GameEventType t) {
+    switch (t) {
+        case GameEventType::Dusk: return "Dusk";
+        case GameEventType::NightFalls: return "NightFalls";
+        case GameEventType::Dawn: return "Dawn";
+        case GameEventType::DayBreak: return "DayBreak";
+        case GameEventType::ShiftChange: return "ShiftChange";
+        case GameEventType::Withdraw: return "Withdraw";
+        default: return "other";
+    }
+}
+
+float luma(const Vec3& c) { return 0.2126f * c.x + 0.7152f * c.y + 0.0722f * c.z; }
+
+void writeDayCycle(std::ostream& o) {
+    const DayCycleConfig cfg;
+    o << "    \"day_cycle\": {\n      \"config\": {\"latitude_deg\": " << numShort(cfg.latitudeDeg) << ", \"declination_deg\": "
+      << numShort(cfg.declinationDeg) << ", \"day_sec_per_hour\": " << numShort(cfg.daySecPerHour) << ", \"night_sec_per_hour\": "
+      << numShort(cfg.nightSecPerHour) << ", \"twilight_slow\": " << numShort(cfg.twilightSlow) << ", \"scrub_hours_per_sec\": "
+      << numShort(cfg.scrubHoursPerSec) << ", \"shadow_quant_deg\": " << numShort(cfg.shadowQuantDeg) << ", \"cycle_seconds\": "
+      << numShort(DayCycle::cycleSeconds(cfg)) << ", \"night_below_deg\": " << numShort(kNightBelowDeg) << ", \"day_above_deg\": "
+      << numShort(kDayAboveDeg) << ", \"beams_below_deg\": " << numShort(kBeamsBelowDeg) << ", \"sun_intensity\": "
+      << numShort(kSunIntensity) << ", \"day_exposure_key_log2\": " << numShort(kDayExposureKeyLog2) << ", \"solar_gain\": "
+      << numShort(kSolarGain) << ", \"cloud_altitude_m\": " << numShort(kCloudAltitude) << ", \"cloud_coverage\": "
+      << numShort(kCloudCoverage) << ", \"sunrise\": " << numShort(DayCycle::hourAtElevation(0.0f, true, cfg)) << ", \"sunset\": "
+      << numShort(DayCycle::hourAtElevation(0.0f, false, cfg)) << "},\n";
+    // Phase crossings of one manual sweep through the day.
+    o << "      \"events\": [";
+    {
+        DayCycle c(0.0f, false, cfg);
+        std::vector<GameEvent> ev;
+        bool first = true;
+        for (int k = 1; k <= 24 * 60; ++k) {
+            ev.clear();
+            c.setHour(static_cast<float>(k) / 60.0f);
+            c.update(0.0f, ev, 0.0f);
+            for (const GameEvent& e : ev) {
+                if (std::string(eventTypeName(e.type)) == "other") continue;
+                o << (first ? "" : ", ") << "{\"hour\": " << numShort(c.hour()) << ", \"event\": \"" << eventTypeName(e.type) << "\"}";
+                first = false;
+            }
+        }
+    }
+    o << "],\n      \"grid\": [\n";
+    for (int i = 0; i <= 96; ++i) {
+        const float hour = 0.25f * static_cast<float>(i);
+        DayCycle c(std::fmod(hour, 24.0f), false, cfg);
+        LightRig L;
+        c.applyTo(L);
+        const Atmosphere& a = L.atmo;
+        // Mean cloud shadow over the camp (9 x 9 points, +-30 m) at t = 0; 1 when the sun is down.
+        float shadow = 0.0f;
+        for (int gz = 0; gz < 9; ++gz)
+            for (int gx = 0; gx < 9; ++gx)
+                shadow += c.keyIsSun() ? cloudShadow({-30.0f + 7.5f * gx, 0.0f, -30.0f + 7.5f * gz}, c.towardSun(), 0.0f) : 1.0f;
+        shadow /= 81.0f;
+        o << "        {\"hour\": " << numShort(hour) << ", \"clock\": \"" << formatClock(hour) << "\", \"phase\": \"" << c.phaseName()
+          << "\", \"elevation_deg\": " << numShort(c.sunElevationDeg()) << ", \"azimuth_deg\": " << numShort(c.sunAzimuthDeg())
+          << ", \"daylight\": " << numShort(c.daylight()) << ", \"key_is_sun\": " << (c.keyIsSun() ? "true" : "false")
+          << ", \"key_intensity\": " << numShort(L.moon.intensity) << ", \"key_color\": " << vec(L.moon.color)
+          << ", \"key_dir\": " << vec(L.moon.direction) << ", \"ambient\": " << vec(L.ambient) << ", \"ambient_luma\": "
+          << numShort(luma(L.ambient)) << ", \"sky_zenith\": " << vec(a.skyZenith) << ", \"fog_color\": " << vec(a.fogColor)
+          << ", \"fog_density\": " << numShort(a.fogDensity) << ", \"vol_fog_density\": " << numShort(a.volFogDensity)
+          << ", \"exposure_key_log2\": " << numShort(a.exposureKeyLog2) << ", \"purkinje\": " << numShort(a.purkinje)
+          << ", \"solar\": " << numShort(a.solar) << ", \"practical_scale\": " << numShort(a.practicalScale)
+          << ", \"beams_on\": " << (c.beamsOn() ? "true" : "false") << ", \"waves_allowed\": " << (c.wavesAllowed() ? "true" : "false")
+          << ", \"cloud_shadow_mean\": " << numShort(shadow) << "}" << (i < 96 ? ",\n" : "\n");
+    }
+    o << "      ]\n    },\n";
+}
+
+std::string gaitJson(const GaitParams& g) {
+    return "{\"speed\": " + numShort(g.speed) + ", \"stride\": " + numShort(g.stride) + ", \"duty\": " + numShort(g.duty) +
+           ", \"lift\": " + numShort(g.lift) + ", \"bob\": " + numShort(g.bob) + ", \"arm_swing_deg\": " + numShort(g.armSwingDeg) +
+           ", \"thigh\": " + numShort(g.thigh) + ", \"shin\": " + numShort(g.shin) + ", \"hip_height\": " + numShort(g.hipHeight) +
+           ", \"cadence_steps_per_min\": " + numShort(g.stride > 0.0f ? 120.0f * g.speed / g.stride : 0.0f) + "}";
+}
+
+void writeGarrison(std::ostream& o, Scene& scene) {
+    const Garrison* g = scene.garrison();
+    const auto& list = scene.controllables();
+    o << "    \"garrison\": {\n      \"count\": " << (g ? g->count() : 0) << ", \"route_lengths_m\": [";
+    if (g) {
+        const std::vector<float> rl = g->routeLengths();
+        for (size_t i = 0; i < rl.size(); ++i) o << (i ? ", " : "") << numShort(rl[i]);
+    }
+    o << "],\n      \"routes\": [";
+    if (g) {
+        const std::vector<CatmullRomPath>& routes = g->routes();
+        for (size_t i = 0; i < routes.size(); ++i) {
+            const CatmullRomPath& r = routes[i];
+            float maxK = 0.0f;
+            for (float d = 0.0f; d < r.length(); d += 0.25f) maxK = std::max(maxK, r.curvatureAtDistance(d));
+            o << (i ? ", " : "") << "{\"index\": " << i << ", \"length_m\": " << numShort(r.length()) << ", \"closed\": "
+              << (r.closed() ? "true" : "false") << ", \"control_points\": " << r.points().size() << ", \"segments\": " << r.segments()
+              << ", \"max_curvature\": " << numShort(maxK) << ", \"min_clearance_m\": " << numShort(g->planner().minClearance(r)) << "}";
+        }
+    }
+    o << "],\n      \"soldiers\": [";
+    for (int i = 0; g && i < g->count(); ++i) {
+        const Controllable* c = g->soldier(i);
+        if (!c) continue;
+        int index = -1;
+        for (size_t k = 0; k < list.size(); ++k)
+            if (list[k].get() == c) index = static_cast<int>(k);
+        Counts cn;
+        if (SceneNode* r = const_cast<Controllable*>(c)->root()) countNode(*r, cn);
+        o << (i ? ",\n        " : "\n        ") << "{\"index\": " << i << ", \"name\": \"" << esc(c->name()) << "\", \"controllable_index\": "
+          << index << ", \"roster_day\": \"" << esc(g->roster(i, true)) << "\", \"roster_night\": \"" << esc(g->roster(i, false))
+          << "\", \"position\": " << vec(c->position()) << ", \"parts\": " << cn.leaves << ", \"groups\": " << cn.groups
+          << ", \"primitives\": " << primJson(cn) << ", \"friendly_radius\": " << numShort(c->friendlyRadius()) << ", \"status\": \""
+          << esc(c->status()) << "\"}";
+    }
+    o << "],\n      \"joints\": [";
+    if (g && g->soldier(0))
+        if (SceneNode* r = const_cast<Controllable*>(g->soldier(0))->root()) {
+            bool first = true;
+            std::function<void(const SceneNode&, int)> walk = [&](const SceneNode& n, int depth) {
+                o << (first ? "\n        " : ",\n        ") << "{\"id\": \"" << esc(n.id) << "\", \"name\": \"" << esc(n.name) << "\", \"parent\": \""
+                  << (n.parent && depth > 0 ? esc(n.parent->name) : std::string("World")) << "\", \"depth\": " << depth << ", \"primitive\": \""
+                  << (n.isLeaf() ? primitiveName(n.primitive) : "group") << "\", \"animation\": \"" << esc(n.animation) << "\"}";
+                first = false;
+                for (const auto& ch : n.children) walk(*ch, depth + 1);
+            };
+            walk(*r, 0);
+        }
+    const GaitParams walkP = GaitParams::walk(), runP = GaitParams::run();
+    o << "],\n      \"gait\": {\"walk\": " << gaitJson(walkP) << ", \"run\": " << gaitJson(runP) << ",\n        \"cycle\": [";
+    for (int k = 0; k <= 32; ++k) {
+        const float ph = static_cast<float>(k) / 32.0f;
+        const Pose p = gaitPose(walkP, ph);
+        float fx = 0.0f, fy = 0.0f;
+        footInPelvis(walkP, ph, 0, fx, fy);
+        o << (k ? ",\n          " : "\n          ") << "{\"phase\": " << numShort(ph) << ", \"hip_l\": " << numShort(p.hip[0]) << ", \"knee_l\": "
+          << numShort(p.knee[0]) << ", \"ankle_l\": " << numShort(p.ankle[0]) << ", \"hip_r\": " << numShort(p.hip[1]) << ", \"knee_r\": "
+          << numShort(p.knee[1]) << ", \"shoulder_l\": " << numShort(p.shoulder[0]) << ", \"shoulder_r\": " << numShort(p.shoulder[1])
+          << ", \"elbow_l\": " << numShort(p.elbow[0]) << ", \"spine_yaw\": " << numShort(p.spineYaw) << ", \"pelvis_y\": "
+          << numShort(p.pelvisY) << ", \"foot_x_l\": " << numShort(fx) << ", \"foot_y_l\": " << numShort(fy) << "}";
+    }
+    o << "]}\n    },\n";
+}
+
+void writeSensor(std::ostream& o) {
+    const SensorNoiseConfig n;
+    const CvConfig cv;
+    o << "    \"sensor\": [\n      " << kv("netdDn", n.netdDn, "DN (8-bit)", "SensorModel.h") << ",\n      "
+      << kv("fpnGainSigma", n.fpnGainSigma, "gain", "SensorModel.h") << ",\n      " << kv("fpnOffsetSigma", n.fpnOffsetSigma, "DN", "SensorModel.h")
+      << ",\n      " << kv("columnSigma", n.columnSigma, "DN", "SensorModel.h") << ",\n      " << kv("psf", n.psf ? 1.0f : 0.0f, "bool (3x3 binomial)", "SensorModel.h")
+      << ",\n      " << kv("jitterDeg", n.jitterDeg, "deg (1 sigma)", "SensorModel.h") << ",\n      " << kv("dropProb", n.dropProb, "per frame", "SensorModel.h")
+      << ",\n      " << kv("stuckFrac", n.stuckFrac, "of pixels", "SensorModel.h") << ",\n      " << kv("nucResidual", n.nucResidual, "of the fixed pattern", "SensorModel.h")
+      << ",\n      " << kv("cvFloor", cv.floor, "8-bit level", "CvPipeline.h") << ",\n      " << kv("cvCore", cv.core, "8-bit level", "CvPipeline.h")
+      << "\n    ],\n    \"sensor_sweep\": \"build/figdata_out/cv_noise.json\",\n";
+}
+
+void writeRoutesAndSeeds(std::ostream& o) {
+    o << "    \"random_routes\": [\n      " << kv("kSpawnJitter", kSpawnJitter, "m", "Mission.h") << ",\n      "
+      << kv("kNorthGapDeg", kNorthGapDeg, "deg", "Mission.h") << ",\n      " << kv("kViaSectorDeg", kViaSectorDeg, "deg", "Mission.h")
+      << ",\n      " << kv("kViaMinR", kViaMinR, "m", "Mission.h") << ",\n      " << kv("kViaMaxR", kViaMaxR, "m", "Mission.h")
+      << ",\n      " << kv("kMaxVia", static_cast<float>(kMaxVia), "via points", "Mission.h") << ",\n      "
+      << kv("kSwitchProbability", kSwitchProbability, "probability", "Mission.h") << ",\n      "
+      << kv("kSwitchMinS", kSwitchMinS, "s", "Mission.h") << ",\n      " << kv("kSwitchMaxS", kSwitchMaxS, "s", "Mission.h") << "\n    ],\n";
+    // Example run seed 42: the derived streams (1 mission, 2 combat, 3 squad, 4 garrison, 101 / 102 UAV sensors) and the
+    // squad's randomised patrols.
+    const uint32_t base = 42u;
+    const std::pair<const char*, uint32_t> streams[] = {{"mission", 1u}, {"combat", 2u}, {"squad", 3u}, {"garrison", 4u},
+                                                        {"sensor UAV-1", 100u}, {"sensor UAV-2", 101u}};
+    o << "    \"seeds\": {\"example_base\": " << base << ", \"streams\": [";
+    for (size_t i = 0; i < sizeof(streams) / sizeof(streams[0]); ++i)
+        o << (i ? ", " : "") << "{\"name\": \"" << streams[i].first << "\", \"stream\": " << streams[i].second << ", \"seed\": "
+          << deriveSeed(base, streams[i].second) << "}";
+    o << "], \"patrols\": [";
+    Scene seeded(SceneOptions::v6(base, 23.0f, false));
+    for (int i = 0; i < kUavCount; ++i) {
+        const PatrolParams& p = seeded.squad().patrolParams(i);
+        o << (i ? ", " : "") << "{\"uav\": " << i << ", \"base_radius\": " << numShort(p.baseRadius) << ", \"amplitude\": "
+          << numShort(p.amplitude) << ", \"breathing\": " << numShort(p.breathing) << ", \"angular_speed\": " << numShort(p.angularSpeed) << "}";
+    }
+    o << "]}\n";
+}
+
+// Key table of the v6 controls (report appendix B) and the F1 help lines, from the same data the program draws.
+void writeKeys(std::ostream& o) {
+    o << "    \"keys\": [";
+    const std::vector<KeyBinding>& k = keyBindingsV6();
+    for (size_t i = 0; i < k.size(); ++i)
+        o << (i ? ", " : "") << "{\"keys\": \"" << esc(k[i].keys) << "\", \"action\": \"" << esc(k[i].action) << "\", \"version\": \""
+          << k[i].version << "\"}";
+    o << "],\n    \"help_lines\": [";
+    const std::vector<HelpLine>& h = helpLines();
+    for (size_t i = 0; i < h.size(); ++i) o << (i ? ", " : "") << "{\"column\": " << h[i].column << ", \"text\": \"" << esc(h[i].text) << "\"}";
+    o << "],\n";
+}
+
+// ---- v7 (WP-W workbook sheets 24-27): ray tracing, Frame Explorer, game camera / POV sources -------------------------------
+// Everything below is read from the same code the program runs (no GL: CPU ray-tracing core, ExplorerMath, Pov, CameraRig).
+const char* lightTypeName(rt::LightType t) {
+    switch (t) {
+        case rt::LightType::Directional: return "Directional";
+        case rt::LightType::Point: return "Point";
+        case rt::LightType::Spot: return "Spot";
+        case rt::LightType::Practical: return "Practical";
+    }
+    return "?";
+}
+
+std::string boxJsonRt(const rt::Aabb& b) { return "{\"min\": " + vecFull(b.lo) + ", \"max\": " + vecFull(b.hi) + "}"; }
+
+// Primitives under a BVH node (sum of its leaves' counts).
+int bvhPrims(const rt::Bvh& b, int i) {
+    const rt::BvhNode& n = b.nodes()[i];
+    return n.leaf() ? n.count : bvhPrims(b, n.leftFirst) + bvhPrims(b, n.leftFirst + 1);
+}
+
+void writeRayTrace(std::ostream& o, const Scene& scene) {
+    o << "    \"raytrace\": {\n      \"modes\": [";
+    for (int i = 0; i < rt::kRtModeCount; ++i) {
+        const rt::RtMode m = static_cast<rt::RtMode>(i);
+        o << (i ? ", " : "") << "{\"index\": " << i << ", \"name\": \"" << rt::rtModeName(m) << "\", \"caption\": \"" << esc(rt::rtModeCaption(m))
+          << "\"}";
+    }
+    const rt::TraceSettings ts;
+    o << "],\n      \"trace_settings\": {\"whitted_depth\": " << ts.whittedDepth << ", \"max_bounces\": " << ts.maxBounces
+      << ", \"rr_start\": " << ts.rrStart << ", \"soft_shadows\": " << (ts.softShadows ? "true" : "false") << ", \"emit_radius_m\": "
+      << numShort(ts.emitRadius) << "},\n";
+    o << "      \"bvh_constants\": {\"traversal_cost\": " << numShort(rt::Bvh::kTraversalCost) << ", \"intersect_cost\": "
+      << numShort(rt::Bvh::kIntersectCost) << ", \"bins\": " << rt::Bvh::kBins << ", \"max_leaf\": " << rt::Bvh::kMaxLeaf
+      << ", \"rebuild_ratio\": " << numShort(rt::SceneBridge::kRebuildRatio) << ", \"heightfield_samples\": "
+      << rt::SceneBridge::kHeightfieldSamples << "},\n";
+    // The camp at t = 0 as the tracers see it: SAH build vs a median-split build over the same bounds.
+    rt::SceneBridge bridge;
+    rt::RtScene rs;
+    bridge.sync(scene, rt::LightOptions{}, rs);
+    const rt::Bvh& b = rs.bvh();
+    std::vector<rt::Aabb> bounds;
+    for (const rt::RtPrim& p : rs.prims) bounds.push_back(rt::shapeBounds(p.shape, p.world));
+    rt::Bvh median;
+    median.buildMedian(bounds);
+    std::map<std::string, int> shapes;
+    int dyn = 0, foliage = 0;
+    for (const rt::RtPrim& p : rs.prims) {
+        ++shapes[rt::shapeName(p.shape)];
+        dyn += (p.flags & rt::kDynamic) ? 1 : 0;
+        foliage += (p.flags & rt::kFoliage) ? 1 : 0;
+    }
+    o << "      \"bvh\": {\"prims\": " << rs.prims.size() << ", \"dynamic_prims\": " << dyn << ", \"foliage_prims\": " << foliage
+      << ", \"shapes\": {";
+    bool first = true;
+    for (const auto& s : shapes) {
+        o << (first ? "" : ", ") << "\"" << s.first << "\": " << s.second;
+        first = false;
+    }
+    o << "}, \"nodes\": " << b.nodes().size() << ", \"leaves\": " << b.leafCount() << ", \"depth\": " << b.depth() << ", \"sah_cost\": "
+      << numShort(b.sahCost()) << ",\n        \"median\": {\"nodes\": " << median.nodes().size() << ", \"leaves\": " << median.leafCount()
+      << ", \"depth\": " << median.depth() << ", \"sah_cost\": " << numShort(median.sahCost()) << "}";
+    if (!b.empty() && !b.nodes()[0].leaf()) {
+        const int l = b.nodes()[0].leftFirst;
+        o << ",\n        \"root_split\": {\"root\": " << boxJsonRt(b.nodes()[0].box) << ", \"n\": " << bvhPrims(b, 0) << ",\n          \"left\": "
+          << boxJsonRt(b.nodes()[l].box) << ", \"n_left\": " << bvhPrims(b, l) << ",\n          \"right\": " << boxJsonRt(b.nodes()[l + 1].box)
+          << ", \"n_right\": " << bvhPrims(b, l + 1) << "}";
+    }
+    // Probe: a 64 x 36 grid of primary rays from the Frame Explorer's default view, BVH vs brute force.
+    const RigPose cam = RigPose::look({-15.0f, 5.2f, 21.0f}, {1.0f, 1.2f, 2.0f}, 52.0f);
+    rt::RtCamera rc;
+    rc.position = cam.eye;
+    rc.forward = cam.forward();
+    rc.right = cam.right();
+    rc.up = cam.up();
+    rc.tanHalfY = std::tan(radians(0.5f * cam.fovDeg));
+    rc.aspect = 16.0f / 9.0f;
+    rt::TraceStats st;
+    int hits = 0, agree = 0, rays = 0;
+    for (int y = 0; y < 36; ++y)
+        for (int x = 0; x < 64; ++x) {
+            const rt::Ray r = rc.primary((x + 0.5f) / 64.0f, (y + 0.5f) / 36.0f);
+            rt::Hit h, hb;
+            const bool a = rs.intersect(r, h, &st), c = rs.intersectBrute(r, hb);
+            ++rays;
+            hits += a ? 1 : 0;
+            agree += (a == c && (!a || std::fabs(h.t - hb.t) < 1e-3f)) ? 1 : 0;
+        }
+    o << ",\n        \"probe\": {\"camera_eye\": " << vec(cam.eye) << ", \"camera_target\": [1, 1.2, 2], \"fov_deg\": " << numShort(cam.fovDeg)
+      << ", \"grid\": [64, 36], \"rays\": " << rays << ", \"hits\": " << hits << ", \"agree_with_brute_force\": " << agree
+      << ", \"node_visits\": " << st.nodeVisits << ", \"prim_tests\": " << st.primTests << "}},\n";
+    // Lights of the night scene as the tracers see them + the light tracer's emitter power (last entry = sky).
+    o << "      \"lights\": [";
+    for (size_t i = 0; i < rs.lights.size(); ++i) {
+        const rt::RtLight& l = rs.lights[i];
+        o << (i ? ",\n        " : "\n        ") << "{\"type\": \"" << lightTypeName(l.type) << "\", \"color\": " << vecFull(l.color)
+          << ", \"position\": " << vec(l.position) << ", \"direction\": " << vec(l.direction) << ", \"linear\": " << numShort(l.linear)
+          << ", \"quadratic\": " << numShort(l.quadratic) << ", \"cos_inner\": " << numShort(l.cosInner) << ", \"cos_outer\": "
+          << numShort(l.cosOuter) << ", \"range\": " << numShort(l.range) << ", \"radius\": " << numShort(l.radius) << "}";
+    }
+    const rt::Tracer tracer(rs);
+    const std::vector<float> power = tracer.emitterPower();
+    o << "],\n      \"env\": {\"zenith\": " << vecFull(rs.env.zenith) << ", \"bounce\": " << vecFull(rs.env.bounce) << "},\n      \"emitter_power\": [";
+    for (size_t i = 0; i < power.size(); ++i) o << (i ? ", " : "") << num(power[i]);
+    o << "]\n    },\n";
+}
+
+void writeExplorer(std::ostream& o) {
+    o << "    \"explorer\": {\n      \"stages\": [";
+    for (int i = 0; i < fx::kStageCount; ++i) {
+        const fx::StageInfo& s = fx::stageInfo(i);
+        o << (i ? ",\n        " : "\n        ") << "{\"index\": " << i + 1 << ", \"short\": \"" << esc(s.shortName) << "\", \"title\": \""
+          << esc(s.title) << "\", \"caption\": \"" << esc(s.caption) << "\", \"formula\": \"" << esc(s.formula) << "\", \"concepts\": \""
+          << esc(s.concepts) << "\"}";
+    }
+    // Worked rasterisation example: one screen triangle, one pixel, affine vs perspective-correct interpolation.
+    const fx::Vec2f v0{12.0f, 4.0f}, v1{56.0f, 18.0f}, v2{20.0f, 50.0f}, p{30.5f, 22.5f};
+    const float w[3] = {1.5f, 6.0f, 2.5f}, a[3] = {0.0f, 1.0f, 0.5f};
+    const fx::Barycentric bc = fx::rasterize(v0, v1, v2, p);
+    o << "\n      ],\n      \"raster_example\": {\"v0\": [" << num(v0.x) << ", " << num(v0.y) << "], \"v1\": [" << num(v1.x) << ", " << num(v1.y)
+      << "], \"v2\": [" << num(v2.x) << ", " << num(v2.y) << "], \"p\": [" << num(p.x) << ", " << num(p.y) << "], \"w\": [" << num(w[0]) << ", "
+      << num(w[1]) << ", " << num(w[2]) << "], \"attr\": [" << num(a[0]) << ", " << num(a[1]) << ", " << num(a[2]) << "],\n        \"e\": ["
+      << num(bc.e0) << ", " << num(bc.e1) << ", " << num(bc.e2) << "], \"bary\": [" << num(bc.w0) << ", " << num(bc.w1) << ", " << num(bc.w2)
+      << "], \"inside\": " << (bc.inside ? "true" : "false") << ", \"area2\": " << num(fx::signedArea2(v0, v1, v2)) << ", \"affine\": "
+      << num(fx::interpolateAffine(bc, a[0], a[1], a[2])) << ", \"perspective\": "
+      << num(fx::interpolatePerspective(bc, w[0], w[1], w[2], a[0], a[1], a[2])) << "},\n      \"kernels\": [";
+    for (int i = 0; i < fx::kKernelCount; ++i) {
+        const fx::Kernel k = fx::kernel(static_cast<fx::KernelType>(i));
+        o << (i ? ",\n        " : "\n        ") << "{\"name\": \"" << esc(k.name) << "\", \"note\": \"" << esc(k.note) << "\", \"size\": " << k.size
+          << ", \"bias\": " << num(k.bias) << ", \"magnitude\": " << (k.magnitude ? "true" : "false") << ", \"sum\": " << num(fx::kernelSum(k))
+          << ", \"w\": [";
+        for (int j = 0; j < k.size * k.size; ++j) o << (j ? ", " : "") << num(k.w[j]);
+        o << "]}";
+    }
+    o << "\n      ],\n      \"halton\": [";
+    for (unsigned k = 1; k <= 8; ++k) o << (k > 1 ? ", " : "") << "[" << k << ", " << num(fx::halton(k, 2)) << ", " << num(fx::halton(k, 3)) << "]";
+    o << "],\n      \"tone_curve\": [";
+    for (int i = 0; i <= 24; ++i) {
+        const float x = std::pow(2.0f, -8.0f + 0.5f * i);
+        o << (i ? ", " : "") << "[" << num(x) << ", " << num(fx::acesFitted(x)) << ", " << num(fx::toneCurve(x, 1.0f)) << "]";
+    }
+    o << "]\n    },\n";
+}
+
+void writePov(std::ostream& o, const Scene& scene) {
+    const Vec3 viewer{-15.0f, 5.2f, 21.0f};
+    const std::vector<PovSource> list = listPovSources(scene, viewer);
+    o << "    \"pov_viewer\": " << vec(viewer) << ",\n    \"pov_sources\": [";
+    for (size_t i = 0; i < list.size(); ++i) {
+        const PovSource& s = list[i];
+        RigPose first, chase;
+        const bool okF = povPose(scene, s, PovView::First, first), okC = povPose(scene, s, PovView::Chase, chase);
+        o << (i ? ",\n      " : "\n      ") << "{\"order\": " << i + 1 << ", \"kind\": \"" << povKindName(s.kind) << "\", \"tag\": \""
+          << povKindTag(s.kind) << "\", \"name\": \"" << esc(s.name) << "\", \"controllable\": " << s.controllable << ", \"can_control\": "
+          << (s.canControl ? "true" : "false") << ", \"has_alt\": " << (s.hasAlt ? "true" : "false") << ", \"hostile\": "
+          << (povHostile(s.kind) ? "true" : "false") << ", \"position\": " << vec(s.position) << ", \"distance\": " << numShort(s.distance)
+          << ", \"pick_radius\": " << numShort(s.radius) << ", \"first_eye\": " << (okF ? vec(first.eye) : std::string("null"))
+          << ", \"first_fov\": " << (okF ? numShort(first.fovDeg) : std::string("null")) << ", \"chase_eye\": "
+          << (okC ? vec(chase.eye) : std::string("null")) << "}";
+    }
+    o << "],\n    \"camera_rig\": {\"blend_time_s\": " << numShort(CameraRig::kBlendTime) << ", \"omega\": " << numShort(CameraRig::kOmega)
+      << ", \"arc_per_metre\": " << numShort(CameraRig::kArcPerMetre) << ", \"arc_max_m\": " << numShort(CameraRig::kArcMax)
+      << ", \"fly_speed\": " << numShort(FlyCam{}.speed) << ", \"fly_min_speed\": " << numShort(FlyCam::kMinSpeed) << ", \"fly_max_speed\": "
+      << numShort(FlyCam::kMaxSpeed) << ", \"fly_boost\": " << numShort(FlyCam::kBoost) << ", \"fly_tau_s\": " << numShort(FlyCam::kTau)
+      << ",\n      \"curves\": [";
+    for (int i = 0; i <= 20; ++i) {
+        const float t = 0.03f * i;   // 0 .. 0.6 s (the blend)
+        o << (i ? ", " : "") << "{\"t\": " << num(t) << ", \"spring\": " << num(springDecay(CameraRig::kOmega, t)) << ", \"letterbox\": "
+          << num(jumpLetterbox(t / CameraRig::kBlendTime)) << ", \"hit_marker\": " << num(hitMarkerAlpha(t)) << "}";
+    }
+    o << "]}\n";
+}
+
+// v7: the key table (WP-G, HudMath keyBindingsV7) and the WP-W documentation data above.
+void writeV7(std::ostream& o, const Scene& scene) {
+    o << "  \"v7\": {\n    \"keys\": [";
+    const std::vector<KeyBinding>& k = keyBindingsV7();
+    for (size_t i = 0; i < k.size(); ++i)
+        o << (i ? ", " : "") << "{\"keys\": \"" << esc(k[i].keys) << "\", \"action\": \"" << esc(k[i].action) << "\", \"version\": \""
+          << k[i].version << "\"}";
+    o << "],\n";
+    writeRayTrace(o, scene);
+    writeExplorer(o);
+    writePov(o, scene);
+    o << "  },\n";
+}
+
+void writeV6(std::ostream& o, Scene& scene) {
+    o << "  \"v6\": {\n";
+    writeKeys(o);
+    writeDayCycle(o);
+    writeGarrison(o, scene);
+    writeSensor(o);
+    writeRoutesAndSeeds(o);
+    o << "  },\n";
+}
+
 void writeObjects(std::ostream& o, Scene& scene) {
     // per final object (the SceneNode::object tag), first-seen order
     std::vector<std::string> order;
@@ -631,7 +1108,7 @@ bool exportSceneDocs(const std::string& path) {
 
     std::ostringstream o;
     std::map<PrimitiveType, int> uses;
-    o << "{\n  \"schema_version\": 3,\n"
+    o << "{\n  \"schema_version\": 7,\n"  // 6: + "v7" (keys); 7: + v7 raytrace / explorer / pov (WP-W)
       << "  \"matrix_convention\": \"local_matrix and world_matrix are 16 floats ROW-MAJOR (row 0 first); "
          "M = T * Ry * Rx * Rz * S (R_deg = pitch X, yaw Y, roll Z); world = parent_world * M; the code stores "
          "Mat4 column-major (m[col*4+row]); world matrices are at t = 0\",\n";
@@ -649,6 +1126,9 @@ bool exportSceneDocs(const std::string& path) {
     writeWalkSpace(o, scene);
     writeLayout(o);
     writeCombat(o);
+    writeV5(o, scene);
+    writeV6(o, scene);
+    writeV7(o, scene);
     writeEffects(o);
     writePracticals(o, scene);
     writeSimulation(o);

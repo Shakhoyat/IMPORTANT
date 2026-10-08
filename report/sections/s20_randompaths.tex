@@ -1,0 +1,40 @@
+% =====================================================================
+\section{Random Intruder Paths and Seeded Runs}\label{sec:randompaths}
+\pipestrip{10}
+In v5 every run replayed the same intruders: a legacy first rover, spawns from a fixed stream and one cost field per objective. Version~6 makes each night different but reproducible: the routes are drawn from distributions (\code{Mission::randomRoute}), every random source is a stream derived from one run seed, and the day cycle adds two rules: waves only at night, and a withdrawal at dawn. The rover's planner itself is unchanged: the weighted Dijkstra field of Section~\ref{sec:rover}, now steered by via points and a personality.
+
+\subsection{Ring spawns, via sectors and personalities}
+\autofig{diagrams}{H6_spawn_ring}
+A spawn bearing $\phi$ is drawn uniformly on $[0,2\pi)$ and rejected while it lies within $\pm\rrNorthGapDeg^\circ$ of the gate road (north), so the accepted bearings stay uniform on the remaining $360-2\cdot\rrNorthGapDeg$ degrees (T219: \tobs{T219}). The radius is uniform in $16.8\pm\rrSpawnJitter$\,m, just inside the fence. The rover then gets one of the five camp assets as objective and, with equal probability, $0$--$\rrMaxVia$ via points: each at bearing $\phi+U(-\rrViaSectorDeg^\circ,\rrViaSectorDeg^\circ)$ and radius $U(\rrViaMinR,\rrViaMaxR)$\,m, rejected if it is not a free planner cell or lies within 3\,m of the spawn or the objective. Vias are visited outermost first, so the chain closes in on the camp from the rover's own side instead of crossing it (T215: \tobs{T215}).
+
+A \emph{personality} changes how the rover moves between vias: the weight of the random noise field in the route cost $U(8,40)$, the weight of cells a UAV can see $U(12,48)$, a speed factor $U(0.8,1.25)$, a probability $U(0,0.5)$ of pausing 1.5--4\,s on entering cover and a noise lattice of 3--7 cells. The Dijkstra cost of a cell becomes
+\begin{equation}c=d+w_e\,[\text{visible to a UAV}]+w_n\,n(\text{cell}),\end{equation}
+so a cautious rover detours through cover and a bold one drives straight (T216, three routes from one spawn: \tobs{T216}; T217: \tobs{T217}). With probability \rrSwitchProbability{} the rover switches to a different asset after $U(\rrSwitchMinS,\rrSwitchMaxS)$\,s (T218: \tobs{T218}).
+\begin{table}[h]
+\centering\small
+\caption{Random-route constants (generated from \code{v6.random\_routes}).}\label{tab:rrconst}
+\tabRandomRoutes
+\end{table}
+\lstRandomRoute
+
+\subsection{Day rules and the dawn withdrawal}
+Waves start only in the NIGHT phase (T220: \tobs{T220}). At the Dawn event the mission ends the current wave (\code{endNight}) and every intruder still alive is given a retreat goal: the free cell on its own bearing near the fence ring ($r=17.5$\,m). A rover that gets there leaves the field with a \emph{Withdraw} event, which scores nothing and costs no integrity; one that cannot reach an exit within 90\,s (\code{kRetreatTimeout}) is withdrawn anyway (T221: \tobs{T221}). By day the searchlight cones, UAV~1's light and the beacon are off (T222). Figure~\ref{fig:dawn} shows the banner of a real withdrawal.
+\begin{figure}[h]
+\centering
+\picsix{dawn_withdraw}{0.7\linewidth}
+\caption{Dawn (05:47): the HUD's DAWN and INTRUDER WITHDRAWS banners after a real Withdraw event (capture, seed 1).}\label{fig:dawn}
+\end{figure}
+
+\subsection{One seed, independent streams}
+A run has one 32-bit seed: \cli{seed N}, or by default the mix of \code{std::random\_device} and the clock, printed at start and shown in the HUD and the trace header. Each subsystem draws from its own stream $k$:
+\begin{equation}
+z=b\oplus(k\cdot\texttt{0x9E3779B9}),\quad z\leftarrow(z\oplus z\gg16)\cdot\texttt{0x85EBCA6B},\quad z\leftarrow(z\oplus z\gg13)\cdot\texttt{0xC2B2AE35},\quad z\leftarrow z\oplus z\gg16 .
+\end{equation}
+This is the splitmix32 finaliser: an invertible avalanche mix in which flipping one input bit flips each output bit with probability $\approx\tfrac12$, so neighbouring stream numbers give unrelated seeds. Streams 1--4 seed the mission, combat effects, the UAV patrol and the garrison; 100 and 101 the two sensors (Table~\ref{tab:seeds}). Seed 0 maps to the legacy v5 constants, which keeps every v5 test bit-exact; a seeded patrol differs from it (base radii \patrolRadii\,m, breathing amplitudes \patrolAmps\,m for seed \seedBase; T223: \tobs{T223}).
+\begin{table}[h]
+\centering\small
+\caption{Derived stream seeds for the example base seed (generated from \code{v6.seeds}).}\label{tab:seeds}
+\tabSeeds
+\end{table}
+\lstDeriveSeed
+Same seed, same run: two 600\,s traces with seed 42 are byte-identical and seed 43 differs (Section~\ref{sec:v6results}).

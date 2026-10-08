@@ -31,6 +31,24 @@ Vec3 alignZ(const Vec3& dir);
 SceneNode* strut(Builder& b, SceneNode* parent, const std::string& name, PrimitiveType prim, const Vec3& a,
                  const Vec3& c, float thickness, const Material& mat, const std::string& purpose);
 
+// ---- v7 detail kit (WP-M): small parts that add silhouette / material detail to the hero objects ----------------
+// Same material with the albedo scaled by k (darker grime k < 1, worn bright edge k > 1); heat is unchanged, so a
+// detail part never changes the thermal signature of the surface it sits on.
+Material shade(Material m, float k);
+// Same material with another roughness / metalness (polished wear, oily grime), Blinn-Phong terms re-derived.
+Material reworked(Material m, float roughness, float metalness);
+// Indicator LED / small display: emissive glass, cool in the thermal image, NOT a practical light.
+Material indicator(const Vec3& color, float emissive, float heat = 0.30f);
+// Painted marking (decal on a thin cube): matte paint, heat of the surface it is painted on.
+Material decal(const Vec3& color, float heat);
+
+// Leaf that is pure surface detail: no UAV-avoidance obstacle, not an occluder (it lies on a larger part).
+SceneNode* detail(Builder& b, SceneNode* parent, const std::string& name, PrimitiveType prim, const Vec3& s,
+                  const Vec3& rDeg, const Vec3& t, const Material& mat, const std::string& purpose);
+// Rounded edge (bevel) between two points: a thin cylinder that catches a specular highlight along a box edge.
+SceneNode* bevel(Builder& b, SceneNode* parent, const std::string& name, const Vec3& a, const Vec3& c, float diameter,
+                 const Material& mat, const std::string& purpose);
+
 // Deterministic linear congruential generator (Numerical Recipes constants).
 struct PropRng {
     uint32_t state;

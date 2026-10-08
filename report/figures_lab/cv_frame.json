@@ -1,0 +1,22 @@
+{
+  "simulation_time_s": 0.366667,
+  "image": {"width": 320, "height": 240, "fov_y_deg": 40},
+  "config": {"floor": 204, "core": 230, "min_area": 2, "max_area": 2500, "max_elongation": 6, "despeckle_min_neighbours": 2},
+  "uavs": [
+    {"uav": 1, "camera_position": [0.119451, 7.36509, 12.2709],
+     "otsu": 46, "threshold_used": 204, "hot_pixels": 42, "removed_speckles": 0, "components": 1, "targets": 1,
+     "blobs": [
+       {"area_px": 42.0000, "centroid_x_px": 216.9524, "centroid_y_px": 118.2381, "u": 0.3591, "v": 0.0105, "orientation_deg": -9.3033, "elongation": 1.4467, "mean_heat": 0.9731, "peak": 250.0000, "bbox": [213, 115, 221, 121], "ground_point": [6.26819, 0.16513, 7.2865], "range_m": 10.7000, "track_id": 1}
+     ],
+     "rejected_components": []},
+    {"uav": 2, "camera_position": [-0.0736273, 7.38368, -12.2564],
+     "otsu": 60, "threshold_used": 204, "hot_pixels": 5, "removed_speckles": 1, "components": 1, "targets": 1,
+     "blobs": [
+       {"area_px": 4.0000, "centroid_x_px": 98.0000, "centroid_y_px": 7.5000, "u": -0.3844, "v": 0.9333, "orientation_deg": 31.7175, "elongation": 2.6180, "mean_heat": 0.9049, "peak": 231.0000, "bbox": [97, 7, 99, 8], "ground_point": [6.34688, 0.0647017, 8.63652], "range_m": 23.0500, "track_id": 1}
+     ],
+     "rejected_components": []}
+  ],
+  "tracks": [
+    {"id": 1, "state": "confirmed", "position": [6.13742, 0.471216, 7.38811], "velocity": [-0.946638, 1.21073], "position_sigma_m": 0.1038, "seen_by_uav1": true, "seen_by_uav2": true, "triangulated": true, "triangulation_residual_m": 0.0010, "error_vs_nearest_rover_m": 0.2474}
+  ]
+}

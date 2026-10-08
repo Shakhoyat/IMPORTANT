@@ -138,9 +138,11 @@ void main() {
     vec3 N = normalize(mix(Nf, vec3(0.0, 1.0, 0.0), 0.55) + vec3(bend.x, 0.0, bend.y) * (0.5 + 0.8 * t));
     vec3 L = normalize(-uMoonDir);
     vec3 V = normalize(uCamPos - vWorld);
-    vAmbD = uHdr == 1 ? mix(uGroundBounce, uSkyZenith, 0.5 + 0.5 * N.y) : uAmbient;
+    vAmbD = uHdr == 1 ? hemiAmbient(N) : uAmbient;
     float back = pow(max(dot(-V, L), 0.0), 3.0);        // looking towards the moon: blades glow
-    vMoonD = uMoonColor * (0.25 + 0.75 * max(dot(N, L), 0.0) + 2.0 * back * t * vec3(0.85, 1.0, 0.55) / 0.85);
+    // v8: by day the translucency is a thin rim of the tips against the sun (full strength it lit the field like straw)
+    vMoonD = uMoonColor * (mix(0.25, 0.12, uDayWeight) + mix(0.75, 0.88, uDayWeight) * max(dot(N, L), 0.0) +
+                           mix(2.0, 0.55, uDayWeight) * back * t * vec3(0.85, 1.0, 0.55) / 0.85);
     vSheen = uMoonColor * pow(max(dot(N, normalize(L + V)), 0.0), 14.0) * 0.10 * (0.3 + 0.7 * t) * (0.6 + 0.4 * (1.0 - lod));
     vec3 d = uBeaconPos - vWorld;
     float dd = length(d);
@@ -184,8 +186,9 @@ void main() {
     if (uViewMode == 0 || uViewMode >= 3) { FragColor = finalColor(vec3(0.0), heat, vWorld); return; }
     // Linear albedo: dark root, then per-tuft green / olive / straw towards the tip (vSeed = dryness of the tuft)
     vec3 base = vec3(0.010, 0.014, 0.005);
-    vec3 green = vec3(0.046, 0.086, 0.020), olive = vec3(0.090, 0.098, 0.030), straw = vec3(0.180, 0.145, 0.072);
-    vec3 tip = mix(mix(green, olive, smoothstep(0.0, 0.5, vSeed)), straw, smoothstep(0.45, 1.0, vSeed));
+    vec3 green = vec3(0.040, 0.082, 0.018), olive = vec3(0.074, 0.088, 0.026), straw = vec3(0.150, 0.122, 0.060);
+    // v8: mostly green / olive tufts with dry ones scattered (the field used to read as straw in daylight)
+    vec3 tip = mix(mix(green, olive, smoothstep(0.0, 0.6, vSeed)), straw, smoothstep(0.62, 1.0, vSeed));
     tip *= 0.82 + 0.36 * vHue;
     vec3 albedo = uViewMode == 2 ? uBaseColor : mix(base, tip, pow(clamp(vT, 0.0, 1.0), 0.6));
     float sm = 1.0, ss = 1.0;
@@ -243,7 +246,10 @@ bool GrassField::init() {
 }
 
 void GrassField::setCount(int blades) {
-    if (blades == count_) return;
+    // v7 WP-Q: compare with the requested budget, not with the blades placed (fewer): the old test rebuilt and
+    // re-uploaded all 450k EPIC blades every frame (~80 ms of CPU).
+    if (blades == requested_) return;
+    requested_ = blades;
     count_ = blades;
     std::vector<std::vector<Blade>> byCell(kGrid * kGrid);
     auto meadowAt = [&](float x, float z) { return map_ ? map_->meadow(x, z) : grassDensity(x, z); };

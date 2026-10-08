@@ -41,6 +41,41 @@ SceneNode* strut(Builder& b, SceneNode* parent, const std::string& name, Primiti
     return b.part(parent, name, prim, {thickness, thickness, length(d)}, alignZ(d), (a + c) * 0.5f, mat, purpose);
 }
 
+Material shade(Material m, float k) {
+    m.baseColor = m.baseColor * k;
+    return m;
+}
+
+Material reworked(Material m, float roughness, float metalness) {
+    const Material d = makeMaterial(m.baseColor, m.heat, m.surface, roughness, metalness, m.emissive);
+    m.roughness = d.roughness;
+    m.metalness = d.metalness;
+    m.shininess = d.shininess;
+    m.specular = d.specular;
+    return m;
+}
+
+Material indicator(const Vec3& color, float emissive, float heat) {
+    return makeMaterial(color, heat, Surface::Glass, 0.15f, 0.0f, emissive);
+}
+
+Material decal(const Vec3& color, float heat) { return makeMaterial(color, heat, Surface::Paint, 0.7f, 0.0f); }
+
+SceneNode* detail(Builder& b, SceneNode* parent, const std::string& name, PrimitiveType prim, const Vec3& s,
+                  const Vec3& rDeg, const Vec3& t, const Material& mat, const std::string& purpose) {
+    SceneNode* n = b.part(parent, name, prim, s, rDeg, t, mat, purpose);
+    n->obstacle = false;
+    n->occluder = false;
+    return n;
+}
+
+SceneNode* bevel(Builder& b, SceneNode* parent, const std::string& name, const Vec3& a, const Vec3& c, float diameter,
+                 const Material& mat, const std::string& purpose) {
+    SceneNode* n = strut(b, parent, name, PrimitiveType::Cylinder, a, c, diameter, mat, purpose);
+    n->obstacle = false;
+    return n;
+}
+
 namespace mats {
 //                                   colour                 heat   surface            rough  metal
 Material pineNeedles() { return makeMaterial({0.10f, 0.19f, 0.11f}, 0.11f, Surface::Foliage, 0.75f, 0.0f); }
@@ -52,7 +87,7 @@ Material oliveDrum() { return makeMaterial({0.22f, 0.30f, 0.22f}, 0.42f, Surface
 Material rustDrum() { return makeMaterial({0.36f, 0.19f, 0.10f}, 0.38f, Surface::Metal, 0.70f, 0.5f); }
 Material fenceWood() { return makeMaterial({0.30f, 0.26f, 0.20f}, 0.20f, Surface::Wood, 0.85f, 0.0f); }
 Material wire() { return makeMaterial({0.30f, 0.30f, 0.31f}, 0.12f, Surface::Metal, 0.75f, 0.6f); }  // rough: thin wires alias less
-Material galvanized() { return makeMaterial({0.55f, 0.56f, 0.58f}, 0.22f, Surface::Metal, 0.40f, 0.9f); }
+Material galvanized() { return makeMaterial({0.55f, 0.56f, 0.58f}, 0.22f, Surface::Metal, 0.52f, 0.9f); }   // v8: weathered zinc (0.40 mirrored the sun)
 Material sandbag() { return makeMaterial({0.52f, 0.47f, 0.36f}, 0.25f, Surface::Sand, 0.95f, 0.0f); }
 Material canvas() { return makeMaterial({0.30f, 0.31f, 0.22f}, 0.35f, Surface::Plain, 0.85f, 0.0f); }
 Material camoNet() { return makeMaterial({0.20f, 0.26f, 0.16f}, 0.20f, Surface::Foliage, 0.80f, 0.0f); }

@@ -2,6 +2,8 @@
 #   Windows (MinGW-w64, Git Bash / MSYS):  mingw32-make -j8          -> ThermalSense.exe (GLFW from lib/)
 #   Linux (RTX remote machine):            make -j$(nproc)           -> ./ThermalSense   (system GLFW, see README)
 #   Linux, headless only (no GLFW needed): make -j HEADLESS=1        -> capture / record / benchmark over SSH (EGL)
+#   Linux / WSL2 without sudo:             tools/run_wsl.sh          -> GLFW from ~/.local/opt/sysroot, window via WSLg
+#   Windows exe cross-built on Linux:      tools/build_windows.sh    -> ThermalSense.exe (zig c++, static)
 CXX      ?= g++
 CC       ?= gcc
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -Isrc -Iinclude -MMD -MP
@@ -19,6 +21,14 @@ else
     LDFLAGS   = -ldl -lpthread
   else
     GLFW_LIBS := $(shell pkg-config --libs glfw3 2>/dev/null)
+    # No pkg-config / no libglfw3-dev and no sudo: tools/run_wsl.sh unpacks Ubuntu's libglfw3 into this sysroot.
+    GLFW_SYSROOT ?= $(HOME)/.local/opt/sysroot
+    GLFW_SYSLIB  := $(GLFW_SYSROOT)/usr/lib/x86_64-linux-gnu
+    ifeq ($(GLFW_LIBS),)
+      ifneq ($(wildcard $(GLFW_SYSLIB)/libglfw.so),)
+        GLFW_LIBS := -L$(GLFW_SYSLIB) -lglfw -Wl,-rpath,$(GLFW_SYSLIB)
+      endif
+    endif
     LDFLAGS   = $(if $(GLFW_LIBS),$(GLFW_LIBS),-lglfw) -ldl -lpthread
   endif
 endif

@@ -1,0 +1,32 @@
+% =====================================================================
+\section{Game Results}\label{sec:v5results}
+\autofig{diagrams}{F10_run_timeline}
+\paragraph{Unit tests.} \nTests{} tests were run for this report, \nPass{} passed, \nFail{} failed (Table~\ref{tab:alltests}; ranges T130--T145 vision and squad, T150--T159 camp, T160--T169 audio, T170--T181 HUD and mission).
+
+\paragraph{Headless real-render run.} The real renderer ran headless (\cli{headless}, LOW quality, 90\,s of game time, \cli{trace}) on the Mesa llvmpipe software GPU; the trace is \code{docs/v5\_notes/runs/trace\_v5\_low\_90s.csv}. The program reported \textbf{21 rounds launched, 12 hits, 3 kills (2 of them
+combined strikes), wave 2 reached, 47 confirmed tracks and 689 two-view fused track updates}. 12 hits for 3 kills fits the armour rule (4--5 hits per kill). LOW on llvmpipe is not representative of the RTX preset. Before track merging and the flicker-tolerant lock, the same run gave 5 rounds, 0 kills and 48 confirmed tracks: blob flicker created new ids that reset the locks (Sections~\ref{sec:vision}, \ref{sec:squad}). The synthetic-vision test T140 exercises the same loop deterministically on the CPU.
+
+\paragraph{Demo video.} \code{report/demo\_v5.mp4} is 120\,s, $1280\times720$, 30\,fps, H.264 with AAC 48\,kHz stereo audio muxed by \cli{record}, rendered headless on llvmpipe at HIGH quality; it is embedded in the slides.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.495\linewidth}\picfive{game_overview}{\linewidth}\caption{Game view with HUD}\end{subfigure}
+  \begin{subfigure}{0.495\linewidth}\picfive{combined_strike}{\linewidth}\caption{Combined strike: two rounds in flight}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.325\linewidth}\picfive{hit_marker}{\linewidth}\caption{Hit marker}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfive{kill_banner}{\linewidth}\caption{Kill banner}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfive{wave_banner}{\linewidth}\caption{Wave banner}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.6\linewidth}\picfive{tactical_map}{\linewidth}\caption{Tactical map}\end{subfigure}
+  \caption{Game captures (event-driven shots of \code{Capture.cpp}).}\label{fig:v5game}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.325\linewidth}\picfive{camp_sam}{\linewidth}\caption{SAM launcher under its net}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfive{camp_mlrs}{\linewidth}\caption{MLRS truck}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfive{camp_under_nets}{\linewidth}\caption{Parked tank bay}\end{subfigure}\\[1mm]
+  \begin{subfigure}{0.325\linewidth}\picfive{possess_sam}{\linewidth}\caption{Possessing the SAM}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfive{possess_mlrs}{\linewidth}\caption{Possessing the MLRS}\end{subfigure}
+  \begin{subfigure}{0.325\linewidth}\picfive{base_overview}{\linewidth}\caption{Hidden camp overview}\end{subfigure}
+  \caption{The hidden camp (captures).}\label{fig:v5camp}
+\end{figure}
+
+\paragraph{Limits.} FPS on the RTX 4070 is not measured; no benchmark exists. The reflection probe is not implemented. The per-object part-count table was generated before the v5 launchers were exported; re-run \code{gen\_tables.py} after the exporter includes them.

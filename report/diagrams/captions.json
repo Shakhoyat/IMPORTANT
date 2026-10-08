@@ -1,0 +1,234 @@
+{
+ "A1_cube_vertices.png": {
+  "caption": "The unit cube generator: 24 vertices (4 per face, each with the face normal) and 36 indices (2 counter-clockwise triangles per face, diagonal 0-2). Indexed storage needs 720 B instead of 864 B.",
+  "source": "src/primitives/Cube.cpp: createCube()"
+ },
+ "A2_sphere_rings.png": {
+  "caption": "The sphere generator: 614 vertices on 9 rings x 36 slices per hemisphere, 1224 triangles; the normal of every vertex equals its normalised position, the southern half is the mirrored northern half.",
+  "source": "src/primitives/Sphere.cpp: createSphere(36, 18)"
+ },
+ "A3_cylinder_cone.png": {
+  "caption": "Cylinder, cone and frustum come from one generator: two interleaved rings (bottom z = -0.5, top z = +0.5), side triangles, and a triangle fan per cap; a cone is simply top radius 0, the beam frustum has no caps.",
+  "source": "src/primitives/Cylinder.cpp: createCylinder(); Renderer.cpp lines 136-141 (which primitives exist)"
+ },
+ "A4_terrain_disc.png": {
+  "caption": "The terrain is a 36 m disc of 49921 vertices (130 rings x 384 slices) built like a cylinder cap and displaced by a height function; the left panel shows the ring structure on a coarse copy, the right panel the real triangles with the entrance-ramp hole.",
+  "source": "src/objects/Terrain.cpp: createTerrainDisc(), terrainHeight()"
+ },
+ "A5_trs_worked_example.png": {
+  "caption": "Worked example for one real part, the tank's left turret cheek: the unit cube is scaled, rotated about Y and translated into its parent (the turret); the printed matrices are the scene's own, and T*R*S reproduces the node's local matrix.",
+  "source": "src/scene/Transform.h: Transform::matrix(); src/math/Math3D.cpp: rotateEulerYXZ(); Tank.cpp (node 'Turret cheek L')"
+ },
+ "A6_hierarchy_tank.png": {
+  "caption": "Scene-graph tree of the main battle tank (collapsed: identical siblings are merged): hull -> track groups / turret yaw -> gun pitch -> barrel recoil -> muzzle; each group multiplies its local matrix onto its children.",
+  "source": "src/objects/Tank.cpp (rig), src/scene/SceneNode.h; counts from the live Scene"
+ },
+ "A6_hierarchy_uav.png": {
+  "caption": "Scene-graph trees of the UAV (gimbal yaw -> gimbal pitch carries lamp and thermal camera; rotors under their motor mounts; rounds on the launcher rails) and of the intruder rover.",
+  "source": "src/objects/Uav.cpp, src/objects/Rover.cpp; counts from the live Scene"
+ },
+ "B1_barycentric.png": {
+  "caption": "Rasteriser interpolation: every pixel gets barycentric weights of its triangle; colours (Gouraud) or normals (Phong) are mixed with them, shown for a red / green / blue triangle. The right plot shows why the two differ: lighting is not linear in the normal.",
+  "source": "OpenGL rasteriser; ShaderSources.cpp Gouraud / Phong varyings (TS_TERM_VARYINGS, line ~652)"
+ },
+ "B2_shading_models_coarse.png": {
+  "caption": "The same lit sphere mesh (sphere small) shaded three ways and compared with the exact analytic sphere; RMSE flat 0.143, Gouraud 0.118, Phong 0.112. Lighting uses the shader's own brdf() ported to Python.",
+  "source": "ShaderSources.cpp: brdf() 113-139, computeLight() 143-196, compose() 561-566, kFlatGeom ~676; ShadersPostFx.cpp acesFitted() 387"
+ },
+ "B2_shading_models_real.png": {
+  "caption": "The same lit sphere mesh (sphere) shaded three ways and compared with the exact analytic sphere; RMSE flat 0.050, Gouraud 0.039, Phong 0.037. Lighting uses the shader's own brdf() ported to Python.",
+  "source": "ShaderSources.cpp: brdf() 113-139, computeLight() 143-196, compose() 561-566, kFlatGeom ~676; ShadersPostFx.cpp acesFitted() 387"
+ },
+ "B3_lambert.png": {
+  "caption": "Lambert's cosine law as used for the diffuse term: intensity falls with cos of the angle between normal and light and is clamped at the terminator; the sphere at the right is lit by this term only.",
+  "source": "ShaderSources.cpp brdf() lines 113-139 (diff = radiance * nl)"
+ },
+ "C1_specular_lobes.png": {
+  "caption": "Surface shininess as a lobe: Blinn-Phong power n (v1) vs the GGX distribution (PBR); the right plot maps each v1 shininess to its derived roughness (roughness = 1 - log2(n)/8): GGX has a similar core width but a longer tail, which gives the soft halo around highlights.",
+  "source": "ShaderSources.cpp brdf() 119-137; Material.h pbrRoughness() line 61"
+ },
+ "C2_fresnel_geometry.png": {
+  "caption": "The G and F factors of the Cook-Torrance BRDF: Smith-Schlick shadowing, Schlick Fresnel for a dielectric (F0 = 0.04) and for the UAV's metal parts, and the resulting specular response when the view sweeps through the mirror direction for three roughness values.",
+  "source": "ShaderSources.cpp brdf() lines 127-137, computeLight() line 148 (F0 = mix(0.04, albedo, metalness))"
+ },
+ "C3_specular_grid.png": {
+  "caption": "Roughness x metalness grid of lit spheres: low roughness gives a small bright highlight, high roughness a wide dim one; with metalness the diffuse term vanishes (1 - metalness) and F0 takes the albedo, so the highlight is tinted.",
+  "source": "ShaderSources.cpp brdf() 113-139, computeLight() 143-150, compose() 561-566"
+ },
+ "C4_practical_attenuation.png": {
+  "caption": "Practical lights fall off like an inverse square but are multiplied by a smooth window so they reach exactly zero at their range; spot lights add a smoothstep cone. The histogram lists the ranges of the lights actually built into the scene.",
+  "source": "ShaderSources.cpp practicalAttenuation() lines 90-100; ranges from Scene::practicalLights()"
+ },
+ "D1_ssr_raymarch.png": {
+  "caption": "How a puddle mirrors the scene: the reflected ray is stepped in world space, every sample is projected to the screen and its depth compared with the depth buffer; the first crossing (within a thickness) is refined by six bisections and the scene colour at that pixel is added, faded near the screen edge and for long marches.",
+  "source": "ShadersPostFx.cpp kCombineFrag reflection() lines 44-81 (constants 0.04, 1.09, 0.03, thickness 0.15 + 0.04 t + 0.01 d, 6 bisections)"
+ },
+ "D2_fresnel_reflectivity.png": {
+  "caption": "Reflection strength: the Fresnel term makes grazing views mirror-like while the composite keeps at least 35 %; the lit pass decides per surface how much reflection it asks for (wet top faces, polished metal, puddles).",
+  "source": "ShadersPostFx.cpp lines 75-77, 91; ShaderSources.cpp compose() 576-582, terrainShade() 541-546"
+ },
+ "E1_planner_grids.png": {
+  "caption": "The four fields the infiltrating rover plans on: the free-cell occupancy grid, the exposure to the two UAVs, the per-rover noise field of two seeds and the resulting step cost (all dumped from the live HideController of the scene).",
+  "source": "src/ai/HideController.cpp: setStaticOccluders(), computeVisibility(), noiseAt(), floodFillToObjective()"
+ },
+ "E2_flood_dijkstra.png": {
+  "caption": "Weighted MicroMouse flood field (Dijkstra from the objective) for two seeds with the same start and objective: the cost-to-go heat map, the steepest-descent cell route and the smoothed guide line; different noise fields make different routes.",
+  "source": "src/ai/HideController.cpp: floodFillToObjective() lines 213-247, descend() 144-172, replan() 262-282"
+ },
+ "E3_flood_bfs.png": {
+  "caption": "The v4 hiding behaviour: cells hidden from the UAV become goals, a breadth-first flood fill gives every free cell its step distance to cover, and the rover walks down the field (MicroMouse). Compared with the Dijkstra field, all steps cost the same.",
+  "source": "src/ai/HideController.cpp: computeVisibility(), floodFill() lines 120-142, descend()"
+ },
+ "E4_path_chaikin.png": {
+  "caption": "Chaikin corner cutting turns the staircase of grid cells into the smooth guide line the line follower tracks; three passes at 1/4 - 3/4 points, shown step by step on the real route.",
+  "source": "src/ai/HideController.cpp: chaikin() lines 28-41, replan() lines 262-282"
+ },
+ "E5_ir_sensors.png": {
+  "caption": "The line follower: five IR reflectance sensors on a bar 0.31 m ahead of the robot read whether they are over the 10 cm guide line; the weighted mean of the active offsets is the error that drives a PD controller and the differential-drive wheel speeds. Drawn from a real frame of a simulated drive.",
+  "source": "src/ai/HideController.cpp: followLine() lines 308-366; constants kSensorForward, kSensorSpacing, kLineHalfWidth, kKp, kKd"
+ },
+ "E6_rover_trace.png": {
+  "caption": "A recorded drive of the intruder rover: its path over the occupancy grid and, for a 22 s window, the sensor bits, line error, PD steering command and left / right wheel speeds (error and PD command are reconstructed from the recorded sensor bits with the controller's formulas).",
+  "source": "src/ai/HideController.cpp followLine(); data from Scene::update() with figdata drive"
+ },
+ "F10_run_timeline.png": {
+  "caption": "Timeline of a simulated 90 s defence: the two UAVs' roles, the strike phase, the tracks' position uncertainty by life-cycle state, the game events (spotting, lock, launch, combined strike, explosion, kill) and the number of live rovers.",
+  "source": "src/scene/Scene.cpp update(); src/ai/Squad.cpp (data: figdata dumpSquad, 90 s, 30 Hz, vision from tests/test_squad.cpp syntheticBlobs)"
+ },
+ "F11_mission_waves.png": {
+  "caption": "Mission waves: wave n sends min(2 + n, 6) intruders (3, 4, 5, then 6), with the scoring and breach rules; the bars are produced by running the real Mission class.",
+  "source": "src/scene/Mission.cpp: startWave() lines 24-35, update() 37-75 (data: figdata dumpMission)"
+ },
+ "F1_threshold_histogram.png": {
+  "caption": "Adaptive threshold of the image stage: the histogram of a heat frame with the fixed floor 0.80, Otsu's threshold (maximum of the between-class variance) and the threshold actually used, their maximum. A hot frame raises Otsu above the floor; a cold one leaves the floor in charge.",
+  "source": "src/vision/CvPipeline.cpp: otsuThreshold() lines 9-32, detectTargets() lines 114-122 (synthetic 320x240 frame through the real functions)"
+ },
+ "F2_cv_stages.png": {
+  "caption": "The image stage on a synthetic 320x240 heat frame, run through the real functions: threshold, despeckle, labelling, features and the target filter; the table lists why each component is accepted or rejected.",
+  "source": "src/vision/CvPipeline.cpp: detectTargets() lines 106-174, despeckle() 34-52, labelComponents() 66-114"
+ },
+ "F3_union_find.png": {
+  "caption": "Two-pass connected-component labelling with union-find on a small 12 x 7 mask: pass 1 gives provisional labels and records that two of them touch (red pixels); pass 2 resolves every label to its root. The picture is checked against the real labelComponents() output.",
+  "source": "src/vision/CvPipeline.cpp: labelComponents() lines 66-114, findRoot() 56-64"
+ },
+ "F4_blob_moments.png": {
+  "caption": "Blob features from image moments: centroid, bounding box and the principal axes of the pixel distribution (eigenvectors of the second central moments) give the orientation and the elongation used to reject thin streaks; values were recomputed and checked against the real detectTargets().",
+  "source": "src/vision/CvPipeline.cpp: detectTargets() lines 126-158"
+ },
+ "F5_kalman_filter.png": {
+  "caption": "The track filter on a rover driving straight, turning and driving straight: noisy ground measurements, the Kalman estimate with 2-sigma ellipses, the position error against the filter's own uncertainty, and the velocity estimate converging from the unknown initial value. Run through the real MultiTracker.",
+  "source": "src/vision/MultiTracker.cpp: predict() lines 21-46, kalmanUpdate() 60-82 (data: figdata dumpKalman)"
+ },
+ "F6_gating_hungarian.png": {
+  "caption": "Data association for one UAV frame: each track predicts where it should be, the chi-square gate (d^2 < 9.21) removes impossible pairs, and the Hungarian algorithm picks the pairing with the smallest total Mahalanobis cost (note m0 and m1 both fit track 3 but only the globally cheaper pairing wins).",
+  "source": "src/vision/MultiTracker.cpp: mahalanobis2() 48-56, hungarian() 84-137, update() 175-190 (data: figdata dumpAssociation)"
+ },
+ "F7_triangulation.png": {
+  "caption": "Two-view triangulation: each UAV's pixel becomes a ray, the fused fix is the midpoint of the shortest segment between the rays (residual = segment length); Monte Carlo over pointing noise shows it beats a single ground-plane ray and that a wing UAV at about 90 degrees gives the best geometry.",
+  "source": "src/vision/MultiTracker.cpp: triangulate() lines 139-153; Squad.cpp measurement sigma 0.12 + 0.015 r (data: figdata dumpTriangulation)"
+ },
+ "F8_squad_state_machine.png": {
+  "caption": "The squad's state machines: the UAV roles (patrol, track, lead / wing, search and back) and the strike phases (tracking, planned, inbound, reacquire), with the lock times and distances that trigger the transitions.",
+  "source": "src/ai/Squad.cpp: update() 220-327, planStrike() 176-218; Squad.h constants kSquadLeadLock etc."
+ },
+ "F9_time_on_target.png": {
+  "caption": "Time-on-target: the squad predicts each round's flight time from the distance with a two-phase model (accelerating launch, then 60 m/s, detonating 0.5 m short), launches the farther UAV first and the nearer one later so the blasts coincide; the right plot shows the model against the simulated missile and the distances of this strike.",
+  "source": "src/ai/Squad.cpp: roundFlightTime() lines 43-50, planStrike() 193-212; src/scene/Combat.h kMissile* (data: figdata dumpSquad / dumpFlight)"
+ },
+ "G1_render_pipeline.png": {
+  "caption": "Overview of one rendered frame: scene graph to world matrices, shadow maps and pre-pass, ambient occlusion and fog, the HDR object pass with Flat / Gouraud / Phong lighting, then SSR, temporal anti-aliasing, exposure, bloom / depth of field and the final filmic composite (or the thermal sensor model).",
+  "source": "src/rendering/RendererFrame.cpp (frame order), ShadersPostFx.cpp header comment lines 1-4"
+ },
+ "G2_cv_pipeline.png": {
+  "caption": "From heat pixels to a shared track picture and a coordinated strike: image stage (threshold, despeckle, labelling, features, target filter), ground ray, gating and assignment, Kalman update with optional two-view triangulation, track life cycle, and the squad logic.",
+  "source": "src/vision/CvPipeline.h header comment, MultiTracker.h header comment, Squad.h header comment"
+ },
+ "G3_game_loop.png": {
+  "caption": "One simulation step: input, vision blobs, squad decisions, controllable objects, mission waves, intruder planning and driving, combat and effects, then world matrices and rendering; the rendered thermal images become the next frame's vision input.",
+  "source": "src/scene/Scene.cpp: Scene::update() lines 353-445; src/app/App.cpp update() lines 262-285"
+ },
+ "H1_daycycle_curves.png": {
+  "caption": "Day cycle from the exported 24 h grid (97 rows): sun elevation with the phase thresholds and the four phase events, and the lighting quantities that follow it (key intensity, daylight weight, practical lamps, exposure key, mean cloud shadow); bottom: the key-light hue (sun reddening by air mass, moon blue at night).",
+  "source": "build/scene_export.json v6.day_cycle.grid (DayCycle::applyTo, src/scene/DayCycle.cpp)"
+ },
+ "H2_kasten_young.png": {
+  "caption": "Left: the Kasten--Young air mass against the plane-parallel 1/sin(e), which diverges at the horizon. Right: the per-channel sun transmittance relative to the zenith path and the normalised disc colour (strip): white at noon, orange-red near the horizon.",
+  "source": "src/scene/DayCycle.cpp airMass / sunTransmittance (ported), kSunOpticalDepth from DayCycle.h"
+ },
+ "H3_catmull_rom.png": {
+  "caption": "Left: Catmull--Rom curves through the same unevenly spaced control points; the uniform parameterisation overshoots next to the short edges, the centripetal one stays tight without cusps. Right: curvature along the centripetal curve and the walking speed it allows (soldier walk speed 1.3 m/s).",
+  "source": "src/math/Spline.cpp evalSegment / curvatureAtDistance and src/scene/Garrison.cpp stepRoute (ported); control points illustrative"
+ },
+ "H4_gait_cycle.png": {
+  "caption": "The walk cycle as the program computes it: joint angles over one cycle (left stance shaded), the ankle path relative to the hip (flat world-locked stance, cycloid swing with lift) and stick figures rebuilt by forward kinematics from the same angles.",
+  "source": "build/scene_export.json v6.garrison.gait (gaitPose, footInPelvis, legIK in src/scene/Gait.cpp)"
+ },
+ "H5_two_link_ik.png": {
+  "caption": "Two-link IK by the law of cosines: the knee angle from the triangle (hip, knee, ankle), the hip angle from the direction to the target plus the triangle's angle at the hip. The same solver (with a pole vector instead of the planar knee rule) poses the arms on the rifle.",
+  "source": "src/scene/Gait.cpp legIK / legFK (ported); thigh and shin lengths from v6.garrison.gait.walk"
+ },
+ "H6_spawn_ring.png": {
+  "caption": "Random intruder routes: a spawn bearing drawn uniformly on the ring outside the gate-road gap, up to three via points in a sector around the spawn bearing (driven outermost first, so the chain closes in on the camp), then the objective. Right: the rejection sampler gives a flat bearing histogram with an empty gap at north.",
+  "source": "src/scene/Mission.cpp randomRoute (ported, Python RNG); constants from v6.random_routes and BaseLayout.h"
+ },
+ "H7_pd_netd.png": {
+  "caption": "Real-CV statistics against the temporal noise level (NETD), full sensor model (PSF, fixed pattern after NUC, stuck pixels): detection probability of a rover (full size and half size), person recognition, false targets and persons misread as targets per frame; crosses: the same at the default NETD without NUC. Bottom: the synthetic test crop at each NETD with the classified blobs (target = cyan, person = green).",
+  "source": "build/figdata_out/cv_noise.json (tools/figdata_main.cpp dumpCvNoise; SensorModel + cv::detectAll)"
+ },
+ "attenuation.png": {
+  "caption": "Practical lights fall off like an inverse square but are multiplied by a smooth window so they reach exactly zero at their range; spot lights add a smoothstep cone. The histogram lists the ranges of the lights actually built into the scene.",
+  "source": "ShaderSources.cpp practicalAttenuation() lines 90-100; ranges from Scene::practicalLights()"
+ },
+ "flood_bfs.png": {
+  "caption": "The v4 hiding behaviour: cells hidden from the UAV become goals, a breadth-first flood fill gives every free cell its step distance to cover, and the rover walks down the field (MicroMouse). Compared with the Dijkstra field, all steps cost the same.",
+  "source": "src/ai/HideController.cpp: computeVisibility(), floodFill() lines 120-142, descend()"
+ },
+ "flood_dijkstra.png": {
+  "caption": "Weighted (Dijkstra) flood field of the infiltrating rover with the cost-to-go values, the steepest-descent route and the smoothed guide line (seed 11).",
+  "source": "src/ai/HideController.cpp: floodFillToObjective(), descend()"
+ },
+ "fresnel.png": {
+  "caption": "The G and F factors of the Cook-Torrance BRDF: Smith-Schlick shadowing, Schlick Fresnel for a dielectric (F0 = 0.04) and for the UAV's metal parts, and the resulting specular response when the view sweeps through the mirror direction for three roughness values.",
+  "source": "ShaderSources.cpp brdf() lines 127-137, computeLight() line 148 (F0 = mix(0.04, albedo, metalness))"
+ },
+ "frustum_ndc.png": {
+  "caption": "The perspective projection: the view frustum of the main camera (fov 50 deg, near 0.05 m, far 600 m), the matrix built by perspective() with its actual numbers, and the resulting non-linear NDC depth, which is why the shaders linearise depth before using it.",
+  "source": "src/math/Math3D.cpp: perspective() lines 84-94; src/scene/Camera.h: nearZ = 0.05, farZ = 600, fovDeg = 50"
+ },
+ "gating_ellipse.png": {
+  "caption": "Data association for one UAV frame: each track predicts where it should be, the chi-square gate (d^2 < 9.21) removes impossible pairs, and the Hungarian algorithm picks the pairing with the smallest total Mahalanobis cost (note m0 and m1 both fit track 3 but only the globally cheaper pairing wins).",
+  "source": "src/vision/MultiTracker.cpp: mahalanobis2() 48-56, hungarian() 84-137, update() 175-190 (data: figdata dumpAssociation)"
+ },
+ "ggx_curves.png": {
+  "caption": "Surface shininess as a lobe: Blinn-Phong power n (v1) vs the GGX distribution (PBR); the right plot maps each v1 shininess to its derived roughness (roughness = 1 - log2(n)/8): GGX has a similar core width but a longer tail, which gives the soft halo around highlights.",
+  "source": "ShaderSources.cpp brdf() 119-137; Material.h pbrRoughness() line 61"
+ },
+ "ir_sensors.png": {
+  "caption": "The line follower: five IR reflectance sensors on a bar 0.31 m ahead of the robot read whether they are over the 10 cm guide line; the weighted mean of the active offsets is the error that drives a PD controller and the differential-drive wheel speeds. Drawn from a real frame of a simulated drive.",
+  "source": "src/ai/HideController.cpp: followLine() lines 308-366; constants kSensorForward, kSensorSpacing, kLineHalfWidth, kKp, kKd"
+ },
+ "kalman_demo.png": {
+  "caption": "The track filter on a rover driving straight, turning and driving straight: noisy ground measurements, the Kalman estimate with 2-sigma ellipses, the position error against the filter's own uncertainty, and the velocity estimate converging from the unknown initial value. Run through the real MultiTracker.",
+  "source": "src/vision/MultiTracker.cpp: predict() lines 21-46, kalmanUpdate() 60-82 (data: figdata dumpKalman)"
+ },
+ "path_chaikin.png": {
+  "caption": "Chaikin corner cutting turns the staircase of grid cells into the smooth guide line the line follower tracks; three passes at 1/4 - 3/4 points, shown step by step on the real route.",
+  "source": "src/ai/HideController.cpp: chaikin() lines 28-41, replan() lines 262-282"
+ },
+ "raster_edges.png": {
+  "caption": "How the GPU decides which pixels a triangle covers: three edge functions are evaluated at every pixel centre; a pixel is inside where all three are non-negative, and the normalised values are exactly the barycentric weights used to interpolate colours, normals and depth.",
+  "source": "OpenGL rasteriser (conceptual); weights used by the Gouraud / Phong varyings in ShaderSources.cpp"
+ },
+ "rover_trace.png": {
+  "caption": "A recorded drive of the intruder rover: its path over the occupancy grid and, for a 22 s window, the sensor bits, line error, PD steering command and left / right wheel speeds (error and PD command are reconstructed from the recorded sensor bits with the controller's formulas).",
+  "source": "src/ai/HideController.cpp followLine(); data from Scene::update() with figdata drive"
+ },
+ "ssr_raymarch.png": {
+  "caption": "How a puddle mirrors the scene: the reflected ray is stepped in world space, every sample is projected to the screen and its depth compared with the depth buffer; the first crossing (within a thickness) is refined by six bisections and the scene colour at that pixel is added, faded near the screen edge and for long marches.",
+  "source": "ShadersPostFx.cpp kCombineFrag reflection() lines 44-81 (constants 0.04, 1.09, 0.03, thickness 0.15 + 0.04 t + 0.01 d, 6 bisections)"
+ },
+ "triangulation.png": {
+  "caption": "Two-view triangulation: each UAV's pixel becomes a ray, the fused fix is the midpoint of the shortest segment between the rays (residual = segment length); Monte Carlo over pointing noise shows it beats a single ground-plane ray and that a wing UAV at about 90 degrees gives the best geometry.",
+  "source": "src/vision/MultiTracker.cpp: triangulate() lines 139-153; Squad.cpp measurement sigma 0.12 + 0.015 r (data: figdata dumpTriangulation)"
+ }
+}

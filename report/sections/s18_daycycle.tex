@@ -1,0 +1,68 @@
+% =====================================================================
+\section{Time of Day: Sun, Sky, Clouds and the Day Cycle}\label{sec:daycycle}
+\pipestrip{6}
+Version~6 replaces the fixed night with a 24-hour clock (\code{scene/DayCycle.\{h,cpp\}}). One scalar, the sun elevation $e$, drives the key light, the sky, fog and exposure, the lamps, the UAV searchlights, the clouds and the game rules (rover waves run only at night). Everything is a pure CPU function of the hour: it is unit-tested (T190--T199), exported (\dcGridRows{} rows of \code{v6.day\_cycle.grid}) and recomputed by Excel formulas in workbook sheet~21 (Figure~\ref{fig:sheet:sheet_daycycle}).
+
+\subsection{Solar position}
+The camp sits at latitude $\varphi=\dcLat^\circ$ in early October (declination $\delta=\dcDecl^\circ$). With the hour angle $H=15^\circ\,(h-12)$ the textbook spherical-astronomy relations give the elevation and the unit vector towards the sun in the scene frame ($x$ east, $y$ up, $z$ north):
+\begin{equation}
+\sin e=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos H,\qquad
+\hat{\vect s}=\bigl(-\cos\delta\sin H,\ \sin e,\ \cos\varphi\sin\delta-\sin\varphi\cos\delta\cos H\bigr),
+\end{equation}
+and the azimuth from north is $A=\operatorname{atan2}(\hat s_x,\hat s_z)$. Inverting the first relation gives the hour of a given elevation, $h=12\mp\arccos\bigl((\sin e-\sin\varphi\sin\delta)/(\cos\varphi\cos\delta)\bigr)/15^\circ$ (\code{hourAtElevation}). For the camp: sunrise \dcSunrise, sunset \dcSunset, noon elevation $\dcNoonElev^\circ$ due south (T190: \tobs{T190}).
+\lstSunDir
+
+\subsection{Phases, clock rate and events}
+\autofig{diagrams}{H1_daycycle_curves}
+The phase is a band of $e$ with $0.25^\circ$ hysteresis: NIGHT below $\dcNightBelow^\circ$, DAY above $+\dcDayAbove^\circ$, DAWN/DUSK in between (morning/evening). Crossings emit the game events Dawn (\dcEvDawn), DayBreak (\dcEvDayBreak), Dusk (\dcEvDusk) and NightFalls (\dcEvNightFalls); a forward scrub emits every phase it passes, so a fast jump cannot skip the dawn withdrawal (Section~\ref{sec:randompaths}). Waves are allowed only in NIGHT (\dcWaveHours\,h of the 24), the searchlights below $\dcBeamsBelow^\circ$.
+In automatic mode the clock runs at $1/\dcDaySec$\,h/s while the sun is up and $1/\dcNightSec$\,h/s at night, $\dcTwiSlow\times$ slower while $|e|<6^\circ$ so that the colour changes of twilight stay on screen. One cycle lasts $T=\int_0^{24}\mathrm d h/\dot h(h)=\dcCycle$\,s (midpoint rule over 24\,000 steps, \code{cycleSeconds}; T194). The update advances in sub-steps of at most 0.05\,h, so a long frame cannot jump over a band.
+Table~\ref{tab:daygrid} samples the exported grid around the transitions.
+\begin{table}[h]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}
+\caption{Day-cycle grid (generated from \code{v6.day\_cycle.grid}): elevation $e$, azimuth $A$, key light, its intensity and colour, exposure key $\log_2k$, daylight weight, practical-lamp scale, searchlights, waves and the mean cloud-shadow factor over the compound.}\label{tab:daygrid}
+\tabDayGrid
+\end{table}
+
+\subsection{Sun colour: Kasten--Young air mass}
+\autofig{diagrams}{H2_kasten_young}
+Sunlight crosses more atmosphere at low elevation. The plane-parallel air mass $1/\sin e$ diverges at the horizon; Kasten and Young's empirical fit stays finite (about 38 at $e=0$):
+\begin{equation}
+m(e)=\frac{1}{\sin e+0.50572\,(e+6.07995^\circ)^{-1.6364}},\qquad T_c(e)=\exp\bigl(-\tau_c\,(m(e)-1)\bigr),\quad \tau=(0.06,\,0.11,\,0.21)
+\end{equation}
+($e$ in degrees in the correction term). $T_c$ is a Beer--Lambert transmittance relative to the zenith path with a larger optical depth for blue (Rayleigh scattering $\propto\lambda^{-4}$), so the key turns orange and red at sunset. The sun key is $I=\dcSunI\cdot\mathrm{smoothstep}(-1^\circ,10^\circ,e)\cdot T_c$ (T193: \tobs{T193}).
+\lstAirMass
+
+\subsection{Two presets and how they blend}
+The night preset is the v5 rig unchanged: \code{Atmosphere\{\}} holds the v5 literals and at deep night every field keeps its default, so the v5 frames are reproduced (T192; the night regression in Section~\ref{sec:v6results}). The day preset holds a bright sky, a thin haze, a stronger ambient and the exposure key $\log_2 k=\dcDayKey$ (the mean $\log_2$ luminance of the reference noon frame). Between them,
+\begin{equation}
+w=\mathrm{smoothstep}(-8^\circ,6^\circ,e),\qquad \vect c=2^{\,(1-w)\log_2\vect c_\text{night}+w\log_2\vect c_\text{day}}
+\end{equation}
+blends each colour in log space (\code{mixLog}): night and day radiances differ by orders of magnitude, and a linear mix would jump to the day value as soon as $w>0$. Fog densities blend linearly; the exposure key follows $\mathrm{smoothstep}(-8^\circ,10^\circ,e)$; a twilight weight $\mathrm{smoothstep}(-8^\circ,-2^\circ,e)\,(1-\mathrm{smoothstep}(3^\circ,14^\circ,e))$ tints fog and ambient warm. The moon key fades out by $1-\mathrm{smoothstep}(-6^\circ,-1^\circ,e)$ while the sun takes the same light slot above $-1^\circ$; lamps scale by $1-\mathrm{smoothstep}(-4^\circ,2^\circ,e)$. The sun direction is quantised to $\dcQuant^\circ$ in elevation and azimuth so the cached static shadow map is re-rendered once per quantum, not every frame (T195: \tobs{T195}).
+
+\subsection{Clouds and cloud shadows}
+One procedural layer at $y=\dcCloudAlt$\,m serves both the sky and the ground. The density is a four-octave fBm of value noise (lacunarity 2.03, gain 0.5, 55\,m base period) drifting with the wind $\vect v_w=(3.2,1.4)$\,m/s, then a soft threshold:
+\begin{equation}
+D(x,z,t)=\mathrm{smoothstep}\Bigl(0.395,\,0.545,\ \sum_{i=0}^{3}0.5^i\,n\bigl(2.03^i\,(x+v_{w,x}t,\ z+v_{w,z}t)/55\bigr)\Bigr),
+\end{equation}
+coverage $\approx\dcCloudCov$. The sky shader intersects the view ray with the cloud plane ($t=(y_c-y_\text{cam})/\hat d_y$), takes $D$ there plus three taps towards the sun as an optical depth (self-shadowing of thick cores), lights it with a Henyey--Greenstein phase function ($g=0.62$: bright silver linings towards the sun) and fades it into the horizon colour with $1-e^{-t/5200}$ (aerial perspective). A ground point $\vect p$ is in cloud shadow if its ray towards the sun meets a dense cell, $\vect q=\vect p+\hat{\vect s}\,(y_c-p_y)/\hat s_y$, attenuation $1-0.6\,D(q_x,q_z,t)$, applied inside the moon/sun shadow lookup. The GLSL and the CPU mirror share their constants (generated into the shader string), so T198 can check the shader's maths on the CPU (\tobs{T198}). The lattice hash works on integer cell coordinates; an earlier float hash lost precision at large plane coordinates and produced straight seams near the horizon (v7 fix). The mean noon cloud-shadow factor over the compound is \dcNoonCloud.
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.495\linewidth}\picsix{sky_noon}{\linewidth}\caption{Noon sky: clouds, haze, the sun key}\end{subfigure}
+\begin{subfigure}{0.495\linewidth}\picsix{sky_sunset}{\linewidth}\caption{Sunset: reddened disc, twilight band, lamps on}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.495\linewidth}\picsix{day_overview}{\linewidth}\caption{The camp by day: sun shadows and cloud shadows}\end{subfigure}
+\begin{subfigure}{0.495\linewidth}\picsix{night_searchlights}{\linewidth}\caption{Night preset (v5 look): searchlight cone and pool}\end{subfigure}
+\caption{The same renderer at three times of day (RTX\,4070, EPIC, \code{-{}-capture}).}\label{fig:sky}
+\end{figure}
+
+\subsection{Solar loading below the vision floor}
+By day the sun also heats surfaces in the thermal view. A naive term would make sunlit roofs as hot as engines and break the vision. Only \emph{passive} materials (intrinsic heat $u<0.75$) absorb it:
+\begin{equation}
+h=u+0.04\min(E_\text{night},1.5)+g\,s(e)\,\pi(u)\,\bigl(0.3+0.7\,(\hat{\vect n}\cdot\hat{\vect s})\,\sigma\bigr),\quad
+\pi(u)=1-\mathrm{smoothstep}(0.55,0.75,u),\quad s(e)=\mathrm{clamp}\Bigl(\frac{\sin e}{\sin60^\circ},0,1\Bigr)
+\end{equation}
+with $g=\dcSolarGain$ and $\sigma$ the shadow (sun and cloud). A passive surface at $u=0.5$ peaks at $0.62$; because $\pi$ falls to zero as $u\to0.75$, no passive surface can exceed $\approx0.75$, below the vision floor $\snCvFloor/255=0.80$. Engines, exhausts and lamps get no solar term, so the only targets stay the rovers (T196: \tobs{T196}).
+\lstApparentHeat
+
+\subsection{The SKY clock as a controllable object}
+\code{makeSkyClock} adds a possessable ``SKY / TIME OF DAY'' object. Its node tree is a group with one emissive sphere placed $300$\,m out along $\hat{\vect s}$ (hidden below $-3^\circ$); its colour is $T_c/\max_c T_c$, so the disc keeps its brightness and only changes hue. Possessed, \texttt{W}/\texttt{S} scrub the clock at \dcScrub\,h/s, \texttt{\textbackslash} toggles auto/manual and \texttt{Enter} jumps to the next phase; the camera looks from the camp towards the key light (T197: \tobs{T197}). The same functions are bound globally to \texttt{F2}, \texttt{,}/\texttt{.} and \texttt{/} (Appendix~\ref{app:controls}).
+\sheetfig{sheet_daycycle}

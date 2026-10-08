@@ -1,7 +1,6 @@
 \section{Audit}\label{app:audit}
-Every requirement and every small detail of the project, with a status, the evidence and remarks. \sDone{} = implemented and verified by a test, a measurement or a
-reading of the code; \sPart{} = implemented but not fully verified or with a known gap; \sNM{} = not measured (needs hardware that was not available).
-Evidence is \code{file:line} (line numbers are those of the tree at the time of writing and may drift by a few lines), a test id (T..) or a figure. Tests are listed in Table~\ref{tab:alltests}.
+Each requirement with a status, evidence and remark. \sDone{} = implemented and verified by a test, a measurement or a code reading; \sPart{} = implemented but not fully verified or with a known gap;
+\sNM{} = not measured (hardware not available). Evidence is \code{file:line} (lines may drift), a test id (T..; Table~\ref{tab:alltests}) or a figure.
 
 {\scriptsize\setlength{\tabcolsep}{2.5pt}
 \renewcommand{\arraystretch}{1.05}
@@ -12,27 +11,27 @@ Evidence is \code{file:line} (line numbers are those of the tree at the time of 
 \multicolumn{5}{@{}l}{\textbf{A. Lab sheet and proposal (R01--R26 of docs/PLAN.md)}}\\
 A1 & Unit cube / sphere / cylinder centred at origin & \sDone & \code{src/primitives/*}; T01--T09 & ext.\ $\pm0.5$ verified\\
 A2 & Unique vertices + index buffer; saving & \sDone & \code{MeshData}; T12; Table~\ref{tab:memory} & 66.6\,\% sphere, 66.5\,\% terrain\\
-A3 & VAO/VBO/EBO, stride 24\,B & \sDone & \code{rendering/Mesh.cpp}; \S\ref{sec:prims} & GL path not run on a GPU\\
+A3 & VAO/VBO/EBO, stride 24\,B & \sDone & \code{rendering/Mesh.cpp}; \S\ref{sec:prims} & not run on a GPU\\
 A4 & CCW front faces + culling & \sDone & T03, T09, T10, T11 & \\
 A5 & 36 slices, sphere by reflection, cylinder on $z$ & \sDone & T04--T08 & \\
-A6 & $M=T\cdot R\cdot S$, $W=$ parent$\cdot$local & \sDone & T14, T15; \S\ref{sec:transform} & workbook matrix check not rerun for v4 (\sPart)\\
+A6 & $M=T\cdot R\cdot S$, $W=$ parent$\cdot$local & \sDone & T14, T15; \S\ref{sec:transform} & workbook check: max $|M-M_\text{code}|=2.4\times10^{-5}$\\
 A7 & Flat bunker / Gouraud terrain / Phong UAV & \sDone & T19 & per-object shading assignment\\
 A8 & Three lights (moon, beacon, searchlight) & \sDone & \code{Lighting.h}; \code{Scene.cpp:updateLightsAndBeam} & keys 1--3\\
-A9 & Z-buffer; depth test off (\texttt{Z}) & \sDone & Fig.~\ref{fig:diag}; \code{Interactive.cpp} key Z & v2 capture\\
-A10 & Hidden-line / x-ray edges (\texttt{X}) & \sDone & \code{scene\_xray}, \code{scene\_hiddenline} & v2 captures\\
+A9 & Z-buffer; depth test off (\texttt{Z}) & \sDone & Fig.~\ref{fig:diag}; \code{Interactive.cpp} key Z & \\
+A10 & Hidden-line / x-ray edges (\texttt{X}) & \sDone & \code{Interactive.cpp} key X & \\
 A11 & Hierarchical searchlight & \sDone & T21 & \\
 A12 & Thermal colour map, 4 palettes & \sDone & \code{ThermalPalette.h} & \\
 A13 & Only primitives, no models / textures & \sDone & T38, T70, T67, T96, T99 & procedural shader patterns only\\
-A14 & Excel workbook from program output & \sPart & \code{tools/build\_workbook.py}; other engineer & not part of this report\\
+A14 & Excel workbook from program output & \sDone & \code{tools/build\_workbook.py}, \code{verify\_workbook.py} & verify PASS; crops in this report\\
 A15 & Real measurements only; FPS on RTX 4070 & \sNM & \S\ref{sec:platform} & \code{-{}-benchmark} command given\\
 \midrule
 \multicolumn{5}{@{}l}{\textbf{B. Objects (part counts from the export)}}\\
 B1 & Underground bunker (\partsBunker{} parts) & \sDone & \code{objects/Bunker.cpp}; T60--T69 & rooms: \S\ref{sec:walk}\\
 B2 & Blast doors & \sDone & \code{Bunker.cpp:28}; T64, T65 & starts open\\
-B3 & Base apron (\partsBase{} static) & \sDone & \code{objects/Base.cpp}; T70--T79 & night look still being polished by others\\
+B3 & Base apron (\partsBase{} static) & \sDone & \code{objects/Base.cpp}; T70--T79 & \\
 B4 & HESCO wall (204 cells), 4 towers, gate, helipad, motor pool, depot, barracks & \sDone & T72, T71, T77 & \\
 B5 & UAV with launcher rails (\partsUav{}) & \sDone & \code{objects/Uav.cpp:100}; T112 & 4 rounds\\
-B6 & Intruder rover (\partsRover{} each, 3) & \sDone & \code{objects/Rover.cpp}; \code{Scene.cpp:67} & \\
+B6 & Intruder rover (\partsRover{} each, up to 6) & \sDone & \code{objects/Rover.cpp}; \code{kMaxRovers} & \\
 B7 & Tank (\partsTank{}, 80 links) & \sDone & \code{objects/Tank.cpp}; T80--T87 & \\
 B8 & AA Gatling gun (\partsAa{}, 6 barrels) & \sDone & \code{objects/AaGun.cpp}; T88, T89 & \\
 B9 & Helicopter (\partsHeli{}, 5 blades) & \sDone & \code{objects/Helicopter.cpp}; T90--T96 & \\
@@ -40,17 +39,16 @@ B10 & Radar (\partsRadar{}, 21 tiles) & \sDone & \code{objects/Radar.cpp}; T97--
 B11 & Gate barrier (\partsBarrier{}) & \sDone & \code{Base.cpp:682}; T73 & \\
 B12 & Windsock (\partsWindsock{}, 5 segments), flag (\partsFlag{}, 12 strips) & \sDone & \code{Base.cpp:743, 804}; T74, T75 & scenery, not possessable\\
 B13 & Environment (\partsEnv{}), backdrop (\partsBackdrop{}), terrain 36\,m & \sDone & T13, T38--T43, T60, T78, T79 & \\
-B14 & Part counts in notes vs.\ export & \sPart & notes: bunker 357, tank 216; export: \partsBunker, \partsTank & export used; notes predate polish\\
 B15 & Hierarchy diagrams and $M$ examples & \sDone & Figs.\ \ref{fig:tree-bunker}--\ref{fig:tree-air}; Table~\ref{tab:mexamples} & generated from export\\
-B16 & Exploded view of v4 objects & \sPart & \code{Scene.cpp:310} (bunker, UAV, rover only) & no v4 explode capture\\
+B16 & Exploded view & \sPart & \code{updateNode()} & bunker, UAV, rover only\\
 \midrule
 \multicolumn{5}{@{}l}{\textbf{C. Controllable objects and key bindings}}\\
 C1 & Keys 5/6/7/8/9/0 possess tank/heli/AA/radar/doors/UAV & \sDone & \code{Interactive.cpp:173--178}; \code{Control.cpp:9}; T127 & \\
-C2 & \texttt{[ ]} cycle, \texttt{Backspace} release & \sDone & \code{Interactive.cpp:179--181}; T128 & 7 possessable\\
+C2 & \texttt{[ ]} cycle, \texttt{Backspace} release & \sDone & \code{Interactive.cpp:179--181}; T128 & 9 possessable\\
 C3 & \texttt{Enter}/\texttt{Ctrl} fire, door toggle in walk mode & \sDone & \code{Interactive.cpp:183}; T128 & 3.5\,m\\
 C4 & \texttt{\textbackslash} action & \sDone & \code{Interactive.cpp:182} & heli, radar, UAV assist, doors\\
 C5 & \texttt{C} camera cycle; sight toggle & \sDone & \code{Interactive.cpp:153}; T55 & \\
-C6 & \texttt{K} director (12 shots, 120\,s) & \sDone & \code{Director.cpp}; T125, T129 & \\
+C6 & \texttt{K} director (13 shots, 120\,s) & \sDone & \code{Director.cpp}; T125, T129 & \\
 C7 & \texttt{V Y T Q X Z O F G P} & \sDone & \code{Interactive.cpp:189--212} & view, thermal, edges, shading\\
 C8 & \texttt{1 2 3 4}, \texttt{B N}, \texttt{E H M I} & \sDone & \code{Interactive.cpp:198--205} & \\
 C9 & \texttt{F5--F10, L J R, +/-, U, Tab, Space, F1, F12, Esc} & \sDone & \code{Interactive.cpp:207--226} & read from code, not pressed on a display\\
@@ -64,19 +62,19 @@ C16 & UAV manual flight + gimbal assist & \sDone & \code{Scene.cpp:96} & no dedi
 C17 & Interactive input on a real display & \sNM & --- & keys read from code; GLFW path not exercised\\
 \midrule
 \multicolumn{5}{@{}l}{\textbf{D. Game logic}}\\
-D1 & Intruder life cycle & \sDone & \code{Scene.cpp:504}; T107 & \\
-D2 & Lock 1.5\,s & \sDone & \code{DroneController.h:32}; T108 & \\
-D3 & Laser spot, 4 rails, 10\,s reload & \sDone & \code{Scene.cpp:388}; T112 & \\
+D1 & Intruder life cycle & \sDone & \code{Scene.cpp}; T107 & \\
+D2 & Locks: lead 0.8\,s, wing 0.5\,s, solo 1.3\,s & \sDone & \code{Squad.h}; T108, T141 & \\
+D3 & Laser spot, 4 rails, 6\,s reload & \sDone & \code{Scene.cpp:388}; T112 & \\
 D4 & Friend or foe, keep-out, wreck discrimination & \sDone & \code{DroneController.cpp:123, 166}; T109--T111 & \\
 D5 & PN homing, ballistic shell, tracer segment tests & \sDone & \code{Combat.cpp:296, 315}; T100--T102 & \\
 D6 & Blast damage, explosion effects, cap & \sDone & \code{Combat.cpp:164}; T103--T105 & \\
 D7 & Rigid-body debris, burning wreck, respawn & \sDone & \code{Scene.cpp:418, 462, 490}; T106, T107 & \\
 D8 & Hiding planner (flood fill + LFR) & \sDone & \code{HideController.cpp}; T26--T28, T44 & \\
-D9 & Behaviour statistics with 3 destructible intruders & \sNM & \code{-{}-trace} & v2 values only\\
+D9 & Behaviour statistics (90\,s game trace) & \sDone & \code{docs/v5\_notes/runs/trace\_v5\_low\_90s.csv} & 21 rounds, 12 hits, 3 kills\\
 \midrule
 \multicolumn{5}{@{}l}{\textbf{E. Render passes (GPU timer labels) and shaders}}\\
 E1 & uav camera (CV) raw heat & \sPart & \code{Renderer.cpp} & seen only via llvmpipe\\
-E2 & shadow maps: moon $\times2$, static cache, spot & \sDone & \code{RendererFrame.cpp:124}; T33--T35 & T33 text stale (22\,m)\\
+E2 & shadow maps: moon $\times2$, static cache, spot & \sDone & \code{RendererFrame.cpp:124}; T33--T35 & \\
 E3 & pre-pass, SSAO & \sPart & \code{RendererFrame.cpp} & llvmpipe images only\\
 E4 & volumetric fog + shaft & \sPart & \code{ShadersPost.cpp:228} & ditto\\
 E5 & scene: sky, parts, grass, foliage, rain, effects & \sPart & \code{Renderer.cpp:468} & ditto\\
@@ -85,34 +83,63 @@ E7 & lens flare, DOF, bloom, composite (ACES / FLIR) & \sPart & \code{ShadersPos
 E8 & Surfaces 12--18 & \sDone & \code{ShaderSources.cpp:340--383}; Table~\ref{tab:surfaces} & exporter shows ``Other''\\
 E9 & 16 practical lights + dynamic lights & \sDone & \code{Renderer.h:207}; \code{RendererFrame.cpp:268} & no unit test (GPU)\\
 E10 & Indoor mask & \sDone & \code{ShaderSources.cpp:79, 177} & T69 (volumes)\\
-E11 & Effects renderer, 8 particle types & \sPart & \code{Effects.h}, \code{EffectsData.h:23} & soft particles off (\code{uHasSceneDepth=0})\\
+E11 & Effects renderer, 8 particle types, soft particles & \sDone & \code{Effects.h}, \code{RendererFrame.cpp} & pre-pass depth fade\\
 E12 & GLSL compile on an NVIDIA driver & \sNM & --- & only Mesa\\
 \midrule
 \multicolumn{5}{@{}l}{\textbf{F. Builds and targets}}\\
 F1 & Linux headless \code{make HEADLESS=1} & \sDone & this report's test build & \\
 F2 & Test binary, JSON output & \sDone & \nTests{} tests, \nFail{} fail & \\
-F3 & Exporter / \code{make docs} & \sDone & \code{build/scene\_export.json} & being extended\\
-F4 & Linux GLFW, CMake & \sPart & \code{Makefile}, \code{CMakeLists.txt} & not re-run for v4\\
-F5 & Windows exe (zig cross-link) & \sPart & \code{tools/cross\_build\_windows.sh} & committed exe predates v4; never run natively\\
+F3 & Exporter / \code{make docs} & \sDone & \code{build/scene\_export.json} & \\
+F4 & Linux GLFW, CMake & \sPart & \code{Makefile}, \code{CMakeLists.txt} & not re-run\\
+F5 & Windows exe (zig cross-link) & \sPart & \code{tools/cross\_build\_windows.sh} & never run natively\\
 F6 & Windows MinGW \code{build.bat}/\code{run.bat} & \sNM & --- & \\
-F7 & RTX 4070 run, FPS, NVENC & \sNM & \S\ref{sec:platform} & \\
-F8 & 120\,s demo video & \sPart & \code{-{}-record} & not produced for this report\\
+F7 & RTX 4070 run, FPS, NVENC & \sPart & \S\ref{sec:platform}, \S\ref{sec:v6results} & v6 captures and traces on the RTX (d3d12, EPIC); FPS and NVENC not measured\\
+F8 & 120\,s demo video & \sDone & \code{report/demo\_v5.mp4} & 1280$\times$720, 30\,fps, AAC audio\\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{H. Squad, mission, camp and course checklist}}\\
+H1 & Waves of rovers that keep spawning, random paths, MicroMouse + line follower & \sDone & \code{Mission.cpp}; \code{HideController.cpp:222}; T143, T144, T180 & weighted Dijkstra + noise\\
+H2 & Two UAVs patrol constantly & \sDone & \code{ai/Squad.cpp}; T139 & opposite phase, 21.6\,m apart\\
+H3 & Coordinated tracking with computer vision & \sDone & \code{vision/CvPipeline.cpp}, \code{MultiTracker.cpp}; T130--T137, T142 & Kalman, Hungarian, triangulation\\
+H4 & Combined attack, two rounds, time-on-target & \sDone & \code{Squad.cpp:43}; T138, T141 & flight-time error 0.7\,\%; blast pair 0.00\,s apart\\
+H5 & Hits marked like a game (markers, score, banners) & \sDone & \code{HudMath.cpp}, \code{AppHud.cpp}; T170--T178 & HUD seen only on llvmpipe captures\\
+H6 & Sound & \sDone & \code{src/audio}; T160--T169 & RMS $-22$\,dBFS; not tuned by ear\\
+H7 & Pro reflection / colour / shading & \sPart & \code{ShaderSources.cpp} & bump + SSR done; no reflection probe\\
+H8 & Hidden army camp, launchers, tanks & \sDone & \code{Launchers.cpp}, \code{Base.cpp}; T150--T159 & lights 21 $\to$ 11; SAM, MLRS, 2 parked tanks\\
+H9 & Rule ``4--5 shots = 1 kill'' & \sDone & \code{Scene.h:62--63}, \code{Scene.cpp:501}; T105, T140 & 100 HP, 30 $\times$ power $\times$ falloff\\
+H10 & Base integrity, base lost, score & \sDone & \code{Mission.cpp}; T181 & \\
+H11 & Headless real-render run (LOW, 90\,s) & \sDone & \code{docs/v5\_notes/runs/} & 21 rounds, 12 hits, 3 kills\\
+H12 & v5 captures in \code{report/figures\_v5} & \sDone & Figs.\ \ref{fig:v5game}, \ref{fig:v5camp}, \ref{fig:strike} & \\
+H13 & Course: 10-slide deck, outline on slide 2 & \sDone & \code{report/ThermalSense\_Presentation.pptx} & \code{tools/build\_slides.py}\\
+H13b & Course: 2-minute video at the end of the slides & \sDone & slide 10 & \code{demo\_v5.mp4} embedded\\
+H14 & Course: dynamic and controllable objects, complex motion & \sDone & \S\ref{sec:control}; SAM and MLRS slews & 7 + SAM + MLRS\\
+H15 & Course: report with audit & \sDone & this document & \\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{I. Version 6: day cycle, soldiers, random routes, real CV}}\\
+I1 & Solar position, phases with hysteresis, phase events & \sDone & \code{DayCycle.cpp}; T190, T194, T199 & sunrise \dcSunrise, sunset \dcSunset, noon $\dcNoonElev^\circ$; Excel recomputes $e$ (sheet 21)\\
+I2 & Night preset = v5; day preset; log-space blend & \sDone & T192, T193; Table~\ref{tab:nightreg} & static v5 shots MAE $\le$ \nrStaticMax\\
+I3 & Kasten--Young sun colour, quantised key direction & \sDone & T193, T195; Fig.~\ref{fig:diagrams:H2_kasten_young} & \\
+I4 & Clouds and cloud shadows (shared CPU / GLSL field) & \sDone & T198; Fig.~\ref{fig:sky} & seams fixed in v7; day captures predate the fix\\
+I5 & Solar loading below the CV floor & \sDone & T196 & passive surfaces $\le0.75<0.80$\\
+I6 & SKY clock controllable (sun sphere) & \sDone & T197 & \\
+I7 & Soldier figure from primitives (\soldierParts{} leaves, depth \soldierDepth) & \sPart & T201; Fig.~\ref{fig:soldiertree} & explode view (\texttt{E}) skips the soldier roots\\
+I8 & Centripetal Catmull--Rom, arc length, curvature speed law & \sDone & \code{Spline.cpp}; T200, T213 & \\
+I9 & Site planner A* $\to$ string pulling $\to$ spline, clearance & \sDone & \code{Garrison.cpp}; T205 & min clearance \routeMinClear\,m over \nRoutes{} routes\\
+I10 & Gait by FK + two-link leg IK, planted feet & \sDone & \code{Gait.cpp}; T202--T204 & \\
+I11 & Arm IK rifle hold (v7) & \sPart & \code{Gait.cpp:armIK} & no dedicated test; checked on captures\\
+I12 & Roster, shifts, bunker legs, work loops, separation & \sDone & T206, T207, T210, T214 & \\
+I13 & Soldier possession, blast duck, heat & \sDone & T208, T209, T211, T212 & no damage model by design\\
+I14 & Random routes: ring, vias, personality, switch & \sDone & \code{Mission.cpp}; T215--T219 & \\
+I15 & Waves only at night, dawn withdrawal, day lights & \sDone & T220--T222; Table~\ref{tab:v6runs} & 0 spawns by day in 1200\,s of traces\\
+I16 & One run seed, derived streams, reproducibility & \sDone & T223, T233; Table~\ref{tab:v6runs} & seed 42 twice: identical traces\\
+I17 & Sensor model (PSF, FPN, NUC, NETD, stuck, jitter, drops) & \sDone & \code{SensorModel.cpp}; T225--T228, T231, T232 & \\
+I18 & Person class; persons never targets & \sDone & T229, T230, T235, T236 & person$\to$target 0 up to NETD 4\\
+I19 & Kills only through vision (no scripted strikes) & \sDone & T234; traces' rule check & 0 violations\\
+I20 & CLI, keys, HUD clock and banners, v6 director cut & \sDone & T237--T239; Table~\ref{tab:keysv6} & \\
+I21 & v6 captures on the RTX\,4070 (18) & \sDone & \code{report/figures\_v6} & all reviewed\\
+I22 & v6 demo video & \sPart & --- & recorder verified; v6 cut not recorded yet\\
 \midrule
 \multicolumn{5}{@{}l}{\textbf{G. Known issues}}\\
-G1 & Verification on llvmpipe only & \sPart & --- & visuals not seen on a GPU\\
-G2 & Exporter labels (terrain radius 20, surface ``Other'') & \sPart & \code{DocExport.cpp:72} & E2 extending exporter\\
-G3 & T33 / T13 text from v3 & \sPart & T33 & passes; description stale\\
-G4 & Figures \nShotsPending{} of \nShots{} pending & \sPart & Table~\ref{tab:shots} & engineer D rendering them\\
-G5 & Soft particles disabled & \sPart & \code{RendererFrame.cpp:491} & \\
-G6 & PDF size & \sPart & \code{report/main.pdf} & full-size PNGs embedded\\
+G1 & Verification on llvmpipe only (v2--v5) & \sPart & \S\ref{sec:v6results} & v6 visuals checked on the RTX\,4070; v5 figures still llvmpipe\\
 \end{longtable}}
 
-\subsection*{Capture shots}
-Every shot of \code{shotList()} in \code{Capture.cpp} is listed in Table~\ref{tab:shots}, with the figure set it belongs to and whether the PNG existed when the report was built; unused
-means the report does not place it.
 
-\begin{table}[h]
-\centering
-\caption{Capture shots and figure files (generated).}\label{tab:shots}
-\input{sections/gen_shots}
-\end{table}

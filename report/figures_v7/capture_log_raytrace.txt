@@ -1,0 +1,86 @@
+EVENT t=  0.02 DayBreak       uav=-1 track=-1 value=1650 combined=0 pos(0.0,0.0)
+t=  0.0 clock=16:30 uav=SEARCH    pos( 0.00, 7.50,12.50) blobs=0 found=0 rover=EXPOSED (-15.17, 6.65)
+t=  1.0 clock=16:30 uav=SEARCH    pos( 1.13, 7.49,11.40) blobs=0 found=0 rover=EXPOSED (-14.95, 6.49)
+t=  2.0 clock=16:30 uav=SEARCH    pos( 3.58, 7.49, 9.35) blobs=0 found=0 rover=EXPOSED (-15.20, 6.30)
+wrote raytrace_mode_raster.png 1280x720
+wrote raytrace_mode_hybrid.png 1280x720
+wrote raytrace_mode_whitted.png 1280x720
+wrote raytrace_mode_path.png 1280x720
+wrote raytrace_mode_light.png 1280x720
+wrote raytrace_modes.png 1920x720
+raytrace_modes written
+t=  3.0 clock=16:30 uav=SEARCH    pos( 6.55, 7.59, 7.33) blobs=0 found=0 rover=EXPOSED (-15.97, 6.24)
+EVENT t=  3.67 Withdraw       uav=-1 track=-1 value=0 combined=0 pos(-16.4,6.3)
+t=  4.0 clock=16:30 uav=SEARCH    pos( 7.67, 7.67, 6.78) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+wrote raytrace_tree_pixel.png 1280x720
+wrote raytrace_tree.png 1280x720
+raytrace_tree written
+t=  5.0 clock=16:30 uav=SEARCH    pos( 6.01, 7.62, 7.74) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+t=  6.0 clock=16:30 uav=SEARCH    pos( 3.95, 7.55, 8.46) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+wrote raytrace_ssr.png 1280x360
+wrote raytrace_ssr_raster.png 1280x720
+wrote raytrace_ssr_hybrid.png 1280x720
+raytrace_ssr written
+t=  7.0 clock=16:30 uav=SEARCH    pos( 1.71, 7.46, 8.76) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+t=  8.0 clock=16:30 uav=SEARCH    pos(-0.16, 7.38, 8.60) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+wrote raytrace_photons.png 1280x720
+raytrace_photons written
+t=  9.0 clock=16:30 uav=SEARCH    pos(-2.11, 7.37, 8.00) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+t= 10.0 clock=16:30 uav=SEARCH    pos(-3.62, 7.34, 7.15) blobs=0 found=0 rover=EXPOSED (-16.42, 6.25)
+      uav camera (CV) 21.4728 ms
+      shadow maps 2.1084 ms
+      pre-pass 0.151553 ms
+      ssao 0.358123 ms
+      volumetric fog 0.754591 ms
+      scene 4.71164 ms
+      resolve 0.0898976 ms
+      combine + ssr 0.179597 ms
+      taa 0.0520427 ms
+      rt scene sync 0.0523495 ms
+      ray tracing 38.6125 ms
+    {"mode": "RASTER", "ms_per_frame": 16.14, "rt_pass_ms": 0.00, "internal": [1280, 720]},
+      uav camera (CV) 21.4728 ms
+      shadow maps 1.90374 ms
+      pre-pass 0.137625 ms
+      ssao 0.221245 ms
+      volumetric fog 0.637497 ms
+      scene 5.03081 ms
+      resolve 0.0844591 ms
+      combine + ssr 0.172436 ms
+      taa 0.052185 ms
+      ray tracing 20.107 ms
+    {"mode": "HYBRID RT", "ms_per_frame": 32.60, "rt_pass_ms": 20.11, "internal": [1280, 720]},
+      uav camera (CV) 21.4728 ms
+      shadow maps 1.90374 ms
+      pre-pass 0.138612 ms
+      ssao 0.216636 ms
+      volumetric fog 0.635945 ms
+      scene 0.697198 ms
+      resolve 0.075428 ms
+      combine + ssr 0.172436 ms
+      taa 0.0532472 ms
+      ray tracing 57.6626 ms
+    {"mode": "WHITTED RT", "ms_per_frame": 76.98, "rt_pass_ms": 57.66, "internal": [960, 540]},
+      uav camera (CV) 21.4728 ms
+      shadow maps 1.90374 ms
+      pre-pass 0.138612 ms
+      ssao 0.216636 ms
+      volumetric fog 0.635945 ms
+      scene 0.228934 ms
+      resolve 0.0650248 ms
+      combine + ssr 0.172436 ms
+      taa 0.0532472 ms
+      ray tracing 29.3242 ms
+    {"mode": "PATH TRACING", "ms_per_frame": 30.01, "rt_pass_ms": 29.32, "internal": [640, 360]},
+      uav camera (CV) 21.4728 ms
+      shadow maps 1.90374 ms
+      pre-pass 0.138612 ms
+      ssao 0.216636 ms
+      volumetric fog 0.635945 ms
+      scene 0.190684 ms
+      resolve 0.0663939 ms
+      combine + ssr 0.172436 ms
+      taa 0.0532472 ms
+      ray tracing 44.2021 ms
+    {"mode": "LIGHT TRACING", "ms_per_frame": 51.35, "rt_pass_ms": 44.20, "internal": [640, 360]}
+raytrace_perf written

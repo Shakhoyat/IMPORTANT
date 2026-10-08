@@ -85,7 +85,7 @@ UavRig buildUav() {
     rig.gimbalPitch = b.group(rig.gimbalYaw, "Gimbal pitch", {0, -0.05f, 0}, {45, 0, 0}, "Tilt axis");
     rig.gimbalPitch->animation = "Pitch from visual-servo controller";
     b.part(rig.gimbalPitch, "Lamp housing", P::Cylinder, {0.06f, 0.06f, 0.08f}, {0, 0, 0}, {0, 0, 0}, lamp, "Searchlight body");
-    b.part(rig.gimbalPitch, "Lens", P::Sphere, {0.05f, 0.05f, 0.015f}, {0, 0, 0}, {0, 0, kLampFrontOffset}, lens,
+    rig.lens = b.part(rig.gimbalPitch, "Lens", P::Sphere, {0.05f, 0.05f, 0.015f}, {0, 0, 0}, {0, 0, kLampFrontOffset}, lens,
            "Spotlight source L2");
     b.part(rig.gimbalPitch, "Thermal camera", P::Cube, {0.03f, 0.025f, 0.035f}, {0, 0, 0}, {0, 0.042f, 0.0f}, carbon,
            "Camera used by the tracker");
@@ -121,6 +121,34 @@ UavRig buildUav() {
                       "Visible cone of the spotlight");
     rig.beam->explodable = false;
     rig.beam->animation = "Length follows distance to the ground";
+
+    // v7 detail pass (appended: node ids above unchanged; back to Phong after the beam, T19): motor cooling rings,
+    // rear status LEDs, GPS / telemetry antennas, camera window, battery straps, arming LED.
+    b.setShading(ShadingModel::Phong);
+    const Material ring = withPbr({{0.12f, 0.12f, 0.13f}, 0.60f, 0.0f, 0.6f, 64.0f}, Surface::Metal, 0.45f, 0.8f);
+    const Material strap = makeMaterial({0.55f, 0.22f, 0.05f}, 0.45f, Surface::Sand, 0.8f, 0.0f);
+    const Material amber = indicator({1.0f, 0.55f, 0.08f}, 1.2f);
+    const Material arming = indicator({0.2f, 0.6f, 1.0f}, 1.5f);
+    for (int i = 0; i < 4; ++i) {
+        SceneNode* mount = nullptr;
+        for (auto& c : r->children)
+            if (c->name == std::string("Motor mount ") + armName[i]) mount = c.get();
+        detail(b, mount, "Motor cooling ring", P::Cylinder, {0.05f, 0.05f, 0.01f}, {90, 0, 0}, {0, 0.004f, 0}, ring,
+               "Finned stator base of the motor");
+        if (i >= 2)
+            detail(b, mount, "Status LED", P::Sphere, {0.016f, 0.016f, 0.016f}, {0, 0, 0}, {0, -0.012f, 0}, amber,
+                   "Rear status light (amber, emissive only)");
+    }
+    for (int sx = -1; sx <= 1; sx += 2)
+        detail(b, r, "Telemetry antenna", P::Cylinder, {0.005f, 0.005f, 0.09f}, {-35, 0, 0}, {0.05f * sx, -0.04f, -0.13f}, carbon,
+               "900 MHz telemetry antenna (angled down)");
+    for (int k = 0; k < 2; ++k)
+        detail(b, r, "Battery strap", P::Cube, {0.106f, 0.044f, 0.012f}, {0, 0, 0}, {0, -0.055f, -0.07f + 0.1f * k}, strap,
+               "Hook-and-loop battery strap");
+    detail(b, rig.gimbalPitch, "Camera window", P::Sphere, {0.018f, 0.018f, 0.006f}, {0, 0, 0}, {0, 0.042f, 0.018f}, seeker,
+           "Germanium window of the thermal camera");
+    detail(b, r, "Arming LED", P::Sphere, {0.012f, 0.008f, 0.012f}, {0, 0, 0}, {0.04f, 0.075f, -0.03f}, arming,
+           "Flight-controller status LED (emissive only)");
     return rig;
 }
 

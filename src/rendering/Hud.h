@@ -28,7 +28,21 @@ public:
     void text(float x, float y, const std::string& s, float pixelHeight, Rgba c);
     float textWidth(const std::string& s, float pixelHeight) const;
     void heatImage(float x, float y, float w, float h, GLuint texture);  // drawn through the thermal palette
+    // v7.1 WP-U: game UI primitives (all filled shapes join the rect batch, so they layer with rects in call order).
+    void rectGrad(float x, float y, float w, float h, Rgba top, Rgba bottom);     // vertical gradient
+    void rectGradH(float x, float y, float w, float h, Rgba left, Rgba right);    // horizontal gradient
+    void tri(float x0, float y0, float x1, float y1, float x2, float y2, Rgba c);
+    void disc(float cx, float cy, float r, Rgba c, int segments = 0);             // 0 = from the radius
+    void arc(float cx, float cy, float r0, float r1, float a0, float a1, Rgba c, int segments = 0);  // filled ring sector (rad)
+    void thickLine(float x0, float y0, float x1, float y1, float width, Rgba c);
+    void roundRect(float x, float y, float w, float h, float r, Rgba c);
+    void roundFrame(float x, float y, float w, float h, float r, float width, Rgba c);   // outline of a rounded rect
+    // Heat image, several per frame; topDown = row 0 of the texture is the top of the picture (CPU images).
+    void heatImage(float x, float y, float w, float h, GLuint texture, bool topDown);
+    // R8 texture 'slot' (0..3) holding a w x h 8-bit image (UAV sensor frames for the feeds); created on first use.
+    GLuint uploadGray(int slot, int w, int h, const unsigned char* data);
     void end();
+    void flush();  // draws what is queued so far: later calls paint over it (modal panels over world markers)
     void setPalette(int p) { palette_ = p; }
 
 private:
@@ -45,6 +59,10 @@ private:
     int width_ = 1, height_ = 1;
     std::vector<V> tris_, lines_, glyphs_, image_;
     GLuint imageTex_ = 0;
+    struct Image { std::vector<V> verts; GLuint tex; };
+    std::vector<Image> images_;           // v7.1: extra heat images of this batch
+    GLuint gray_[4] = {0, 0, 0, 0};
+    int grayW_[4] = {0, 0, 0, 0}, grayH_[4] = {0, 0, 0, 0};
     int palette_ = 0;
 };
 

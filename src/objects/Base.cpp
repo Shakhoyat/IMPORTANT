@@ -4,6 +4,7 @@
 #include <cstdio>
 
 #include "objects/PropKit.h"
+#include "objects/Launchers.h"
 #include "objects/Structures.h"
 
 namespace ts {
@@ -401,23 +402,22 @@ void addMotorPool(Builder& b, SceneNode* root) {
     auto at = [&](float so, float fo) { return s * so + f * fo; };  // local offset in the spot frame
     b.setShading(ShadingModel::Flat);
     // Containers (west side, one stacked).
-    container(b, mp, at(-5.8f, -1.0f), yaw, oliveCorr(), "Container A");
-    container(b, mp, at(-5.8f, 5.6f), yaw, tanCorr(), "Container B");
-    container(b, mp, at(-5.8f, -1.0f) + Vec3{0, 2.59f, 0}, yaw, rustCorr(), "Container C (stacked)");
-    container(b, mp, at(-8.5f, 0.6f), yaw, rustCorr(), "Container D");
+    // (moved west and thinned out in v5 to make room for the tank revetment and the camp bays)
+    container(b, mp, at(-7.6f, -1.0f), yaw, oliveCorr(), "Container A");
+    container(b, mp, at(-7.6f, -1.0f) + Vec3{0, 2.59f, 0}, yaw, rustCorr(), "Container C (stacked)");
     b.setShading(ShadingModel::Gouraud);
     // Two trucks under the camouflage net.
-    truck(b, mp, at(5.9f, 1.4f), yaw);
-    truck(b, mp, at(8.9f, 1.4f), yaw + 180.0f);
+    truck(b, mp, at(7.6f, 1.4f), yaw);
+    truck(b, mp, at(10.6f, 1.4f), yaw + 180.0f);
     // Camouflage net over the two trucks: sagging between poles (>= 3.2 m above the ground), with gaps.
     {
-        const float so0 = 4.2f, so1 = 10.6f, fo0 = -3.0f, fo1 = 6.0f;
+        const float so0 = 5.9f, so1 = 12.3f, fo0 = -3.0f, fo1 = 6.0f;
         const Vec3 c = at(0.5f * (so0 + so1), 0.5f * (fo0 + fo1));
         addCamoNet(b, mp, {c.x, 0.0f, c.z}, yaw, so1 - so0, fo1 - fo0, 3.9f, 0.32f, 0x4e7b01u);
     }
     // Floodlight pole behind the tank spot, aimed at the parking box.
     {
-        const Vec3 pp = at(-3.9f, 5.6f);  // front-left corner of the park (north-west of the tank), clear of the 6 x 9 m box
+        const Vec3 pp = at(-5.6f, 5.6f);  // front-left corner of the park (north-west of the tank), clear of the 6 x 9 m box
         const Vec3 head{pp.x, 5.4f, pp.z};
         const Vec3 target = Vec3{0.0f, 1.0f, 0.0f};
         const Vec3 aim = normalize(target - head);
@@ -436,7 +436,7 @@ void addMotorPool(Builder& b, SceneNode* root) {
     flush(b, mk, "Spot line", {0.12f, 0.012f, 9.0f}, {-3.0f, 0.012f, 0}, 0, paintYellow(), "Left line");
 }
 
-void lightTower(Builder& b, SceneNode* p, float x, float z, float yaw, bool /*practical: the tower stays dark*/) {
+[[maybe_unused]] void lightTower(Builder& b, SceneNode* p, float x, float z, float yaw, bool /*practical: the tower stays dark*/) {
     SceneNode* t = b.group(p, "Light tower", {x, 0, z}, {0, yaw, 0}, "Trailer-mounted mast with four lamp heads");
     const Material steel = mats::towerSteel(), od = oliveFlat();
     box(b, t, "Trailer", {1.5f, 0.5f, 2.4f}, {0, 0.55f, 0}, 0, od, "Generator trailer");
@@ -479,7 +479,7 @@ void addDepot(Builder& b, SceneNode* root) {
     post(b, g, "Exhaust stack", 0.1f, 0.7f, {0.3f, 1.25f, 0.8f}, mats::towerSteel(), "Exhaust");
     box(b, g, "Control panel", {0.5f, 0.4f, 0.04f}, {0, 0.85f, 1.03f}, 0, makeMaterial({0.05f, 0.07f, 0.06f}, 0.3f, Surface::Screen, 0.4f, 0.0f, 0.4f), "Panel with display");
     strut(b, g, "Power cable", P::Cylinder, {0.0f, 0.2f, 1.1f}, {0.0f, 0.05f, 3.4f}, 0.06f, rub, "Cable to the light tower");
-    lightTower(b, d, 7.2f, 4.0f, 90.0f, true);
+    // (the dark light tower of v4 was removed in v5: light discipline, and it blocked the south tank bays)
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -591,6 +591,65 @@ void addRadarSurround(Builder& b, SceneNode* root) {
 }
 
 // Compound-style obstacle flags: thin parts are not UAV obstacles, nothing outside r = 20 is an occluder.
+// ---------------------------------------------------------------------------------------------------------
+// v7 detail pass (WP-M): appended after every other part so all existing node ids stay stable. The parts are
+// attached to the groups built above (found by name) and are surface detail only (finalizeFlags: no obstacles).
+// ---------------------------------------------------------------------------------------------------------
+void findGroups(SceneNode& n, const std::string& prefix, std::vector<SceneNode*>& out) {
+    if (!n.isLeaf() && n.name.rfind(prefix, 0) == 0) out.push_back(&n);
+    for (auto& c : n.children) findGroups(*c, prefix, out);
+}
+
+void addDetailPass(Builder& b, SceneNode* root) {
+    const Material steel = mats::towerSteel(), worn = reworked(shade(oliveFlat(), 1.45f), 0.45f, 0.35f);
+    std::vector<SceneNode*> g;
+    findGroups(*root, "Cargo truck", g);
+    for (SceneNode* t : g) {
+        for (float z : {2.75f, -1.2f, -2.7f})
+            for (float s : {-1.0f, 1.0f})
+                b.part(t, "Wheel hub", P::Cylinder, {0.45f, 0.45f, 0.42f}, {0, 90, 0}, {s * 1.1f, 0.53f, z}, steel, "Steel wheel hub");
+        for (float s : {-1.0f, 1.0f}) {
+            b.part(t, "Cab side window", P::Cube, {0.02f, 0.5f, 0.7f}, {0, 0, 0}, {s * 1.18f, 2.2f, 1.4f}, darkGlass(), "Door window");
+            b.part(t, "Mirror", P::Cube, {0.05f, 0.3f, 0.18f}, {0, 0, 0}, {s * 1.32f, 2.2f, 1.95f}, steel, "Wing mirror");
+        }
+        b.part(t, "Radiator grille", P::Cube, {1.0f, 0.6f, 0.02f}, {0, 0, 0}, {0, 1.45f, 3.71f}, shade(steel, 0.5f), "Radiator grille");
+        b.part(t, "Exhaust stack", P::Cylinder, {0.12f, 0.12f, 1.0f}, {90, 0, 0}, {1.05f, 2.5f, 0.5f}, shade(steel, 0.6f),
+               "Vertical exhaust behind the cab");
+    }
+    g.clear();
+    findGroups(*root, "Container ", g);
+    for (SceneNode* c : g) {
+        const Vec3 corners[5] = {{-1.15f, 2.55f, 2.95f}, {1.15f, 2.55f, -2.95f}, {-1.15f, 2.55f, -2.95f}, {1.15f, 0.09f, 2.95f},
+                                 {-1.15f, 0.09f, 2.95f}};
+        for (const Vec3& p : corners)
+            b.part(c, "Corner casting", P::Cube, {0.18f, 0.18f, 0.18f}, {0, 0, 0}, p, steel, "Lifting / stacking fitting");
+        b.part(c, "Container ID", P::Cube, {0.01f, 0.3f, 1.4f}, {0, 0, 0}, {1.226f, 2.2f, 1.6f}, decal({0.80f, 0.80f, 0.76f}, 0.30f),
+               "Painted owner code and number");
+    }
+    g.clear();
+    findGroups(*root, "Guard tower ", g);
+    constexpr float kPlat = 4.0f;
+    for (SceneNode* t : g) {
+        for (float y : {0.36f, 0.76f})
+            b.part(t, "Sandbag course", P::Cylinder, {0.1f, 0.1f, 2.8f}, {0, 90, 0}, {0, kPlat + y, 1.45f}, mats::sandbag(),
+                   "Row of filled bags (bulging course line)");
+        b.part(t, "MG ammo box", P::Cube, {0.26f, 0.18f, 0.12f}, {0, 0, 0}, {0.8f, kPlat + 1.33f, 1.15f}, oliveFlat(), "Ammunition can");
+        b.part(t, "Field radio", P::Cube, {0.3f, 0.35f, 0.15f}, {0, 0, 0}, {-0.85f, kPlat + 0.32f, 0.85f}, shade(oliveFlat(), 0.6f),
+               "Tower field radio");
+        b.part(t, "Radio LED", P::Sphere, {0.035f, 0.035f, 0.02f}, {0, 0, 0}, {-0.85f, kPlat + 0.42f, 0.772f},
+               indicator({0.2f, 1.0f, 0.3f}, 0.8f), "Radio power LED (emissive only)");
+    }
+    g.clear();
+    findGroups(*root, "Guard booth", g);
+    for (SceneNode* bo : g) {
+        b.part(bo, "Door handle", P::Cube, {0.15f, 0.04f, 0.05f}, {0, 0, 0}, {0.65f, 1.1f, 1.16f}, steel, "Door handle");
+        for (float z : {-1.35f, 1.35f})
+            bevel(b, bo, "Booth roof edge", {-1.35f, 2.56f, z}, {1.35f, 2.56f, z}, 0.12f, worn, "Rounded roof edge");
+        b.part(bo, "Checkpoint placard", P::Cube, {0.01f, 0.3f, 0.8f}, {0, 0, 0}, {-1.115f, 0.85f, 0.0f}, paintYellow(),
+               "Checkpoint instructions placard");
+    }
+}
+
 void finalizeFlags(SceneNode& n) {
     if (n.isLeaf()) {
         float s[3] = {std::fabs(n.local.scale.x), std::fabs(n.local.scale.y), std::fabs(n.local.scale.z)};
@@ -610,6 +669,17 @@ std::vector<ClearZone> baseClearZones() {
             {"tank spot", kMotorPool.x, kMotorPool.z, 3.0f, 4.5f, kTankParkYawDeg, false},
             {"road", 0.0f, 25.0f, kRoadHalfWidth, 5.5f, 0.0f, false},
             {"trench strip", 0.0f, 8.5f, 2.5f, 5.0f, 0.0f, false}};
+}
+
+std::vector<ClearZone> campClearZones() {
+    std::vector<ClearZone> z = baseClearZones();
+    for (const camp::Site& s : camp::allSites()) {
+        const camp::PlanRect p = camp::planRect(s);
+        z.push_back({s.name, p.cx, p.cz, p.halfX, p.halfZ, p.yawDeg, false});
+    }
+    const camp::PlanRect pool = camp::poolPlanRect();
+    z.push_back({"tank park revetment", pool.cx, pool.cz, pool.halfX, pool.halfZ, pool.yawDeg, false});
+    return z;
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -633,6 +703,7 @@ BaseRig buildBase() {
     addTyreTracks(b, r);
     addAaSurround(b, r);
     addRadarSurround(b, r);
+    addDetailPass(b, r);   // v7 (WP-M), last: the ids above stay stable
     // Static parts of the poles of the animated objects are inside their own roots.
     finalizeFlags(*r);
 

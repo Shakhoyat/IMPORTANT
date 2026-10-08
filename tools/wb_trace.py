@@ -9,8 +9,8 @@ import re
 
 from openpyxl.formatting.rule import FormulaRule
 
-from wb_common import (BOLD, FAIL_FILL, PASS_FILL, ROOT, S_BEHAV, S_GEOM, S_HIER, S_INV, S_LIGHT, S_MAT, S_OBJ,
-                       S_PERF, S_SHADE, S_TEST, S_TRACE, S_VERT, S_COVER, S_BASE, S_COMBAT, S_CTRL, file_link, finish, header, link, path,
+from wb_common import (BOLD, FAIL_FILL, PASS_FILL, PENDING_FILL, ROOT, S_BEHAV, S_GEOM, S_HIER, S_INV, S_LIGHT, S_MAT, S_OBJ,
+                       S_PERF, S_SHADE, S_DAY, S_SOLD, S_CVN, S_TEST, S_TRACE, S_VERT, S_COVER, S_BASE, S_COMBAT, S_CTRL, file_link, finish, header, link, path,
                        put, title, widths)
 
 # Requirement -> (workbook sheets, test IDs, report-section keyword). Authored cross-reference, validated below.
@@ -69,6 +69,21 @@ V4_REQS = [
 ]
 
 
+V6_REQS = [  # v6 rows stay "Pending" until EVERY listed test exists in the results and passes
+    ("V6-01", "Day / night cycle: solar position, key light, sky, ambient, fog, exposure", "v6 request", "`DayCycle.cpp`, `Lighting.cpp`",
+     [S_DAY], "T190-T197", "Day"),
+    ("V6-02", "Floating clouds and moving cloud shadows", "v6 request", "`ShaderSources.cpp`, `DayCycle.cpp`", [S_DAY], "T198-T199", "Day"),
+    ("V6-03", "Eight friendly curvy soldiers, spline routes, gait IK, possession", "v6 request", "`Soldier.cpp`, `Gait.cpp`, `Garrison.cpp`",
+     [S_SOLD], "T200-T214", "Soldiers"),
+    ("V6-04", "Random rover routes (seeded), dawn withdrawal, day gating", "v6 request", "`Mission.cpp`, `HideController.cpp`",
+     [S_CVN], "T215-T224", "Random"),
+    ("V6-05", "Real CV under sensor noise; no true-position targeting", "v6 request", "`SensorModel.cpp`, `CvPipeline.cpp`",
+     [S_CVN], "T225-T236", "Computer Vision"),
+    ("V6-06", "Run seeds reproducible, app v6 (CLI, HUD, director)", "v6 request", "`App.cpp`, `Director.cpp`", [S_CVN], "T237-T239", "Results"),
+    ("V6-07", "Workbook sheets 21-23 regenerated from the v6 export", "v6 request", "`wb_v6.py`, `DocExport.cpp`", [S_TRACE], "", ""),
+]
+
+
 def _expand_tests(spec, known):
     import re as _re
     out = []
@@ -78,7 +93,7 @@ def _expand_tests(spec, known):
             out += [f"T{n}" if n >= 100 else f"T{n:02d}" for n in range(int(m.group(1)), int(m.group(2)) + 1)]
         else:
             out.append(part)
-    return [t for t in out if t in known]
+    return out if known is None else [t for t in out if t in known]
 
 
 def parse_requirements(rel="docs/PLAN.md"):
@@ -150,11 +165,13 @@ def build_traceability(wb, ctx):
     t_first, t_last = ctx["test_rows"]
     ids, st = f"'{S_TEST}'!$A${t_first}:$A${t_last}", f"'{S_TEST}'!$F${t_first}:$F${t_last}"
     reqs = [(a, b, c, d, None) for a, b, c, d in parse_requirements()]
-    reqs += [(rid, req, src, where, (sh, tl, kw)) for rid, req, src, where, sh, tl, kw in V4_REQS]
+    reqs += [(rid, req, src, where, (sh, tl, kw)) for rid, req, src, where, sh, tl, kw in V4_REQS + V6_REQS]
     for i, (rid, req, src, where, v4) in enumerate(reqs):
         r = first + i
+        v6_missing = False
         if v4:
             sheets, tests, sec_kw = v4[0], _expand_tests(v4[1], known), v4[2]
+            v6_missing = rid.startswith("V6-") and bool(v4[1]) and len(tests) < len(_expand_tests(v4[1], None))
         else:
             sheets, tests, sec_kw = LINKS.get(rid, ([], [], ""))
             tests = [t for t in tests if t in known]
@@ -170,7 +187,10 @@ def build_traceability(wb, ctx):
         if sheets:
             link(c, sheets[0], "A1", ", ".join(sheets))
         put(ws, r, 7, ", ".join(tests) or "-")
-        if tests:
+        if v6_missing:
+            put(ws, r, 8, f"pending: {len(tests)} of {len(_expand_tests(v4[1], None))} tests present")
+            put(ws, r, 10, "Pending", font=BOLD)
+        elif tests:
             passed = "+".join(f'SUMPRODUCT(({ids}="{t}")*({st}="PASS"))' for t in tests)
             put(ws, r, 8, f'=({passed})&" / {len(tests)}"')
             put(ws, r, 10, f'=IF({passed}={len(tests)},"Verified","CHECK")', font=BOLD)
@@ -183,6 +203,7 @@ def build_traceability(wb, ctx):
     rng = f"J{first}:J{last}"
     ws.conditional_formatting.add(rng, FormulaRule(formula=[f'J{first}="Verified"'], fill=PASS_FILL))
     ws.conditional_formatting.add(rng, FormulaRule(formula=[f'J{first}="CHECK"'], fill=FAIL_FILL))
+    ws.conditional_formatting.add(rng, FormulaRule(formula=[f'J{first}="Pending"'], fill=PENDING_FILL))
     put(ws, 3, 1, "Requirements", font=BOLD)
     put(ws, 3, 2, f"=COUNTA(A{first}:A{last})", "0")
     put(ws, 3, 3, "Verified by passing tests", font=BOLD)

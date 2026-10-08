@@ -50,7 +50,8 @@ public:
     void update(float dt, float time, const Detection& det, const Mat4& cameraWorld, DroneState& s);
 
     // Ray through a normalised image point (u right, v up) of the gimbal camera, intersected with the terrain.
-    static bool imagePointToGround(float u, float v, const Mat4& cameraWorld, Vec3& hit);
+    // heightAbove: stop the ray that far above the terrain (a hot body's centre, not the ground under it).
+    static bool imagePointToGround(float u, float v, const Mat4& cameraWorld, Vec3& hit, float heightAbove = 0.0f);
     // A destroyed target stays hot for a while: detections whose ground point lies near it are ignored.
     void ignoreNear(const Vec3& point, float seconds) { ignore_.push_back({point, seconds}); }
     // Friend-or-foe: hot blobs within kFriendlyRadius of a friendly vehicle (tank, helicopter, AA gun...) are

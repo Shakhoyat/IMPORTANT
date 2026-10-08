@@ -41,6 +41,35 @@ constexpr Vec3 kFlagpole{-4.5f, kApronLevel, 27.0f};
 constexpr Vec3 kFuelDepot{-6.0f, kApronLevel, -28.5f};
 constexpr float kRoadHalfWidth = 2.2f;                     // inner gate (0, 19) -> outer gate, along +Z
 
+// v8 barracks hall: an enterable, axis-aligned prefab barracks on the east apron (between the radar and the AA gun).
+// Outer walls x [kHallX0, kHallX1], z [kHallZ0, kHallZ1]; the door is in the north wall, centred on a 1 m site-grid
+// column (x = 23.5) so the soldiers' planner finds the way in. Inside: bunks (west), lockers (north-west), a mess
+// table (north-east), a gym corner (south: mats, pull-up bar); outside north of it a small PT area.
+namespace hall {
+constexpr float kX0 = 18.6f, kX1 = 27.6f, kZ0 = -15.0f, kZ1 = -8.6f;
+constexpr float kWall = 0.22f;                   // wall thickness
+constexpr float kFloorY = kApronLevel + 0.12f;   // top of the floor slab
+constexpr float kCeiling = 2.7f;                 // clear height above the floor
+constexpr float kDoorX = 23.5f, kDoorW = 1.3f, kDoorH = 2.2f;
+// inner faces
+constexpr float kIX0 = kX0 + kWall, kIX1 = kX1 - kWall, kIZ0 = kZ0 + kWall, kIZ1 = kZ1 - kWall;
+// bunk frames along the west wall (heads at the wall, length along +x), lower / upper mattress tops above the floor
+constexpr float kBunkZ[3] = {-14.0f, -12.5f, -11.0f};
+constexpr float kBunkX0 = kIX0 + 0.03f, kBunkLen = 2.0f, kBunkW = 0.95f;
+constexpr float kBunkLow = 0.45f, kBunkHigh = 1.50f;
+// mess table (long side along x) with a bench on each side
+constexpr float kTableX = 25.7f, kTableZ = -11.0f, kTableLen = 2.2f, kTableDepth = 0.8f;
+constexpr float kBenchNZ = -10.1f, kBenchSZ = -11.9f;
+constexpr float kSeatX[2] = {25.1f, 26.3f};
+// gym corner: pull-up bar (posts at kBarX +- 0.6), two exercise mats along x
+constexpr float kBarX = 25.9f, kBarZ = -14.15f, kBarH = 2.25f;
+constexpr float kMatX = 23.2f, kMatAZ = -14.1f, kMatBZ = -13.15f, kMatLen = 2.2f;
+// lockers along the north wall west of the door
+constexpr float kLockerX0 = 19.0f, kLockerX1 = 22.4f;
+// outdoor PT area north of the hall: pull-up frame and two grass spots
+constexpr float kPtBarX = 25.6f, kPtBarZ = -6.3f;
+}  // namespace hall
+
 // Intruder rovers spawn at the inner compound's edge (forest cover) and are destroyed by the UAV.
 constexpr int kRoverCount = 3;      // v4: intruders built at start (v5: up to kMaxRovers, spawned in waves)
 constexpr int kMaxRovers = 6;       // v5: intruder slots (most alive at once)

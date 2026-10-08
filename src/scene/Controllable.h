@@ -13,6 +13,7 @@
 namespace ts {
 
 class Combat;
+class WalkSpace;
 
 // Player input for the possessed object, sampled once per frame. Axes are in [-1, 1].
 struct ControlInput {
@@ -27,6 +28,9 @@ struct ControlInput {
     bool firePressed = false;    // went down this frame (single shots)
     bool actionPressed = false;  // Backslash: secondary action (open / close, start / land, mode)
     bool boost = false;          // Shift
+    // v7.1 WP-T (open-world movement of a possessed soldier; other controllables ignore them)
+    float strafe = 0.0f;         // sideways walk, positive = right (third-person aim, first person with mouse look)
+    bool jump = false;           // Space went down this frame
 };
 
 // What the world offers during update().
@@ -35,6 +39,11 @@ struct WorldContext {
     Combat* combat = nullptr;                      // may be null (unit tests)
     const std::vector<Box>* obstacles = nullptr;   // static solid parts, for vehicle collision; may be null
     float wetness = 0.0f;
+    // v6 day/night cycle (defaults = the v5 night scene)
+    const WalkSpace* walk = nullptr;   // bunker floors / walls for anything moving on foot; may be null
+    float hour = 23.0f;                // time of day, 0..24
+    float daylight = 0.0f;             // 0 night .. 1 full day
+    bool beamsOn = true;               // searchlights / lamps allowed (night)
 };
 
 // How the camera frames a possessed object (world space, recomputed every frame).
@@ -57,7 +66,11 @@ public:
     virtual std::string status() const = 0;     // one HUD line, e.g. "SPEED 4.2 M/S  TURRET 032  GUN +04  AMMO 18"
     virtual Vec3 position() const = 0;
     virtual bool possessable() const { return true; }       // false: animated scenery (flag)
+    virtual bool moves() const { return true; }             // false: static dressing (shadows are cached)
     virtual std::vector<Box> dynamicObstacles() const { return {}; }  // closed doors, lowered barrier arm
+    // Friendly mark for the UAV squad's identification: measurements within this radius are not engaged
+    // (0 = not a friendly mark). Vehicles 4.5 m, soldiers about 1.2 m.
+    virtual float friendlyRadius() const { return 4.5f; }
     // Damage from an explosion at 'point' (world); return true if the object reacted.
     virtual bool onBlast(const Vec3& point, float power) { (void)point; (void)power; return false; }
 };

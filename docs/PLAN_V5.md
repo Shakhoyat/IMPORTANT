@@ -127,8 +127,60 @@ regenerated; Windows exe; progress in `docs/V4_PROGRESS.md` → `docs/V5_PROGRES
    launchers + revetments, P5 surface bump / reflection probe review.
 3. Integration, tuning by captures, then P6.
 
-## 6. Status
+## 6. Status (2026-10-05)
 | Item | State |
 |------|-------|
-| Plan + critique | done (this file) |
-| P2 CV v2 | in progress |
+| Plan + critique | done |
+| P2 CV v2: CvPipeline (adaptive threshold, despeckle, union-find components, moments), MultiTracker (Kalman, chi2 gating, Hungarian, two-view triangulation, track life cycle) | done, T130-T137 |
+| P3 Squad: 2 UAVs, opposite-phase patrol, lead / wing roles, 90 deg wing geometry, line-of-fire check + detour, time-on-target combined strike with lead prediction, solo fallback, reacquire 12 s round the last known position | done, T138-T142 |
+| P1 Mission: waves min(2+n, 6), random edge spawns, random objectives (5 camp assets), breach -10 %, base lost -> restart, score (+100, +50 combined) | done, T143, T180, T181 |
+| Rovers: infiltrate (weighted MicroMouse flood fill: distance + exposure + per-rover noise; LFR driving), evade < 5 m for 4 s, route commitment 1.6 s | done, T144, T145 |
+| User rule "4-5 shots = 1 kill": armoured rovers (100 HP, 30 x power x falloff per blast), hit events, damaged rovers limp + smoke | done, T105 (5 hits), T140 (13 rounds -> 3 kills) |
+| App: both UAV cameras -> CV -> squad each frame; live audio (A5 engine) | done |
+| A5 audio engine (procedural synths, spatial mix, offline mix + mux in --record) | done, T160-T169 |
+| C5 hidden camp (light discipline done; launchers / parked tanks in progress) | resumed |
+| H5 game HUD | launching |
+| Shading upgrade (procedural bump, reflection probe) | todo (supervisor) |
+| Final production (captures, 2-min video with sound, docs) | todo |
+
+## 7. Documentation requirements (user, 2026-10-05, late)
+1. The report must be **self-contained and visual**: object creation, colour interpolation, shading, shininess,
+   reflection, LFR / MicroMouse logic **with code**, and how the UAVs detect the rovers in real time.
+2. It must **tell the story of the whole graphics pipeline** (primitive -> T R S -> hierarchy -> view / projection ->
+   rasterisation / interpolation -> shading -> depth -> shadows -> post -> image -> heat image -> CV -> decisions) with
+   **mathematical notation** and **Excel sheet screenshots per object** where they help.
+
+| Work | Owner | Output |
+|------|-------|--------|
+| Explanatory diagrams from the program's data and shader formulas | F1 | report/diagrams/ |
+| In-program renders (CV stages on the real thermal image, material grid, shading models, bump / SSR on-off, pipeline buffers) | F2 | report/figures_lab/ |
+| Workbook snapshots (rendered from the real .xlsx: per-object construction rows, MMULT worked example, hierarchy, vertex data...) | F3 | report/sheets/ |
+| Report restructure: textbook chapters along the pipeline, real code listings, compressed images (< 25 MB) | E1 | report/main.tex, report/sections/ |
+| 2-minute video with sound (1280x720 HIGH 30 fps, llvmpipe) | supervisor | report/demo_v5.mp4 |
+| Final: slides with video, workbook rebuild (audit), Windows exe (done 13:24), tests | supervisor | |
+
+### 7.1 Status (2026-10-05, 14:05)
+- F1, F2, F3, E1 all done. Report: 96 pages, 19.9 MiB, 0 pending figures, 169/169 tests.
+  - Rebuild chain: `python3 report/listings.py && python3 report/gen_tables.py && python3 report/sheet_figs.py &&
+    uv run --with pillow python report/prepare_images.py && (cd report && tectonic -X compile main.tex)`.
+  - `report/sheet_figs.py` turns sheets/, diagrams/ and figures_lab/ `captions.json` into `sections/gen_sheets.tex`
+    (`\sheetfig{name}`, `\autofig{dir}{name}`: captions name the real sheet + cell range / source function).
+  - `prepare_images.py`: renders -> JPEG q85 <= 1600 px; diagrams + sheet crops -> 256-colour palette PNG.
+  - `\picfour` falls back to the v5 capture of the same shot.
+- Fixes from F1's audit: tracker merge no longer resets a confirmed track's velocity (a tentative newcomer is fused
+  as a measurement); blob rays stop 0.2 m above the terrain (`kSquadBlobHeight`, removes the 0.27 m single-view bias);
+  stale comments (HideController grid, CvPipeline threshold); `EnemyHit` now plays a hit tick.
+- Remaining: video (recording with the pre-fix binary), slides with video, workbook rebuild + snapshots, Windows exe.
+
+### 7.2 Status (2026-10-05, 14:30) -- user: "remove old redundant scenes, reduce text"
+- Old scenes removed: no v2/v3 capture is placed any more; v4 shot names resolve to the v5 capture of the same
+  shot (`\picfour` prefers figures_v5); duplicate images removed (checked by name and by file hash); the capture-shot
+  inventory table is gone from the appendix. Slides: `find_img` only searches figures_v5, h5_shots, figures_lab.
+- Text: hand-written section words 22.3k -> 17.5k (editors T1-T3 + supervisor for T4's files after T4 hit a usage
+  limit). Report 96 -> 86 pages, 16.95 MiB, 0 pending figures, no undefined references.
+- Audit + intro checklist statuses updated (video, slides, workbook, trace, soft particles now done); T112 text now
+  uses kUavReloadTime (6 s); cv_strip caption corrected (0.15 s spacing).
+- Deliverables: report/main.pdf, report/ThermalSense_Presentation.pptx (10 slides, video on 10),
+  report/demo_v5.mp4 (120 s 1280x720 30 fps, AAC), ThermalSense_Graphics_Documentation.xlsx (verify PASS),
+  ThermalSense.exe (14:28). Tests 169/169.
+- Still open: FPS on the RTX 4070 (not measured), reflection probe (not implemented).

@@ -14,6 +14,7 @@ constexpr float kShadowCasterMargin = 30.0f;  // metres behind the fitted sphere
 constexpr float kFogMaxDistance = 70.0f;
 // Mean log2 luminance of the reference night frame (establishing shot): auto-exposure maps it to the base
 // exposure, so the designed look is kept and only darker / brighter views are corrected (+-1 EV).
+// v6: the key of each frame comes from the scene's Atmosphere (DayCycle); this is the night value.
 constexpr float kExposureKeyLog2 = -5.2f;
 
 }  // namespace
@@ -100,25 +101,51 @@ void Renderer::computeLightMatrices(const Scene& scene, const CameraView& cam, c
 namespace {
 
 bool isDynamic(const SceneNode& n) { return n.dynamic || n.object == "Autonomous UAV" || n.object == "Target Rover"; }
+bool isSkyBody(const SceneNode& n) { return n.name == "Moon" || n.name == "Sun"; }
 
 }  // namespace
 
 void Renderer::drawDepthOnly(const Scene& scene, const Mat4& lightVP, Casters which, FrameStats& st) {
     depth_->set("uLightVP", lightVP);
     const Frustum frustum(lightVP);
+    std::vector<const SceneNode*> casters;   // v7 WP-Q: instanced path
+    const bool instanced = instancing_;
     for (const SceneNode* n : scene.leaves()) {
-        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->object == "Backdrop") continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone || isSkyBody(*n) || n->object == "Backdrop") continue;
         if (n->material.opacity < 1.0f) continue;  // blur discs cast no shadow
         if (!inFrustum(*n, frustum)) continue;
         if (which == Casters::AllButUav && n->object == "Autonomous UAV") continue;  // the lamp is inside it
         if (which == Casters::Static && isDynamic(*n)) continue;
         if (which == Casters::Dynamic && !isDynamic(*n)) continue;
+        if (instanced) {
+            casters.push_back(n);
+            continue;
+        }
         depth_->set("uModel", n->world);
         const Mesh& mesh = *meshes_.at(n->primitive);
         mesh.bind(true);
         mesh.draw(true);
         ++st.shadowDraws;
     }
+    if (!instanced || casters.empty()) return;
+    // Depth only: the draw order does not matter, so the casters are simply grouped by mesh.
+    std::stable_sort(casters.begin(), casters.end(), [](const SceneNode* a, const SceneNode* b) {
+        return static_cast<int>(a->primitive) < static_cast<int>(b->primitive);
+    });
+    if (uploadInstances(casters, 4, nullptr)) {
+        depthI_->use();
+        depthI_->set("uLightVP", lightVP);
+        st.shadowDraws += drawInstanced(*depthI_, casters, nullptr);
+    } else {   // too many parts for one buffer texture: per-part draws
+        for (const SceneNode* n : casters) {
+            depth_->use();
+            depth_->set("uModel", n->world);
+            meshes_.at(n->primitive)->bind(true);
+            meshes_.at(n->primitive)->draw(true);
+            ++st.shadowDraws;
+        }
+    }
+    depth_->use();   // the callers keep drawing with the per-part depth program
 }
 
 void Renderer::renderShadowMaps(const Scene& scene, FrameStats& st) {
@@ -140,7 +167,10 @@ void Renderer::renderShadowMaps(const Scene& scene, FrameStats& st) {
     // each frame the cache is copied in and only the moving UAV and rover are drawn on top.
     // The cache also depends on the foliage cards (on/off, density of the preset).
     const float cacheKey = scene.explode + (frame_.settings.foliageOn ? 10.0f * qualityProfile(frame_.settings.quality).foliageDensity : 0.0f);
-    if (!shadows_.staticValid || shadows_.staticKey != cacheKey) {
+    // v6: the key light moves by day (quantised to 1 deg by DayCycle), so its direction is part of the key.
+    const Vec3 keyDir = scene.lights.moon.direction;
+    const bool sameDir = keyDir.x == shadows_.staticDir.x && keyDir.y == shadows_.staticDir.y && keyDir.z == shadows_.staticDir.z;
+    if (!shadows_.staticValid || shadows_.staticKey != cacheKey || !sameDir) {
         shadows_.bindStaticCache();
         glClear(GL_DEPTH_BUFFER_BIT);
         drawDepthOnly(scene, frame_.moon[1].viewProj, Casters::Static, st);
@@ -150,6 +180,7 @@ void Renderer::renderShadowMaps(const Scene& scene, FrameStats& st) {
 #endif
         shadows_.staticValid = true;
         shadows_.staticKey = cacheKey;
+        shadows_.staticDir = keyDir;
     }
     shadows_.copyStaticCacheToLayer(1);
     drawDepthOnly(scene, frame_.moon[1].viewProj, Casters::Dynamic, st);
@@ -174,16 +205,41 @@ void Renderer::renderPrepass(const Scene& scene, const CameraView& cam, const Re
     prepass_->set("uView", cam.view);
     prepass_->set("uProj", cam.proj);
     const Frustum frustum(cam.proj * cam.view);
+    std::vector<const SceneNode*> parts;   // v7 WP-Q: instanced path
+    const bool instanced = instancing_;
     for (const SceneNode* n : scene.leaves()) {
-        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->material.opacity < 1.0f) continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone || isSkyBody(*n) || n->material.opacity < 1.0f) continue;
         if (!inFrustum(*n, frustum)) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
+        if (instanced) {
+            parts.push_back(n);
+            continue;
+        }
         prepass_->set("uModel", n->world);
         prepass_->set("uNormalMat", normalMatrix(n->world));
         const Mesh& mesh = *meshes_.at(n->primitive);
         mesh.bind(true);
         mesh.draw(true);
         ++st.prepassDraws;
+    }
+    if (instanced && !parts.empty()) {
+        std::stable_sort(parts.begin(), parts.end(), [](const SceneNode* a, const SceneNode* b) {
+            return static_cast<int>(a->primitive) < static_cast<int>(b->primitive);
+        });
+        if (uploadInstances(parts, 7, nullptr)) {
+            prepassI_->use();
+            prepassI_->set("uView", cam.view);
+            prepassI_->set("uProj", cam.proj);
+            st.prepassDraws += drawInstanced(*prepassI_, parts, nullptr);
+        } else {
+            for (const SceneNode* n : parts) {
+                prepass_->set("uModel", n->world);
+                prepass_->set("uNormalMat", normalMatrix(n->world));
+                meshes_.at(n->primitive)->bind(true);
+                meshes_.at(n->primitive)->draw(true);
+                ++st.prepassDraws;
+            }
+        }
     }
     timer_.end();
 }
@@ -242,18 +298,19 @@ void Renderer::renderFog(const Scene& scene, const CameraView& cam, const Render
     fog_->set("uTime", scene.time());
     fog_->set("uSteps", q.fogSteps);
     fog_->set("uMaxDistance", kFogMaxDistance);
-    fog_->set("uDensity", 0.022f * (1.0f + 1.2f * s.rain));
+    fog_->set("uDensity", L.atmo.volFogDensity * (1.0f + 1.2f * s.rain));
     fog_->set("uHeightFalloff", 0.22f);
-    fog_->set("uAmbientFog", Vec3{0.006f, 0.008f, 0.014f});
+    fog_->set("uAmbientFog", L.atmo.fogAmbient);
+    fog_->set("uHaloScale", 1.0f - 0.9f * L.atmo.day);
     fog_->set("uMoonDir", L.moon.direction);
-    fog_->set("uMoonColor", L.moon.color * (s.moonOn ? L.moon.intensity * 0.35f : 0.0f));
+    fog_->set("uMoonColor", L.moon.color * (s.moonOn && L.moon.enabled ? L.moon.intensity * 0.35f : 0.0f));
     fog_->set("uMoonVP1", frame_.moon[1].viewProj);
     fog_->set("uBeaconPos", L.beacon.position);
-    fog_->set("uBeaconColor", L.beacon.color * (s.beaconOn ? L.beacon.intensity * 0.6f : 0.0f));
+    fog_->set("uBeaconColor", L.beacon.color * (s.beaconOn && L.beacon.enabled ? L.beacon.intensity * 0.6f * L.atmo.practicalScale : 0.0f));
     fog_->set("uBeaconAtt", L.beacon.linear, L.beacon.quadratic);
     fog_->set("uSpotPos", L.spot.position);
     fog_->set("uSpotDir", L.spot.direction);
-    fog_->set("uSpotColor", L.spot.color * (s.spotOn ? L.spot.intensity * 6.0f : 0.0f));
+    fog_->set("uSpotColor", L.spot.color * (s.spotOn && L.spot.enabled ? L.spot.intensity * 6.0f : 0.0f));
     fog_->set("uSpotCos", std::cos(radians(L.spot.innerDeg)), std::cos(radians(L.spot.outerDeg)));
     fog_->set("uSpotAtt", L.spot.linear, L.spot.quadratic);
     fog_->set("uSpotVP", frame_.spot.viewProj);
@@ -270,13 +327,18 @@ void Renderer::gatherPracticals(const Scene& scene, const CameraView& cam) {
     const WalkSpace* ws = sceneaccess::walkSpace(scene);
     indoorCount_ = 0;
     if (ws) {
-        for (const Box& b : ws->indoorVolumes()) {
+        const std::vector<IndoorLight>& lights = ws->indoorLights();
+        for (size_t v = 0; v < ws->indoorVolumes().size(); ++v) {
             if (indoorCount_ == 8) break;
+            const Box& b = ws->indoorVolumes()[v];
             const float mn[3] = {b.min.x, b.min.y, b.min.z}, mx[3] = {b.max.x, b.max.y, b.max.z};
             for (int j = 0; j < 3; ++j) {
                 indoorMin_[3 * indoorCount_ + j] = mn[j];
                 indoorMax_[3 * indoorCount_ + j] = mx[j];
             }
+            const IndoorLight l = v < lights.size() ? lights[v] : IndoorLight{};
+            indoorLight_[2 * indoorCount_] = l.sky;
+            indoorLight_[2 * indoorCount_ + 1] = l.key;
             ++indoorCount_;
         }
     }
@@ -294,7 +356,7 @@ void Renderer::gatherPracticals(const Scene& scene, const CameraView& cam) {
     std::vector<Candidate> ranked;
     for (const SceneNode* n : scene.practicalLights()) {
         const Material& m = n->material;
-        const float k = m.lightIntensity * clampf(m.emissive, 0.0f, 1.5f);
+        const float k = m.lightIntensity * clampf(m.emissive, 0.0f, 1.5f) * practicalFactor(*n);
         if (k <= 0.0f) continue;
         const Vec3 p = transformPoint(n->world, {0, 0, 0});
         const Vec3 c{std::pow(m.baseColor.x, 2.2f) * k, std::pow(m.baseColor.y, 2.2f) * k, std::pow(m.baseColor.z, 2.2f) * k};
@@ -327,11 +389,19 @@ void Renderer::gatherPracticals(const Scene& scene, const CameraView& cam) {
     }
 }
 
+float Renderer::practicalFactor(const SceneNode& n) const {
+    if (n.material.lightIntensity <= 0.0f || atmo_.practicalScale >= 1.0f) return 1.0f;
+    if (n.name == "Fire embers" || n.name == "Strobe" || n.name.rfind("Muzzle", 0) == 0) return 1.0f;
+    if (sceneaccess::insideIndoor(walk_, transformPoint(n.world, {0, 0, 0}))) return 1.0f;   // bunker lights stay on
+    return atmo_.practicalScale;
+}
+
 void Renderer::setIndoorUniforms(Shader& sh) const {
     sh.set("uIndoorCount", indoorCount_);
     if (indoorCount_ == 0) return;
     sh.setVec3Array("uIndoorMin", indoorMin_, indoorCount_);
     sh.setVec3Array("uIndoorMax", indoorMax_, indoorCount_);
+    sh.setVec2Array("uIndoorLight", indoorLight_, indoorCount_);
 }
 
 void Renderer::setPracticalUniforms(Shader& sh, bool enabled) {
@@ -473,6 +543,7 @@ void Renderer::drawParticles(const Scene& scene, const CameraView& cam, int w, i
 #ifdef TS_HAS_PARTICLES
     // Fireflies stay hidden in rain; visible-light effect only.
     if (!s.particlesOn || s.view != ViewMode::Visible || !s.cinematic || !s.isolate.empty() || s.rain > 0.3f) return;
+    if (atmo_.night < 0.5f) return;   // fireflies and glowing motes only after dusk
     particles_.setCount(qualityProfile(s.quality).fireflies);
     if (particles_.count() <= 0) return;
     auto prepare = [&](Shader& sh) { setFrameUniforms(sh, scene, cam, w, h, s); };
@@ -528,6 +599,8 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     frame_.settings = s;
     frame_.pcfTaps = q.pcfTaps;
     frame_.time = scene.time();
+    atmo_ = scene.lights.atmo;
+    walk_ = sceneaccess::walkSpace(scene);
     frame_.dt = prevTime_ >= 0.0f && scene.time() > prevTime_ ? std::min(scene.time() - prevTime_, 0.25f) : 1.0f / 60.0f;
     prevTime_ = scene.time();
     frame_.hdr = s.cinematic && visible && s.edges == EdgeMode::Solid;  // wireframe figures stay unprocessed
@@ -540,6 +613,7 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     frame_.dof = frame_.hdr && q.dof && s.dof > 0.0f;
     frame_.shadowMode = 0;
     frame_.ao = frame_.fog = false;
+    rtBegin(scene, camIn, w, h, s);   // v7 WP-H: ray-traced modes (no-op in raster mode)
 
     // Camera cut (director cut, camera mode switch, teleport): the history no longer matches the view.
     const Vec3 fwd = viewForward(camIn.view);
@@ -563,15 +637,17 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     }
     ++frameIndex_;
     frame_.cam = cam;
+    specLodEye_ = cam.position;   // v8 specular LOD (metres per pixel at 1 m from the projection)
+    specLodPixel_ = frame_.hdr ? 2.0f / std::max(std::fabs(camIn.proj.at(1, 1)) * static_cast<float>(h), 1e-3f) : 0.0f;
     frame_.viewProj = camIn.proj * camIn.view;
     frame_.viewProjJ = cam.proj * cam.view;
 
-    if (frame_.hdr) {
+    if (frame_.hdr && !skyOnly_) {   // v7 WP-H: a fully ray-traced frame needs only the raster sky
         gatherPracticals(scene, cam);
         shadows_.ensure(q.moonShadowRes, q.spotShadowRes);
         computeLightMatrices(scene, cam, q);
-        if (s.shadowsOn) {
-            frame_.shadowMode = (q.spotShadowRes > 0 && s.spotOn && s.spotShadowOn) ? 2 : 1;
+        if (s.shadowsOn && rtActive_ == rt::RtMode::Raster) {   // v7 WP-H: hybrid / RT trace their shadows
+            frame_.shadowMode = (q.spotShadowRes > 0 && s.spotOn && scene.lights.spot.enabled && s.spotShadowOn) ? 2 : 1;
             renderShadowMaps(scene, st);
         }
         if (q.ssao || q.volumetric) renderPrepass(scene, cam, s, st);
@@ -598,7 +674,8 @@ void Renderer::renderBloom(GLuint source) {
     glDisable(GL_BLEND);
     bloomDown_->use();
     bloomDown_->set("uSrc", 0);
-    bloomDown_->set("uThreshold", frame_.hdr ? 1.2f : 0.85f);
+    // The threshold follows the exposure key (night key -5.2 -> 1.2): a sunlit wall must not bloom.
+    bloomDown_->set("uThreshold", frame_.hdr ? 1.2f * std::exp2(atmo_.exposureKeyLog2 - kExposureKeyLog2) : 0.85f);
     glActiveTexture(GL_TEXTURE0);
     GLuint src = source;
     for (size_t i = 0; i < fb_.bloom.size(); ++i) {
@@ -780,7 +857,7 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     glDisable(GL_CULL_FACE);
     glBindVertexArray(emptyVao_);
 
-    GLuint image = renderCombine();
+    GLuint image = rtActive_ == rt::RtMode::Raster ? renderCombine() : rtEnd();   // v7 WP-H
     image = renderTaa(image);
     const bool temporal = frame_.hdr || frame_.thermalPost;
     if (temporal) renderStatistics(image);
@@ -815,7 +892,9 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     composite_->set("uFlareStrength", frame_.flare ? 0.05f : 0.0f);
     composite_->set("uExposure", s.exposure * 1.5f);
     composite_->set("uAutoExposure", s.autoExposureOn && adaptValid_ ? 1 : 0);
-    composite_->set("uKeyLog2", kExposureKeyLog2);
+    composite_->set("uKeyLog2", atmo_.exposureKeyLog2);
+    composite_->set("uPurkinje", atmo_.purkinje);
+    composite_->set("uDayGrade", atmo_.day);
     composite_->set("uEvRange", 1.5f);
     composite_->set("uTime", time);
     composite_->set("uGrain", 0.03f);
@@ -832,6 +911,7 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_CULL_FACE);
     timer_.end();
+    drawRayOverlay(targetFbo, w, h);   // v7 WP-H: ray debugger tree + RT status line (nothing in plain raster mode)
     timer_.endFrame();
     prevViewProj_ = frame_.viewProj;  // unjittered: the TAA history is kept on the unjittered pixel grid
 }

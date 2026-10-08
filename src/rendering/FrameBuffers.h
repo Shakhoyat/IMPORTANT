@@ -11,6 +11,8 @@
 
 #include <vector>
 
+#include "math/Math3D.h"
+
 namespace ts {
 
 struct ColorTarget {
@@ -69,6 +71,7 @@ public:
     int moonRes = 0, spotRes = 0;
     bool staticValid = false;
     float staticKey = -1.0f;                // explode factor the cache was rendered with
+    Vec3 staticDir{0, 0, 0};                // key-light direction the cache was rendered with (v6: moves by day)
 
 private:
     void release();

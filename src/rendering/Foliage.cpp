@@ -178,7 +178,8 @@ void main() {
 
     vec3 albedo;
     if (vKind < 0.5) {      // spruce: bluish dark green, lighter young needles at the tips
-        albedo = mix(vec3(0.010, 0.024, 0.022), vec3(0.034, 0.064, 0.048), clamp(0.7 * vUV.y + 0.5 * shade, 0.0, 1.0));
+        // v8: deep green (was blue-green: under the blue daylight ambient the spruces read teal)
+        albedo = mix(vec3(0.011, 0.024, 0.013), vec3(0.036, 0.066, 0.030), clamp(0.7 * vUV.y + 0.5 * shade, 0.0, 1.0));
     } else {                // broadleaf: olive, some yellowish leaves
         albedo = mix(vec3(0.026, 0.036, 0.010), vec3(0.100, 0.125, 0.034), shade);
         albedo = mix(albedo, vec3(0.110, 0.100, 0.030), step(0.86, vTint) * 0.5);
@@ -202,10 +203,11 @@ void main() {
     float front = max(ndl, 0.0), back = max(-ndl, 0.0);
     float through = pow(max(dot(-V, Lm), 0.0), 3.0);   // looking towards the moon: leaves glow
     vec3 transTint = vKind < 0.5 ? vec3(0.55, 0.85, 0.65) : vec3(0.85, 1.0, 0.45);
-    vec3 moon = uMoonColor * sm * (albedo * (0.25 + 0.75 * front) + albedo * transTint * (0.9 * back + 0.9 * through) * 2.2);
+    float glow = mix(2.2, 0.9, uDayWeight);   // v8: sunlight through needles / leaves is a rim, not a lamp
+    vec3 moon = uMoonColor * sm * (albedo * (0.25 + 0.75 * front) + albedo * transTint * (0.9 * back + 0.9 * through) * glow);
     vec3 sheen = uMoonColor * sm * pow(max(dot(N, normalize(Lm + V)), 0.0), 40.0) * 0.012;   // waxy leaf highlight
 
-    vec3 amb = uHdr == 1 ? mix(uGroundBounce, uSkyZenith, 0.5 + 0.5 * ny) : uAmbient;
+    vec3 amb = uHdr == 1 ? hemiAmbient(normalize(vN)) : uAmbient;
     float ao = mix(0.30, 1.0, clamp(0.35 + 0.5 * (0.5 + 0.5 * ny) + 0.35 * vUV.y * (vKind < 0.5 ? 1.0 : 0.0), 0.0, 1.0));
     vec3 lit = albedo * amb * ao + moon + sheen;
 

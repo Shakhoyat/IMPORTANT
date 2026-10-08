@@ -1,0 +1,361 @@
+{
+ "night_regression": {
+  "aa_gun_burst": [
+   1.76,
+   34.8
+  ],
+  "aa_gun_sight": [
+   2.67,
+   31.2
+  ],
+  "base_gate": [
+   3.07,
+   34.1
+  ],
+  "base_overview": [
+   3.8,
+   28.0
+  ],
+  "bunker_cic": [
+   5.84,
+   28.7
+  ],
+  "bunker_door": [
+   0.39,
+   45.5
+  ],
+  "bunker_ramp": [
+   2.29,
+   32.4
+  ],
+  "bunker_tunnel": [
+   31.98,
+   16.9
+  ],
+  "camp_mlrs": [
+   0.71,
+   42.9
+  ],
+  "camp_sam": [
+   12.4,
+   20.6
+  ],
+  "camp_under_nets": [
+   5.5,
+   26.4
+  ],
+  "combined_strike": [
+   22.04,
+   17.1
+  ],
+  "explosion_early": [
+   72.64,
+   9.8
+  ],
+  "explosion_mid": [
+   22.38,
+   17.1
+  ],
+  "explosion_smoke": [
+   14.65,
+   20.2
+  ],
+  "game_overview": [
+   20.87,
+   18.0
+  ],
+  "heli_takeoff": [
+   1.88,
+   34.5
+  ],
+  "helipad": [
+   8.57,
+   22.9
+  ],
+  "hit_marker": [
+   82.79,
+   8.4
+  ],
+  "kill_banner": [
+   28.67,
+   15.2
+  ],
+  "motor_pool": [
+   1.78,
+   33.5
+  ],
+  "plan_topdown": [
+   8.1,
+   22.0
+  ],
+  "possess_aa_sight": [
+   21.96,
+   19.6
+  ],
+  "possess_doors": [
+   6.17,
+   22.2
+  ],
+  "possess_heli_cockpit": [
+   7.47,
+   23.2
+  ],
+  "possess_mlrs": [
+   3.63,
+   26.5
+  ],
+  "possess_sam": [
+   3.52,
+   26.7
+  ],
+  "possess_tank_sight": [
+   11.33,
+   22.2
+  ],
+  "possess_uav_manual": [
+   43.67,
+   12.5
+  ],
+  "radar": [
+   2.92,
+   29.8
+  ],
+  "tactical_map": [
+   7.38,
+   20.7
+  ],
+  "tank_closeup": [
+   1.16,
+   39.0
+  ],
+  "tank_fire": [
+   27.87,
+   14.9
+  ],
+  "thermal_fpv": [
+   40.25,
+   11.9
+  ],
+  "thermal_fpv_strike": [
+   46.58,
+   12.2
+  ],
+  "thermal_fpv_tracks": [
+   33.64,
+   13.5
+  ],
+  "uav_missile_launch": [
+   15.11,
+   20.7
+  ],
+  "wave_banner": [
+   5.26,
+   26.0
+  ],
+  "wreck_burning": [
+   28.23,
+   16.0
+  ]
+ },
+ "trace42a": {
+  "bad_withdraw": 0,
+  "breaches": 8,
+  "combined": 7,
+  "csv_md5": "955da30edc8633f31fb1972f19f6621e",
+  "day_spawns": 0,
+  "dropped": 754,
+  "events_md5": "b11f5dc84a09c4e025bd8e94d73b81fc",
+  "frames": 72000,
+  "gpu": "D3D12 (NVIDIA GeForce RTX 4070)",
+  "hits": 39,
+  "integrity": 20,
+  "kills": 9,
+  "kills_no_blast": 0,
+  "phase_events": [
+   [
+    89.4,
+    "Dawn"
+   ],
+   [
+    102.35,
+    "DayBreak"
+   ],
+   [
+    179.3833,
+    "Withdraw"
+   ],
+   [
+    215.3833,
+    "Dusk"
+   ],
+   [
+    228.3833,
+    "NightFalls"
+   ],
+   [
+    379.9834,
+    "Dawn"
+   ],
+   [
+    379.9834,
+    "Withdraw"
+   ],
+   [
+    392.9333,
+    "DayBreak"
+   ],
+   [
+    505.9667,
+    "Dusk"
+   ],
+   [
+    518.9667,
+    "NightFalls"
+   ]
+  ],
+  "rkills": 9,
+  "rounds": 57,
+  "rounds_no_track": 0,
+  "rrounds": 57,
+  "spawn_phases": [
+   "NIGHT"
+  ],
+  "spawns": 22,
+  "wave": 5,
+  "withdrawn": 2
+ },
+ "trace42b": {
+  "bad_withdraw": 0,
+  "breaches": 8,
+  "combined": 7,
+  "csv_md5": "955da30edc8633f31fb1972f19f6621e",
+  "day_spawns": 0,
+  "dropped": 754,
+  "events_md5": "b11f5dc84a09c4e025bd8e94d73b81fc",
+  "frames": 72000,
+  "gpu": "D3D12 (NVIDIA GeForce RTX 4070)",
+  "hits": 39,
+  "integrity": 20,
+  "kills": 9,
+  "kills_no_blast": 0,
+  "phase_events": [
+   [
+    89.4,
+    "Dawn"
+   ],
+   [
+    102.35,
+    "DayBreak"
+   ],
+   [
+    179.3833,
+    "Withdraw"
+   ],
+   [
+    215.3833,
+    "Dusk"
+   ],
+   [
+    228.3833,
+    "NightFalls"
+   ],
+   [
+    379.9834,
+    "Dawn"
+   ],
+   [
+    379.9834,
+    "Withdraw"
+   ],
+   [
+    392.9333,
+    "DayBreak"
+   ],
+   [
+    505.9667,
+    "Dusk"
+   ],
+   [
+    518.9667,
+    "NightFalls"
+   ]
+  ],
+  "rkills": 9,
+  "rounds": 57,
+  "rounds_no_track": 0,
+  "rrounds": 57,
+  "spawn_phases": [
+   "NIGHT"
+  ],
+  "spawns": 22,
+  "wave": 5,
+  "withdrawn": 2
+ },
+ "trace43": {
+  "bad_withdraw": 0,
+  "breaches": 5,
+  "combined": 3,
+  "csv_md5": "eb3282d914c9c74324ff958db4947c9e",
+  "day_spawns": 0,
+  "dropped": 706,
+  "events_md5": "7352acc4056055d9091e4b69858859c6",
+  "frames": 72000,
+  "gpu": "D3D12 (NVIDIA GeForce RTX 4070)",
+  "hits": 13,
+  "integrity": 50,
+  "kills": 4,
+  "kills_no_blast": 0,
+  "phase_events": [
+   [
+    89.4,
+    "Dawn"
+   ],
+   [
+    89.4,
+    "Withdraw"
+   ],
+   [
+    102.35,
+    "DayBreak"
+   ],
+   [
+    215.3833,
+    "Dusk"
+   ],
+   [
+    228.3833,
+    "NightFalls"
+   ],
+   [
+    379.9834,
+    "Dawn"
+   ],
+   [
+    392.9333,
+    "DayBreak"
+   ],
+   [
+    469.9667,
+    "Withdraw"
+   ],
+   [
+    505.9667,
+    "Dusk"
+   ],
+   [
+    518.9667,
+    "NightFalls"
+   ]
+  ],
+  "rkills": 4,
+  "rounds": 20,
+  "rounds_no_track": 0,
+  "rrounds": 20,
+  "spawn_phases": [
+   "NIGHT"
+  ],
+  "spawns": 11,
+  "wave": 3,
+  "withdrawn": 2
+ }
+}

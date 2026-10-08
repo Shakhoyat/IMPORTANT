@@ -1,0 +1,64 @@
+wrote raytrace_mode_raster.png 1280x720
+wrote raytrace_mode_hybrid.png 1280x720
+wrote raytrace_mode_whitted.png 1280x720
+wrote raytrace_mode_path.png 1280x720
+wrote raytrace_mode_light.png 1280x720
+wrote raytrace_modes.png 1920x720
+wrote raytrace_ssr.png 1280x360
+wrote raytrace_ssr_raster.png 1280x720
+wrote raytrace_ssr_hybrid.png 1280x720
+wrote raytrace_tree_pixel.png 1280x720
+wrote raytrace_tree.png 1280x720
+      shadow maps 10.446 ms
+      pre-pass 3.60156 ms
+      ssao 0.503984 ms
+      volumetric fog 1.83541 ms
+      scene 83.9244 ms
+      resolve 0.603862 ms
+      combine + ssr 0.411372 ms
+      taa 0.210275 ms
+      bloom 0.0965975 ms
+      composite 0.0613226 ms
+      ray tracing 21.2053 ms
+    {"mode": "RASTER", "ms_per_frame": 143.23, "rt_pass_ms": 0.00, "internal": [1280, 720]},
+      shadow maps 9.97518 ms
+      pre-pass 2.64926 ms
+      ssao 0.26912 ms
+      volumetric fog 0.907177 ms
+      scene 20.1136 ms
+      resolve 0.254558 ms
+      combine + ssr 0.431485 ms
+      taa 0.106458 ms
+      bloom 0.0599784 ms
+      ray tracing 12.8963 ms
+    {"mode": "HYBRID RT", "ms_per_frame": 134.40, "rt_pass_ms": 12.90, "internal": [1280, 720]},
+      shadow maps 9.97518 ms
+      pre-pass 2.23684 ms
+      ssao 0.286227 ms
+      volumetric fog 0.966708 ms
+      scene 2.31564 ms
+      resolve 0.0989864 ms
+      combine + ssr 0.431485 ms
+      taa 0.130601 ms
+      ray tracing 20.2399 ms
+    {"mode": "WHITTED RT", "ms_per_frame": 25.38, "rt_pass_ms": 20.24, "internal": [960, 540]},
+      shadow maps 9.97518 ms
+      pre-pass 2.23684 ms
+      ssao 0.286227 ms
+      volumetric fog 0.966708 ms
+      scene 0.371782 ms
+      resolve 0.0691532 ms
+      combine + ssr 0.431485 ms
+      taa 0.130601 ms
+      ray tracing 17.8945 ms
+    {"mode": "PATH TRACING", "ms_per_frame": 22.98, "rt_pass_ms": 17.89, "internal": [640, 360]},
+      shadow maps 9.97518 ms
+      pre-pass 2.23684 ms
+      ssao 0.286227 ms
+      volumetric fog 0.966708 ms
+      scene 0.201471 ms
+      resolve 0.0667009 ms
+      combine + ssr 0.431485 ms
+      taa 0.130601 ms
+      ray tracing 31.8951 ms
+    {"mode": "LIGHT TRACING", "ms_per_frame": 38.50, "rt_pass_ms": 31.90, "internal": [640, 360]}

@@ -371,6 +371,8 @@ uniform float uExposure;
 uniform int uAutoExposure;
 uniform float uKeyLog2;       // log2 luminance the auto-exposure maps to the base exposure
 uniform float uEvRange;       // +- stops the auto-exposure may move
+uniform float uPurkinje;      // v6: scotopic shift weight (1 night, 0 day)
+uniform float uDayGrade;      // v6: weight of the neutral daylight grade
 uniform float uTime;
 uniform float uGrain;
 uniform float uVignette;
@@ -477,12 +479,23 @@ void main() {
     c *= exposure;
     // Night vision (Purkinje shift): in dim light the eye's rods take over -- less colour, bluer.
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    float scotopic = 1.0 - smoothstep(0.004, 0.08, l);
+    float scotopic = (1.0 - smoothstep(0.004, 0.08, l)) * uPurkinje;
     c = mix(c, l * vec3(0.62, 0.78, 1.15), scotopic * 0.55);
     // Grading: cool moonlit shadows, warm practical lights, a touch of saturation in the mids
-    c = mix(c * vec3(0.90, 0.98, 1.12), c * vec3(1.10, 1.0, 0.86), smoothstep(0.08, 1.6, l));
+    vec3 graded = mix(c * vec3(0.90, 0.98, 1.12), c * vec3(1.10, 1.0, 0.86), smoothstep(0.08, 1.6, l));
+    // Daylight: almost neutral, slightly cool shade and warm sunlit highlights
+    if (uDayGrade > 0.0)
+        graded = mix(graded, c * mix(vec3(0.97, 1.0, 1.04), vec3(1.04, 1.0, 0.95), smoothstep(0.05, 1.2, l)), uDayGrade);
+    c = graded;
+    // v8 daylight: a little more contrast around mid grey (log space) and richer colour, so a clear day reads crisp
+    // instead of milky; the night grade is untouched (uDayGrade = 0).
+    if (uDayGrade > 0.0) {
+        vec3 lc = log2(max(c, vec3(1e-6)));
+        const float mid = -2.4739;   // log2(0.18)
+        c = mix(c, exp2(mid + (lc - mid) * 1.10), uDayGrade);
+    }
     float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    c = max(mix(vec3(lum), c, 1.12), vec3(0.0));
+    c = max(mix(vec3(lum), c, 1.12 + 0.10 * uDayGrade), vec3(0.0));
     c = acesFitted(c * 1.6);
     c = linearToSrgb(c);
     c *= 1.0 - uVignette * dot(q, q) * 1.5;

@@ -33,7 +33,7 @@ struct Site {
 };
 constexpr Site kSamSite{"SAM site", 25.1f, 6.7f, 60.0f, 2.2f, 4.0f, 5.45f};
 constexpr Site kMlrsSite{"MLRS site", -11.5f, 22.5f, -15.0f, 2.2f, 4.5f, 5.95f};
-constexpr Site kTankSouth{"Tank bay south", 9.9f, -25.0f, 150.0f, 2.0f, 3.5f, 6.2f};
+constexpr Site kTankSouth{"Tank bay south", 9.5f, -23.8f, 120.0f, 2.0f, 3.5f, 6.2f};
 constexpr Site kTankWest{"Tank bay west", -25.0f, -3.5f, 270.0f, 2.0f, 3.5f, 6.2f};
 constexpr Site kAmmoSite{"Ammo bunker", 10.5f, 26.2f, 270.0f, 2.0f, 3.0f, 3.0f};
 // The existing tank park (BaseLayout kMotorPool, yaw kTankParkYawDeg) also gets a revetment and a net.

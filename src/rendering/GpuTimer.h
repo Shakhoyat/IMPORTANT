@@ -26,6 +26,10 @@ public:
 
 private:
     static constexpr int kLatency = 3;
+    // v7 WP-Q: TS_GPU_SYNC_TIMING=1 replaces the queries by glFinish-bracketed wall clock (profiling only: it
+    // serialises CPU and GPU). Mesa d3d12 time-elapsed queries include idle gaps between command lists.
+    bool syncTiming_ = false, syncChecked_ = false;
+    double syncStart_ = 0.0;
     struct Pass {
         GLuint query[kLatency] = {0, 0, 0};
         bool issued[kLatency] = {false, false, false};

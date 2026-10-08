@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <string>
 
+#include "rendering/FrameExplorer.h"  // v7 WP-I
 #include "rendering/ImageWriter.h"
 #include "rendering/ThermalPalette.h"
 #include "scene/Director.h"
@@ -27,6 +28,12 @@ float nextNucInterval() {
     g_nucSeed = g_nucSeed * 1664525u + 1013904223u;
     return 25.0f + 15.0f * static_cast<float>((g_nucSeed >> 8) & 0xFFFF) / 65535.0f;
 }
+// v7 WP-I: the Frame Explorer (` key). Never freed: its GL objects must not be deleted after the context is gone.
+FrameExplorer& wpiExplorer() {
+    static FrameExplorer* e = new FrameExplorer();
+    return *e;
+}
+// v7 WP-I end
 }  // namespace
 
 void App::saveScreenshot(int w, int h) {
@@ -43,7 +50,7 @@ void App::saveScreenshot(int w, int h) {
 }
 
 void App::updateTitle(double fps) {
-    char title[320];
+    char title[400];
     // Compact switch list: uppercase = on, lowercase = off (TAA, SSR, flare, auto-exposure, DoF, foliage, particles).
     const auto sw = [](bool on, char c) { return on ? c : static_cast<char>(c + 32); };
     char fx[16];
@@ -54,9 +61,11 @@ void App::updateTitle(double fps) {
     if (settings_.view == ViewMode::Thermal)
         std::snprintf(thermal, sizeof(thermal), thermalFpv_ ? " FPV pal %d fov %.0f" : " EXT pal %d", settings_.palette,
                       thermalFovDeg_);
+    const DayCycle* clock = sa::dayCycle(*scene_);
+    const std::string when = clock ? clock->clockText() : std::string("--:--");
     std::snprintf(title, sizeof(title),
-                  "ThermalSense | %s %s%s | %s | %s | cam %s%s%s | UAV %s | rover %s | fx %s | %.0f FPS | %d draws | %lld tris",
-                  viewModeName(settings_.view), qualityName(settings_.quality), thermal, edgeModeName(settings_.edges),
+                  "ThermalSense | %s | seed %u | %s %s%s | %s | %s | cam %s%s%s | UAV %s | rover %s | fx %s | %.0f FPS | %d draws | %lld tris",
+                  when.c_str(), opt_.seed, viewModeName(settings_.view), qualityName(settings_.quality), thermal, edgeModeName(settings_.edges),
                   overrideName(settings_.shading), cameraModeName(camera_.mode), possessed_ >= 0 ? " " : "", possessedName(),
                   droneModeName(scene_->drone.mode), sa::roverHidden(*scene_) ? "HIDDEN" : "EXPOSED", fx, fps, stats_.drawCalls + cvStats_.drawCalls,
                   stats_.triangles + cvStats_.triangles);
@@ -70,17 +79,61 @@ void App::interactiveLoop() {
     while (!glfwWindowShouldClose(window_)) {
         const double now = glfwGetTime();
         const float dt = static_cast<float>(std::min(now - last, 0.05));
+        frameMs_[frameHead_] = static_cast<float>(1000.0 * (now - last));   // v7 WP-Q: HUD frame-time graph
+        frameHead_ = (frameHead_ + 1) % kFrameHistory;
+        governQuality(now);                                                  // v7 WP-Q: auto preset
         last = now;
 
-        // Free-fly movement (continuous keys).
-        if (camera_.mode == CameraMode::Free) {
+        // v7 WP-I: while the Frame Explorer is open the world stays frozen and the explorer owns the screen.
+        if (wpiExplorer().isOpen()) {
+            int ew = 0, eh = 0;
+            glfwGetFramebufferSize(window_, &ew, &eh);
+            if (ew > 0 && eh > 0) wpiExplorer().frame(*renderer_, 0, ew, eh, dt);
+            glfwSwapBuffers(window_);
+            glfwPollEvents();
+            continue;
+        }
+        // v7 WP-I end
+
+        // v7 WP-G: game mode captures the cursor for mouse look in first-person / free views (shown again for the picker).
+        {
+            // v8: controlling a soldier always captures the mouse (look / aim / fire like a shooter; Esc lets go).
+            const bool look = !pickerOpen_ && !showHelp_ &&
+                              ((gameMode_ && (camera_.mode == CameraMode::Free || camera_.mode == CameraMode::Walk ||
+                                              camera_.mode == CameraMode::Pov || camera_.mode == CameraMode::Possess)) ||
+                               controllingSoldier());
+            if (look != cursorCaptured_) {
+                glfwSetInputMode(window_, GLFW_CURSOR, look ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+                glfwGetCursorPos(window_, &lastX_, &lastY_);
+                cursorCaptured_ = look;
+            }
+        }
+        // Free-fly movement (continuous keys). v7: Home's fly camera glides (smoothed velocity, wheel = speed, Shift x3).
+        if (camera_.mode == CameraMode::Free && flyCam_) {
+            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const bool boost = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
+            held_.boost = boost;
+            camera_.freePos = camera_.freePos + fly_.step(camera_.freeYawDeg, camera_.freePitchDeg, down(GLFW_KEY_W) - down(GLFW_KEY_S),
+                                                          down(GLFW_KEY_D) - down(GLFW_KEY_A),
+                                                          down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN), boost, dt);
+        } else if (camera_.mode == CameraMode::Free) {
             const float speed = 6.0f * dt;
             const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
             camera_.moveFree((down(GLFW_KEY_W) - down(GLFW_KEY_S)) * speed, (down(GLFW_KEY_D) - down(GLFW_KEY_A)) * speed,
                              (down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN)) * speed);
         }
+        // v7 WP-G: riding along, any drive / aim key takes control (possession, or the rover's wheel).
+        if (camera_.mode == CameraMode::Pov && possessedRover_ < 0 && !pickerOpen_ && !paused_) {
+            const int keys[] = {GLFW_KEY_W, GLFW_KEY_A, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT,
+                                GLFW_KEY_RIGHT, GLFW_KEY_PAGE_UP, GLFW_KEY_PAGE_DOWN};
+            for (int k : keys)
+                if (glfwGetKey(window_, k) == GLFW_PRESS) {
+                    takeControl();
+                    break;
+                }
+        }
         // Possessed object: sample the held keys (edges and mouse look come from the callbacks).
-        if (camera_.mode == CameraMode::Possess) {
+        if (camera_.mode == CameraMode::Possess || possessedRover_ >= 0) {
             const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
             held_.forward = down(GLFW_KEY_W) - down(GLFW_KEY_S);
             held_.turn = down(GLFW_KEY_D) - down(GLFW_KEY_A);
@@ -89,6 +142,24 @@ void App::interactiveLoop() {
             held_.aimPitch = down(GLFW_KEY_UP) - down(GLFW_KEY_DOWN);
             held_.fire = down(GLFW_KEY_ENTER) > 0.0f || down(GLFW_KEY_KP_ENTER) > 0.0f || down(GLFW_KEY_LEFT_CONTROL) > 0.0f;
             held_.boost = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
+            // v8: a soldier under control: left mouse fires, right mouse aims (zoom / over the shoulder).
+            const bool soldierMouse = cursorCaptured_ && controllingSoldier();
+            if (soldierMouse && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) held_.fire = true;
+            aiming_ = soldierMouse && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+            if (pickerOpen_) held_.aimYaw = held_.aimPitch = held_.forward = held_.turn = 0.0f, held_.fire = false;  // keys drive the list
+        } else {
+            aiming_ = false;
+        }
+        // v8: what is under the mouse pointer (name tag; a click selects it).
+        if (!cursorCaptured_ && !pickerOpen_ && camera_.mode != CameraMode::Possess && camera_.mode != CameraMode::Cinematic) {
+            double cx = 0.0, cy = 0.0;
+            int ww = 1, wh = 1;
+            glfwGetCursorPos(window_, &cx, &cy);
+            glfwGetWindowSize(window_, &ww, &wh);
+            if (cx >= 0.0 && cy >= 0.0 && cx < ww && cy < wh) updateHover(cx / std::max(ww, 1), cy / std::max(wh, 1));
+            else hoverKey_ = 0;
+        } else {
+            hoverKey_ = 0;
         }
         // Walk: WASD, Shift = run.
         syncWalkWorld();
@@ -96,6 +167,12 @@ void App::interactiveLoop() {
             const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
             const bool run = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
             camera_.moveWalk(down(GLFW_KEY_W) - down(GLFW_KEY_S), down(GLFW_KEY_D) - down(GLFW_KEY_A), dt, run);
+        }
+        // v6 manual clock: ',' / '.' held scrub the time of day (a press in auto mode switched the clock to manual).
+        if (DayCycle* clock = sa::dayCycle(*scene_)) {
+            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const float dir = down(GLFW_KEY_PERIOD) - down(GLFW_KEY_COMMA);
+            if (dir != 0.0f && !clock->autoRun() && !paused_) clock->scrub(dir * clock->config().scrubHoursPerSec * dt);
         }
         // Thermal sensor: display zoom easing and the periodic NUC shutter (thermal view only).
         thermalFovDeg_ = lerpf(thermalFovDeg_, g_fovTarget, std::min(1.0f, dt * 10.0f));
@@ -118,7 +195,8 @@ void App::interactiveLoop() {
             g_nucClosed = -1.0f;
             settings_.nucShutter = 0.0f;
         }
-        step(dt);
+        stepSim(dt);           // v7 WP-Q: the UAV images are collected after the main frame (stepVision below)
+        updateGameCamera(dt);  // v7 WP-G: POV follow, blends, game feel, soldier rifle
         if (camera_.mode == CameraMode::Cinematic && !paused_) camera_.directorTime += dt;
         // Weather: rain eases in/out over ~3 s; the ground soaks in ~20 s and dries in ~90 s.
         settings_.rain = lerpf(settings_.rain, rainTarget_, std::min(1.0f, dt / 3.0f));
@@ -133,6 +211,7 @@ void App::interactiveLoop() {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             renderFrame(w, h, true);
         }
+        stepVision();          // v7 WP-Q: CV + tracker on the CPU while the GPU draws the frame
         ++frames;
         titleTimer += dt;
         if (titleTimer >= 0.25) {
@@ -147,12 +226,81 @@ void App::interactiveLoop() {
 }
 
 void App::onKey(int key, int action, int) {
-    if (action != GLFW_PRESS || opt_.mode != AppOptions::Mode::Interactive) return;  // benchmarks ignore input
+    if (opt_.mode != AppOptions::Mode::Interactive) return;  // benchmarks ignore input
+    // v7 WP-I: ` freezes the frame into the Frame Explorer; while it is open it gets every key (` / Esc close it).
+    if (wpiExplorer().isOpen()) {
+        if (action == GLFW_PRESS || action == GLFW_REPEAT) wpiExplorer().onKey(key);
+        return;
+    }
+    if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS) {
+        int ew = 0, eh = 0;
+        glfwGetFramebufferSize(window_, &ew, &eh);
+        if (ew <= 0 || eh <= 0) return;
+        const float aspect = static_cast<float>(ew) / static_cast<float>(eh);
+        const bool fpv = thermalFirstPerson();
+        const CameraView cam = fpv ? uavCameraView(*scene_, aspect, thermalFovDeg_) : composeView(aspect);
+        RenderSettings es = settings_;
+        es.hideUav = fpv || camera_.mode == CameraMode::UavCamera;
+        if (cursorCaptured_) {  // the explorer needs the mouse pointer
+            glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            cursorCaptured_ = false;
+        }
+        // The live view's TAA history is already converged on this camera in the visible view: 3 frames suffice.
+        const bool liveHistory = settings_.view == ViewMode::Visible && settings_.edges == EdgeMode::Solid && !fpv;
+        wpiExplorer().setConvergence(liveHistory ? 3 : 8, liveHistory);
+        wpiExplorer().setProgress([this, ew, eh](float f, const std::string& label) {  // progress overlay while it works
+            wpiExplorer().drawProgress(*renderer_, 0, ew, eh, f, label);
+            glfwSwapBuffers(window_);
+        });
+        if (wpiExplorer().open(*renderer_, *scene_, cam, es, ew, eh))
+            std::printf("Frame Explorer: frame frozen in %.2f s (arrows: stages / layers, ` or Esc: back)\n", wpiExplorer().openSeconds());
+        else
+            std::printf("Frame Explorer: could not freeze the frame\n");
+        return;
+    }
+    // v7 WP-I end
+    // v7 WP-G: the POV picker owns the arrows, Enter and Esc while it is open (held keys repeat).
+    if (pickerOpen_ && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        switch (key) {
+            case GLFW_KEY_UP: pickerMove(-1); return;
+            case GLFW_KEY_DOWN: pickerMove(1); return;
+            case GLFW_KEY_PAGE_UP: pickerMove(-8); return;
+            case GLFW_KEY_PAGE_DOWN: pickerMove(8); return;
+            case GLFW_KEY_ENTER:
+            case GLFW_KEY_KP_ENTER: pickerConfirm(); return;
+            case GLFW_KEY_ESCAPE:
+            case GLFW_KEY_F4: togglePicker(); return;  // closes (PickerClose cue)
+            default: break;
+        }
+    }
+    if (action != GLFW_PRESS) return;
+    // v8: Enter takes control of the selected object (when nothing is under control yet).
+    if ((key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER) && selKey_ != 0 && camera_.mode != CameraMode::Possess &&
+        possessedRover_ < 0 && camera_.mode != CameraMode::Walk) {
+        controlSelected();
+        return;
+    }
+    // v7 WP-G: possession keys blend the camera from the view on screen (End returns to it).
+    const ViewMemo before = memo();
+    const RigPose from = shownPose_;
+    const int wasPossessed = possessed_;
     switch (key) {
-        case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(window_, 1); break;
+        case GLFW_KEY_ESCAPE:   // v8: leave control / riding along / the selection first; quit when there is nothing left
+            if (!releaseControl()) glfwSetWindowShouldClose(window_, 1);
+            break;
         case GLFW_KEY_C:
+            if (controllingSoldier()) {   // v8: first <-> third person (same as V)
+                setViewThirdPerson(camera_.possessSight);
+                break;
+            }
+            if (camera_.mode == CameraMode::Pov) {
+                cycleView();  // v7: first person -> chase -> alt camera
+                break;
+            }
             if (camera_.mode == CameraMode::Possess) toggleSight();
             else camera_.cycle();
+            flyCam_ = false;
+            beginJump(from);
             break;
         case GLFW_KEY_K:
             if (camera_.mode == CameraMode::Cinematic) {
@@ -160,12 +308,15 @@ void App::onKey(int key, int action, int) {
                 scriptClock_ = -1.0f;
                 settings_.letterbox = 0.0f;
                 settings_.fade = 1.0f;
+                // The director drove the clock by hand: give it back to the cycle the run was started with.
+                if (DayCycle* clock = sa::dayCycle(*scene_)) clock->setAuto(opt_.timeGiven ? opt_.autoCycle : true);
             } else {
                 // The sequence is scripted against a fresh world (same start as the recorded video).
                 possess(-1);
                 camera_.mode = CameraMode::Orbit;
-                restartWorld(8.0f);
+                restartWorld(8.0f, true);
                 camera_.mode = CameraMode::Cinematic;
+                camera_.directorCut = scriptCut_ = DirectorCut::V6;
                 camera_.directorTime = 0.0f;
                 scriptClock_ = 0.0f;
             }
@@ -176,9 +327,27 @@ void App::onKey(int key, int action, int) {
         case GLFW_KEY_8: possessSlot(Slot::Radar); break;
         case GLFW_KEY_9: possessSlot(Slot::Doors); break;
         case GLFW_KEY_0: possessSlot(Slot::Uav); break;
+        case GLFW_KEY_F2:  // v6: automatic day / night cycle <-> manual clock
+            if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                clock->toggleAuto();
+                std::printf("Day cycle %s at %s\n", clock->autoRun() ? "AUTO" : "MANUAL", clock->clockText().c_str());
+            }
+            break;
+        case GLFW_KEY_COMMA:
+        case GLFW_KEY_PERIOD:  // scrubbing is manual: a press in auto mode stops the clock (the loop scrubs while held)
+            if (DayCycle* clock = sa::dayCycle(*scene_)) clock->setAuto(false);
+            break;
+        case GLFW_KEY_SLASH:
+            if (DayCycle* clock = sa::dayCycle(*scene_)) clock->jumpToNextPhase();
+            break;
+        case GLFW_KEY_F3: possessNextSoldier(); break;
         case GLFW_KEY_LEFT_BRACKET: cyclePossession(-1); break;
         case GLFW_KEY_RIGHT_BRACKET: cyclePossession(+1); break;
-        case GLFW_KEY_BACKSPACE: possess(-1); break;
+        case GLFW_KEY_BACKSPACE:
+            if (possessedRover_ >= 0 || possessed_ >= 0) audio_.uiCue(audio::UiCue::Release);
+            if (possessedRover_ >= 0) releaseRover();  // v7: the rover drives itself again, the camera stays on it
+            else possess(-1);
+            break;
         case GLFW_KEY_BACKSLASH: actionEdge_ = true; break;
         case GLFW_KEY_ENTER:
         case GLFW_KEY_KP_ENTER:
@@ -187,6 +356,10 @@ void App::onKey(int key, int action, int) {
             if (camera_.mode == CameraMode::Walk) interact();
             break;
         case GLFW_KEY_V:
+            if (camera_.mode == CameraMode::Possess && possessedSoldierIndex() >= 0) {   // v8: first <-> third person
+                setViewThirdPerson(camera_.possessSight);
+                break;
+            }
             settings_.view = static_cast<ViewMode>((static_cast<int>(settings_.view) + 1) % 4);
             break;
         case GLFW_KEY_X: settings_.edges = static_cast<EdgeMode>((static_cast<int>(settings_.edges) + 1) % 3); break;
@@ -204,7 +377,10 @@ void App::onKey(int key, int action, int) {
         case GLFW_KEY_M: settings_.showPlan = !settings_.showPlan; break;
         case GLFW_KEY_I: settings_.indexed = !settings_.indexed; break;
         case GLFW_KEY_U: showFeed_ = !showFeed_; break;
-        case GLFW_KEY_F5: settings_.quality = static_cast<Quality>((static_cast<int>(settings_.quality) + 1) % kQualityCount); break;
+        case GLFW_KEY_F5:
+            settings_.quality = static_cast<Quality>((static_cast<int>(settings_.quality) + 1) % kQualityCount);
+            qualityAuto_ = false;   // v7 WP-Q: a manual choice ends the auto preset governor
+            break;
         case GLFW_KEY_B: settings_.pbr = !settings_.pbr; break;
         case GLFW_KEY_R: rainTarget_ = rainTarget_ > 0.5f ? 0.0f : 1.0f; break;
         case GLFW_KEY_T: settings_.palette = (settings_.palette + 1) % kPaletteCount; break;
@@ -222,7 +398,11 @@ void App::onKey(int key, int action, int) {
         case GLFW_KEY_MINUS: settings_.exposure /= 1.15f; break;
         case GLFW_KEY_TAB: showHud_ = !showHud_; break;
         case GLFW_KEY_F1: showHelp_ = !showHelp_; break;
-        case GLFW_KEY_SPACE: paused_ = !paused_; break;
+        case GLFW_KEY_SPACE:   // v8: a soldier under control jumps; otherwise Space pauses
+            if (controllingSoldier()) jumpEdge_ = true;
+            else paused_ = !paused_;
+            break;
+        case GLFW_KEY_PAUSE: paused_ = !paused_; break;
         case GLFW_KEY_F12: {
             int w, h;
             glfwGetFramebufferSize(window_, &w, &h);
@@ -230,27 +410,124 @@ void App::onKey(int key, int action, int) {
             saveScreenshot(w, h);
             break;
         }
+        // v7 WP-G: game camera
+        case GLFW_KEY_F4: togglePicker(); break;
+        case GLFW_KEY_HOME: enterFreeCam(); break;
+        case GLFW_KEY_END: returnToPrevious(); break;
+        case GLFW_KEY_INSERT: cyclePovJump(+1); break;
+        case GLFW_KEY_DELETE: cyclePovJump(-1); break;
+        case GLFW_KEY_F11:
+            gameMode_ = !gameMode_;
+            std::printf("Game mode %s\n", gameMode_ ? "ON" : "OFF");
+            break;
+        case GLFW_KEY_LEFT_ALT:  // possessed soldier: crouch <-> stand (Left Ctrl is fire)
+            if (const int si = possessedSoldierIndex(); si >= 0)
+                if (const Soldier* sd = dynamic_cast<const Soldier*>(sa::controllables(*scene_)[si])) crouchWant_ = sd->stance() == 1 ? 0 : 1;
+            break;
+        // v7 WP-G end
+        // v7 WP-H: ray tracing modes (raster -> hybrid -> Whitted -> path -> light) and the ray debugger
+        case GLFW_KEY_SEMICOLON:
+            settings_.rtMode = rt::nextRtMode(settings_.rtMode);
+            std::printf("Render mode: %s (%s)\n", rt::rtModeName(settings_.rtMode), rt::rtModeCaption(settings_.rtMode));
+            break;
+        case GLFW_KEY_APOSTROPHE:
+            renderer_->setRayDebug(!renderer_->rayDebug());
+            std::printf("Ray debugger %s\n", renderer_->rayDebug() ? "ON: click a pixel" : "OFF");
+            break;
+        // v7 WP-H end
         default: break;
+    }
+    const bool possessKey = (key >= GLFW_KEY_5 && key <= GLFW_KEY_9) || key == GLFW_KEY_0 || key == GLFW_KEY_LEFT_BRACKET ||
+                            key == GLFW_KEY_RIGHT_BRACKET || key == GLFW_KEY_F3 || key == GLFW_KEY_BACKSPACE;
+    if (possessKey && possessed_ != wasPossessed) {
+        noteJump(before, from);
+        if (possessed_ >= 0) audio_.uiCue(audio::UiCue::Possess);
     }
 }
 
-void App::onMouseButton(int button, int) {
+void App::onMouseButton(int button, int action) {
     if (opt_.mode != AppOptions::Mode::Interactive) return;
+    // v7 WP-I: the Frame Explorer takes the mouse while it is open (left click = probe / drag the split).
+    if (wpiExplorer().isOpen()) {
+        wpiExplorer().onMouseButton(button == GLFW_MOUSE_BUTTON_LEFT ? 0 : button, action == GLFW_PRESS);
+        return;
+    }
+    // v7 WP-I end
+    // v7 WP-H: ray debugger: a left click traces that pixel (CPU) and shows its ray tree; it does not start a drag.
+    if (renderer_->rayDebug() && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        double cx = 0.0, cy = 0.0;
+        int ww = 1, wh = 1;
+        glfwGetCursorPos(window_, &cx, &cy);
+        glfwGetWindowSize(window_, &ww, &wh);
+        if (renderer_->rayDebugPick(*scene_, static_cast<float>(cx / std::max(ww, 1)), static_cast<float>(cy / std::max(wh, 1))))
+            std::printf("Ray tree: %zu rays\n", renderer_->rayTree()->nodes.size());
+        return;
+    }
+    // v7 WP-H end
+    // v7 WP-G: a click on the POV picker jumps; the middle button jumps into the object under the cursor.
+    if (action == GLFW_PRESS && (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE)) {
+        double cx = 0.0, cy = 0.0;
+        int ww = 1, wh = 1;
+        glfwGetCursorPos(window_, &cx, &cy);
+        glfwGetWindowSize(window_, &ww, &wh);
+        const double nx = cx / std::max(ww, 1), ny = cy / std::max(wh, 1);
+        if (button == GLFW_MOUSE_BUTTON_LEFT && pickerOpen_ && pickerClick(nx, ny)) return;
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+            if (cursorCaptured_) pickPovAt(0.5, 0.5);  // game mode: the crosshair
+            else pickPovAt(nx, ny);
+            return;
+        }
+    }
+    // v8: a left click (press and release without dragging) selects the object under the pointer.
+    if (button == GLFW_MOUSE_BUTTON_LEFT && !cursorCaptured_) {
+        double cx = 0.0, cy = 0.0;
+        glfwGetCursorPos(window_, &cx, &cy);
+        if (action == GLFW_PRESS) {
+            pressX_ = cx;
+            pressY_ = cy;
+            pressValid_ = camera_.mode != CameraMode::Possess && camera_.mode != CameraMode::Cinematic;
+        } else if (action == GLFW_RELEASE && pressValid_) {
+            pressValid_ = false;
+            if (std::hypot(cx - pressX_, cy - pressY_) < 5.0) {
+                int ww = 1, wh = 1;
+                glfwGetWindowSize(window_, &ww, &wh);
+                selectAt(cx / std::max(ww, 1), cy / std::max(wh, 1));
+            }
+        }
+    }
     if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) {
         const bool wasDragging = dragging_;
         // Left or right button held = look around (right only counts in Walk / Free).
         dragging_ = glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS ||
                     (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS &&
-                     (camera_.mode == CameraMode::Walk || camera_.mode == CameraMode::Free));
+                     (camera_.mode == CameraMode::Walk || camera_.mode == CameraMode::Free || camera_.mode == CameraMode::Pov));
         if (dragging_ && !wasDragging) glfwGetCursorPos(window_, &lastX_, &lastY_);
     }
 }
 
 void App::onCursor(double x, double y) {
-    if (dragging_ && camera_.mode == CameraMode::Possess) {  // mouse drag = aim delta of the possessed object
+    // v7 WP-I: Frame Explorer cursor in framebuffer pixels (window coordinates differ on high-DPI screens).
+    if (wpiExplorer().isOpen()) {
+        int ww = 1, wh = 1, fw = 1, fh = 1;
+        glfwGetWindowSize(window_, &ww, &wh);
+        glfwGetFramebufferSize(window_, &fw, &fh);
+        wpiExplorer().onCursor(static_cast<float>(x * fw / std::max(ww, 1)), static_cast<float>(y * fh / std::max(wh, 1)));
+        lastX_ = x;
+        lastY_ = y;
+        return;
+    }
+    // v7 WP-I end
+    const bool look = dragging_ || cursorCaptured_;  // v7: game mode looks without a button held
+    if (look && controllingSoldier() && !camera_.possessSight) {   // v8: third person: the mouse swings the camera arm
+        tpLookYaw_ += static_cast<float>(x - lastX_) * 0.15f;
+        tpLookPitch_ -= static_cast<float>(y - lastY_) * 0.15f;
+    } else if (look && camera_.mode == CameraMode::Possess) {  // mouse drag = aim delta of the possessed object
         aimYawAcc_ += static_cast<float>(x - lastX_) * 0.15f;
         aimPitchAcc_ -= static_cast<float>(y - lastY_) * 0.15f;
-    } else if (dragging_) {
+    } else if (look && camera_.mode == CameraMode::Pov) {  // v7: free look while riding along
+        povLookYaw_ = std::fmod(povLookYaw_ + static_cast<float>(x - lastX_) * 0.15f, 360.0f);
+        povLookPitch_ = clampf(povLookPitch_ - static_cast<float>(y - lastY_) * 0.15f, -75.0f, 75.0f);
+    } else if (look) {
         camera_.drag(static_cast<float>(x - lastX_), static_cast<float>(y - lastY_));
     }
     lastX_ = x;
@@ -259,6 +536,10 @@ void App::onCursor(double x, double y) {
 
 void App::onScroll(double dy) {
     if (opt_.mode != AppOptions::Mode::Interactive) return;
+    if (wpiExplorer().isOpen()) {  // v7 WP-I: wheel = magnifier zoom
+        wpiExplorer().onScroll(static_cast<float>(dy));
+        return;
+    }
     if (settings_.view == ViewMode::Thermal && thermalFpv_) {
         // Thermal FPV zoom: WFOV 40 -> MFOV 20 -> NFOV 8 (wheel up = narrower).
         static const float kSteps[3] = {40.0f, 20.0f, 8.0f};
@@ -267,6 +548,8 @@ void App::onScroll(double dy) {
             if (std::fabs(g_fovTarget - kSteps[i]) < std::fabs(g_fovTarget - kSteps[idx])) idx = i;
         idx = std::max(0, std::min(2, idx + (dy > 0 ? 1 : dy < 0 ? -1 : 0)));
         g_fovTarget = clampf(kSteps[idx], 5.0f, 40.0f);
+    } else if (camera_.mode == CameraMode::Free && flyCam_) {
+        fly_.wheel(static_cast<float>(dy));  // v7: the fly camera's speed
     } else {
         camera_.zoom(static_cast<float>(dy));
     }

@@ -47,9 +47,9 @@ Helicopter::Helicopter() {
     root_->animation = "Position and yaw from the flight model";
     SceneNode* r = root_.get();
 
-    const Material paint = withPbr({{0.10f, 0.125f, 0.085f}, 0.30f, 0.0f, 0.45f, 64.0f}, Surface::Camo, 0.42f, 0.1f);
-    const Material paintLight = withPbr({{0.14f, 0.16f, 0.12f}, 0.30f, 0.0f, 0.40f, 48.0f}, Surface::Paint, 0.5f, 0.1f);
-    const Material glass = withPbr({{0.03f, 0.05f, 0.06f}, 0.10f, 0.0f, 1.0f, 160.0f}, Surface::Glass, 0.03f, 0.1f);
+    const Material paint = withPbr({{0.125f, 0.15f, 0.10f}, 0.30f, 0.0f, 0.45f, 64.0f}, Surface::Camo, 0.42f, 0.1f);
+    const Material paintLight = withPbr({{0.17f, 0.19f, 0.145f}, 0.30f, 0.0f, 0.40f, 48.0f}, Surface::Paint, 0.5f, 0.1f);
+    const Material glass = withPbr({{0.05f, 0.08f, 0.10f}, 0.10f, 0.0f, 1.0f, 160.0f}, Surface::Glass, 0.03f, 0.1f);
     const Material metal = withPbr({{0.22f, 0.22f, 0.24f}, 0.35f, 0.0f, 0.80f, 96.0f}, Surface::Metal, 0.38f, 0.9f);
     const Material skidMat = withPbr({{0.09f, 0.09f, 0.10f}, 0.25f, 0.0f, 0.5f, 48.0f}, Surface::Metal, 0.5f, 0.8f);
     const Material hot = withPbr({{0.10f, 0.09f, 0.08f}, 0.95f, 0.0f, 0.6f, 48.0f}, Surface::Metal, 0.55f, 0.8f);
@@ -201,6 +201,44 @@ Helicopter::Helicopter() {
     b.part(bd, "Tail rotor gearbox", P::Cylinder, {0.2f, 0.2f, 0.3f}, {0, 90, 0}, {0.1f, 1.3f, -5.1f}, metal, "Tail rotor gearbox");
     b.part(bd, "Pitot tube", P::Cylinder, {0.03f, 0.03f, 0.4f}, {0, 0, 0}, {-0.5f, 0.1f, 1.45f}, metal, "Airspeed probe");
 
+    // v7 detail pass (appended: node ids above unchanged). Canopy frames and seams as thin ellipsoid slices that
+    // follow the hull curvature, side windows, intakes, a nose FLIR ball, blade erosion strips, antennas, markings and
+    // NVG formation strips. Pure surface detail: no obstacles; the airframe heat is kept.
+    const Material seam = shade(paint, 0.45f);
+    const Material frame = reworked(shade(paintLight, 1.15f), 0.5f, 0.3f);
+    const Material intake = makeMaterial({0.015f, 0.015f, 0.015f}, 0.40f, Surface::Plain, 0.9f, 0.0f);
+    const Material erosion = makeMaterial({0.55f, 0.56f, 0.58f}, 0.25f, Surface::Metal, 0.3f, 0.95f);
+    const Material marking = decal({0.62f, 0.60f, 0.50f}, 0.30f);
+    const Material formation = indicator({0.55f, 1.0f, 0.35f}, 0.6f);
+    detail(b, bd, "Canopy centre frame", P::Sphere, {0.04f, 1.07f, 1.52f}, {0, 0, 0}, {0, 0.36f, 0.62f}, frame,
+           "Centre frame of the bubble canopy");
+    detail(b, bd, "Canopy sill frame", P::Sphere, {1.245f, 0.04f, 1.525f}, {0, 0, 0}, {0, 0.36f, 0.62f}, frame,
+           "Lower frame of the canopy");
+    detail(b, bd, "Cabin panel seam", P::Sphere, {1.255f, 1.345f, 0.03f}, {0, 0, 0}, {0, 0.18f, -0.5f}, seam,
+           "Panel joint around the cabin");
+    for (int sx = -1; sx <= 1; sx += 2) {
+        const char* side = sx > 0 ? "left" : "right";
+        detail(b, bd, std::string("Door window ") + side, P::Sphere, {0.1f, 0.5f, 0.7f}, {0, 0, 0}, {0.63f * sx, 0.36f, -0.08f},
+               glass, "Rear door window");
+        detail(b, bd, std::string("Engine intake ") + side, P::Sphere, {0.1f, 0.22f, 0.42f}, {0, 0, 0}, {0.44f * sx, 1.05f, -0.8f},
+               intake, "Turbine air intake");
+        detail(b, bd, std::string("Tail number ") + side, P::Cube, {0.01f, 0.11f, 0.42f}, {0, 2.4f * sx, 0},
+               {0.178f * sx, 0.8f, -2.45f}, marking, "Painted serial on the tail boom");
+        detail(b, bd, std::string("Formation light ") + side, P::Cube, {0.012f, 0.03f, 0.5f}, {0, 2.4f * sx, 0},
+               {0.16f * sx, 0.9f, -3.0f}, formation, "NVG formation light strip (dim, emissive only)");
+        detail(b, bd, std::string("Skid end cap ") + side, P::Sphere, {0.1f, 0.1f, 0.1f}, {0, 0, 0}, {0.95f * sx, -0.95f, -1.4f},
+               skidMat, "Skid tube end cap");
+    }
+    detail(b, bd, "FLIR ball", P::Sphere, {0.24f, 0.24f, 0.24f}, {0, 0, 0}, {0, -0.2f, 1.28f}, skidMat, "Nose FLIR turret");
+    detail(b, bd, "FLIR window", P::Sphere, {0.13f, 0.13f, 0.05f}, {0, 0, 0}, {0, -0.2f, 1.39f}, glass, "FLIR sensor window");
+    detail(b, bd, "Drive shaft cover", P::Cylinder, {0.07f, 0.07f, 3.3f}, alignZ({0, -0.143f, -3.3f}), {0, 0.945f, -3.15f}, paintLight,
+           "Tail rotor drive shaft fairing on top of the boom");
+    detail(b, bd, "Belly antenna", P::Cube, {0.02f, 0.18f, 0.25f}, {0, 0, 0}, {0, -0.62f, -0.45f}, skidMat, "UHF blade antenna");
+    detail(b, bd, "VHF antenna", P::Cube, {0.02f, 0.2f, 0.2f}, {0, 0, 0}, {0, 1.35f, -1.7f}, skidMat, "VHF blade antenna on the cowling");
+    for (int i = 0; i < kBlades; ++i)
+        detail(b, flaps_[i], "Blade erosion strip", P::Cube, {0.035f, 0.036f, 3.45f}, {0, 0, 0}, {0.1f, 0, 2.0f}, erosion,
+               "Leading-edge erosion strip (bright metal)");
+
     // Parked on the helipad, nose toward the compound.
     pos_ = Vec3{layout::kHelipad.x, layout::kApronLevel + kPadThickness, layout::kHelipad.z};
     yawDeg_ = degrees(std::atan2(-layout::kHelipad.x, -layout::kHelipad.z));
@@ -252,6 +290,7 @@ bool Helicopter::landingAllowed(const char** why) const {
 }
 
 void Helicopter::update(const WorldContext& w, const ControlInput* in) {
+    beamsAllowed_ = w.beamsOn;
     const float dt = clampf(w.dt, 0.0f, 0.1f);
     time_ += dt;
     msgTimer_ = std::max(0.0f, msgTimer_ - dt);
@@ -500,7 +539,7 @@ void Helicopter::applyPose(float dt) {
     gimbalPitch_->local.rotationDeg = {lightDown_, 0, 0};
     lens_->material.emissive = lightOn_ ? 1.0f : 0.0f;
     lens_->material.lightIntensity = lightOn_ ? 5.0f : 0.0f;
-    if (lightOn_) {
+    if (lightOn_ && beamsAllowed_) {
         const Mat4 m = translate(pos_) * rotateEulerYXZ({0, yawDeg_, 0}) * translate({0, kGroundClearance, 0}) *
                        rotateEulerYXZ({pitchDeg_, 0, rollDeg_}) * translate(gimbalYaw_->local.translation) *
                        rotateEulerYXZ(gimbalYaw_->local.rotationDeg) * translate(gimbalPitch_->local.translation) *
@@ -549,8 +588,8 @@ CameraHint Helicopter::camera(bool firstPerson) const {
     if (firstPerson) {
         const Mat4 m = translate(pos_) * rotateEulerYXZ({0, yawDeg_, 0}) * translate({0, kGroundClearance, 0}) *
                        rotateEulerYXZ({pitchDeg_, 0, rollDeg_});
-        h.eye = transformPoint(m, {-0.3f, 0.5f, 0.55f});
-        h.target = transformPoint(m, {-0.3f, 0.5f - 0.12f, 6.0f});
+        h.eye = transformPoint(m, {0.0f, 0.55f, 1.15f});      // front of the canopy: the cabin shell stays out of view
+        h.target = transformPoint(m, {0.0f, 0.43f, 6.0f});
         h.fovDeg = 75.0f;
         h.sight = true;
     } else {

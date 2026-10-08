@@ -9,6 +9,7 @@
 
 #if defined(__linux__)
 #include <dlfcn.h>
+#include <unistd.h>
 #endif
 
 namespace ts {
@@ -155,12 +156,32 @@ GLADapiproc eglProc(const char* name) { return reinterpret_cast<GLADapiproc>(g.g
 
 bool headlessSupported() { return true; }
 
+// WSL2 exposes the Windows GPUs only through /dev/dxg (no /dev/dri): Mesa's EGL device list then holds just
+// llvmpipe, while the surfaceless platform with the d3d12 Gallium driver reaches the real GPU. Prefer the NVIDIA
+// adapter (the RTX 4070) over an integrated one; TS_GPU_ADAPTER or the Mesa variables themselves override.
+bool preferWslGpu() {
+#if defined(__linux__)
+    if (!std::getenv("TS_NO_WSL_GPU") && access("/dev/dxg", F_OK) == 0 && access("/dev/dri", F_OK) != 0) {
+        const char* adapter = std::getenv("TS_GPU_ADAPTER");
+        setenv("GALLIUM_DRIVER", "d3d12", 0);
+        setenv("MESA_D3D12_DEFAULT_ADAPTER_NAME", adapter ? adapter : "NVIDIA", 0);
+        return true;
+    }
+#endif
+    return false;
+}
+
 bool createHeadlessContext(int device, std::string& description) {
+    const bool wsl = preferWslGpu();
     if (!loadEgl()) return false;
     if (const char* env = std::getenv("TS_EGL_DEVICE")) device = std::atoi(env);
     bool ok = false;
+    if (wsl && g.getPlatformDisplay) {
+        ok = tryDisplay(g.getPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA, nullptr, nullptr));
+        if (ok) description = "EGL surfaceless (WSL d3d12)";
+    }
     // 1. EGL devices (NVIDIA / Mesa): render on a GPU with no display attached.
-    if (g.queryDevices && g.getPlatformDisplay) {
+    if (!ok && g.queryDevices && g.getPlatformDisplay) {
         EGLDeviceEXT devices[16];
         EGLint n = 0;
         if (g.queryDevices(16, devices, &n)) {
@@ -189,6 +210,9 @@ bool createHeadlessContext(int device, std::string& description) {
         std::fprintf(stderr, "headless: failed to load OpenGL functions\n");
         return false;
     }
+    const char* glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    if (glRenderer && std::strstr(glRenderer, "llvmpipe"))
+        std::fprintf(stderr, "headless: WARNING rendering on the CPU (llvmpipe), not on a GPU: very slow\n");
     const char* vendor = g.queryString(g.display, EGL_VENDOR);
     const char* version = g.queryString(g.display, EGL_VERSION);
     description += std::string(" (") + (vendor ? vendor : "?") + ", EGL " + (version ? version : "?") + ")";
@@ -207,6 +231,7 @@ void destroyHeadlessContext() {
 #else  // Windows / macOS: a hidden GLFW window is used instead
 
 bool headlessSupported() { return false; }
+bool preferWslGpu() { return false; }
 bool createHeadlessContext(int, std::string& description) {
     description = "headless EGL is only available on Linux";
     return false;

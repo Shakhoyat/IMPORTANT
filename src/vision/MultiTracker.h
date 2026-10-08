@@ -47,6 +47,7 @@ public:
     float accelNoise = 1.5f;       // m/s^2, process noise of the constant-velocity model
     int confirmHits = 3;
     float coastAfter = 0.25f, deleteAfter = 3.0f;
+    float mergeDistance = 1.0f;    // m: closer tracks with similar velocity are merged (one target)
 
     void predict(float dt);
     // All measurements of one frame from all sensors.

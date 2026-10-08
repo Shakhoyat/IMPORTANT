@@ -255,76 +255,128 @@ RotorHumGen::RotorHumGen(uint32_t seed) : rng_(seed) {
     for (int i = 0; i < 4; ++i) {
         detune_[i] = 1.0f + 0.012f * (static_cast<float>(i) - 1.5f) + 0.004f * rng_.bi();
         phase_[i] = rng_.uni() * kTwoPi;
+        motor_[i] = rng_.uni() * kTwoPi;
     }
 }
 void RotorHumGen::render(float* out, int n, float speed, float pitch) {
     if (!primed_) { speed_ = speed; primed_ = true; }
     const float sm = 1.0f - std::exp(-1.0f / (0.05f * kSampleRate));
+    // Throttle wander: each rotor's rpm follows its own slow random target (flight controller corrections).
+    for (int r = 0; r < 4; ++r) {
+        if (rng_.uni() < static_cast<float>(n) / (0.35f * kSampleRate)) jitV_[r] = 0.025f * rng_.bi();
+    }
+    const float jsm = 1.0f - std::exp(-static_cast<float>(n) / (0.12f * kSampleRate));
+    for (int r = 0; r < 4; ++r) jit_[r] += (jitV_[r] - jit_[r]) * jsm;
     for (int i = 0; i < n; ++i) {
         speed_ += sm * (speed - speed_);
         const float sp = std::min(std::max(speed_, 0.0f), 15.0f);
         const float f0 = (105.0f + 7.0f * sp) * pitch;
         wobble_ += kTwoPi * 0.3f / kSampleRate;
         if (wobble_ > kTwoPi) wobble_ -= kTwoPi;
-        float s = 0.0f;
+        float s = 0.0f, whine = 0.0f;
         for (int r = 0; r < 4; ++r) {
-            phase_[r] += kTwoPi * f0 * detune_[r] / kSampleRate;
+            const float fr = f0 * detune_[r] * (1.0f + jit_[r]);
+            phase_[r] += kTwoPi * fr / kSampleRate;
             if (phase_[r] > kTwoPi) phase_[r] -= kTwoPi;
             float h = 0.0f;
             for (int k = 1; k <= 6; ++k) h += std::sin(phase_[r] * static_cast<float>(k)) * std::pow(static_cast<float>(k), -1.3f);
             s += h;
+            motor_[r] += kTwoPi * fr * 7.0f / kSampleRate;   // 14-pole motor: electrical rate = 7 x blade pass
+            if (motor_[r] > kTwoPi) motor_[r] -= kTwoPi;
+            whine += std::sin(motor_[r]) + 0.3f * std::sin(2.0f * motor_[r]);
         }
         s *= 0.12f * (1.0f + 0.05f * std::sin(wobble_));
+        s += whine * 0.006f * (0.6f + 0.4f * sp / 15.0f);
         band_.process(rng_.bi(), 1800.0f * pitch, 1.2f);
-        s += band_.band * 0.10f * (0.5f + 0.5f * sp / 15.0f);
+        const float chop = 0.65f + 0.35f * std::sin(phase_[0]);   // blade-vortex modulation of the broadband noise
+        s += band_.band * 0.10f * (0.5f + 0.5f * sp / 15.0f) * chop;
+        s += air_.lp(rng_.bi(), onePoleAlpha(220.0f)) * 0.25f;     // downwash rumble
         out[i] = s;
     }
 }
 
 HeliThumpGen::HeliThumpGen(uint32_t seed) : rng_(seed) {}
 void HeliThumpGen::render(float* out, int n, float rotorFrac, float pitch) {
+    static constexpr float kBlade[4] = {1.0f, 0.82f, 0.93f, 0.76f};   // blade tracking: one blade slaps hardest
     const float sm = 1.0f - std::exp(-1.0f / (0.3f * kSampleRate));
     for (int i = 0; i < n; ++i) {
         frac_ += sm * (rotorFrac - frac_);
-        phase_ += 25.0f * frac_ * pitch / kSampleRate;
+        phase_ += 22.0f * frac_ * pitch / kSampleRate;
         if (phase_ >= 1.0f) {
             phase_ -= 1.0f;
+            blade_ = (blade_ + 1) & 3;
             slapT_ = 0.0f;
-            slapAmp_ = 0.85f + 0.3f * rng_.uni();
+            slapAmp_ = kBlade[blade_] * (0.9f + 0.2f * rng_.uni());
             slapPhase_ = 0.0f;
         }
         slapT_ += 1.0f / kSampleRate;
-        slapPhase_ += kTwoPi * 55.0f / kSampleRate;
+        slapPhase_ += kTwoPi * 58.0f * pitch / kSampleRate;
+        // thump (low, 45 ms) + blade slap (band-limited crack, 10 ms) + wash
         float s = std::sin(slapPhase_) * expEnv(slapT_, 0.045f) * slapAmp_;
         s += lpA_.lp(rng_.bi(), onePoleAlpha(900.0f)) * expEnv(slapT_, 0.012f) * 1.2f * slapAmp_;
+        slapBand_.process(rng_.bi(), 1400.0f * pitch, 1.1f);
+        s += slapBand_.band * expEnv(slapT_, 0.008f) * 0.9f * slapAmp_ * frac_;
         s *= 0.9f * std::sqrt(frac_);
-        whine_ += kTwoPi * 2400.0f * (0.4f + 0.6f * frac_) / kSampleRate;
+        // tail rotor: 5.3 x faster buzz with harmonics
+        tail_ += kTwoPi * 22.0f * 5.3f * frac_ * pitch / kSampleRate;
+        if (tail_ > kTwoPi) tail_ -= kTwoPi;
+        s += 0.05f * frac_ * (std::sin(tail_) + 0.5f * std::sin(2.0f * tail_) + 0.25f * std::sin(3.0f * tail_));
+        // turbine: two whine tones beating slowly + jet noise
+        whine_ += kTwoPi * 2400.0f * (0.4f + 0.6f * frac_) * pitch / kSampleRate;
         if (whine_ > kTwoPi) whine_ -= kTwoPi;
-        s += 0.02f * frac_ * std::sin(whine_);
+        whine2_ += kTwoPi * 3730.0f * (0.4f + 0.6f * frac_) * pitch / kSampleRate;
+        if (whine2_ > kTwoPi) whine2_ -= kTwoPi;
+        s += frac_ * (0.02f * std::sin(whine_) + 0.008f * std::sin(whine2_));
+        s += hpJet_.hp(rng_.bi(), onePoleAlpha(1500.0f)) * 0.03f * frac_;
         s += lpB_.lp(rng_.bi(), onePoleAlpha(400.0f)) * 0.35f * frac_;
         out[i] = s;
     }
 }
 
-TankEngineGen::TankEngineGen(uint32_t seed) : rng_(seed) {}
+TankEngineGen::TankEngineGen(uint32_t seed) : rng_(seed) {
+    for (float& a : cylAmp_) a = 0.8f + 0.4f * rng_.uni();   // per-cylinder imbalance: the lumpy diesel note
+}
 void TankEngineGen::render(float* out, int n, float speed, float pitch) {
     const float sm = 1.0f - std::exp(-1.0f / (0.25f * kSampleRate));
+    const float aPulse = onePoleAlpha(420.0f), aNoise = onePoleAlpha(160.0f), aThud = onePoleAlpha(250.0f);
     for (int i = 0; i < n; ++i) {
         speed_ += sm * (speed - speed_);
-        const float sp = clampf(speed_, 0.0f, 8.0f);
-        phase_ += (16.0f + 3.0f * sp) * pitch / kSampleRate;
-        if (phase_ >= 1.0f) phase_ -= 1.0f;
-        mod_ += kTwoPi * (16.0f + 3.0f * sp) / kSampleRate;
-        if (mod_ > kTwoPi) mod_ -= kTwoPi;
-        float s = lpPulse_.lp(std::exp(-phase_ * 8.0f) * 2.0f - 0.25f, onePoleAlpha(300.0f)) * 1.6f;
-        s += lpNoise_.lp(rng_.bi(), onePoleAlpha(130.0f)) * 3.0f * (0.7f + 0.3f * std::cos(mod_));
-        const float drive = clampf(sp / 4.0f, 0.0f, 1.0f);
-        if (drive > 0.05f && rng_.uni() < 0.004f * (1.0f + sp)) {
-            s += hpClatter_.hp(rng_.bi(), onePoleAlpha(1200.0f)) * 0.5f * drive;
-        } else {
-            hpClatter_.hp(0.0f, onePoleAlpha(1200.0f));
+        load_ += sm * 1.5f * (loadTarget_ - load_);
+        const float sp = clampf(std::fabs(speed_), 0.0f, 8.0f);
+        const float load = std::max(sp / 8.0f, load_);
+        const float rpm = 650.0f + 220.0f * sp + 600.0f * load_;   // the driver's throttle revs the engine ahead
+        const float fireHz = rpm / 60.0f * 6.0f * pitch;   // V12 four-stroke: 6 firings per crank revolution
+        fire_ += fireHz / kSampleRate;
+        if (fire_ >= 1.0f) { fire_ -= 1.0f; cyl_ = (cyl_ + 1) % 12; }
+        rev_ += kTwoPi * rpm / 120.0f * pitch / kSampleRate;   // half-order (cam) rumble
+        if (rev_ > kTwoPi) rev_ -= kTwoPi;
+        const float pulse = std::exp(-fire_ * 7.0f) * cylAmp_[cyl_] * (1.0f + 0.15f * rng_.bi());
+        float s = std::tanh(lpPulse_.lp(pulse * 2.2f - 0.3f, aPulse) * (1.4f + 0.8f * load)) * 0.55f;
+        s += 0.12f * std::sin(rev_);
+        s += lpNoise_.lp(rng_.bi(), aNoise) * 2.2f * (0.5f + 0.5f * load);   // exhaust
+        turbo_ += kTwoPi * (1800.0f + 280.0f * sp) * pitch / kSampleRate;
+        if (turbo_ > kTwoPi) turbo_ -= kTwoPi;
+        s += 0.035f * (0.25f + load) * std::sin(turbo_);
+        // tracks: one link engages the sprocket every 0.16 m
+        const float drive = clampf(sp / 1.5f, 0.0f, 1.0f);
+        if (drive > 0.02f) {
+            link_ += sp / 0.16f / kSampleRate;
+            if (link_ >= 1.0f) { link_ -= 1.0f; clank_ = 1.0f; clankAmp_ = (0.6f + 0.4f * rng_.uni()) * drive; }
         }
-        s += lpClatter_.lp(rng_.bi(), onePoleAlpha(2500.0f)) * 0.25f * drive;
+        clank_ *= 0.9965f;   // ~6 ms
+        const float exc = rng_.bi() * clank_ * clankAmp_;
+        res1_.process(exc, 1250.0f * pitch, 9.0f);
+        res2_.process(exc, 2380.0f * pitch, 12.0f);
+        s += (res1_.band * 0.9f + res2_.band * 0.6f) * 0.9f;
+        s += thud_.lp(exc, aThud) * 1.6f;
+        s += rumble_.lp(rng_.bi(), onePoleAlpha(90.0f)) * 3.0f * drive * (0.4f + 0.6f * load);
+        // squeal: intermittent narrow-band screech while moving
+        if (drive > 0.3f && rng_.uni() < 0.00002f) squealEnv_ = 1.0f;
+        squealEnv_ *= 0.99995f;
+        if (squealEnv_ > 1e-3f) {
+            squeal_.process(rng_.bi(), 3150.0f * pitch, 25.0f);
+            s += squeal_.band * 0.5f * squealEnv_ * drive;
+        }
         out[i] = 0.6f * s;
     }
 }
@@ -342,72 +394,6 @@ void RocketGen::render(float* out, int n, float kind, float pitch) {
             s = band_.band * 0.9f;
         }
         out[i] = 0.45f * s;
-    }
-}
-
-AmbientGen::AmbientGen(uint32_t seed) : rng_(seed) {
-    Rng r(seed + 7);
-    for (int i = 0; i < 7; ++i) {
-        Cricket& c = crickets_[i];
-        c.freq = 4300.0f + 140.0f * static_cast<float>(i) + 40.0f * r.bi();
-        c.phase = 0.0f;
-        c.period = 0.30f + 0.035f * static_cast<float>(i) + 0.02f * r.uni();
-        c.t = r.uni() * c.period;
-        c.amp = 0.010f + 0.010f * r.uni();
-        const float pan = 0.9f * r.bi();
-        float l, rr;
-        const float a = (pan + 1.0f) * 0.25f * kPi;
-        l = std::cos(a); rr = std::sin(a);
-        c.panL = l; c.panR = rr;
-        c.on = (i % 2 == 0);
-        c.onT = 0.0f;
-        c.offT = 3.0f + 5.0f * r.uni();   // time left in the current on / off state
-        c.rs = static_cast<uint32_t>(seed * 31u + i * 7919u + 13u);
-    }
-}
-void AmbientGen::render(float* out, int n, float gain) {
-    const float aGen = onePoleAlpha(220.0f);
-    for (int i = 0; i < n; ++i) {
-        t_ += 1.0f / kSampleRate;
-        const float gust = clampf(0.5f + 0.5f * (0.5f * std::sin(kTwoPi * 0.07f * t_) + 0.3f * std::sin(kTwoPi * 0.13f * t_ + 1.3f) +
-                                                 0.2f * std::sin(kTwoPi * 0.31f * t_ + 2.1f)), 0.0f, 1.0f);
-        const float fc = 250.0f + 350.0f * gust;
-        const float wa = 0.10f + 0.18f * gust * gust;
-        windL_.process(rng_.bi(), fc, 0.7f);
-        windR_.process(rng_.bi(), fc * 1.04f, 0.7f);
-        float l = windL_.band * wa * 1.6f, r = windR_.band * wa * 1.6f;
-        // distant generator: 50 Hz mains-driven hum with harmonics, panned right
-        genPhase_ += kTwoPi * 50.0f / kSampleRate;
-        if (genPhase_ > kTwoPi) genPhase_ -= kTwoPi;
-        const float g = genLp_.lp(std::sin(genPhase_ * 2.0f) + 0.5f * std::sin(genPhase_ * 4.0f) + 0.3f * std::sin(genPhase_ * 6.0f), aGen) *
-                        0.03f * (1.0f + 0.1f * std::sin(kTwoPi * 0.4f * t_));
-        l += g * 0.4f; r += g * 0.9f;
-        for (Cricket& c : crickets_) {
-            c.offT -= 1.0f / kSampleRate;
-            if (c.offT <= 0.0f) {
-                c.on = !c.on;
-                c.rs = c.rs * 1664525u + 1013904223u;
-                const float u = static_cast<float>(c.rs >> 8) * (1.0f / 16777216.0f);
-                c.offT = c.on ? 4.0f + 5.0f * u : 2.0f + 4.0f * u;
-            }
-            c.onT += ((c.on ? 1.0f : 0.0f) - c.onT) * 0.0005f;  // fade the train in / out
-            if (c.onT < 1e-3f) continue;
-            c.t += 1.0f / kSampleRate;
-            if (c.t >= c.period) c.t -= c.period;
-            // chirp = 3 pulses of 14 ms every 29 ms at the start of each period
-            float env = 0.0f;
-            if (c.t < 0.087f) {
-                const float tp = std::fmod(c.t, 0.029f);
-                if (tp < 0.014f) { const float w = std::sin(kPi * tp / 0.014f); env = w * w; }
-            }
-            if (env <= 0.0f) continue;
-            c.phase += kTwoPi * c.freq / kSampleRate;
-            if (c.phase > kTwoPi) c.phase -= kTwoPi;
-            const float s = std::sin(c.phase) * env * c.amp * c.onT;
-            l += s * c.panL; r += s * c.panR;
-        }
-        out[2 * i] += l * gain;
-        out[2 * i + 1] += r * gain;
     }
 }
 

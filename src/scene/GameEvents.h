@@ -16,12 +16,20 @@ enum class GameEventType {
     RoundLaunched,    // uav released a round (uav, track); position = launch point
     CombinedStrike,   // both UAVs committed to one target (track); value = planned arrival spread in ms
     Explosion,        // any blast (position, value = power x 100)
+    EnemyHit,         // a round damaged a rover without killing it (value = health left in %)
     EnemyDestroyed,   // track / rover destroyed (value = score awarded, combined = true if both rounds hit)
     Breach,           // a rover reached its objective (position, value = integrity lost in %)
     BaseLost,         // integrity reached 0, mission restarts
     CannonFire,       // tank gun (position)
     GatlingBurst,     // AA gun started firing (position)
     DoorMoving,       // blast doors / barrier started moving (position)
+    // v6 day/night cycle (value = hour x 100)
+    Dusk,             // sun sets below +4 deg: shift change starts
+    NightFalls,       // sun below -6 deg: rover waves allowed
+    Dawn,             // sun rises above -6 deg: surviving rovers withdraw
+    DayBreak,         // sun above +4 deg: day shift starts
+    ShiftChange,      // soldiers move to their next duty post (value = soldiers moving)
+    Withdraw,         // a rover left the field at dawn (position)
 };
 
 struct GameEvent {

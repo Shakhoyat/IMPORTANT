@@ -1,0 +1,7 @@
+{
+  "uav": 0, "time": 14.35, "seed": 3690029899,
+  "config": {"netd_dn": 2, "fpn_gain_sigma": 0.01, "fpn_offset_sigma": 1.5, "column_sigma": 0.8, "psf": true, "jitter_deg": 0.08, "drop_prob": 0.01, "stuck_frac": 0.0002, "nuc_residual": 0.25},
+  "difference": {"mean_dn": 0.0236979, "sigma_dn": 5.47514},
+  "clean": {"blobs": 3, "targets": 1, "persons": 1, "hot_clutter": 0, "clutter": 1},
+  "noisy": {"blobs": 3, "targets": 1, "persons": 2, "hot_clutter": 0, "clutter": 0}
+}

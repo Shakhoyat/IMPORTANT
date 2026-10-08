@@ -50,7 +50,7 @@ const char* droneModeName(DroneMode m) {
     return "?";
 }
 
-bool DroneController::imagePointToGround(float u, float v, const Mat4& cameraWorld, Vec3& hit) {
+bool DroneController::imagePointToGround(float u, float v, const Mat4& cameraWorld, Vec3& hit, float heightAbove) {
     const float aspect = static_cast<float>(kCvWidth) / static_cast<float>(kCvHeight);
     const float ty = std::tan(radians(kCvFovYDeg) * 0.5f), tx = ty * aspect;
     // The camera looks along local +Z with +Y up, so image-right is local -X.
@@ -58,7 +58,7 @@ bool DroneController::imagePointToGround(float u, float v, const Mat4& cameraWor
     Vec3 p = transformPoint(cameraWorld, {0, 0, 0});
     for (int i = 0; i < kGroundRaySteps; ++i) {  // ray march in 5 cm steps
         p = p + dir * 0.05f;
-        if (p.y <= terrainHeight(p.x, p.z)) {
+        if (p.y <= terrainHeight(p.x, p.z) + heightAbove) {
             hit = p;
             return true;
         }

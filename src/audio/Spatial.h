@@ -1,5 +1,6 @@
 // Spatialisation maths (pure functions): equal-power pan, inverse-distance attenuation with a near clamp,
-// air-absorption low-pass and a light Doppler ratio.
+// air-absorption low-pass and a light Doppler ratio. v7: HRTF-lite (interaural time and level differences, head
+// shadow and rear pinna low-pass) and a scalable Doppler ratio for the game mixer.
 #pragma once
 
 #include "math/Math3D.h"
@@ -25,5 +26,28 @@ float dopplerRatio(const Vec3& listenerPos, const Vec3& listenerVel, const Vec3&
 // Everything at once for one source. 'right' is the listener's right vector (unit).
 Spatial computeSpatial(const Vec3& listenerPos, const Vec3& listenerVel, const Vec3& right, const Vec3& srcPos,
                        const Vec3& srcVel, float refDistance, float gain);
+
+// ---- v7 HRTF-lite ----
+constexpr float kHeadRadius = 0.0875f;   // m (Woodworth spherical head)
+// Woodworth ITD (s) for a lateral angle: (a / c)(theta + sin theta), theta = asin(lateral), lateral = dir . right in
+// [-1, 1] (positive: the right ear leads). Max ~0.66 ms at 90 degrees.
+float itdSeconds(float lateral);
+// Doppler ratio with a scale on the physical shift (1 = physical) and a clamp. The 4-argument version above is
+// dopplerRatio(..., 0.5, 0.9, 1.1).
+float dopplerRatio(const Vec3& listenerPos, const Vec3& listenerVel, const Vec3& srcPos, const Vec3& srcVel, float scale,
+                   float lo, float hi);
+
+struct SpatialHrtf {
+    float gainL = 0.7071f, gainR = 0.7071f;   // broadband ILD x distance attenuation x gain
+    float delayL = 0.0f, delayR = 0.0f;       // per-ear delay in samples (the far ear lags)
+    float shadowHzL = 20000.0f, shadowHzR = 20000.0f;  // head-shadow low-pass per ear
+    float rearHz = 20000.0f;                  // pinna low-pass for sources behind the head
+    float airHz = 16000.0f;                   // air absorption (airCutoffHz)
+    float doppler = 1.0f, distance = 0.0f;
+    float lateral = 0.0f, front = 1.0f;       // dir . right, dir . forward (for inspection / tests)
+};
+// Listener basis: right / forward unit vectors. Doppler: physical x dopplerScale, clamped to [0.8, 1.25].
+SpatialHrtf computeHrtf(const Vec3& listenerPos, const Vec3& listenerVel, const Vec3& right, const Vec3& forward,
+                        const Vec3& srcPos, const Vec3& srcVel, float refDistance, float gain, float dopplerScale = 1.0f);
 
 }  // namespace ts::audio

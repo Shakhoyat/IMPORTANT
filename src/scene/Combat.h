@@ -46,6 +46,8 @@ public:
     void addScorch(const Vec3& pos, float radius);
     void setExtraLights(const std::vector<DynamicLight>& lights) { extraLights_ = lights; }  // appended to lights()
     float time() const { return time_; }
+    // v6: seed of the effects' random stream (0 = the fixed legacy seed).
+    void setSeed(uint32_t seed) { rng_ = seed ? seed : 0x2468ace1u; }
     int projectileCount() const { return static_cast<int>(projectiles_.size()); }
     static constexpr size_t kParticleCap = 4000;
     static constexpr float kMissileMaxSpeed = 60.0f, kMissileRampTime = 0.4f, kMissileLife = 6.0f;

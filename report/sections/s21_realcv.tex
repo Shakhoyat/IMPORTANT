@@ -1,0 +1,79 @@
+% =====================================================================
+\section{Real Computer Vision: Sensor Model, Persons and Guarantees}\label{sec:realcv}
+\pipestrip{9}
+Up to v5 the vision of Section~\ref{sec:vision} read the ideal heat image the renderer produced. A real uncooled microbolometer adds optics blur, per-pixel gain and offset errors, column stripes, temporal noise, dead pixels, pointing jitter and lost frames. Version~6 models all of them (\code{vision/SensorModel}), adds a person class to the blob filter, and removes every scripted shortcut: a rover can now only be killed through pixels. Figure~\ref{fig:sensorchain} is the per-UAV loop in \code{App::step}.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=3mm and 3.5mm, every node/.style={font=\scriptsize},
+  box/.style={draw,rounded corners=2pt,minimum height=8mm,align=center,fill=blue!6},arr/.style={-{Latex[length=1.6mm]},thick}]
+  \node[box,fill=black!6] (d) {frame lost?\\$p=\snDropProb$};
+  \node[box,right=of d] (j) {gimbal jitter\\$\mathcal N(0,\snJitterDeg^\circ)$};
+  \node[box,right=of j,fill=orange!10] (r) {heat render\\jittered pose};
+  \node[box,right=of r] (s) {\code{SensorModel}\\\code{::apply}};
+  \node[box,right=of s] (c) {\code{detectAll}\\4 classes};
+  \node[box,right=of c,fill=green!8] (t) {targets $\to$ squad\\reported pose};
+  \foreach \x/\y in {d/j,j/r,r/s,s/c,c/t} \draw[arr] (\x)--(\y);
+  \node[below=4mm of d,font=\scriptsize\itshape,align=center] (k) {tracker coasts};
+  \draw[arr,dashed] (d)--(k);
+  \node[below=4mm of c,font=\scriptsize\itshape] (p) {persons $\to$ HUD ``PERS''};
+  \draw[arr,dashed] (c)--(p);
+\end{tikzpicture}
+\caption{One UAV frame in v6. The image is rendered from the jittered gimbal pose, but the detections are reported with the commanded pose, so the pointing error reaches the tracker as measurement noise, as on a real platform.}\label{fig:sensorchain}
+\end{figure}
+
+\subsection{The sensor model}
+With $x$ the ideal heat image (8-bit digital numbers, DN), the sensor output is
+\begin{equation}
+y=Q\bigl(g\odot(h*x)+o+c+n\bigr),\qquad n\sim\mathcal N(0,\text{NETD}^2),\qquad
+h=\tfrac1{16}\begin{bmatrix}1&2&1\\2&4&2\\1&2&1\end{bmatrix}=\tfrac14[1\ 2\ 1]^\top\,\tfrac14[1\ 2\ 1],
+\end{equation}
+where $h$ is the optics point-spread function (binomial, applied separably as two 3-tap passes), $g=1+\sigma_g\,\mathcal N$ and $o=\sigma_o\,\mathcal N$ are per-pixel gain and offset, $c$ a per-column offset (readout stripes), $\odot$ the element-wise product and $Q$ rounding to the nearest DN with clamping to $[0,255]$. A fraction $\snStuckFrac$ of the pixels is stuck at 255. $g$, $o$, $c$ and the stuck set are the \emph{fixed pattern}: drawn once per image size from their own random stream, a property of the physical sensor. $n$, the jitter and the drops come from a second, temporal stream (both PCG32 generators; normal deviates by Box--Muller, $z_{0,1}=\sqrt{-2\ln u_1}\,(\cos,\sin)(2\pi u_2)$, the second value kept for the next call). Table~\ref{tab:sensor} lists the defaults.
+\begin{table}[h]
+\centering\small
+\caption{Sensor model and CV thresholds (generated from \code{v6.sensor}).}\label{tab:sensor}
+\tabSensor
+\end{table}
+
+\paragraph{Non-uniformity correction.} A new sensor is uncalibrated. \code{nuc()} models the two-point shutter calibration of real cameras: the fixed pattern shrinks to $\snNucResidual$ of its raw size, and the stuck pixels seen on the shutter are \emph{mapped out}, each replaced by the mean of its four neighbours (stuck pixels are drawn isolated, so the neighbours are good). Each UAV sensor is seeded from its stream and calibrated once at start. T225 measures the NETD from the difference of two flat frames, in which the fixed pattern cancels (\tobs{T225}); T226 the fixed pattern before and after NUC (\tobs{T226}); T227 the PSF (\tobs{T227}).
+\lstSensorApply
+
+\paragraph{Jitter and drops.} Each frame the gimbal is off by $\mathcal N(0,\snJitterDeg^\circ)$ per axis; at $40^\circ$ over 240 rows that is \cvJitterPx\,px. \code{jitterCamera} turns the camera matrix by $R_y R_x$ about its own axes for the render only (T232: \tobs{T232}). With probability $\snDropProb$ a frame is lost; the Kalman tracker predicts through it (confirmed tracks coast, T231: \tobs{T231}). Same seed, same frames: T233 (\tobs{T233}).
+
+\subsection{Four blob classes}
+The v5 target filter is kept bit for bit (T236: \tobs{T236}); \code{detectAll} labels every other blob instead of dropping it, from the moments of Section~\ref{sec:vision} (area $A$, peak value, elongation $\varepsilon=\sqrt{\lambda_1/\lambda_2}$, major-axis angle $\theta$):
+\begin{center}\small
+\begin{tabular}{@{}lp{11.8cm}@{}}\toprule
+Class & Rule (in order)\\\midrule
+target & $2\le A\le2500$, peak $\ge\snCvCore$ (an engine core) and ($A<6$ or $\varepsilon\le6$)\\
+hot clutter & peak $\ge\snCvCore$ but not a target: a fire (too big), a tracer (too thin), a glint\\
+person & no hot core; $4\le A\le600$, $\varepsilon\le5$ and upright ($|\theta|\ge45^\circ$ from the image $x$ axis) or compact ($\varepsilon<1.25$, seen from above)\\
+clutter & everything else (warm walls, pipes, lying shapes)\\\bottomrule
+\end{tabular}
+\end{center}
+A soldier is warm (face 0.82, $\approx209$\,DN) but has no pixel near the engine level, so he can only become a target if noise lifts a pixel by $\snCvCore-209\approx21$\,DN. Only the target class reaches the squad; persons are drawn as ``PERS'' brackets in the thermal FPV (Figure~\ref{fig:cvnoisecap}). T230: \tobs{T230}; T235 (fire, tracer, pipe): \tobs{T235}.
+\lstClassify
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\linewidth}\picsix{lab_cv_noise}{\linewidth}\caption{Ideal vs.\ sensor image, difference, classes}\end{subfigure}
+\begin{subfigure}{0.49\linewidth}\picsix{day_thermal_fpv_persons}{\linewidth}\caption{Day thermal FPV: a soldier boxed as PERS}\end{subfigure}
+\caption{Real-CV captures. (a) One UAV frame through an ideal and through the modelled sensor, the amplified difference (fixed pattern, stripes, noise) and \code{detectAll}'s classes on the noisy frame. (b) By day the soldiers are the warmest passive shapes; the CV boxes the head and shoulders as a person, not a target.}\label{fig:cvnoisecap}
+\end{figure}
+
+\subsection{Detection probability and false alarms against NETD}
+\autofig{diagrams}{H7_pd_netd}
+The figure-data tool runs the full model on synthetic frames with a rover and a soldier, \cvFrames{} frames per noise level (Table~\ref{tab:pd}). The rover's core reads about 244\,DN after the PSF (T227), 14\,DN above the core threshold; at the default NETD of \snNetdDn\,DN that is 7$\sigma$, and since one core pixel suffices, $P_d=1$ up to NETD \cvNetdWorst. A rover at half size loses more of its small core to the PSF: $P_d$ \cvPdFarNom{} at the default noise, \cvPdFarWorst{} at NETD \cvNetdWorst. False alarms appear only at NETD \cvNetdWorst{} (\cvFalseWorst{} per frame): the 21\,DN margin of a soldier's warmest pixels is then 2.6$\sigma$, $P(z>2.6)\approx0.005$ per pixel, and over the 10--20 pixels of a distant soldier this gives a few per cent, the order of the measured person$\to$target rate. Without NUC at the default noise a stuck pixel on a soldier becomes a ``hot core'': \cvNoNucFalse{} false targets and \cvNoNucPerson{} person-as-target per frame, which is why the sensors are calibrated at start.
+\begin{table}[h]
+\centering\small
+\caption{Detection statistics against NETD (generated from \code{cv\_noise.json}, \cvFrames{} frames per row, after NUC except the last row).}\label{tab:pd}
+\tabPd
+\end{table}
+
+\subsection{Why a blind squad never fires}
+Version~5 had capture-only shortcuts (a scripted strike, forced kills). They are gone; a kill now needs the whole chain. The guarantee rests on four facts that tests or the trace check:
+\begin{enumerate}
+\item Rounds are launched only from the squad's launch orders, which aim at a \emph{confirmed} track of the shared tracker (Section~\ref{sec:squad}).
+\item The tracker is fed only by \code{submitVision}, i.e.\ by Target blobs of a noisy sensor image; with no image there are no tracks: 120\,s of rovers infiltrating in front of a squad without frames (T234: \tobs{T234}).
+\item Persons are never targets in the test frames (T229: \tobs{T229}; T230), and a blob whose ground point lies inside a friendly mark is discarded before the tracker: every controllable reports a friendly radius (soldier \soldierFriendly\,m, vehicle 4.5\,m; T224: \tobs{T224}).
+\item The 600\,s traces count rounds without a confirmed vision track, kills without a UAV round and spawns by day: all zero (Section~\ref{sec:v6results}).
+\end{enumerate}
+\sheetfig{sheet_cvnoise}

@@ -34,8 +34,19 @@ S_CTRL = "14 Controllable Objects"
 S_BASE = "15 Bunker & Base"
 S_COMBAT = "16 Combat & Effects"
 S_AUDIT = "17 Audit"
+S_CV = "18 Computer Vision"
+S_SQUAD = "19 Squad & Mission"
+S_AUDIO = "20 Audio & HUD"
+S_DAY = "21 Day Cycle & Lighting"
+S_SOLD = "22 Soldiers & Routes"
+S_CVN = "23 CV Noise & Seeds"
+S_RT = "24 Ray Tracing"
+S_FX = "25 Frame Explorer"
+S_GAME = "26 Game Camera & Controls"
+S_V7T = "27 v7 Tests"
 SHEET_ORDER = [S_COVER, S_INV, S_VERT, S_OBJ, S_MAT, S_HIER, S_GEOM, S_LIGHT, S_SHADE, S_PIPE, S_TEST, S_PERF,
-               S_BEHAV, S_TRACE, S_CTRL, S_BASE, S_COMBAT, S_AUDIT]
+               S_BEHAV, S_TRACE, S_CTRL, S_BASE, S_COMBAT, S_AUDIT, S_CV, S_SQUAD, S_AUDIO, S_DAY, S_SOLD, S_CVN,
+               S_RT, S_FX, S_GAME, S_V7T]
 
 AUTHOR = "Md. Shakhoyat Rahman Shujon"
 ROLL = "2107104"

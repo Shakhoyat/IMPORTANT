@@ -26,6 +26,7 @@ const char* cameraModeName(CameraMode m) {
         case CameraMode::Cinematic: return "CINEMATIC";
         case CameraMode::Walk: return "WALK";
         case CameraMode::Possess: return "CONTROL";
+        case CameraMode::Pov: return "POV";
     }
     return "?";
 }
@@ -66,7 +67,7 @@ CameraView Camera::compute(const Scene& scene, float aspect) const {
     }
     if (mode == CameraMode::UavCamera) return uavCameraView(scene, aspect, 40.0f);
     if (mode == CameraMode::Cinematic) {
-        const DirectorShot shot = directorShot(scene, directorTime);
+        const DirectorShot shot = directorShot(scene, directorTime, directorCut);
         if (shot.uavCamera) return uavCameraView(scene, aspect, 40.0f);
         CameraView v;
         v.position = shot.eye;
@@ -91,7 +92,7 @@ CameraView Camera::compute(const Scene& scene, float aspect) const {
         const float yaw = radians(yawDeg), pitch = radians(pitchDeg);
         eye = target + Vec3{std::cos(pitch) * std::sin(yaw), std::sin(pitch), std::cos(pitch) * std::cos(yaw)} * distance;
         center = target;
-    } else if (mode == CameraMode::Free) {
+    } else if (mode == CameraMode::Free || mode == CameraMode::Pov) {
         const float yaw = radians(freeYawDeg), pitch = radians(freePitchDeg);
         eye = freePos;
         center = freePos + Vec3{std::cos(pitch) * std::sin(yaw), std::sin(pitch), std::cos(pitch) * std::cos(yaw)};

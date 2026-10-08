@@ -1,65 +1,34 @@
-% =====================================================================
-\section{Introduction and Requirement History}\label{sec:intro}
-ThermalSense is an interactive OpenGL~3.3 (core profile) simulation, written in C++17 with GLFW and GLAD and no
-model or image files. Every visible solid is a \emph{part}: one of the lab's unit primitives drawn with its own
-$M=T\,R\,S$ matrix. The project grew in four stages, each one adding to the requirements of the previous one;
-Table~\ref{tab:history} lists them, and Table~\ref{tab:course} the course-level deliverables.
+\section{Introduction}\label{sec:intro}
+ThermalSense is an interactive OpenGL~3.3 (core profile) base-defence game with a full day--night cycle, written in C++17 with GLFW and GLAD and no
+model or image files. Every visible solid is a \emph{part}: one of the lab's unit primitives (cube, sphere, cylinder) drawn with its own
+$M=T\,R\,S$ matrix. Two UAVs patrol the base, a computer-vision loop tracks heat sources, and the player or the squad defends the site against intruding rovers. Version~6 adds the sun and the sky (Chapter~\ref{sec:daycycle}), a garrison of \nSoldiers{} animated soldiers (Chapter~\ref{sec:soldiers}), seeded random intruder routes (Chapter~\ref{sec:randompaths}) and a modelled thermal sensor whose noisy images are the only way to a kill (Chapter~\ref{sec:realcv}).
+
+\paragraph{Requirements.} The lab sheet (\texttt{graphics-lab-04.pdf}) asks for a canonical view volume; unit primitives centred at the origin
+(36 slices $=10^\circ$); counter-clockwise front faces; indexed drawing (12 floats $+$ 6 indices instead of 18 floats) with an explicit VAO/VBO/EBO layout;
+a sphere built from one reflected hemisphere; a cylinder along $z$; an $S,R,T$ table per component with $M=T\cdot R\cdot S$; and every object built from primitives only,
+documented in an Excel table (T01--T14). The project proposal adds three shading models (Flat, Gouraud, Phong), three light sources, a hierarchical searchlight, a Z-buffer,
+wireframe modes, camera controls and a thermal colour map. Table~\ref{tab:course} lists the course-level deliverables and where they are met.
 
 \begin{table}[h]
 \centering\small
-\caption{Requirement history. The sources are the handwritten lab sheet (\texttt{graphics-lab-04.pdf}, 3 pages, a
-scan whose text was transcribed in \texttt{docs/PLAN.md}), the one-page proposal, the plan files and the v4 brief.}
-\label{tab:history}
-\begin{tabular}{@{}p{1.5cm}p{4.3cm}p{10.4cm}@{}}
-\toprule
-Stage & Source & Requirement and result\\\midrule
-Lab sheet & \texttt{graphics-lab-04.pdf}, p.\,1--3 &
-Canonical view volume; unit primitives centred at the origin (cube, sphere, cylinder, 36 slices = $10^\circ$);
-counter-clockwise front faces; indexed drawing (``technique 2'': 12 floats + 6 indices instead of 18 floats);
-VAO/VBO/EBO with an explicit layout; sphere built from one hemisphere and reflected; cylinder along the $z$ axis;
-a table of $S$, $R$, $T$ per component; $M=T\cdot R\cdot S$; the assignment is ``all objects only from
-primitives'' with an Excel table and an explanation. All items are implemented and tested (T01--T14).\\
-Proposal & \texttt{ThermalSense Project Proposal (1).pdf} &
-Command bunker with Flat shading, terrain with Gouraud, UAV with Phong, a moving rover; three light sources
-(directional lunar light, point bunker beacon, UAV spotlight); translation, rotation, scaling; a hierarchical
-searchlight; Z-buffer hiding the rover behind the bunker; wireframe hidden-line and overlapping-edge modes;
-camera controls and diagnostic toggles; thermal colour map. Implemented in v1 and kept in v4.\\
-v2 & \texttt{docs/PLAN\_V2.md} &
-20\,m compound, GGX/Cook--Torrance PBR, cascaded shadows, SSAO, volumetric fog, bloom, HDR with ACES, procedural
-materials, grass, rain with wet surfaces, thermal footprints, MicroMouse + line-follower rover, a computer-vision
-UAV, Excel workbook and a 7-page report.\\
-v3 & \texttt{docs/PLAN\_V3.md} &
-Remote RTX\,4070 target (EPIC preset), headless EGL, first-person FLIR thermal view with a sensor model, TAA,
-screen-space reflections, depth of field, motion blur, auto-exposure, lens flare, foliage cards, fireflies,
-a walk camera.\\
-v4 & \texttt{docs/v4\_notes/v4-brief.md}, \texttt{docs/V4\_PROGRESS.md} &
-Turn the compound into a military base; an underground walkable bunker; the UAV shoots the intruders and they
-explode; at least five new controllable objects with complex hierarchical motion; update the workbook and
-this report with an audit of every detail.\\\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[h]
-\centering\small
-\caption{Course checklist (from the project notes) and where it is met. ``Pending'' items are not part of this report.}
+\caption{Course checklist and where it is met. ``Pending'' items are separate deliverables.}
 \label{tab:course}
 \begin{tabular}{@{}p{6.1cm}p{9cm}l@{}}
 \toprule
 Item & Where / how & Status\\\midrule
-Dynamic and controllable objects & Seven possessable objects, Section~\ref{sec:control} & \sDone\\
-Complex motion & Track links, spring-damper attitude, rotor cyclic, Gatling spin-up, etc.\ (Section~\ref{sec:control}) & \sDone\\
+Dynamic and controllable objects & \nPossessable{} possessable objects (machines, soldiers, SKY clock), Section~\ref{sec:control} & \sDone\\
+Complex motion (v6) & Spline routes with arc length, gait by FK + two-link IK, sun path (Sections~\ref{sec:daycycle}, \ref{sec:soldiers}) & \sDone\\
+Complex motion & Track links, spring-damper attitude, rotor cyclic, Gatling spin-up (Section~\ref{sec:control}) & \sDone\\
 Report with an audit & This document, Appendix~\ref{app:audit} & \sDone\\
-Slide presentation (10 slides, outline on slide 2) & separate deliverable (not written by this report) & \sPart\\
-2-minute video at the end of the slides & \code{-{}-record} produces the 120\,s director sequence; the file is not part of this report & \sPart\\
-Excel workbook & updated in parallel by another engineer from \texttt{scene\_export.json} & \sPart\\\bottomrule
+Slide presentation (10 slides, outline on slide 2) & \code{ThermalSense\_Presentation.pptx} & \sDone\\
+2-minute video with sound & \code{demo\_v5.mp4}, embedded on the last slide; the v6 cut is not recorded yet & \sPart\\
+Excel workbook & generated from \texttt{scene\_export.json}, verified; crops in this report & \sDone\\\bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Scope of v4.}
-The scene is a night-time base of 36\,m radius (terrain mesh) with a 34\,m HESCO perimeter, surrounded by a backdrop
-of hills and a tree line. In the middle of it lies the old 20\,m patrol compound where the UAV and the three intruder
-rovers play hide-and-seek; the command bunker is now buried under it. Figure~\ref{fig:plan} shows the site plan taken
-from \code{src/objects/BaseLayout.h}. All coordinates in this report are world metres, $+Z$ north, $+X$ east, $y$ up.
+\paragraph{The site.}
+The scene is a base of 36\,m radius (terrain mesh) with a 34\,m HESCO perimeter, surrounded by hills and a tree line. In the middle lies the 20\,m patrol compound where the UAVs and the three intruder
+rovers play hide-and-seek, with the command bunker buried under it. Figure~\ref{fig:plan} shows the site plan from \code{src/objects/BaseLayout.h}. All coordinates are world metres, $+Z$ north, $+X$ east, $y$ up.
 
 \begin{figure}[h]
 \centering
@@ -102,10 +71,34 @@ from \code{src/objects/BaseLayout.h}. All coordinates in this report are world m
 \label{fig:plan}
 \end{figure}
 
-\paragraph{Reading guide.}
-Sections~\ref{sec:prims}--\ref{sec:transform} cover the lab-sheet content (primitives, indexed rendering, object
-construction, $TRS$ hierarchies). Sections~\ref{sec:shading}--\ref{sec:pipeline} cover lighting and the render
-pipeline. Sections~\ref{sec:control}--\ref{sec:walk} cover the v4 game: controllable objects, combat and the walkable
-bunker. Sections~\ref{sec:platform}--\ref{sec:results} give the build, the tests and the results. All numbers are
-copied from the program output by \code{report/gen\_tables.py} or from the engineer notes in \code{docs/v4\_notes/};
-nothing is estimated. Where a number has not been measured, this is said explicitly.
+\subsection{The journey of one frame}
+The report follows the data. A \emph{vertex} begins as a number in a unit primitive; the $T\,R\,S$ matrix of its part and the hierarchy above it place it in the world (Chapters~\ref{sec:builder}--\ref{sec:construction}); the view and projection matrices, clipping and the viewport turn
+it into a pixel and a depth (Chapter~\ref{sec:geomchain}); the rasteriser interpolates its attributes (Chapter~\ref{sec:interp}); the fragment shader lights it (Chapter~\ref{sec:shading}); the reflection and post passes finish the image (Chapters~\ref{sec:reflection},~\ref{sec:pipeline}).
+The scene is then rendered a second time as heat for each UAV; the computer vision turns that image into tracks (Chapter~\ref{sec:vision}) and the squad and rovers act on them (Chapters~\ref{sec:rover}, \ref{sec:squad}), which changes the next frame. A strip at the head of each
+chapter marks its place in this pipeline; workbook screenshots accompany the objects they document.
+
+\subsection{System overview}
+Figure~\ref{fig:sysov}: the simulation updates a scene graph of primitives; the renderer draws it through the shading and post chain, and renders it again from each UAV's gimbal as a heat image for the vision. Audio and HUD read the game events.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=5mm and 7mm, every node/.style={font=\scriptsize},
+  box/.style={draw,rounded corners=2pt,minimum height=8mm,minimum width=22mm,align=center,fill=blue!6},arr/.style={-{Latex[length=1.6mm]},thick}]
+  \node[box] (prim) {unit primitives\\cube, sphere, cylinder};
+  \node[box,right=of prim] (build) {Builder tables\\$M=TRS$, hierarchy};
+  \node[box,right=of build] (scene) {scene graph\\\nLeaves{} parts};
+  \node[box,below=of scene] (sim) {simulation\\controllables, rovers,\\combat, mission};
+  \node[box,right=of scene,fill=orange!10] (rend) {renderer\\shading, shadows,\\SSR, post chain};
+  \node[box,below=of rend,fill=orange!10] (heat) {heat render\\2 UAV cameras};
+  \node[box,left=of sim,fill=green!8] (cv) {computer vision\\tracker, squad};
+  \node[box,right=of rend] (screen) {screen\\+ HUD};
+  \node[box,below=of screen,fill=purple!8] (audio) {audio engine\\procedural};
+  \draw[arr] (prim)--(build); \draw[arr] (build)--(scene); \draw[arr] (scene)--(rend); \draw[arr] (rend)--(screen);
+  \draw[arr] (scene)--(heat); \draw[arr] (heat)--(cv); \draw[arr] (cv)--(sim); \draw[arr] (sim)--(scene);
+  \draw[arr] (sim.south) -- ++(0,-5mm) -| (audio.south); \draw[arr] (sim.south east) |- ([yshift=-3mm]screen.south west) ;
+\end{tikzpicture}
+\caption{System overview.}\label{fig:sysov}
+\end{figure}
+
+\paragraph{How to read this report.} Each chapter states the concept, the mathematics, the project's code (listings are lifted from the source by line range) and the tests or measurements.
+Chapters~\ref{sec:prims}--\ref{sec:construction} cover geometry and object construction; \ref{sec:interp}--\ref{sec:pipeline} shading and the render pipeline; \ref{sec:rover} and \ref{sec:vision} the rover and the computer vision;
+\ref{sec:v5plan}--\ref{sec:v5media} the game; the later chapters the machines, bunker, platform, tests and results; \ref{sec:daycycle}--\ref{sec:v6results} the v6 day cycle, soldiers, random routes, sensor model and their results. All numbers are generated from the program output.

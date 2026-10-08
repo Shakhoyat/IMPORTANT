@@ -12,6 +12,7 @@ struct UavRig {
     SceneNode* gimbalYaw = nullptr;        // level 1 of the searchlight hierarchy
     SceneNode* gimbalPitch = nullptr;      // level 2: lamp + thermal camera, looks along local +Z
     SceneNode* beam = nullptr;             // visible light cone, length set every frame
+    SceneNode* lens = nullptr;             // v8: searchlight lens (emissive only while the searchlight runs)
     SceneNode* missiles[4] = {nullptr, nullptr, nullptr, nullptr};  // rail-mounted rounds (hidden after launch)
 };
 constexpr int kUavMissiles = 4;

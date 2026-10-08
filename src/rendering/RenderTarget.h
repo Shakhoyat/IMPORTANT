@@ -17,6 +17,10 @@ public:
     void bind() const;  // bind for drawing and set the viewport
     // Resolves MSAA (if any) and reads the pixels, rows top-to-bottom. RGB (3 bytes) or R (1 byte).
     void read(std::vector<uint8_t>& out);
+    // v7 WP-Q: the same read in two halves: start the copy into pixel buffer 'slot' (no wait), then collect it.
+    // Commands issued in between (the main frame) do not delay collect(): it waits only for this copy.
+    void readAsync(int slot);
+    void collect(int slot, std::vector<uint8_t>& out);
     GLuint texture() const { return resolveTex_; }
     int width() const { return width_; }
     int height() const { return height_; }
@@ -27,6 +31,10 @@ private:
     bool single_ = false;
     GLuint fbo_ = 0, colorRb_ = 0, depthRb_ = 0;       // draw target
     GLuint resolveFbo_ = 0, resolveTex_ = 0;           // resolved colour
+    static constexpr int kSlots = 4;
+    GLuint pbo_[kSlots] = {0, 0, 0, 0};                // readAsync targets (created on first use)
+    void resolve();
+    void flipRows(const uint8_t* bottomUp, std::vector<uint8_t>& out) const;
 };
 
 }  // namespace ts

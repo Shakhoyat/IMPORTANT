@@ -26,12 +26,16 @@
 #include "rendering/GroundMap.h"
 #include "rendering/Rain.h"
 #include "rendering/Hud.h"
+#include "rendering/Instancing.h"
 #include "rendering/Mesh.h"
 #include "rendering/RenderTarget.h"
 #include "rendering/Shader.h"
 #include "scene/Camera.h"
+#include "raytrace/RayTracer.h"   // v7 WP-H: RtMode, RayTree
 
 namespace ts {
+
+namespace fx { struct FrameSnapshot; }  // v7 WP-I (math/ExplorerMath.h)
 
 enum class ViewMode { Thermal = 0, Visible = 1, Diagnostic = 2, Depth = 3, HeatRaw = 4 };
 enum class EdgeMode { Solid, HiddenLine, XRay };
@@ -105,6 +109,27 @@ struct RenderSettings {
     float motionBlur = 0.0f;      // camera motion blur, shutter fraction (0.5 = 180 degrees); 0 = off
     bool hideUav = false;         // first-person UAV camera: the airframe is behind the lens
     float nucShutter = 0.0f;      // thermal sensor: non-uniformity-correction shutter closed (0..1)
+    bool bumpOn = true;           // procedural surface relief (surfaceBump); false only for the lab ON/OFF figures
+    // v7 WP-H ray tracing (';' cycles rtMode). Raster = the v6 renderer bit for bit; the other modes only apply to the
+    // graded visible view (cinematic, solid edges).
+    rt::RtMode rtMode = rt::RtMode::Raster;
+    float rtScale = 0.5f;         // internal resolution of the path / light tracer (fraction of the frame)
+    float rtWhittedScale = 0.75f; // internal resolution of the Whitted tracer (the report figures use 1)
+    int rtBounces = 4;            // path / light tracing bounces
+    bool rtDenoise = true;        // a-trous denoiser (path / light tracing)
+    int rtLightPathsK = 256;      // light paths per frame, thousands (light tracing)
+    bool rtOverlay = true;        // status line of the ray-traced modes + the ray debugger's tree
+};
+
+// Internal render targets that the lab figures read back (Renderer::labReadBuffer, after endFrame).
+enum class LabBuffer {
+    ShadowMoonNear, ShadowMoonWorld, Ssao, FogInscatter, FogTransmittance, HdrColour, HdrLogLuminance,
+    Lit, Bloom, Reflectivity, SurfaceNormal, Depth
+};
+struct LabImage {
+    int w = 0, h = 0;
+    std::vector<uint8_t> rgb;   // 8-bit RGB, rows top to bottom
+    std::string note;           // value range / scaling used, for the caption
 };
 
 struct FrameStats {
@@ -123,8 +148,12 @@ struct LineVertex {
     Vec3 color;
 };
 
+class RayTracerGL;
+
 class Renderer {
 public:
+    Renderer();
+    ~Renderer();
     bool init();
     // v2 frame: shadow maps -> pre-pass -> SSAO -> volumetric fog -> HDR scene (left bound for overlays).
     void beginFrame(const Scene& scene, const CameraView& cam, int width, int height, const RenderSettings& s,
@@ -143,7 +172,13 @@ public:
     void drawScene(const Scene& scene, const CameraView& cam, int width, int height, const RenderSettings& s,
                    FrameStats& stats);
     // Renders the UAV camera view as a raw heat image into an off-screen target and reads it back.
-    void captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats, int uav = 0);
+    // cameraOverride: render from this pose instead of the UAV's reported gimbal pose (pointing jitter).
+    void captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats, int uav = 0,
+                          const Mat4* cameraOverride = nullptr);
+    // v7 WP-Q: the same in two halves: render + start the read-back into pixel buffer 'slot' (0..3) without waiting,
+    // then collect it after other work (the main frame) has been submitted. Same image as captureUavCamera.
+    void beginUavCamera(const Scene& scene, FrameStats& stats, int uav, const Mat4* cameraOverride, int slot);
+    void finishUavCamera(int slot, std::vector<uint8_t>& heat) { cvTarget_.collect(slot, heat); }
     GLuint uavCameraTexture() const { return cvTarget_.texture(); }
     // Small rotating cube / sphere / cylinder / cone in corner viewports (diagnostic legend).
     static constexpr int kLegendCount = 4;
@@ -151,10 +186,49 @@ public:
     void drawLines(const std::vector<LineVertex>& verts, GLenum mode, const Mat4& viewProj, float alpha, bool depth);
     Hud& hud() { return hud_; }
 
+    // RendererLab.cpp: helpers for the lab figures (docs/v5_notes/v5-f2.md).
+    // Reads one internal buffer of the LAST frame (after endFrame) as a displayable 8-bit image. False if the
+    // buffer does not exist at this quality (e.g. the fog or SSAO pass is off).
+    bool labReadBuffer(LabBuffer which, LabImage& out);
+    // Forget the cached static shadow map: needed whenever the scene's leaves are swapped for a lab stage.
+    void labInvalidateCaches();
+    // Replaces the unit sphere mesh by a coarse one (slices x stacks) for the Gouraud / flat close-up; 0 = restore.
+    void labSphereResolution(int slices, int stacks);
+    // v7 WP-I Frame Explorer (RendererLab.cpp): float copies of the LAST frame's internal buffers, matrices and
+    // switches (math/ExplorerMath.h). Call right after endFrame.
+    bool labSnapshot(fx::FrameSnapshot& out);
+
+    // v7 WP-H ray tracing (RendererRT.cpp, RayTracerGL). The ray-traced modes are chosen by RenderSettings::rtMode.
+    RayTracerGL* rayTracer() { return rt_.get(); }
+    // Ray debugger (key '): while active, a click traces that pixel on the CPU and its ray tree is drawn in 3D with
+    // labels on top of every frame. u, v in [0, 1] over the window, v = 0 at the top; uses the last frame's camera.
+    void setRayDebug(bool on);
+    bool rayDebug() const { return rayDebug_; }
+    bool rayDebugPick(const Scene& scene, float u, float v);
+    const rt::RayTree* rayTree() const { return rayTree_.nodes.empty() ? nullptr : &rayTree_; }
+    // One line for the HUD: mode, resolution, samples, GPU time ("" in raster mode without the debugger).
+    std::string rtStatusLine() const;
+
 private:
     Shader& programFor(const SceneNode& n, const RenderSettings& s);
     void setFrameUniforms(Shader& sh, const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s);
     void setObjectUniforms(Shader& sh, const SceneNode& n, const Mat4& world, const RenderSettings& s);
+    // v7 WP-Q: the per-part shader parameters (the same values for the uniform and the instanced path).
+    struct ObjectParams {
+        Mat4 model;
+        Mat3 normal;
+        Vec3 baseColor, centre;
+        float heat = 0, emissive = 0, specular = 0, shininess = 0, roughness = 0, metalness = 0;
+        float heatVariation = 0, fogged = 0, opacity = 1, radius = 0;
+        int surface = 0;
+    };
+    ObjectParams objectParams(const SceneNode& n, const Mat4& world, const RenderSettings& s) const;
+    // v7 WP-Q instancing (Instancing.h): one glDrawElementsInstanced per run of parts with the same mesh.
+    // 'nodes' must be grouped by primitive; texelsPerPart 11 (lit), 7 (pre-pass) or 4 (depth only).
+    bool useInstancing(const RenderSettings& s) const { return instancing_ && s.indexed && s.depthTest; }
+    bool uploadInstances(const std::vector<const SceneNode*>& nodes, int texelsPerPart, const RenderSettings* s);
+    int drawInstanced(Shader& sh, const std::vector<const SceneNode*>& nodes, FrameStats* st);
+    Shader* instancedFor(const Shader* program) const;
     void drawSky(const CameraView& cam, int w, int h, const RenderSettings& s, float time);
     void drawSolids(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
     void drawTranslucent(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
@@ -162,8 +236,15 @@ private:
     void drawBeam(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st);
     void drawWire(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st);
     void surfaceWrites(bool on) const;  // enable / disable the surface render target (main scene only)
+    void renderUavCamera(const Scene& scene, FrameStats& stats, int uav, const Mat4* cameraOverride);  // into cvTarget_
 
     static bool inFrustum(const SceneNode& n, const Frustum& f);
+    // v8 specular LOD: curved parts (cylinders, spheres, cones) thinner than a few pixels get a wider GGX lobe, so the
+    // sun's mirror highlight on wires, rails, poles and posts stays a soft sheen instead of a sparkling pixel line that
+    // bloom and the lens flare blow up into white blobs. specLodPixel_ = metres per pixel at 1 m (0 = off).
+    float specularLod(const SceneNode& n, const Mat4& world, float roughness) const;
+    Vec3 specLodEye_;
+    float specLodPixel_ = 0.0f;
     // RendererFrame.cpp
     struct FrameState {
         LightMatrix moon[2], spot;
@@ -210,11 +291,21 @@ private:
           practicalDir_[4 * kMaxPracticals] = {};
     int indoorCount_ = 0;
     float indoorMin_[3 * 8] = {}, indoorMax_[3 * 8] = {};
+    float indoorLight_[2 * 8] = {};   // v8: sky fraction, key light pass per volume
     void setIndoorUniforms(Shader& sh) const;
+    // v6 time of day: the scene's atmosphere of the current frame, and the factor of a practical light / lamp
+    // (outdoor lamps fade out by day; fires, strobes, muzzle flashes and indoor lamps stay as they are).
+    Atmosphere atmo_;
+    const WalkSpace* walk_ = nullptr;
+    float practicalFactor(const SceneNode& n) const;
 
     std::unique_ptr<Shader> flat_, gouraud_, phong_, beam_, line_, sky_;
     std::unique_ptr<Shader> depth_, prepass_, ssao_, blur_, fog_, bloomDown_, bloomUp_, composite_;
     std::unique_ptr<Shader> combine_, taa_, reduce_, adapt_, flare_, streak_, dof_, dofCombine_;
+    std::unique_ptr<Shader> flatI_, gouraudI_, phongI_, depthI_, prepassI_;   // v7 WP-Q instanced variants
+    InstanceStream instances_;
+    std::vector<float> instanceScratch_;
+    bool instancing_ = false;                 // off: TS_NO_INSTANCING=1, or no buffer textures
 #ifdef TS_HAS_FOLIAGE
     FoliageField foliage_;
 #endif
@@ -244,6 +335,7 @@ private:
     GLuint whiteTex_ = 0;
     Vec3 moonDir_{0, -1, 0};
     static constexpr int kUnitMoonShadow = 5, kUnitSpotShadow = 6, kUnitAO = 7, kUnitGround = 8, kUnitTrail = 9;
+    static constexpr int kUnitInstances = 11;   // v7 WP-Q (unit 10 = soft-particle depth of the effects)
     GLuint trailTex_ = 0;
     uint32_t trailVersion_ = 0xFFFFFFFFu;
     void uploadHeatTrail(const Scene& scene);
@@ -252,6 +344,17 @@ private:
     GLuint emptyVao_ = 0, lineVao_ = 0, lineVbo_ = 0;
     RenderTarget cvTarget_;
     Hud hud_;
+    // v7 WP-H (RendererRT.cpp)
+    std::unique_ptr<RayTracerGL> rt_;
+    rt::RtMode rtActive_ = rt::RtMode::Raster;    // mode of the current frame (Raster outside the graded view)
+    bool skyOnly_ = false;                        // full ray-traced frame: the raster pass draws only the sky
+    bool rayDebug_ = false;
+    rt::RayTree rayTree_;
+    CameraView rtCam_;                            // unjittered camera of the last frame
+    int rtW_ = 0, rtH_ = 0;
+    void rtBegin(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s);
+    GLuint rtEnd();                               // hybrid / full RT image replacing the combine pass
+    void drawRayOverlay(GLuint targetFbo, int w, int h);
 };
 
 }  // namespace ts

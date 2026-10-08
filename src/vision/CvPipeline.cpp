@@ -107,9 +107,11 @@ int labelComponents(const std::vector<uint8_t>& mask, int w, int h, std::vector<
     return count;
 }
 
-std::vector<Measurement2D> detectTargets(const std::vector<uint8_t>& image, int w, int h, const CvConfig& cfg,
-                                         CvFrameStats* statsOut) {
-    CvFrameStats st;
+namespace {
+
+// Stages 1-4 for every component (label order), the threshold statistics in 'st'.
+std::vector<Measurement2D> measureAll(const std::vector<uint8_t>& image, int w, int h, const CvConfig& cfg,
+                                      CvFrameStats& st) {
     st.otsu = otsuThreshold(image);
     // Otsu's t is the last level of the dark class: hot pixels are those > t.
     st.threshold = std::max<uint8_t>(cfg.floor, static_cast<uint8_t>(std::min(255, st.otsu + 1)));
@@ -162,13 +164,95 @@ std::vector<Measurement2D> detectTargets(const std::vector<uint8_t>& image, int 
         m.minX = a.minX; m.minY = a.minY; m.maxX = a.maxX; m.maxY = a.maxY;
         m.u = (m.cx + 0.5f) / static_cast<float>(w) * 2.0f - 1.0f;
         m.v = 1.0f - (m.cy + 0.5f) / static_cast<float>(h) * 2.0f;
-        const bool ok = m.area >= cfg.minArea && m.area <= cfg.maxArea && m.peak >= cfg.core &&
-                        (m.area < 6 || m.elongation <= cfg.maxElongation);
-        if (ok) out.push_back(m);
+        out.push_back(m);
     }
+    return out;
+}
+
+// Stage 5, the v5 target filter.
+bool isTarget(const Measurement2D& m, const CvConfig& cfg) {
+    return m.area >= cfg.minArea && m.area <= cfg.maxArea && m.peak >= cfg.core &&
+           (m.area < 6 || m.elongation <= cfg.maxElongation);
+}
+
+}  // namespace
+
+std::vector<Measurement2D> detectTargets(const std::vector<uint8_t>& image, int w, int h, const CvConfig& cfg,
+                                         CvFrameStats* statsOut) {
+    CvFrameStats st;
+    std::vector<Measurement2D> out;
+    for (const Measurement2D& m : measureAll(image, w, h, cfg, st))
+        if (isTarget(m, cfg)) out.push_back(m);
     st.targets = static_cast<int>(out.size());
     if (statsOut) *statsOut = st;
     return out;
+}
+
+BlobClass classifyBlob(const Measurement2D& m, const CvConfig& cfg) {
+    if (isTarget(m, cfg)) return BlobClass::Target;
+    if (m.peak >= cfg.core) return BlobClass::HotClutter;  // engine-hot but a fire, a tracer streak, a glint
+    // Warm without a hot core: a person if it has a person's size and stands upright (major axis steep in the
+    // image), or is compact (seen from above). Lying / horizontal warm shapes (walls, pipes) are clutter.
+    const bool sized = m.area >= cfg.personMinArea && m.area <= cfg.personMaxArea && m.elongation <= cfg.personMaxElongation;
+    const bool upright = std::fabs(m.orientationDeg) >= cfg.personMinTiltDeg || m.elongation < cfg.personCompact;
+    return sized && upright ? BlobClass::Person : BlobClass::Clutter;
+}
+
+std::vector<Measurement2D> detectAll(const std::vector<uint8_t>& image, int w, int h, const CvConfig& cfg,
+                                     CvFrameStats* statsOut) {
+    CvFrameStats st;
+    std::vector<Measurement2D> out = measureAll(image, w, h, cfg, st);
+    for (Measurement2D& m : out) {
+        m.cls = classifyBlob(m, cfg);
+        switch (m.cls) {
+            case BlobClass::Target: ++st.targets; break;
+            case BlobClass::Person: ++st.persons; break;
+            case BlobClass::HotClutter: ++st.hotClutter; break;
+            case BlobClass::Clutter: ++st.clutter; break;
+        }
+    }
+    if (statsOut) *statsOut = st;
+    return out;
+}
+
+std::vector<Measurement2D> blobsOfClass(const std::vector<Measurement2D>& blobs, BlobClass c) {
+    std::vector<Measurement2D> out;
+    for (const Measurement2D& m : blobs)
+        if (m.cls == c) out.push_back(m);
+    return out;
+}
+
+CvDebug detectTargetsDebug(const std::vector<uint8_t>& image, int w, int h, const CvConfig& cfg) {
+    CvDebug d;
+    d.targets = detectTargets(image, w, h, cfg, &d.stats);  // the real result and statistics
+    // The same first stages again, keeping the intermediate images (identical functions, identical thresholds).
+    d.mask.assign(image.size(), 0);
+    for (size_t i = 0; i < image.size(); ++i) d.mask[i] = image[i] >= d.stats.threshold ? 1 : 0;
+    d.clean = d.mask;
+    if (cfg.despeckle) despeckle(d.clean, w, h);
+    d.removed.assign(image.size(), 0);
+    for (size_t i = 0; i < image.size(); ++i) d.removed[i] = d.mask[i] && !d.clean[i] ? 1 : 0;
+    const int n = labelComponents(d.clean, w, h, d.labels);
+    d.components.assign(static_cast<size_t>(n), CvComponent{});
+    for (int l = 1; l <= n; ++l) {
+        CvComponent& c = d.components[l - 1];
+        c.label = l;
+        c.minX = c.minY = 1 << 30;
+        c.maxX = c.maxY = -1;
+    }
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x) {
+            const int l = d.labels[static_cast<size_t>(y) * w + x];
+            if (!l) continue;
+            CvComponent& c = d.components[l - 1];
+            ++c.area;
+            c.minX = std::min(c.minX, x); c.maxX = std::max(c.maxX, x);
+            c.minY = std::min(c.minY, y); c.maxY = std::max(c.maxY, y);
+        }
+    for (CvComponent& c : d.components)
+        for (const Measurement2D& m : d.targets)
+            if (m.minX == c.minX && m.maxX == c.maxX && m.minY == c.minY && m.maxY == c.maxY && m.area == c.area) c.accepted = true;
+    return d;
 }
 
 }  // namespace ts::cv

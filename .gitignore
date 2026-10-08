@@ -2,3 +2,8 @@ report/demo.mp4
 build/
 ThermalSense
 build-cmake/
+
+# v9: large / generated artefacts (GitHub rejects files > 100 MB)
+report/demo_v5.mp4
+*.pdb
+__pycache__/

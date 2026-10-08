@@ -114,6 +114,37 @@ void AaGun::buildRig() {
     }
     casings_.assign(kCasingPool, Casing{});
 
+    // v7 detail pass (appended: node ids above unchanged): anchor bolts, radome seam, a fire-control console with a
+    // live display and status LEDs, housing vents, stencils and worn bevelled edges. Surface detail only.
+    const Material edge = reworked(shade(paint, 1.4f), 0.45f, 0.35f);
+    const Material screen = makeMaterial({0.25f, 0.85f, 0.45f}, 0.32f, Surface::Screen, 0.3f, 0.0f, 0.9f);
+    const Material stencil = decal({0.70f, 0.58f, 0.12f}, 0.25f);
+    for (int i = 0; i < 6; ++i) {
+        const float a = radians(60.0f * i);
+        detail(b, r, "Anchor bolt", P::Cylinder, {0.09f, 0.09f, 0.06f}, {90, 0, 0}, {0.95f * std::sin(a), 0.17f, 0.95f * std::cos(a)},
+               gunMetal, "Foundation anchor bolt");
+    }
+    detail(b, m, "Radome seam", P::Cylinder, {0.82f, 0.82f, 0.03f}, {90, 0, 0}, {0, 2.05f, -0.85f}, shade(dome, 0.75f),
+           "Joint ring of the two radome halves");
+    detail(b, m, "Fire-control console", P::Cube, {0.07f, 0.34f, 0.46f}, {0, 0, 0}, {0.735f, 0.5f, 0.3f}, steel,
+           "Gunner's fire-control panel");
+    detail(b, m, "Fire-control display", P::Cube, {0.01f, 0.22f, 0.32f}, {0, 0, 0}, {0.772f, 0.52f, 0.3f}, screen,
+           "Radar / target display (emissive)");
+    detail(b, m, "Ready LED", P::Sphere, {0.035f, 0.035f, 0.035f}, {0, 0, 0}, {0.772f, 0.7f, 0.18f}, indicator({0.1f, 1.0f, 0.2f}, 1.2f),
+           "Gun ready indicator (emissive only)");
+    detail(b, m, "Armed LED", P::Sphere, {0.035f, 0.035f, 0.035f}, {0, 0, 0}, {0.772f, 0.7f, 0.42f}, indicator({1.0f, 0.15f, 0.05f}, 1.2f),
+           "Master arm indicator (emissive only)");
+    for (int sx = -1; sx <= 1; sx += 2) {
+        detail(b, m, sx > 0 ? "Danger stencil L" : "Danger stencil R", P::Cube, {0.01f, 0.12f, 0.45f}, {0, 0, 0},
+               {0.632f * sx, 1.15f, 0.15f}, stencil, "Yellow DANGER stencil on the cradle arm");
+        bevel(b, m, "Mount body edge", {0.7f * sx, 0.7f, -0.7f}, {0.7f * sx, 0.7f, 0.7f}, 0.05f, edge, "Worn top edge of the mount body");
+        bevel(b, m, "Mount body edge", {-0.7f, 0.7f, 0.7f * sx}, {0.7f, 0.7f, 0.7f * sx}, 0.05f, edge, "Worn top edge of the mount body");
+    }
+    for (int k = 0; k < 3; ++k)
+        detail(b, c, "Housing vent", P::Cube, {0.42f, 0.025f, 0.045f}, {0, 0, 0}, {0, 0.28f, -0.05f + 0.15f * k}, gunMetal,
+               "Cooling vent slat on the gun housing");
+    detail(b, m, "Grab handle", P::Cylinder, {0.04f, 0.04f, 0.5f}, {0, 90, 0}, {0, 0.6f, 0.74f}, gunMetal, "Crew grab handle");
+
     outward_ = std::atan2(layout::kAaGunSite.x, layout::kAaGunSite.z);
     yaw_ = yawCmd_ = outward_;
     mount_->local.rotationDeg = {0, degrees(yaw_), 0};

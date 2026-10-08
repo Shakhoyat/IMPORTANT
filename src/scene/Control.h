@@ -35,4 +35,14 @@ int cyclePossessable(const std::vector<Controllable*>& c, int current, int dir);
 // toggles it by giving it one frame of possession with actionPressed set.
 int nearestToggle(const std::vector<Controllable*>& c, const Vec3& p, float maxDist = 3.5f);
 
+
+// v7.1 WP-T: third-person soldier movement relative to the camera. moveFwd / moveRight = W-S / D-A in [-1, 1].
+// Not aiming: the soldier turns towards the camera-relative move direction (smoothly) and walks forward (a modern
+// third-person game: S walks towards the camera). Aiming: the body faces the camera heading; W/S walk, A/D strafe.
+// Every other field (boost, fire, jump, action) passes through. Headings as Soldier::yawDeg (0 = +z, right = lower).
+ControlInput thirdPersonSoldierInput(const ControlInput& raw, float moveFwd, float moveRight, float camYawDeg,
+                                     float bodyYawDeg, bool aiming, float dt);
+// Signed shortest difference a - b in degrees (-180, 180].
+float angleDiffDeg(float a, float b);
+
 }  // namespace ts

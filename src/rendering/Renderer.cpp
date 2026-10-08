@@ -1,24 +1,22 @@
 #include "rendering/Renderer.h"
 
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+
 #include "objects/BaseLayout.h"
 
 #include "ai/DroneController.h"
 #include "objects/Terrain.h"
+#include "objects/Uav.h"
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
 #include "primitives/Sphere.h"
+#include "rendering/RayTracerGL.h"
+#include "rendering/SceneAccess.h"
 #include "rendering/ShaderSources.h"
 
 namespace ts {
-
-namespace {
-
-// Linear-light colours of the v2 visible view (night sky irradiance, ground bounce, fog).
-const Vec3 kSkyAmbient{0.030f, 0.040f, 0.075f};
-const Vec3 kGroundBounce{0.010f, 0.010f, 0.011f};
-const Vec3 kFogColor{0.014f, 0.018f, 0.030f};
-
-}  // namespace
 
 const char* viewModeName(ViewMode m) {
     switch (m) {
@@ -109,9 +107,26 @@ bool Renderer::init() {
     ok = ok && effects_.init();
 #endif
     if (!ok) return false;
+    // v7 WP-Q: instanced variants of the part programs (one draw per mesh instead of one per part). Optional: if the
+    // buffer textures or the programs are not available the per-part path is used (also with TS_NO_INSTANCING=1).
+    const char* noInst = std::getenv("TS_NO_INSTANCING");
+    if (!(noInst && *noInst == '1') && instances_.init()) {
+        for (auto* p : {&flatI_, &gouraudI_, &phongI_, &depthI_, &prepassI_}) *p = std::make_unique<Shader>();
+        const InstancedSources fl = instancedSources(ShadingKind::Flat), go = instancedSources(ShadingKind::Gouraud),
+                               ph = instancedSources(ShadingKind::Phong);
+        bool inst = flatI_->build("flat-instanced", fl.vert, fl.frag, fl.geom);
+        inst = inst && gouraudI_->build("gouraud-instanced", go.vert, go.frag);
+        inst = inst && phongI_->build("phong-instanced", ph.vert, ph.frag);
+        inst = inst && depthI_->build("depth-instanced", kDepthVertI, kDepthFrag);
+        inst = inst && prepassI_->build("prepass-instanced", kPrepassVertI, kPrepassFrag);
+        instancing_ = inst;
+        if (!inst) std::fprintf(stderr, "Instanced part programs unavailable: one draw per part\n");
+    }
+    rt_->init();   // v7 WP-H: false = no compute shaders (CPU fallback for the ray-traced modes), never fatal
 
     // Fixed texture units for the lighting samplers (different sampler types must never share a unit).
-    for (Shader* sh : {flat_.get(), gouraud_.get(), phong_.get()}) {
+    for (Shader* sh : {flat_.get(), gouraud_.get(), phong_.get(), flatI_.get(), gouraudI_.get(), phongI_.get()}) {
+        if (!sh) continue;
         sh->use();
         sh->set("uMoonShadow", kUnitMoonShadow);
         sh->set("uSpotShadow", kUnitSpotShadow);
@@ -119,6 +134,11 @@ bool Renderer::init() {
         sh->set("uGroundMap", kUnitGround);
         sh->set("uHeatTrail", kUnitTrail);
     }
+    if (instancing_)
+        for (Shader* sh : {flatI_.get(), gouraudI_.get(), phongI_.get(), depthI_.get(), prepassI_.get()}) {
+            sh->use();
+            sh->set("uInstances", kUnitInstances);
+        }
     const unsigned char white = 255;
     glGenTextures(1, &whiteTex_);
     glBindTexture(GL_TEXTURE_2D, whiteTex_);
@@ -200,16 +220,23 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uCamPos", cam.position);
     sh.set("uAmbient", diag ? Vec3{0.38f, 0.38f, 0.40f} : L.ambient);
     sh.set("uMoonDir", L.moon.direction);
+    const Atmosphere& A = L.atmo;
     const bool hdrView = s.cinematic && s.view == ViewMode::Visible;
     const float moonScale = hdrView ? 0.85f * (1.0f - 0.55f * s.rain) : (diag ? 1.1f : 1.0f);  // overcast in rain
-    const Vec3 moonTint = hdrView ? Vec3{0.85f, 0.95f, 1.2f} : Vec3{1, 1, 1};  // cooler moonlight in the graded view
-    sh.set("uMoonColor", mul(L.moon.color, moonTint) * (s.moonOn ? L.moon.intensity * moonScale : 0.0f));
+    // Cooler moonlight in the graded view (the sun keeps its own air-mass colour).
+    const Vec3 moonTint = hdrView && !A.keyIsSun ? Vec3{0.85f, 0.95f, 1.2f} : Vec3{1, 1, 1};
+    sh.set("uMoonColor", mul(L.moon.color, moonTint) * (s.moonOn && L.moon.enabled ? L.moon.intensity * moonScale : 0.0f));
+    sh.set("uKeyIsSun", A.keyIsSun ? 1 : 0);
+    sh.set("uSolar", A.solar);
+    sh.set("uCloudShadowOn", A.keyIsSun && !diag ? 1.0f : 0.0f);
+    sh.set("uDayWeight", A.day);
     sh.set("uBeaconPos", L.beacon.position);
-    sh.set("uBeaconColor", L.beacon.color * (s.beaconOn && !diag ? L.beacon.intensity : 0.0f));
+    const bool beacon = s.beaconOn && L.beacon.enabled && !diag;
+    sh.set("uBeaconColor", L.beacon.color * (beacon ? L.beacon.intensity * A.practicalScale : 0.0f));
     sh.set("uBeaconAtt", L.beacon.linear, L.beacon.quadratic);
     sh.set("uSpotPos", L.spot.position);
     sh.set("uSpotDir", L.spot.direction);
-    sh.set("uSpotColor", L.spot.color * (s.spotOn && !diag ? L.spot.intensity : 0.0f));
+    sh.set("uSpotColor", L.spot.color * (s.spotOn && L.spot.enabled && !diag ? L.spot.intensity : 0.0f));
     sh.set("uSpotCos", std::cos(radians(L.spot.innerDeg)), std::cos(radians(L.spot.outerDeg)));
     sh.set("uSpotAtt", L.spot.linear, L.spot.quadratic);
     sh.set("uViewMode", static_cast<int>(s.view));
@@ -217,9 +244,10 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     const bool hdr = s.cinematic && s.view == ViewMode::Visible && s.edges == EdgeMode::Solid;
     sh.set("uHdr", hdr ? 1 : 0);
     sh.set("uPbr", hdr && s.pbr ? 1 : 0);
-    sh.set("uSkyZenith", kSkyAmbient);
-    sh.set("uGroundBounce", kGroundBounce);
-    sh.set("uFogColor", kFogColor);
+    sh.set("uSkyZenith", A.skyZenith);
+    sh.set("uGroundBounce", A.groundBounce);
+    sh.set("uSkyHorizon", A.skyHorizon);
+    sh.set("uFogColor", A.fogColor);
     sh.set("uEmissiveScale", hdr ? 8.0f : 1.0f);
     sh.set("uWorldRadius", layout::kBaseRadius);
     setShadowUniforms(sh, s);
@@ -229,35 +257,155 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uWetness", scene.wetness);
     sh.set("uRain", s.rain);
     sh.set("uGroundDetail", qualityProfile(s.quality).groundDetail ? 1 : 0);
+    sh.set("uBumpOff", s.bumpOn ? 0 : 1);
     setPracticalUniforms(sh, hdr && s.practicalsOn);
     setIndoorUniforms(sh);
-    sh.set("uFogDensity", hdr ? 0.018f : 0.028f * 10.0f / kTerrainRadius);
+    sh.set("uFogDensity", hdr ? A.fogDensity : 0.028f * 10.0f / kTerrainRadius);
     sh.set("uTime", scene.time());
     sh.set("uGrain", s.grain);
     sh.set("uResolution", static_cast<float>(w), static_cast<float>(h));
     sh.set("uNearFar", cam.nearZ, cam.farZ);
 }
 
-void Renderer::setObjectUniforms(Shader& sh, const SceneNode& n, const Mat4& world, const RenderSettings& s) {
+Renderer::ObjectParams Renderer::objectParams(const SceneNode& n, const Mat4& world, const RenderSettings& s) const {
     const bool diag = s.view == ViewMode::Diagnostic;
     const Material& m = n.material;
-    sh.set("uModel", world);
-    sh.set("uNormalMat", normalMatrix(world));
-    sh.set("uBaseColor", diag ? primitiveColor(n.primitive) : m.baseColor);
-    sh.set("uHeat", m.heat);
-    const float overcast = n.name == "Moon" ? 1.0f - 0.95f * s.rain : 1.0f;  // clouds hide the moon in rain
-    sh.set("uEmissive", diag ? 0.0f : m.emissive * overcast);
-    sh.set("uSpecular", diag ? 0.25f : m.specular);
-    sh.set("uShininess", m.shininess);
-    sh.set("uRoughness", pbrRoughness(m));
-    sh.set("uMetalness", diag ? 0.0f : m.metalness);
-    sh.set("uSurface", diag ? 0 : static_cast<int>(m.surface));
-    sh.set("uHeatVariation", n.primitive == PrimitiveType::TerrainDisc ? 0.11f : 0.015f);
-    sh.set("uFogged", (m.fogged && !diag) ? 1.0f : 0.0f);
-    sh.set("uOpacity", diag ? 1.0f : m.opacity);
-    sh.set("uPartCentre", transformPoint(world, {0, 0, 0}));
-    sh.set("uPartRadius", unitPrimitiveRadius(world) * 0.7071f);
+    ObjectParams p;
+    p.model = world;
+    p.normal = normalMatrix(world);
+    p.baseColor = diag ? primitiveColor(n.primitive) : m.baseColor;
+    p.heat = m.heat;
+    // Clouds hide the moon / sun in rain; the moon glows by night, the sun by day; outdoor lamps go off by day.
+    float emissive = m.emissive;
+    if (n.name == "Moon") emissive = m.emissive * (1.0f - 0.95f * s.rain) * atmo_.night;
+    else if (n.name == "Sun") emissive = m.emissive * (1.0f - 0.95f * s.rain) * atmo_.day;
+    else if (m.lightIntensity > 0.0f) emissive = m.emissive * practicalFactor(n);
+    p.emissive = diag ? 0.0f : emissive;
+    p.specular = diag ? 0.25f : m.specular;
+    p.shininess = m.shininess;
+    p.roughness = specularLod(n, world, pbrRoughness(m));
+    p.metalness = diag ? 0.0f : m.metalness;
+    p.surface = diag ? 0 : static_cast<int>(m.surface);
+    p.heatVariation = n.primitive == PrimitiveType::TerrainDisc ? 0.11f : 0.015f;
+    p.fogged = (m.fogged && !diag) ? 1.0f : 0.0f;
+    p.opacity = diag ? 1.0f : m.opacity;
+    p.centre = transformPoint(world, {0, 0, 0});
+    p.radius = unitPrimitiveRadius(world) * 0.7071f;
+    return p;
 }
+
+float Renderer::specularLod(const SceneNode& n, const Mat4& world, float roughness) const {
+    if (specLodPixel_ <= 0.0f || roughness >= 0.85f) return roughness;
+    float thick;   // diameter of the curved cross-section (the unit primitives are 1 m across)
+    const float sx = length(Vec3{world.at(0, 0), world.at(1, 0), world.at(2, 0)});
+    const float sy = length(Vec3{world.at(0, 1), world.at(1, 1), world.at(2, 1)});
+    const float sz = length(Vec3{world.at(0, 2), world.at(1, 2), world.at(2, 2)});
+    switch (n.primitive) {
+        case PrimitiveType::Cylinder:
+        case PrimitiveType::Cone: thick = std::min(sx, sy); break;
+        case PrimitiveType::Sphere: thick = std::min(sx, std::min(sy, sz)); break;
+        default: return roughness;   // flat faces have one normal: no sub-pixel highlight to alias
+    }
+    const float footprint = length(transformPoint(world, {0, 0, 0}) - specLodEye_) * specLodPixel_;
+    const float k = clampf((footprint * 4.0f / std::max(thick, 1e-4f) - 0.25f) / 0.75f, 0.0f, 1.0f);   // < ~4 px across
+    return lerpf(roughness, std::max(roughness, 0.85f), k * k * (3.0f - 2.0f * k));
+}
+
+void Renderer::setObjectUniforms(Shader& sh, const SceneNode& n, const Mat4& world, const RenderSettings& s) {
+    const ObjectParams p = objectParams(n, world, s);
+    sh.set("uModel", p.model);
+    sh.set("uNormalMat", p.normal);
+    sh.set("uBaseColor", p.baseColor);
+    sh.set("uHeat", p.heat);
+    sh.set("uEmissive", p.emissive);
+    sh.set("uSpecular", p.specular);
+    sh.set("uShininess", p.shininess);
+    sh.set("uRoughness", p.roughness);
+    sh.set("uMetalness", p.metalness);
+    sh.set("uSurface", p.surface);
+    sh.set("uHeatVariation", p.heatVariation);
+    sh.set("uFogged", p.fogged);
+    sh.set("uOpacity", p.opacity);
+    sh.set("uPartCentre", p.centre);
+    sh.set("uPartRadius", p.radius);
+}
+
+Shader* Renderer::instancedFor(const Shader* program) const {
+    if (program == flat_.get()) return flatI_.get();
+    if (program == gouraud_.get()) return gouraudI_.get();
+    if (program == phong_.get()) return phongI_.get();
+    return nullptr;
+}
+
+bool Renderer::uploadInstances(const std::vector<const SceneNode*>& nodes, int texelsPerPart, const RenderSettings* s) {
+    std::vector<float>& d = instanceScratch_;
+    d.clear();
+    d.reserve(nodes.size() * static_cast<size_t>(texelsPerPart) * 4);
+    auto push4 = [&d](float a, float b, float c, float e) {
+        d.push_back(a);
+        d.push_back(b);
+        d.push_back(c);
+        d.push_back(e);
+    };
+    for (const SceneNode* n : nodes) {
+        if (texelsPerPart == 11 && s) {
+            const ObjectParams p = objectParams(*n, n->world, *s);
+            d.insert(d.end(), p.model.m, p.model.m + 16);
+            const float* N = p.normal.m;   // column-major 3x3
+            push4(N[0], N[1], N[2], p.heat);
+            push4(N[3], N[4], N[5], p.emissive);
+            push4(N[6], N[7], N[8], p.specular);
+            push4(p.baseColor.x, p.baseColor.y, p.baseColor.z, p.shininess);
+            push4(p.roughness, p.metalness, static_cast<float>(p.surface), p.heatVariation);
+            push4(p.centre.x, p.centre.y, p.centre.z, p.radius);
+            push4(p.fogged, p.opacity, 0.0f, 0.0f);
+        } else {
+            d.insert(d.end(), n->world.m, n->world.m + 16);
+            if (texelsPerPart == 7) {
+                const Mat3 nm = normalMatrix(n->world);
+                const float* N = nm.m;
+                push4(N[0], N[1], N[2], 0.0f);
+                push4(N[3], N[4], N[5], 0.0f);
+                push4(N[6], N[7], N[8], 0.0f);
+            }
+        }
+    }
+    return instances_.upload(d, kUnitInstances);
+}
+
+int Renderer::drawInstanced(Shader& sh, const std::vector<const SceneNode*>& nodes, FrameStats* st) {
+    int draws = 0;
+    for (size_t first = 0; first < nodes.size();) {
+        const PrimitiveType type = nodes[first]->primitive;
+        size_t last = first + 1;
+        while (last < nodes.size() && nodes[last]->primitive == type) ++last;
+        const GLsizei count = static_cast<GLsizei>(last - first);
+        const Mesh& mesh = *meshes_.at(type);
+        mesh.bind(true);
+        sh.set("uInstanceBase", static_cast<int>(first));
+        glDrawElementsInstanced(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_INT, nullptr, count);
+        ++draws;
+        if (st) {
+            ++st->drawCalls;
+            st->primitives += count;
+            st->triangles += static_cast<long long>(count) * (mesh.indexCount() / 3);
+            st->vertices += static_cast<long long>(count) * mesh.vertexCount();
+        }
+        first = last;
+    }
+    return draws;
+}
+
+namespace {
+
+// Groups the parts by mesh (stable: the parts of one mesh keep the scene order) for the instanced draws.
+void groupByMesh(std::vector<const SceneNode*>& nodes) {
+    std::stable_sort(nodes.begin(), nodes.end(), [](const SceneNode* a, const SceneNode* b) {
+        return static_cast<int>(a->primitive) < static_cast<int>(b->primitive);
+    });
+}
+
+}  // namespace
 
 void Renderer::drawSky(const CameraView& cam, int w, int h, const RenderSettings& s, float time) {
     glDisable(GL_DEPTH_TEST);
@@ -269,7 +417,12 @@ void Renderer::drawSky(const CameraView& cam, int w, int h, const RenderSettings
     sky_->set("uPalette", s.palette);
     sky_->set("uRain", s.rain);
     sky_->set("uHdr", s.cinematic && s.view == ViewMode::Visible && s.edges == EdgeMode::Solid ? 1 : 0);
-    sky_->set("uFogColor", kFogColor);
+    sky_->set("uFogColor", atmo_.fogColor);
+    sky_->set("uDay", atmo_.day);
+    sky_->set("uNight", atmo_.night);
+    sky_->set("uSunDir", atmo_.sunDir);
+    sky_->set("uSunColor", atmo_.sunColor);
+    sky_->set("uTwilight", atmo_.twilight);
     sky_->set("uTime", time);
     sky_->set("uMoonDir", moonDir_);
     sky_->set("uResolution", static_cast<float>(w), static_cast<float>(h));
@@ -293,6 +446,7 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
     };
     for (const SceneNode* n : scene.leaves()) {
         if (!n->visible || n->primitive == PrimitiveType::BeamCone) continue;
+        if (atmo_.night <= 0.0f && n->name == "Moon") continue;   // sun above the horizon: no lit moon ball in the sky
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         // The gimbal camera hangs below the airframe, so the UAV's own parts are outside its view.
         if ((s.view == ViewMode::HeatRaw || s.hideUav) && n->object == "Autonomous UAV") continue;
@@ -302,6 +456,16 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
     }
     for (auto& [program, nodes] : buckets) {
         if (nodes.empty()) continue;
+        // v7 WP-Q: one instanced draw per mesh (the parts' parameters come from the instance buffer).
+        if (Shader* inst = useInstancing(s) ? instancedFor(program) : nullptr) {
+            groupByMesh(nodes);
+            if (uploadInstances(nodes, 11, &s)) {
+                inst->use();
+                setFrameUniforms(*inst, scene, cam, w, h, s);
+                drawInstanced(*inst, nodes, &st);
+                continue;
+            }
+        }
         program->use();
         setFrameUniforms(*program, scene, cam, w, h, s);
         for (const SceneNode* n : nodes) {
@@ -353,6 +517,7 @@ void Renderer::drawBeam(const Scene& scene, const CameraView& cam, const RenderS
     if (!s.spotOn || s.view != ViewMode::Visible || s.hideUav) return;   // an LWIR camera does not see the beam
     if (s.view == ViewMode::Visible && s.cinematic && frame_.fog) return;  // the volumetric pass draws the shaft
     const SceneNode& beam = *scene.uav().beam;
+    if (!beam.visible || !scene.lights.spot.enabled) return;              // searchlights off by day
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
     glDepthMask(GL_FALSE);
@@ -396,7 +561,7 @@ void Renderer::drawWire(const Scene& scene, const CameraView& cam, const RenderS
     const Mat4 vp = cam.proj * cam.view;
     const Frustum frustum(vp);
     for (const SceneNode* n : scene.leaves()) {
-        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon") continue;
+        if (!n->visible || n->primitive == PrimitiveType::BeamCone || n->name == "Moon" || n->name == "Sun") continue;
         if (!inFrustum(*n, frustum)) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         const bool terrain = n->primitive == PrimitiveType::TerrainDisc;
@@ -435,6 +600,8 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
     }
     surfaceWrites(false);
     moonDir_ = scene.lights.moon.direction;
+    atmo_ = scene.lights.atmo;
+    walk_ = sceneaccess::walkSpace(scene);
     uploadHeatTrail(scene);
     if (!groundBuilt_) {  // needs the world matrices, so it is built on the first frame
         ground_.build(scene);
@@ -442,6 +609,7 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
         groundBuilt_ = true;
     }
     drawSky(cam, w, h, s, scene.time());
+    if (skyOnly_ && mrt_) return;   // v7 WP-H: fully ray-traced frame (the tracer reads this sky for primary misses)
     bindLightingTextures();
 
     if (s.depthTest) glEnable(GL_DEPTH_TEST);
@@ -476,22 +644,47 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
     if (overlay || s.edges == EdgeMode::XRay) drawWire(scene, cam, s, st);
 }
 
-void Renderer::captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats, int uav) {
+void Renderer::captureUavCamera(const Scene& scene, std::vector<uint8_t>& heat, FrameStats& stats, int uav,
+                                const Mat4* cameraOverride) {
     timer_.begin("uav camera (CV)");
     GLint previous = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous);
+    renderUavCamera(scene, stats, uav, cameraOverride);
+    cvTarget_.read(heat);
+    glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(previous));
+    timer_.end();
+}
+
+void Renderer::beginUavCamera(const Scene& scene, FrameStats& stats, int uav, const Mat4* cameraOverride, int slot) {
+    timer_.begin("uav camera (CV)");
+    GLint previous = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous);
+    renderUavCamera(scene, stats, uav, cameraOverride);
+    cvTarget_.readAsync(slot);
+    // Submit now: the copy then completes ahead of the main frame, and on Mesa d3d12 (which tracks buffer use per
+    // command batch) collecting it waits only for this batch, not for the whole frame queued after it.
+    glFlush();
+    glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(previous));
+    timer_.end();
+}
+
+void Renderer::renderUavCamera(const Scene& scene, FrameStats& stats, int uav, const Mat4* cameraOverride) {
     cvTarget_.bind();
     RenderSettings s;
     s.view = ViewMode::HeatRaw;
     s.grain = 0.0f;
     const bool mrt = mrt_;
     mrt_ = false;
-    const CameraView cam = uavCameraView(scene, static_cast<float>(kCvWidth) / kCvHeight, kCvFovYDeg, uav);
+    CameraView cam = uavCameraView(scene, static_cast<float>(kCvWidth) / kCvHeight, kCvFovYDeg, uav);
+    if (cameraOverride) {  // same lens geometry as uavCameraView, from the given (jittered) gimbal pose
+        const Mat4& m = *cameraOverride;
+        cam.position = transformPoint(m, {0, 0, kLampFrontOffset + 0.03f});
+        const Vec3 forward = normalize(transformDirection(m, {0, 0, 1}));
+        const Vec3 up = normalize(transformDirection(m, {0, 1, 0}));
+        cam.view = lookAt(cam.position, cam.position + forward, up);
+    }
     drawScene(scene, cam, kCvWidth, kCvHeight, s, stats);
-    cvTarget_.read(heat);
     mrt_ = mrt;
-    glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(previous));
-    timer_.end();
 }
 
 void Renderer::drawPrimitiveLegend(int x, int y, int size, float time, FrameStats& st, bool wire) {
@@ -513,6 +706,9 @@ void Renderer::drawPrimitiveLegend(int x, int y, int size, float time, FrameStat
     phong_->set("uShadows", 0);
     phong_->set("uUseAO", 0);
     phong_->set("uPracticalCount", 0);
+    phong_->set("uCloudShadowOn", 0.0f);
+    phong_->set("uSolar", 0.0f);
+    phong_->set("uKeyIsSun", 0);
     phong_->set("uSurface", 0);
     phong_->set("uMetalness", 0.0f);
     bindLightingTextures();

@@ -22,7 +22,16 @@ elif ! have make; then
   echo "make not found: sudo apt install build-essential"; exit 1
 fi
 
-if [ "$HEADLESS" = 0 ] && ! pkg-config --exists glfw3 2>/dev/null; then
+# GLFW: system package (pkg-config glfw3), or Ubuntu's libglfw3 unpacked into ~/.local/opt/sysroot without sudo
+# (tools/run_wsl.sh --fetch; the Makefile then links it with an rpath).
+glfw_ok() {
+  pkg-config --exists glfw3 2>/dev/null || [ -e "${GLFW_SYSROOT:-$HOME/.local/opt/sysroot}/usr/lib/x86_64-linux-gnu/libglfw.so" ]
+}
+if [ "$HEADLESS" = 0 ] && ! glfw_ok && have apt-get && have dpkg; then
+  echo "GLFW not installed: fetching libglfw3 / libglfw3-dev into ~/.local/opt/sysroot (no sudo needed)"
+  tools/run_wsl.sh --fetch || true
+fi
+if [ "$HEADLESS" = 0 ] && ! glfw_ok; then
   echo "GLFW 3 development files not found (pkg-config glfw3)."
   echo "  Debian/Ubuntu: sudo apt install build-essential pkg-config libglfw3-dev libgl1-mesa-dev"
   echo "  Fedora:        sudo dnf install gcc-c++ make pkgconf glfw-devel mesa-libGL-devel"

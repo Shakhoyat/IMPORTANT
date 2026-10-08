@@ -1,0 +1,34 @@
+% =====================================================================
+\section{The Builder Table: One Row per Part}\label{sec:builder}
+\pipestrip{2}
+\emph{Concept.} An object is not a model file but a \emph{table}: one row per part, saying ``take this primitive, scale it, rotate it, move it'' (the $S,R,T$ table of the lab sheet). A part is a leaf of a scene graph; a group node carries only a transform and a name, and children are placed in the group's frame.
+
+\subsection{One row, one part}
+Table~\ref{tab:rows} shows real rows from \code{build/scene\_export.json}. The columns are the arguments of
+\code{Builder::part} (Listing~\ref{lst:Part}): parent, name, primitive, scale $S$ (m), rotation $R$ (degrees, applied $R_y$, $R_x$, $R_z$), translation $T$ in the parent's frame, material and purpose.
+\begin{table}[h]
+\centering\footnotesize
+\caption{Rows of the construction table (from the export). A cube is scaled to the box it should become; a cylinder's $z$ is its length.}\label{tab:rows}
+\begin{tabular}{@{}llp{2.6cm}p{2.2cm}p{2.8cm}l@{}}
+\toprule Part (id) & Primitive & $S$ & $R$ & $T$ & Parent\\\midrule
+Hull core (TNK-02) & cube & $1.70,\,0.90,\,5.60$ & $0$ & $0,\,0.80,\,0$ & Hull\\
+Track link L00 (TNK-42) & cube & $0.55,\,0.08,\,0.33$ & $0$ & $0,\,1.05,\,-2.80$ & Track L\\
+Gatling barrel (AAG-30) & cylinder & $0.07,\,0.07,\,2.0$ & $0$ & $0,\,0.14,\,1.0$ & Barrel cluster\\
+Blade 1 (HEL-31) & cube & $0.22,\,0.03,\,3.9$ & $0$ & $0,\,0,\,1.95$ & Blade 1 flap\\
+Round nose (UAV-54) & cone & $0.022,\,0.022,\,0.04$ & $0$ & $0,\,0,\,0.105$ & Round\\
+Wheel L (ROV-05) & cylinder & $0.16,\,0.16,\,0.07$ & $R_y=90$ & $0.25,\,0.08,\,-0.22$ & Target Rover\\\bottomrule
+\end{tabular}
+\end{table}
+
+\lstPart
+
+\subsection{From rows to matrices}
+A leaf's local matrix is $M=T\,R_y\,R_x\,R_z\,S$ (Listing~\ref{lst:Transform}); its world matrix is the parent's world matrix times $M$, computed top-down once per frame (Listing~\ref{lst:UpdateNode}). The \code{explode} argument
+multiplies the translation of every explodable node by $1+0.7\,e$ (Section~\ref{sec:transform}).
+\lstTransform
+\lstUpdateNode
+\emph{Why $T\,R\,S$.} The primitive is a unit cube centred at the origin: $S$ makes the right box about its centre, $R$ tilts it about that centre, $T$ places it. In the
+opposite order $T$ would be scaled and rotated as well.
+
+\subsection{Naming and documentation}
+Every node has a name, an owning object, a purpose and, if it moves, an \code{animation} text; the exporter writes them to JSON and the workbook reads them, so the report's part counts and hierarchy diagrams are never typed by hand.

@@ -69,6 +69,9 @@ float apronGravel(float x, float z) {
     g = std::max(g, rect(kMotorPool.x + 1.0f, kMotorPool.z + 1.0f, 9.0f, 8.0f, kTankParkYawDeg, 3.0f));
     g = std::max(g, rect(kFuelDepot.x + 3.0f, kFuelDepot.z, 8.0f, 5.0f, 0.0f, 3.0f));
     g = std::max(g, rect(kBarracks.x, kBarracks.z, 6.5f, 11.5f, 0.0f, 3.0f));
+    // v8 barracks hall: trodden gravel around it and on the PT area north of the door
+    g = std::max(g, rect(0.5f * (hall::kX0 + hall::kX1), 0.5f * (hall::kZ0 + hall::kZ1) + 1.2f, 0.5f * (hall::kX1 - hall::kX0) + 1.0f,
+                         0.5f * (hall::kZ1 - hall::kZ0) + 2.2f, 0.0f, 2.5f));
     // Service track along the wall's inside and the inner-gate yard.
     const float r = std::sqrt(x * x + z * z);
     g = std::max(g, 0.7f * (1.0f - smooth01(0.7f, 2.2f, std::fabs(r - 31.0f))));
@@ -129,6 +132,9 @@ void GroundMap::build(const Scene& scene) {
             meadow *= smooth01(4.2f, 5.6f, r);
             meadow *= 1.0f - apron * 0.45f;                       // apron: patches only
             if (std::fabs(x) < 3.2f && z > 3.0f && z < 14.5f) meadow = 0.0f;  // trench strip
+            if (x > layout::hall::kX0 - 0.4f && x < layout::hall::kX1 + 0.4f && z > layout::hall::kZ0 - 0.4f &&
+                z < layout::hall::kZ1 + 0.9f)
+                meadow = 0.0f;   // v8: no grass through the barracks hall's floor (nor on its door step)
             meadow *= 1.0f - 0.92f * track;
             meadow *= 1.0f - 0.85f * wet;
             meadow *= 1.0f - 0.75f * forest;

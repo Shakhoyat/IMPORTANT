@@ -1,5 +1,4 @@
-"""Builds ThermalSense_Graphics_Documentation.xlsx (18 sheets: 14 from v3 + 14 Controllable Objects, 15 Bunker & Base,
-16 Combat & Effects, 17 Audit) from files produced by the program itself.
+"""Builds ThermalSense_Graphics_Documentation.xlsx (28 sheets: 14 from v3, 14-17 from v4, 18 Computer Vision, 19 Squad & Mission, 20 Audio & HUD, 21-23 v6, 24-27 v7) from files produced by the program itself.
 
 Inputs (regenerate them first with `mingw32-make docs`):
   build/scene_export.json   build/export_docs.exe (or ThermalSense.exe --export-docs): primitives, components,
@@ -22,7 +21,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from summarize_trace import summarize  # noqa: E402
-from wb_common import (AUTHOR, BOLD, DARK, S_AUDIT, S_BASE, S_COMBAT, S_CTRL, FORMULA_FILL, INPUT_FILL, OUT, PRIM_COLOURS, ROLL, SHEET_ORDER,  # noqa: E402
+from wb_common import (S_CVN, S_DAY, S_SOLD, S_RT, S_FX, S_GAME, S_V7T, AUTHOR, BOLD, DARK, S_AUDIO, S_AUDIT, S_BASE, S_COMBAT, S_CTRL, S_CV, S_SQUAD, FORMULA_FILL, INPUT_FILL, OUT, PRIM_COLOURS, ROLL, SHEET_ORDER,  # noqa: E402
                        SUBTITLE_FONT, S_BEHAV, S_COVER, S_GEOM, S_HIER, S_INV, S_LIGHT, S_MAT, S_OBJ, S_PERF, S_PIPE,
                        S_SHADE, S_TEST, S_TRACE, S_VERT, image, link, load_json, path, prim_fill, put, section,
                        widths)
@@ -33,6 +32,9 @@ from wb_results import build_behaviour, build_performance, build_testing  # noqa
 from wb_trace import build_traceability  # noqa: E402
 from wb_v4 import build_bunker_base, build_combat, build_controllables  # noqa: E402
 from wb_audit import build_audit  # noqa: E402
+from wb_v6 import build_v6  # noqa: E402
+from wb_v7 import build_v7  # noqa: E402
+from wb_v5 import build_audio_hud, build_cv, build_squad  # noqa: E402
 from wb_transforms import build_hierarchy, build_matrices  # noqa: E402
 
 INPUT_FILES = ["build/scene_export.json", "build/test_results.json", "build/benchmark.json", "build/trace.csv",
@@ -52,10 +54,20 @@ SHEET_INFO = {
     S_PERF: "Measured FPS / frame time / submitted geometry + charts",
     S_BEHAV: "UAV tracking vs hiding rover: detection %, tracking error, hide events + time series",
     S_TRACE: "Requirement -> file -> sheet -> test -> report section (R01-R26 + V4-01..14)",
-    S_CTRL: "7 possessable objects + animated scenery: DOF, joints, technique, limits, parts, cameras (exported + design notes)",
+    S_CTRL: "Possessable objects (computed count) + animated scenery: DOF, joints, technique, limits, parts, cameras (exported + design notes)",
     S_BASE: "Underground bunker and base apron: sections, site plan, walk-space floors / walls / indoor volumes, practical lights",
     S_COMBAT: "Weapons, guidance, fuse, damage radius, measured particle census, wreck / respawn timings, IFF + keep-out rules",
-    S_AUDIT: "Requirement-by-requirement checklist: lab sheet, proposal, user v2-v4 requests, course checklist",
+    S_AUDIT: "Requirement-by-requirement checklist: lab sheet, proposal, user v2-v5 requests, course checklist",
+    S_CV: "v5 vision: CV pipeline stages, parameters, tracker (Kalman / Hungarian / triangulation), tests T130-T137",
+    S_SQUAD: "Two-UAV squad roles and strike rules, time-on-target formula, mission waves / scoring, armour, measured runs",
+    S_AUDIO: "Procedural synths, mixer, game events, HUD elements, tests T160-T178",
+    S_DAY: "v6 day cycle: sun, key light, ambient, fog, exposure, solar, beams, waves, cloud shadow; sun elevation recomputed by formula + chart",
+    S_SOLD: "v6 garrison: soldier roster (day / night duty), primitives, joints, gait constants, route lengths",
+    S_CVN: "v6 sensor noise config, noise sweep, derived seeds, tests T190-T239 (status from sheet 10)",
+    S_RT: "v7 ray tracing: 5 modes, measured GPU timings, ray tree, Russian roulette, NEE lights, a-trous kernel, SAH BVH",
+    S_FX: "v7 Frame Explorer: the 16 stages + Excel-recomputed raster, kernel, Halton and tone-curve examples",
+    S_GAME: "v7 game camera: key bindings, every POV source (possessable / ride-along), spring blend recomputed",
+    S_V7T: "v7 tests T240-T309 by work package (status from sheet 10)",
 }
 
 
@@ -121,16 +133,62 @@ def build_cover(wb, ctx):
             horizontal="center", wrap_text=True)
     ws.row_dimensions[14].height = 36
     ws.row_dimensions[15].height = 24
-    section(ws, 17, 1, "Index (click a sheet name)")
+    tiles3 = [("UAVs in the squad", f"={refs['uavs']}" if "uavs" in refs else "n/a", "0", "sheet 19"),
+              ("Vision tests", f"={refs['cv_tests']}" if "cv_tests" in refs else "n/a", None, "T130-T137, sheet 18"),
+              ("Rounds to kill", f"={refs['rounds_to_kill']}" if "rounds_to_kill" in refs else "n/a", "0", "at centre, sheet 19"),
+              ("Breaches = base lost", f"={refs['breaches_to_lose']}" if "breaches_to_lose" in refs else "n/a", "0", "sheet 19"),
+              ("Synthesised sounds", f"={refs['synths']}" if "synths" in refs else "n/a", "0", "sheet 20"),
+              ("HUD elements", f"={refs['hud_elements']}" if "hud_elements" in refs else "n/a", "0", "sheet 20"),
+              ("Game event types", f"={refs['event_types']}" if "event_types" in refs else "n/a", "0", "sheet 20")]
+    for k, (label, f, fmt, note) in enumerate(tiles3):
+        c = 1 + k
+        a = ws.cell(row=16, column=c, value=label)
+        a.font, a.fill, a.alignment = Font(bold=True, color="D1D5DB", size=9), tile_fill, Alignment(horizontal="center")
+        v = ws.cell(row=17, column=c, value=f)
+        v.font, v.fill = Font(bold=True, color="FFFFFF", size=18), tile_fill
+        v.alignment = Alignment(horizontal="center", vertical="center")
+        if fmt:
+            v.number_format = fmt
+        n = ws.cell(row=18, column=c, value=note)
+        n.font, n.fill, n.alignment = Font(italic=True, color="9CA3AF", size=8), tile_fill, Alignment(
+            horizontal="center", wrap_text=True)
+    ws.row_dimensions[17].height = 36
+    ws.row_dimensions[18].height = 24
+    tiles4 = [("Ray-tracing modes", f"={refs['rt_modes']}" if "rt_modes" in refs else "n/a", "0", "sheet 24"),
+              ("BVH primitives", f"={refs['bvh_prims']}" if "bvh_prims" in refs else "n/a", "#,##0", "SAH BVH, sheet 24"),
+              ("SAH vs median cost", f"={refs['bvh_sah_gain']}" if "bvh_sah_gain" in refs else "n/a", "0.00", "x cheaper, sheet 24"),
+              ("Explorer stages", f"={refs['fx_stages']}" if "fx_stages" in refs else "n/a", "0", "sheet 25"),
+              ("POV sources", f"={refs['pov_sources']}" if "pov_sources" in refs else "n/a", "0", "jump-in cameras, sheet 26"),
+              ("v7 tests passed", f"={refs['v7_tests_passed']}&\" / \"&{refs['v7_tests']}" if "v7_tests" in refs else "n/a", None,
+               "T240-T309, sheet 27"),
+              ("Camera jump blend (s)", f"={refs['rig_blend']}" if "rig_blend" in refs else "n/a", "0.00", "spring, sheet 26")]
+    for k, (label, f, fmt, note) in enumerate(tiles4):
+        c = 1 + k
+        a = ws.cell(row=19, column=c, value=label)
+        a.font, a.fill, a.alignment = Font(bold=True, color="D1D5DB", size=9), tile_fill, Alignment(horizontal="center")
+        v = ws.cell(row=20, column=c, value=f)
+        v.font, v.fill = Font(bold=True, color="FFFFFF", size=18), tile_fill
+        v.alignment = Alignment(horizontal="center", vertical="center")
+        if fmt:
+            v.number_format = fmt
+        n = ws.cell(row=21, column=c, value=note)
+        n.font, n.fill, n.alignment = Font(italic=True, color="9CA3AF", size=8), tile_fill, Alignment(
+            horizontal="center", wrap_text=True)
+    ws.row_dimensions[20].height = 36
+    ws.row_dimensions[21].height = 24
+    section(ws, 23, 1, "Index (click a sheet name)")
     for i, name in enumerate(SHEET_ORDER):
-        r = 18 + i
+        r = 24 + i
         put(ws, r, 1, i)
         c = put(ws, r, 2, name)
         link(c, name, "A1", name)
         ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=3)
-        put(ws, r, 4, SHEET_INFO.get(name, ""))
+        info = SHEET_INFO.get(name, "")
+        if name == S_CTRL and "ctrl_possessable" in refs:
+            info = f'={refs["ctrl_possessable"]}&" possessable objects + animated scenery: DOF, joints, technique, limits, parts, cameras (exported + design notes)"'
+        put(ws, r, 4, info)
         ws.merge_cells(start_row=r, start_column=4, end_row=r, end_column=7)
-    _legend(ws, 18 + len(SHEET_ORDER) + 1)
+    _legend(ws, 24 + len(SHEET_ORDER) + 1)
     image(ws, "I4", path("report/figures/scene_visible.png"), width=560)
     ws["I3"] = "Hero shot: report/figures/scene_visible.png (captured by ThermalSense.exe --capture)"
     ws["I3"].font = SUBTITLE_FONT
@@ -170,7 +228,7 @@ def main():
     if _arg("--leaves", None):
         import wb_common
         wb_common.set_leaves(_arg("--leaves", None), _arg("--groups", None))
-    scene = load_json("build/scene_export.json")
+    scene = load_json(_arg("--scene", "build/scene_export.json"))
     if scene is None or "mesh_samples" not in scene:
         sys.exit("build/scene_export.json missing or old - run `mingw32-make docs` (build/export_docs.exe) first")
     trace_csv = path("build/trace.csv")
@@ -202,6 +260,11 @@ def main():
     build_controllables(wb, ctx)
     build_combat(wb, ctx)   # after sheet 14 (weapon rows read its spec table)
     build_bunker_base(wb, ctx)
+    build_cv(wb, ctx)
+    build_squad(wb, ctx)
+    build_audio_hud(wb, ctx)
+    build_v6(wb, ctx)
+    build_v7(wb, ctx)
     build_audit(wb, ctx)
     build_traceability(wb, ctx)
     build_cover(wb, ctx)

@@ -1,0 +1,27 @@
+Run seed 1 (repeat with --seed 1)
+Headless OpenGL context: EGL surfaceless (WSL d3d12) (Mesa Project, EGL 1.5)
+OpenGL 4.6 (Core Profile) Mesa 26.0.8-1ubuntu0.3 | Microsoft Corporation | D3D12 (NVIDIA GeForce RTX 4070)
+Quality preset: EPIC
+game capture: 1280x720, quality EPIC
+POV: INTRUDER R1 (INTRUDER ROVER, ALT CAM)
+Control: INTRUDER R1 (planner paused, the UAVs still hunt it)
+wrote build/cap-runs/g7b/game_rover_bumper.png (t = 11.2 s, cam POV, INTRUDER R1, eye -11.3 0.7 8.5)
+wrote build/cap-runs/g7b/game_rover_chase.png (t = 11.9 s, cam POV, INTRUDER R1, eye -10.5 0.5 7.9)
+POV: UAV-2 DRONE (WING) (UAV, FIRST PERSON)
+wrote build/cap-runs/g7b/game_uav2_gimbal.png (t = 12.1 s, cam POV, UAV-2 DRONE (WING), eye -3.1 6.8 -3.1)
+POV: UAV ROUND (UAV-1) (MISSILE, FIRST PERSON)
+wrote build/cap-runs/g7b/game_missile_follow.png (t = 19.3 s, cam POV, UAV ROUND (UAV-1), eye 4.7 3.7 9.0)
+POV: UAV ROUND (UAV-1) ended, holding
+wrote build/cap-runs/g7b/game_missile_impact.png (t = 19.8 s, cam POV, UAV ROUND (UAV-1), eye 11.0 3.0 6.9)
+wrote build/cap-runs/g7b/game_picker.png (t = 19.9 s, cam ORBIT, -, eye 16.1 16.2 25.7)
+POV: SOLDIER 1 SENTRY (SOLDIER, FIRST PERSON)
+wrote build/cap-runs/g7b/game_jump_blend.png (t = 24.3 s, cam POV, SOLDIER 1 SENTRY, eye 3.7 8.6 22.3)
+Control: SOLDIER 1 SENTRY
+wrote build/cap-runs/g7b/game_soldier_fp.png (t = 26.5 s, cam CONTROL, SOLDIER 1 SENTRY, eye -0.8 1.5 22.9)
+wrote build/cap-runs/g7b/game_soldier_fire.png (t = 26.8 s, cam CONTROL, SOLDIER 1 SENTRY, eye -0.8 1.5 23.0)
+POV: MH-6 HELICOPTER (HELICOPTER, FIRST PERSON)
+wrote build/cap-runs/g7b/game_heli_cockpit.png (t = 26.9 s, cam POV, MH-6 HELICOPTER, eye 19.4 1.4 16.3)
+POV: MBT-1 TANK (TANK, ALT CAM)
+wrote build/cap-runs/g7b/game_tank_commander.png (t = 27.0 s, cam POV, MBT-1 TANK, eye -22.3 2.6 -15.5)
+wrote build/cap-runs/g7b/game_free_fly.png (t = 27.1 s, cam FREE, -, eye 14.0 7.0 16.0)
+game capture: 12 written, 0 failed

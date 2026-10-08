@@ -1,0 +1,567 @@
+t=  0.0 clock=23:00 uav=SEARCH    pos( 0.00, 7.50,12.50) blobs=0 found=0 rover=EXPOSED (-15.17, 6.65)
+t=  1.0 clock=23:00 uav=SEARCH    pos( 1.13, 7.49,11.40) blobs=0 found=0 rover=EXPOSED (-14.86, 6.65)
+t=  2.0 clock=23:00 uav=SEARCH    pos( 3.58, 7.49, 9.35) blobs=0 found=0 rover=HIDDEN  (-14.76, 7.16)
+t=  3.0 clock=23:00 uav=SEARCH    pos( 6.21, 7.57, 7.53) blobs=0 found=0 rover=EXPOSED (-14.74, 7.88)
+t=  4.0 clock=23:00 uav=SEARCH    pos( 7.67, 7.66, 6.76) blobs=1 found=0 rover=EXPOSED (-14.74, 8.61)
+t=  5.0 clock=23:00 uav=SEARCH    pos( 6.59, 7.64, 7.46) blobs=0 found=0 rover=EXPOSED (-14.74, 9.32)
+t=  6.0 clock=23:00 uav=SEARCH    pos( 4.49, 7.56, 8.31) blobs=0 found=0 rover=EXPOSED (-14.62, 9.71)
+t=  7.0 clock=23:00 uav=SEARCH    pos( 2.49, 7.51, 8.71) blobs=0 found=0 rover=EXPOSED (-14.04, 9.74)
+t=  8.0 clock=23:00 uav=SEARCH    pos( 0.57, 7.40, 8.70) blobs=0 found=0 rover=EXPOSED (-13.32, 9.76)
+t=  9.0 clock=23:00 uav=SEARCH    pos(-1.22, 7.36, 8.33) blobs=0 found=0 rover=EXPOSED (-12.61, 9.75)
+EVENT t=  9.53 EnemySpotted   uav=-1 track=1 value=0 combined=0 pos(-12.7,9.8)
+t= 10.0 clock=23:00 uav=TRACK     pos(-3.05, 7.11, 7.84) blobs=4 found=1 rover=EXPOSED (-12.28, 9.42)
+  soldier 0 (-0.8, -0.3, 21) SENTRY  ON GUARD AT INNER GATE  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (5.2, -0.217341, 14) WATCH  ON GUARD AT SANDBAG POST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 2 (-10, 0.0722752, 10.5) GUNNER  ON GUARD AT MG NEST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 135
+  soldier 3 (-4, -3.4, 0.3) MECHANIC  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+  soldier 4 (-3, -3.4, 1.65) LOGISTICS  OFF DUTY AT MESS BENCH  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 5 (0, -3.4, -5.25) TECHNICIAN  WORKING AT COMMAND ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 6 (28.5, -0.3, -10.4) PATROL  ON GUARD AT GUARD TOWER E  NIGHT SHIFT  SPEED 0.0 M/S  HDG 110
+  soldier 7 (-4, -3.4, 2.5) RUNNER  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+shot night_searchlights at t=10 stat_mean=-6.18156 draws=2991 tris=7106688
+t= 11.0 clock=23:00 uav=TRACK     pos(-5.07, 5.61, 8.06) blobs=4 found=1 rover=EXPOSED (-11.92, 9.22)
+t= 12.0 clock=23:00 uav=TRACK     pos(-5.27, 5.13, 8.10) blobs=5 found=1 rover=EXPOSED (-11.60, 8.79)
+EVENT t= 12.05 LockOn         uav=0 track=1 value=0 combined=0 pos(-11.6,8.7)
+EVENT t= 12.05 RoundLaunched  uav=0 track=1 value=0 combined=0 pos(-5.3,8.1)
+EVENT t= 12.30 EnemySpotted   uav=-1 track=9 value=0 combined=0 pos(-11.3,12.6)
+  soldier 0 (-0.8, -0.3, 21) SENTRY  ON GUARD AT INNER GATE  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (5.2, -0.217341, 14) WATCH  ON GUARD AT SANDBAG POST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 2 (-10, 0.0722752, 10.5) GUNNER  ON GUARD AT MG NEST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 135
+  soldier 3 (-4, -3.4, 0.3) MECHANIC  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+  soldier 4 (-3, -3.4, 1.65) LOGISTICS  OFF DUTY AT MESS BENCH  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 5 (0, -3.4, -5.25) TECHNICIAN  WORKING AT COMMAND ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 6 (28.5, -0.3, -10.4) PATROL  ON GUARD AT GUARD TOWER E  NIGHT SHIFT  SPEED 0.0 M/S  HDG 110
+  soldier 7 (-4, -3.4, 2.5) RUNNER  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+shot plan_routes at t=12.3 stat_mean=0.132711 draws=4726 tris=7565808
+EVENT t= 12.32 EnemyHit       uav=-1 track=-1 value=70 combined=0 pos(-11.5,8.8)
+EVENT t= 12.35 EnemySpotted   uav=-1 track=10 value=0 combined=0 pos(-11.7,10.2)
+t= 13.0 clock=23:00 uav=TRACK     pos(-5.06, 5.01, 8.08) blobs=123 found=0 rover=EXPOSED (-11.06, 8.75)
+t= 14.0 clock=23:00 uav=TRACK     pos(-4.61, 4.97, 8.06) blobs=3 found=1 rover=EXPOSED (-10.41, 8.74)
+lab_cv_noise: t=14.35 target frame 1 clean blobs 3 noisy blobs 3
+lab figure lab_cv_noise.png 1280x960
+EVENT t= 14.60 EnemySpotted   uav=-1 track=13 value=0 combined=0 pos(-4.1,13.6)
+t= 15.0 clock=05:27 uav=TRACK     pos(-3.84, 4.91, 8.02) blobs=5 found=1 rover=EXPOSED (-9.76, 8.74)
+EVENT t= 15.55 CombinedStrike uav=0 track=1 value=16 combined=0 pos(-9.4,8.7)
+EVENT t= 15.55 RoundLaunched  uav=1 track=1 value=0 combined=0 pos(-10.4,1.9)
+EVENT t= 15.57 RoundLaunched  uav=0 track=1 value=0 combined=0 pos(-3.4,8.0)
+EVENT t= 15.82 EnemyHit       uav=-1 track=-1 value=40 combined=0 pos(-9.4,8.9)
+EVENT t= 15.82 EnemyHit       uav=-1 track=-1 value=10 combined=0 pos(-9.4,8.9)
+EVENT t= 15.90 EnemySpotted   uav=-1 track=21 value=0 combined=0 pos(-7.5,8.3)
+t= 16.0 clock=05:31 uav=TRACK     pos(-3.12, 4.87, 7.93) blobs=7 found=1 rover=EXPOSED (-9.34, 8.95)
+t= 17.0 clock=05:36 uav=TRACK     pos(-2.40, 4.86, 7.84) blobs=2 found=1 rover=EXPOSED (-9.01, 9.22)
+t= 18.0 clock=05:40 uav=TRACK     pos(-2.45, 4.85, 8.41) blobs=1 found=1 rover=EXPOSED (-8.54, 9.25)
+EVENT t= 18.63 Dawn           uav=-1 track=-1 value=571 combined=0 pos(0.0,0.0)
+t= 19.0 clock=05:43 uav=TRACK     pos(-2.71, 4.85, 9.11) blobs=3 found=1 rover=EXPOSED (-8.03, 9.25)
+t= 20.0 clock=05:46 uav=TRACK     pos(-2.30, 4.95, 9.57) blobs=1 found=1 rover=EXPOSED (-7.83, 9.49)
+EVENT t= 20.37 Withdraw       uav=-1 track=-1 value=0 combined=0 pos(-5.9,15.2)
+t= 21.0 clock=05:47 uav=TRACK     pos(-0.75, 5.40,12.01) blobs=0 found=0 rover=EXPOSED (-7.75, 9.97)
+  soldier 0 (-0.8, -0.3, 21) SENTRY  ON GUARD AT INNER GATE  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (5.2, -0.217341, 14) WATCH  ON GUARD AT SANDBAG POST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 2 (-10, 0.0722752, 10.5) GUNNER  ON GUARD AT MG NEST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 135
+  soldier 3 (-4, -3.4, 0.3) MECHANIC  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+  soldier 4 (-3, -3.4, 1.65) LOGISTICS  OFF DUTY AT MESS BENCH  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 5 (0, -3.4, -5.25) TECHNICIAN  WORKING AT COMMAND ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 6 (28.5, -0.3, -10.4) PATROL  ON GUARD AT GUARD TOWER E  NIGHT SHIFT  SPEED 0.0 M/S  HDG 110
+  soldier 7 (-4, -3.4, 2.5) RUNNER  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+shot dawn_withdraw at t=21.3665 stat_mean=-5.95683 draws=4630 tris=7472580
+EVENT t= 21.38 DayBreak       uav=-1 track=-1 value=950 combined=0 pos(0.0,0.0)
+EVENT t= 21.43 LockOn         uav=0 track=13 value=0 combined=0 pos(-6.5,14.8)
+EVENT t= 21.43 RoundLaunched  uav=0 track=13 value=0 combined=0 pos(-0.6,13.5)
+t= 22.0 clock=09:30 uav=TRACK     pos(-1.11, 5.83,15.48) blobs=42 found=1 rover=EXPOSED (-7.74,10.48)
+EVENT t= 22.10 EnemySpotted   uav=-1 track=25 value=0 combined=0 pos(-7.2,9.9)
+t= 23.0 clock=09:30 uav=TRACK     pos(-3.83, 6.13,17.64) blobs=0 found=0 rover=EXPOSED (-7.74,10.99)
+t= 24.0 clock=09:30 uav=TRACK     pos(-7.35, 6.50,17.45) blobs=4 found=1 rover=EXPOSED (-7.75,11.49)
+t= 25.0 clock=09:30 uav=TRACK     pos(-10.02, 6.99,15.21) blobs=7 found=1 rover=EXPOSED (-8.00,11.71)
+EVENT t= 25.43 LockOn         uav=0 track=13 value=0 combined=0 pos(-8.4,11.7)
+EVENT t= 25.43 RoundLaunched  uav=0 track=13 value=0 combined=0 pos(-10.9,14.0)
+EVENT t= 25.68 EnemyDestroyed uav=-1 track=-1 value=100 combined=0 pos(-8.2,11.9)
+t= 26.0 clock=09:30 uav=SEARCH    pos(-11.49, 7.15,12.08) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+EVENT t= 26.12 EnemySpotted   uav=-1 track=34 value=0 combined=0 pos(-7.2,8.7)
+EVENT t= 26.38 EnemySpotted   uav=-1 track=35 value=0 combined=0 pos(-6.2,8.9)
+EVENT t= 26.97 EnemySpotted   uav=-1 track=36 value=0 combined=0 pos(-1.3,9.6)
+t= 27.0 clock=09:30 uav=TRACK     pos(-11.20, 7.02, 9.10) blobs=1 found=1 rover=EXPOSED (-8.19,11.93)
+EVENT t= 27.77 CombinedStrike uav=0 track=35 value=8 combined=0 pos(-4.9,4.8)
+EVENT t= 27.77 RoundLaunched  uav=1 track=35 value=0 combined=0 pos(-4.6,10.9)
+EVENT t= 27.78 RoundLaunched  uav=0 track=35 value=0 combined=0 pos(-11.1,6.5)
+EVENT t= 27.92 EnemySpotted   uav=-1 track=37 value=0 combined=0 pos(-6.7,6.5)
+t= 28.0 clock=09:30 uav=TRACK     pos(-11.09, 6.39, 5.66) blobs=3 found=1 rover=EXPOSED (-8.19,11.93)
+EVENT t= 28.27 EnemySpotted   uav=-1 track=41 value=0 combined=0 pos(-6.1,3.2)
+t= 29.0 clock=09:30 uav=TRACK     pos(-9.96, 6.00, 2.35) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+EVENT t= 29.52 Withdraw       uav=-1 track=-1 value=0 combined=0 pos(12.2,11.7)
+t= 30.0 clock=09:30 uav=TRACK     pos(-7.14, 6.18, 0.70) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 31.0 clock=09:30 uav=TRACK     pos(-3.72, 6.45, 0.77) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t= 32.0 clock=09:30 uav=REACQUIRE pos(-1.30, 6.72, 0.92) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 33.0 clock=09:30 uav=REACQUIRE pos(-0.87, 6.62,-1.07) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 34.0 clock=09:30 uav=REACQUIRE pos(-2.53, 6.41,-3.92) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 35.0 clock=09:30 uav=REACQUIRE pos(-4.13, 6.18,-6.91) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 36.0 clock=09:30 uav=REACQUIRE pos(-4.89, 6.05,-10.12) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 37.0 clock=09:30 uav=REACQUIRE pos(-4.36, 6.04,-12.56) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 38.0 clock=09:30 uav=REACQUIRE pos(-2.89, 5.96,-14.12) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 39.0 clock=09:30 uav=REACQUIRE pos(-0.91, 5.89,-14.78) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 40.0 clock=09:30 uav=REACQUIRE pos( 1.15, 5.79,-14.48) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 41.0 clock=09:30 uav=REACQUIRE pos( 2.87, 5.77,-13.30) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 42.0 clock=09:30 uav=REACQUIRE pos( 3.91, 5.78,-11.48) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 43.0 clock=09:30 uav=REACQUIRE pos( 4.05, 5.78,-9.40) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 44.0 clock=09:30 uav=SEARCH    pos( 2.97, 5.84,-7.46) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 45.0 clock=09:30 uav=SEARCH    pos( 0.10, 6.14,-6.18) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 46.0 clock=09:30 uav=SEARCH    pos(-3.01, 6.46,-5.49) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 47.0 clock=09:30 uav=SEARCH    pos(-6.18, 6.77,-5.60) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 48.0 clock=09:30 uav=SEARCH    pos(-9.05, 7.07,-6.90) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 49.0 clock=09:30 uav=SEARCH    pos(-10.47, 7.29,-9.66) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 50.0 clock=09:30 uav=SEARCH    pos(-9.34, 7.80,-12.53) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 51.0 clock=09:30 uav=SEARCH    pos(-6.80, 7.78,-14.44) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 52.0 clock=09:30 uav=SEARCH    pos(-4.00, 7.59,-15.04) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 53.0 clock=09:30 uav=SEARCH    pos(-2.01, 7.56,-13.06) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 54.0 clock=09:30 uav=SEARCH    pos(-0.31, 7.58,-10.35) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 55.0 clock=09:30 uav=SEARCH    pos( 1.39, 7.59,-7.64) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 56.0 clock=09:30 uav=SEARCH    pos( 3.09, 7.60,-4.93) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 57.0 clock=09:30 uav=SEARCH    pos( 4.35, 7.61,-2.92) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 58.0 clock=09:30 uav=SEARCH    pos( 4.74, 7.62,-2.30) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 59.0 clock=09:30 uav=SEARCH    pos( 5.51, 7.60,-2.21) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 60.0 clock=09:30 uav=SEARCH    pos( 8.40, 7.49,-1.62) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 61.0 clock=09:30 uav=SEARCH    pos(10.74, 7.42, 0.48) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t= 62.0 clock=09:30 uav=SEARCH    pos(11.30, 7.50, 3.38) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t= 63.0 clock=09:30 uav=SEARCH    pos(10.35, 7.64, 5.72) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 64.0 clock=09:30 uav=SEARCH    pos( 8.71, 7.68, 7.54) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 65.0 clock=09:30 uav=SEARCH    pos( 6.71, 7.58, 8.86) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 66.0 clock=09:30 uav=SEARCH    pos( 4.54, 7.45, 9.68) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 67.0 clock=09:30 uav=SEARCH    pos( 2.33, 7.41,10.00) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 68.0 clock=09:30 uav=SEARCH    pos( 0.22, 7.37, 9.86) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 69.0 clock=09:30 uav=SEARCH    pos(-1.77, 7.34, 9.30) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 70.0 clock=09:30 uav=SEARCH    pos(-3.53, 7.40, 8.39) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 71.0 clock=09:30 uav=SEARCH    pos(-5.01, 7.35, 7.19) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 72.0 clock=09:30 uav=SEARCH    pos(-6.17, 7.28, 5.77) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 73.0 clock=09:30 uav=SEARCH    pos(-7.01, 7.26, 4.21) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 74.0 clock=09:30 uav=SEARCH    pos(-7.51, 7.24, 2.58) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 75.0 clock=09:30 uav=SEARCH    pos(-7.68, 7.23, 0.92) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 76.0 clock=09:30 uav=SEARCH    pos(-7.55, 7.23,-0.69) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 77.0 clock=09:30 uav=SEARCH    pos(-7.13, 7.27,-2.22) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 78.0 clock=09:30 uav=SEARCH    pos(-6.44, 7.37,-3.63) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 79.0 clock=09:30 uav=SEARCH    pos(-5.52, 7.47,-4.88) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 80.0 clock=09:30 uav=SEARCH    pos(-4.38, 7.54,-5.94) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 81.0 clock=09:30 uav=SEARCH    pos(-3.07, 7.55,-6.78) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 82.0 clock=09:30 uav=SEARCH    pos(-1.60, 7.44,-7.38) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 83.0 clock=09:30 uav=SEARCH    pos(-0.02, 7.33,-7.70) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 84.0 clock=09:30 uav=SEARCH    pos( 1.63, 7.30,-7.72) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 85.0 clock=09:30 uav=SEARCH    pos( 3.30, 7.29,-7.41) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 86.0 clock=09:30 uav=SEARCH    pos( 4.94, 7.27,-6.77) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 87.0 clock=09:30 uav=SEARCH    pos( 6.47, 7.32,-5.79) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 88.0 clock=09:30 uav=SEARCH    pos( 7.83, 7.36,-4.48) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 89.0 clock=09:30 uav=SEARCH    pos( 8.93, 7.44,-2.86) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 90.0 clock=09:30 uav=SEARCH    pos( 9.72, 7.49,-0.97) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 91.0 clock=09:30 uav=SEARCH    pos( 9.78, 7.46, 1.10) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-0.93362, -0.3, 22.0778) SENTRY  WALKING  DAY SHIFT  SPEED 1.1 M/S  HDG 175
+  soldier 1 (12.6095, 0.551847, 12.3749) WATCH  WALKING  DAY SHIFT  SPEED 0.3 M/S  HDG 329
+  soldier 2 (21.9123, -0.3, -4.70633) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (11.0927, -0.3, 17.0795) MECHANIC  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 130
+  soldier 4 (19.523, -0.3, 6.47372) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 169
+  soldier 5 (19.1252, -0.228147, 4.11189) TECHNICIAN  WALKING  DAY SHIFT  SPEED 1.1 M/S  HDG 170
+  soldier 6 (1.18118, -0.113351, 17.4495) PATROL  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 173
+  soldier 7 (15.3511, -0.3, -26.8211) RUNNER  RUNNING  DAY SHIFT  SPEED 0.2 M/S  HDG 023
+shot day_overview at t=91.3717 stat_mean=-3.16447 draws=5449 tris=7562040
+t= 92.0 clock=12:00 uav=SEARCH    pos( 7.55, 7.48, 3.03) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 93.0 clock=12:00 uav=SEARCH    pos( 4.96, 7.51, 4.92) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-0.803066, -0.3, 21.0155) SENTRY  ON GUARD AT INNER GATE  DAY SHIFT  SPEED 0.0 M/S  HDG 046
+  soldier 1 (11.7411, 0.578933, 12.6844) WATCH  WALKING  DAY SHIFT  SPEED 0.9 M/S  HDG 271
+  soldier 2 (22.4975, -0.3, -7.19191) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 166
+  soldier 3 (13.033, -0.3, 15.3943) MECHANIC  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 132
+  soldier 4 (18.8902, -0.135729, 3.78992) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 174
+  soldier 5 (19.6576, -0.274925, 1.9743) TECHNICIAN  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 164
+  soldier 6 (1.5324, -0.198318, 15.3726) PATROL  WALKING  DAY SHIFT  SPEED 0.8 M/S  HDG 165
+  soldier 7 (15.385, -0.3, -26.8842) RUNNER  RUNNING  DAY SHIFT  SPEED 1.1 M/S  HDG 200
+shot sky_noon at t=93.3888 stat_mean=-3.01923 draws=4443 tris=7376496
+t= 94.0 clock=10:00 uav=SEARCH    pos( 2.86, 7.54, 6.45) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 95.0 clock=10:00 uav=SEARCH    pos( 2.18, 7.55, 6.94) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 96.0 clock=10:00 uav=SEARCH    pos( 1.98, 7.55, 7.09) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t= 97.0 clock=10:00 uav=SEARCH    pos( 1.92, 7.55, 7.14) blobs=2 found=0 rover=EXPOSED (-8.19,11.93)
+t= 98.0 clock=10:00 uav=SEARCH    pos( 1.90, 7.55, 7.15) blobs=2 found=0 rover=EXPOSED (-8.19,11.93)
+t= 99.0 clock=10:00 uav=SEARCH    pos( 1.52, 7.55, 7.52) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-0.803066, -0.3, 21.0155) SENTRY  ON GUARD AT INNER GATE  DAY SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (8.19553, 0.118658, 10.4074) WATCH  WALKING  DAY SHIFT  SPEED 0.9 M/S  HDG 184
+  soldier 2 (24.2298, -0.3, -13.1907) GUNNER  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 153
+  soldier 3 (17.766, -0.3, 10.026) MECHANIC  WALKING  DAY SHIFT  SPEED 1.1 M/S  HDG 152
+  soldier 4 (19.5611, -0.297109, -3.79593) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 182
+  soldier 5 (21.6939, -0.3, -4.52927) TECHNICIAN  WALKING  DAY SHIFT  SPEED 0.9 M/S  HDG 153
+  soldier 6 (4.32104, -0.108403, 9.81418) PATROL  WALKING  DAY SHIFT  SPEED 0.9 M/S  HDG 160
+  soldier 7 (10.0836, -0.3, -29.6377) RUNNER  ON GUARD  DAY SHIFT  SPEED 0.0 M/S  HDG 280
+shot day_patrol_spline at t=99.3901 stat_mean=-2.93419 draws=2880 tris=7145400
+t=100.0 clock=10:30 uav=SEARCH    pos(-0.89, 7.61, 9.01) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=101.0 clock=10:30 uav=SEARCH    pos(-3.99, 7.62, 9.77) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=102.0 clock=10:30 uav=SEARCH    pos(-7.16, 7.63, 9.51) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=103.0 clock=10:30 uav=SEARCH    pos(-10.08, 7.60, 8.24) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=104.0 clock=10:30 uav=SEARCH    pos(-12.42, 7.64, 6.09) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=105.0 clock=10:30 uav=SEARCH    pos(-13.85, 7.69, 3.32) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=106.0 clock=10:30 uav=SEARCH    pos(-14.81, 7.67, 0.28) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=107.0 clock=10:30 uav=SEARCH    pos(-14.92, 7.63,-2.91) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=108.0 clock=10:30 uav=SEARCH    pos(-14.24, 7.56,-6.03) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=109.0 clock=10:30 uav=SEARCH    pos(-12.85, 7.58,-8.90) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=110.0 clock=10:30 uav=SEARCH    pos(-10.85, 7.82,-11.37) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=111.0 clock=10:30 uav=SEARCH    pos(-8.34, 7.83,-13.35) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=112.0 clock=10:30 uav=SEARCH    pos(-5.47, 7.73,-14.74) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=113.0 clock=10:30 uav=SEARCH    pos(-2.36, 7.65,-15.47) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=114.0 clock=10:30 uav=SEARCH    pos( 0.83, 7.58,-15.51) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=115.0 clock=10:30 uav=SEARCH    pos( 3.96, 7.56,-14.87) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=116.0 clock=10:30 uav=SEARCH    pos( 6.87, 7.58,-13.56) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=117.0 clock=10:30 uav=SEARCH    pos( 9.43, 7.46,-11.65) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=118.0 clock=10:30 uav=SEARCH    pos(11.50, 7.54,-9.22) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=119.0 clock=10:30 uav=SEARCH    pos(12.99, 7.47,-6.40) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=120.0 clock=10:30 uav=SEARCH    pos(13.34, 7.42,-3.70) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=121.0 clock=10:30 uav=SEARCH    pos(11.22, 7.38,-2.47) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=122.0 clock=10:30 uav=SEARCH    pos( 8.07, 7.36,-1.93) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=123.0 clock=10:30 uav=SEARCH    pos( 4.91, 7.33,-1.40) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=124.0 clock=10:30 uav=SEARCH    pos( 1.76, 7.31,-0.86) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=125.0 clock=10:30 uav=SEARCH    pos(-1.40, 7.28,-0.33) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=126.0 clock=10:30 uav=SEARCH    pos(-4.55, 7.26, 0.20) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=127.0 clock=10:30 uav=SEARCH    pos(-6.30, 7.25, 1.03) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=128.0 clock=10:30 uav=SEARCH    pos(-5.57, 7.27, 3.32) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=129.0 clock=10:30 uav=SEARCH    pos(-4.63, 7.34, 6.37) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=130.0 clock=10:30 uav=SEARCH    pos(-4.90, 7.45, 8.54) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=131.0 clock=10:30 uav=SEARCH    pos(-6.08, 7.38, 7.94) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=132.0 clock=10:30 uav=SEARCH    pos(-7.25, 7.32, 6.20) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=133.0 clock=10:30 uav=SEARCH    pos(-8.04, 7.30, 4.36) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=134.0 clock=10:30 uav=SEARCH    pos(-8.44, 7.25, 2.49) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=135.0 clock=10:30 uav=SEARCH    pos(-8.46, 7.24, 0.65) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=136.0 clock=10:30 uav=SEARCH    pos(-8.13, 7.24,-1.10) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=137.0 clock=10:30 uav=SEARCH    pos(-7.49, 7.29,-2.69) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=138.0 clock=10:30 uav=SEARCH    pos(-6.59, 7.41,-4.09) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=139.0 clock=10:30 uav=SEARCH    pos(-5.47, 7.50,-5.27) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=140.0 clock=10:30 uav=SEARCH    pos(-4.18, 7.54,-6.20) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=141.0 clock=10:30 uav=SEARCH    pos(-2.76, 7.56,-6.86) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=142.0 clock=10:30 uav=SEARCH    pos(-1.26, 7.45,-7.26) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=143.0 clock=10:30 uav=SEARCH    pos( 0.29, 7.33,-7.37) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=144.0 clock=10:30 uav=SEARCH    pos( 1.84, 7.30,-7.20) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=145.0 clock=10:30 uav=SEARCH    pos( 3.35, 7.29,-6.75) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=146.0 clock=10:30 uav=SEARCH    pos( 4.78, 7.30,-6.01) blobs=2 found=0 rover=EXPOSED (-8.19,11.93)
+t=147.0 clock=10:30 uav=SEARCH    pos( 6.07, 7.42,-4.99) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=148.0 clock=10:30 uav=SEARCH    pos( 7.18, 7.44,-3.72) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=149.0 clock=10:30 uav=SEARCH    pos( 8.06, 7.52,-2.20) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+t=150.0 clock=10:30 uav=SEARCH    pos( 8.25, 7.59,-0.94) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=151.0 clock=10:30 uav=SEARCH    pos( 6.50, 7.60,-1.70) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=152.0 clock=10:30 uav=SEARCH    pos( 4.55, 7.59,-3.11) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (19.8589, -0.3, 4.31029) GUNNER  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 166
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (-0.380843, -0.3, -25.024) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 095  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (6.51133, 0.38021, 3.50885) PATROL  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 053
+  soldier 7 (-5.57585, -0.3, -21.7056) RUNNER  RUNNING  DAY SHIFT  SPEED 3.2 M/S  HDG 290
+shot day_mechanic at t=152.54 stat_mean=-4.22181 draws=730 tris=6638184
+t=153.0 clock=11:00 uav=SEARCH    pos( 3.95, 7.59,-3.54) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=154.0 clock=11:00 uav=SEARCH    pos( 3.77, 7.59,-3.67) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=155.0 clock=11:00 uav=SEARCH    pos( 3.72, 7.59,-3.71) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (20.7185, -0.3, 0.573207) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (3.10282, -0.3, -25.6939) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.1 M/S  HDG 110  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (7.13285, 0.316375, 3.56433) PATROL  WALKING  DAY SHIFT  SPEED 0.5 M/S  HDG 275
+  soldier 7 (-7.97229, -0.3, -21.0485) RUNNER  RUNNING  DAY SHIFT  SPEED 0.3 M/S  HDG 176
+shot day_logistics at t=155.573 stat_mean=-4.01284 draws=1187 tris=6698400
+t=156.0 clock=11:00 uav=SEARCH    pos( 3.70, 7.59,-3.72) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (20.8579, -0.3, -0.0486547) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (3.64196, -0.3, -25.9073) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 113  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (6.96332, 0.339039, 3.57779) PATROL  WALKING  DAY SHIFT  SPEED 0.3 M/S  HDG 272
+  soldier 7 (-7.64975, -0.3, -21.2387) RUNNER  RUNNING  DAY SHIFT  SPEED 1.1 M/S  HDG 117
+shot soldier_closeup at t=156.073 stat_mean=-3.71545 draws=3150 tris=7084656
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (20.9971, -0.3, -0.669478) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (4.18472, -0.3, -26.1539) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 116  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (6.83838, 0.353228, 3.57864) PATROL  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 268
+  soldier 7 (-6.9493, -0.3, -21.5728) RUNNER  RUNNING  DAY SHIFT  SPEED 1.9 M/S  HDG 115
+shot soldier_axes at t=156.573 stat_mean=-3.59901 draws=2815 tris=7138548
+t=157.0 clock=11:00 uav=SEARCH    pos( 3.44, 7.56,-2.18) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (21.1365, -0.3, -1.29067) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (4.72993, -0.3, -26.4282) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 118  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (6.71386, 0.365118, 3.56845) PATROL  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 262
+  soldier 7 (-5.88108, -0.3, -22.0645) RUNNER  RUNNING  DAY SHIFT  SPEED 2.7 M/S  HDG 115
+shot soldier_exploded at t=157.072 stat_mean=-3.59901 draws=754 tris=402264
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (21.276, -0.3, -1.91108) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (5.27737, -0.3, -26.725) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 119  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (6.59203, 0.374741, 3.54144) PATROL  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 252
+  soldier 7 (-4.49049, -0.3, -22.728) RUNNER  RUNNING  DAY SHIFT  SPEED 3.2 M/S  HDG 116
+shot soldier_possess_tp at t=157.572 stat_mean=-3.45525 draws=2851 tris=6975492
+t=158.0 clock=11:30 uav=SEARCH    pos( 2.40, 7.54, 0.84) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-3.68167, -0.3, 25.2048) SENTRY  ON GUARD AT GATE ROAD  DAY SHIFT  SPEED 0.0 M/S  HDG 330
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (21.4159, -0.3, -2.53113) GUNNER  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 167
+  soldier 3 (5.58461, -0.3, -21.6125) MECHANIC  WORKING AT MBT-2 ENGINE DECK  DAY SHIFT  SPEED 0.0 M/S  HDG 120
+  soldier 4 (5.82766, -0.3, -27.0399) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 120  CARRYING CRATE
+  soldier 5 (23.1022, -0.3, -18.082) TECHNICIAN  WORKING AT AA GUN PIT  DAY SHIFT  SPEED 0.0 M/S  HDG 247
+  soldier 6 (6.48021, 0.382261, 3.48678) PATROL  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 234
+  soldier 7 (-3.09432, -0.3, -23.459) RUNNER  RUNNING  DAY SHIFT  SPEED 3.1 M/S  HDG 119
+shot soldier_possess_fp at t=158.072 stat_mean=-2.7413 draws=2617 tris=6928692
+t=159.0 clock=13:00 uav=SEARCH    pos( 0.77, 7.54, 3.59) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=160.0 clock=13:00 uav=SEARCH    pos(-1.48, 7.58, 5.85) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=161.0 clock=13:00 uav=SEARCH    pos(-4.32, 7.59, 7.29) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=162.0 clock=13:00 uav=SEARCH    pos(-7.48, 7.60, 7.55) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=163.0 clock=13:00 uav=SEARCH    pos(-10.47, 7.56, 6.47) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=164.0 clock=13:00 uav=SEARCH    pos(-12.76, 7.59, 4.26) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=165.0 clock=13:00 uav=SEARCH    pos(-14.17, 7.53, 1.41) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=166.0 clock=13:00 uav=SEARCH    pos(-14.67, 7.48,-1.74) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=167.0 clock=13:00 uav=SEARCH    pos(-14.34, 7.47,-4.92) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=168.0 clock=13:00 uav=SEARCH    pos(-13.27, 7.45,-7.93) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=169.0 clock=13:00 uav=SEARCH    pos(-11.56, 7.61,-10.61) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=170.0 clock=13:00 uav=SEARCH    pos(-9.30, 7.83,-12.85) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=171.0 clock=13:00 uav=SEARCH    pos(-6.60, 7.77,-14.56) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=172.0 clock=13:00 uav=SEARCH    pos(-3.60, 7.68,-15.65) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=173.0 clock=13:00 uav=SEARCH    pos(-0.44, 7.63,-16.09) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=174.0 clock=13:00 uav=SEARCH    pos( 2.75, 7.64,-15.84) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=175.0 clock=13:00 uav=SEARCH    pos( 5.81, 7.66,-14.94) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=176.0 clock=13:00 uav=SEARCH    pos( 8.61, 7.71,-13.40) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=177.0 clock=13:00 uav=SEARCH    pos(11.02, 7.55,-11.32) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=178.0 clock=13:00 uav=SEARCH    pos(12.94, 7.61,-8.77) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=179.0 clock=13:00 uav=SEARCH    pos(14.27, 7.55,-5.86) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=180.0 clock=13:00 uav=SEARCH    pos(14.95, 7.45,-2.74) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=181.0 clock=13:00 uav=SEARCH    pos(14.93, 7.36, 0.50) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=182.0 clock=13:00 uav=SEARCH    pos(14.20, 7.36, 3.61) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=183.0 clock=13:00 uav=SEARCH    pos(12.80, 7.46, 6.48) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=184.0 clock=13:00 uav=SEARCH    pos(10.78, 7.51, 8.95) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=185.0 clock=13:00 uav=SEARCH    pos( 8.25, 7.46,10.90) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=186.0 clock=13:00 uav=SEARCH    pos( 5.33, 7.34,12.19) blobs=1 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-0.803066, -0.3, 21.0155) SENTRY  ON GUARD AT INNER GATE  DAY SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (25.8174, -0.3, -5.70674) GUNNER  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 344
+  soldier 3 (7.94553, -0.3, -27.9593) MECHANIC  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 112
+  soldier 4 (20.0305, -0.3, -5.99467) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 000  CARRYING CRATE
+  soldier 5 (24.6978, -0.3, -4.81804) TECHNICIAN  WORKING AT RADAR  DAY SHIFT  SPEED 0.0 M/S  HDG 067
+  soldier 6 (-12.273, -0.102467, 1.8453) PATROL  WALKING  DAY SHIFT  SPEED 0.2 M/S  HDG 220
+  soldier 7 (9.88396, -0.3, -29.5992) RUNNER  RUNNING  DAY SHIFT  SPEED 0.4 M/S  HDG 282
+shot day_thermal_fpv_persons at t=186.332 stat_mean=0.23492 draws=1051 tris=6707400
+EVENT t=186.35 Dusk           uav=-1 track=-1 value=1775 combined=0 pos(0.0,0.0)
+t=187.0 clock=17:45 uav=SEARCH    pos( 2.19, 7.33,12.73) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=188.0 clock=17:45 uav=SEARCH    pos(-0.75, 7.43,12.50) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-0.8, -0.3, 21) SENTRY  ON GUARD AT INNER GATE  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (25.5268, -0.3, -5.36884) GUNNER  ON GUARD  DAY SHIFT  SPEED 0.0 M/S  HDG 295
+  soldier 3 (10.1587, -0.3, -29.1078) MECHANIC  WALKING  DAY SHIFT  SPEED 1.2 M/S  HDG 107
+  soldier 4 (20.008, -0.3, -3.34656) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 359  CARRYING CRATE
+  soldier 5 (24.6978, -0.3, -4.81804) TECHNICIAN  WORKING AT RADAR  DAY SHIFT  SPEED 0.0 M/S  HDG 067
+  soldier 6 (-12.4196, -0.0894223, 1.51184) PATROL  WALKING  DAY SHIFT  SPEED 0.3 M/S  HDG 092
+  soldier 7 (6.41533, -0.3, -27.5072) RUNNER  RUNNING  DAY SHIFT  SPEED 3.2 M/S  HDG 308
+shot sky_sunset at t=188.348 stat_mean=-4.15589 draws=4245 tris=7381308
+EVENT t=188.36 DayBreak       uav=-1 track=-1 value=1730 combined=0 pos(0.0,0.0)
+t=189.0 clock=17:22 uav=SEARCH    pos(-3.09, 7.48,11.61) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=190.0 clock=17:27 uav=SEARCH    pos(-3.03, 7.53, 9.82) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=191.0 clock=17:31 uav=SEARCH    pos(-0.92, 7.56, 7.50) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+t=192.0 clock=17:35 uav=SEARCH    pos( 1.27, 7.59, 5.16) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+EVENT t=192.15 Dusk           uav=-1 track=-1 value=1760 combined=0 pos(0.0,0.0)
+t=193.0 clock=17:35 uav=SEARCH    pos( 3.46, 7.62, 2.83) blobs=0 found=0 rover=EXPOSED (-8.19,11.93)
+  soldier 0 (-0.8, -0.3, 21) SENTRY  ON GUARD AT INNER GATE  DAY SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (12.5001, 0.0481948, 9.51862) WATCH  ON GUARD AT WATCHTOWER  DAY SHIFT  SPEED 0.0 M/S  HDG 060
+  soldier 2 (25.5268, -0.3, -5.36884) GUNNER  ON GUARD  DAY SHIFT  SPEED 0.0 M/S  HDG 295
+  soldier 3 (14.5734, -0.3, -28.7154) MECHANIC  WALKING  DAY SHIFT  SPEED 1.1 M/S  HDG 048
+  soldier 4 (19.704, -0.3, 3.56913) LOGISTICS  WALKING  DAY SHIFT  SPEED 1.3 M/S  HDG 355  CARRYING CRATE
+  soldier 5 (24.6978, -0.3, -4.81804) TECHNICIAN  WORKING AT RADAR  DAY SHIFT  SPEED 0.0 M/S  HDG 067
+  soldier 6 (-7.30775, -0.220998, 4.80524) PATROL  WALKING  DAY SHIFT  SPEED 1.1 M/S  HDG 061
+  soldier 7 (-7.5558, -0.3, -21.0552) RUNNER  RUNNING  DAY SHIFT  SPEED 0.2 M/S  HDG 285
+shot dusk_shift_change at t=193.647 stat_mean=-3.88486 draws=4055 tris=7293876
+EVENT t=193.66 NightFalls     uav=-1 track=-1 value=2100 combined=0 pos(0.0,0.0)
+EVENT t=193.66 WaveStart      uav=-1 track=-1 value=2 combined=0 pos(0.0,0.0)
+t=194.0 clock=21:00 uav=SEARCH    pos( 4.97, 7.64, 1.21) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=195.0 clock=21:00 uav=SEARCH    pos( 5.42, 7.65, 0.73) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=196.0 clock=21:00 uav=SEARCH    pos( 5.17, 7.64, 0.49) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=197.0 clock=21:00 uav=SEARCH    pos( 2.61, 7.59,-0.39) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=198.0 clock=21:00 uav=SEARCH    pos(-0.20, 7.57,-1.91) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=199.0 clock=21:00 uav=SEARCH    pos(-2.53, 7.59,-4.08) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=200.0 clock=21:00 uav=SEARCH    pos(-3.35, 7.57,-6.30) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=201.0 clock=21:00 uav=SEARCH    pos(-2.36, 7.53,-7.18) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=202.0 clock=21:00 uav=SEARCH    pos(-0.92, 7.38,-7.50) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+EVENT t=202.74 EnemySpotted   uav=-1 track=42 value=0 combined=0 pos(6.1,15.7)
+t=203.0 clock=21:00 uav=TRACK     pos( 0.60, 7.31,-7.34) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=204.0 clock=21:00 uav=TRACK     pos( 1.96, 7.18,-4.93) blobs=0 found=0 rover=HIDDEN  (11.75,-13.75)
+t=205.0 clock=21:00 uav=TRACK     pos( 3.57, 6.91,-1.72) blobs=1 found=1 rover=HIDDEN  (11.75,-13.75)
+EVENT t=205.26 LockOn         uav=1 track=42 value=0 combined=0 pos(6.0,15.5)
+EVENT t=205.26 RoundLaunched  uav=1 track=42 value=0 combined=0 pos(2.3,9.7)
+EVENT t=205.53 EnemyHit       uav=-1 track=-1 value=70 combined=0 pos(6.0,15.5)
+EVENT t=205.78 EnemySpotted   uav=-1 track=51 value=0 combined=0 pos(4.5,16.1)
+t=206.0 clock=21:00 uav=TRACK     pos( 5.33, 6.53, 1.40) blobs=38 found=0 rover=EXPOSED (11.75,-13.75)
+t=207.0 clock=21:00 uav=TRACK     pos( 7.12, 6.16, 4.50) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+t=208.0 clock=21:00 uav=TRACK     pos( 9.03, 5.77, 7.52) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=209.0 clock=21:00 uav=TRACK     pos(10.68, 6.36, 9.98) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=209.28 LockOn         uav=1 track=42 value=0 combined=0 pos(6.0,15.6)
+EVENT t=209.28 RoundLaunched  uav=1 track=42 value=0 combined=0 pos(2.6,10.1)
+EVENT t=209.54 EnemyHit       uav=-1 track=-1 value=40 combined=0 pos(6.0,15.5)
+EVENT t=209.66 EnemySpotted   uav=-1 track=58 value=0 combined=0 pos(4.4,16.2)
+t=210.0 clock=21:00 uav=TRACK     pos(10.27, 7.19,10.92) blobs=55 found=0 rover=EXPOSED (11.75,-13.75)
+t=211.0 clock=21:00 uav=TRACK     pos( 7.89, 7.07,10.00) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=212.0 clock=21:00 uav=TRACK     pos( 6.35, 6.68, 9.68) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=213.0 clock=21:00 uav=TRACK     pos( 6.79, 6.11,11.30) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=214.0 clock=21:00 uav=TRACK     pos( 8.13, 5.52,11.85) blobs=7 found=1 rover=EXPOSED (11.75,-13.75)
+t=215.0 clock=21:00 uav=TRACK     pos( 9.60, 6.35,11.22) blobs=4 found=0 rover=EXPOSED (11.75,-13.75)
+t=216.0 clock=21:00 uav=TRACK     pos(11.42, 7.13,12.64) blobs=6 found=0 rover=EXPOSED (11.75,-13.75)
+t=217.0 clock=21:00 uav=TRACK     pos(12.03, 5.92,14.78) blobs=3 found=1 rover=EXPOSED (11.75,-13.75)
+EVENT t=217.31 CombinedStrike uav=0 track=42 value=7 combined=0 pos(6.1,15.5)
+EVENT t=217.31 RoundLaunched  uav=0 track=42 value=0 combined=0 pos(12.1,15.0)
+EVENT t=217.32 RoundLaunched  uav=1 track=42 value=0 combined=0 pos(3.0,10.3)
+EVENT t=217.47 EnemySpotted   uav=-1 track=76 value=0 combined=0 pos(4.7,15.8)
+EVENT t=217.57 EnemyHit       uav=-1 track=-1 value=10 combined=0 pos(6.0,15.5)
+EVENT t=217.57 EnemyDestroyed uav=-1 track=-1 value=150 combined=1 pos(6.0,15.5)
+EVENT t=217.71 EnemySpotted   uav=-1 track=80 value=0 combined=0 pos(13.6,9.9)
+t=218.0 clock=21:00 uav=TRACK     pos(12.29, 5.07,15.09) blobs=1 found=1 rover=EXPOSED ( 5.96,15.50)
+EVENT t=218.16 EnemySpotted   uav=-1 track=81 value=0 combined=0 pos(13.3,9.9)
+t=219.0 clock=21:00 uav=TRACK     pos(11.62, 4.80,15.66) blobs=4 found=1 rover=EXPOSED ( 5.96,15.50)
+t=220.0 clock=21:00 uav=TRACK     pos(11.12, 4.74,16.02) blobs=4 found=1 rover=EXPOSED ( 5.96,15.50)
+EVENT t=220.22 LockOn         uav=0 track=80 value=0 combined=0 pos(13.8,10.9)
+EVENT t=220.22 RoundLaunched  uav=0 track=80 value=0 combined=0 pos(11.0,16.1)
+EVENT t=220.37 EnemySpotted   uav=-1 track=102 value=0 combined=0 pos(14.0,9.7)
+EVENT t=220.47 EnemyHit       uav=-1 track=-1 value=70 combined=0 pos(14.0,10.8)
+t=221.0 clock=21:00 uav=TRACK     pos(10.69, 4.74,16.31) blobs=72 found=1 rover=EXPOSED ( 5.96,15.50)
+t=222.0 clock=21:00 uav=TRACK     pos(10.49, 4.77,16.44) blobs=2 found=0 rover=EXPOSED ( 5.96,15.50)
+t=223.0 clock=21:00 uav=TRACK     pos(10.45, 4.79,16.46) blobs=3 found=0 rover=EXPOSED ( 5.96,15.50)
+EVENT t=223.56 EnemySpotted   uav=-1 track=106 value=0 combined=0 pos(15.0,10.0)
+t=224.0 clock=21:00 uav=TRACK     pos(10.77, 4.82,16.23) blobs=3 found=1 rover=EXPOSED ( 5.96,15.50)
+EVENT t=224.59 CombinedStrike uav=0 track=106 value=15 combined=0 pos(13.7,10.3)
+EVENT t=224.59 RoundLaunched  uav=1 track=106 value=0 combined=0 pos(9.2,13.4)
+EVENT t=224.61 RoundLaunched  uav=0 track=106 value=0 combined=0 pos(10.8,16.1)
+EVENT t=224.86 EnemyHit       uav=-1 track=-1 value=40 combined=0 pos(13.7,10.3)
+EVENT t=224.94 EnemySpotted   uav=-1 track=112 value=0 combined=0 pos(19.1,9.8)
+EVENT t=224.94 EnemySpotted   uav=-1 track=117 value=0 combined=0 pos(12.5,6.5)
+EVENT t=224.94 EnemySpotted   uav=-1 track=120 value=0 combined=0 pos(11.8,7.3)
+EVENT t=224.94 EnemySpotted   uav=-1 track=122 value=0 combined=0 pos(13.9,11.2)
+EVENT t=224.94 EnemySpotted   uav=-1 track=123 value=0 combined=0 pos(15.7,13.6)
+EVENT t=224.94 EnemySpotted   uav=-1 track=131 value=0 combined=0 pos(10.9,8.9)
+EVENT t=224.94 EnemySpotted   uav=-1 track=136 value=0 combined=0 pos(12.5,11.6)
+EVENT t=224.96 EnemySpotted   uav=-1 track=176 value=0 combined=0 pos(12.3,13.2)
+EVENT t=224.97 EnemySpotted   uav=-1 track=179 value=0 combined=0 pos(20.0,10.5)
+EVENT t=224.97 EnemySpotted   uav=-1 track=180 value=0 combined=0 pos(19.4,12.9)
+EVENT t=224.97 EnemySpotted   uav=-1 track=183 value=0 combined=0 pos(15.2,10.7)
+EVENT t=224.99 EnemySpotted   uav=-1 track=205 value=0 combined=0 pos(10.7,-4.9)
+EVENT t=224.99 EnemySpotted   uav=-1 track=211 value=0 combined=0 pos(21.0,11.0)
+EVENT t=224.99 EnemySpotted   uav=-1 track=229 value=0 combined=0 pos(12.1,9.9)
+EVENT t=224.99 EnemySpotted   uav=-1 track=248 value=0 combined=0 pos(11.2,11.3)
+t=225.0 clock=21:00 uav=TRACK     pos(10.82, 4.83,16.13) blobs=8 found=1 rover=EXPOSED ( 5.96,15.50)
+EVENT t=225.04 EnemySpotted   uav=-1 track=286 value=0 combined=0 pos(18.1,10.3)
+EVENT t=225.04 EnemySpotted   uav=-1 track=291 value=0 combined=0 pos(14.3,14.7)
+EVENT t=225.04 EnemySpotted   uav=-1 track=293 value=0 combined=0 pos(13.1,8.8)
+EVENT t=225.04 EnemySpotted   uav=-1 track=294 value=0 combined=0 pos(12.6,9.4)
+EVENT t=225.04 EnemySpotted   uav=-1 track=309 value=0 combined=0 pos(9.8,10.0)
+EVENT t=225.06 EnemySpotted   uav=-1 track=322 value=0 combined=0 pos(21.3,9.7)
+EVENT t=225.07 EnemySpotted   uav=-1 track=353 value=0 combined=0 pos(13.1,7.7)
+EVENT t=225.07 EnemySpotted   uav=-1 track=361 value=0 combined=0 pos(15.1,14.7)
+EVENT t=225.07 EnemySpotted   uav=-1 track=363 value=0 combined=0 pos(15.2,14.5)
+EVENT t=225.07 EnemySpotted   uav=-1 track=365 value=0 combined=0 pos(11.9,11.1)
+EVENT t=225.09 EnemySpotted   uav=-1 track=373 value=0 combined=0 pos(13.3,11.4)
+EVENT t=225.09 EnemySpotted   uav=-1 track=378 value=0 combined=0 pos(10.9,10.7)
+EVENT t=225.12 EnemySpotted   uav=-1 track=395 value=0 combined=0 pos(20.6,8.1)
+EVENT t=225.12 EnemySpotted   uav=-1 track=401 value=0 combined=0 pos(22.4,10.7)
+t=226.0 clock=21:00 uav=TRACK     pos(10.68, 4.78,16.31) blobs=4 found=0 rover=EXPOSED ( 5.96,15.50)
+t=227.0 clock=21:00 uav=TRACK     pos(10.24, 4.85,16.50) blobs=1 found=0 rover=EXPOSED ( 5.96,15.50)
+t=228.0 clock=21:00 uav=TRACK     pos( 9.66, 4.97,16.61) blobs=4 found=0 rover=EXPOSED ( 5.96,15.50)
+t=229.0 clock=21:00 uav=TRACK     pos( 7.79, 5.40,15.50) blobs=7 found=1 rover=EXPOSED ( 5.96,15.50)
+t=230.0 clock=21:00 uav=TRACK     pos( 5.74, 5.81,12.64) blobs=1 found=1 rover=EXPOSED ( 5.96,15.50)
+t=231.0 clock=21:00 uav=TRACK     pos( 6.07, 6.37, 9.18) blobs=4 found=0 rover=EXPOSED ( 5.96,15.50)
+t=232.0 clock=21:00 uav=TRACK     pos( 8.61, 6.77, 6.87) blobs=3 found=0 rover=EXPOSED ( 5.96,15.50)
+t=233.0 clock=21:00 uav=TRACK     pos(11.78, 7.19, 7.27) blobs=2 found=1 rover=EXPOSED (11.75,-13.75)
+t=234.0 clock=21:00 uav=TRACK     pos(13.11, 7.59, 9.68) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=235.0 clock=21:00 uav=TRACK     pos(11.90, 8.08,11.33) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=236.0 clock=21:00 uav=TRACK     pos(10.59, 8.63,10.33) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=236.69 Breach         uav=-1 track=-1 value=10 combined=0 pos(-7.3,-4.2)
+t=237.0 clock=21:00 uav=TRACK     pos(11.68, 9.09, 8.14) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=237.25 EnemySpotted   uav=-1 track=628 value=0 combined=0 pos(10.7,9.3)
+t=238.0 clock=21:00 uav=TRACK     pos(13.51, 9.15, 7.47) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=239.0 clock=21:00 uav=TRACK     pos(12.96, 9.24, 8.51) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=240.0 clock=21:00 uav=TRACK     pos(10.25, 9.39,10.44) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=241.0 clock=21:00 uav=TRACK     pos( 8.77, 9.56,10.97) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=242.0 clock=21:00 uav=TRACK     pos( 9.92, 9.67,11.28) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=243.0 clock=21:00 uav=REACQUIRE pos(11.30, 9.34,11.08) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=244.0 clock=21:00 uav=REACQUIRE pos(10.08, 8.07,11.70) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=244.62 EnemySpotted   uav=-1 track=629 value=0 combined=0 pos(11.0,9.9)
+t=245.0 clock=21:00 uav=TRACK     pos( 7.42, 6.75,10.90) blobs=1 found=0 rover=HIDDEN  (11.75,-13.75)
+t=246.0 clock=21:00 uav=TRACK     pos( 7.01, 6.41, 9.60) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+t=247.0 clock=21:00 uav=TRACK     pos( 9.08, 7.03, 9.52) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=248.0 clock=21:00 uav=TRACK     pos(11.27, 8.04,11.56) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=249.0 clock=21:00 uav=TRACK     pos(11.85, 8.94,12.73) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=250.0 clock=21:00 uav=TRACK     pos(10.79, 9.55,11.49) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=251.0 clock=21:00 uav=TRACK     pos(10.12, 9.84, 9.75) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=252.0 clock=21:00 uav=TRACK     pos( 9.43, 9.93,10.69) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=253.0 clock=21:00 uav=TRACK     pos( 9.35, 9.78,13.56) blobs=2 found=0 rover=EXPOSED (11.75,-13.75)
+t=254.0 clock=21:00 uav=TRACK     pos(10.06, 9.61,14.64) blobs=3 found=0 rover=EXPOSED (11.75,-13.75)
+t=255.0 clock=21:00 uav=TRACK     pos(12.04, 9.47,13.75) blobs=5 found=1 rover=EXPOSED (11.75,-13.75)
+t=256.0 clock=21:00 uav=TRACK     pos(12.84, 9.53,11.69) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=257.0 clock=21:00 uav=TRACK     pos(11.22, 9.59,10.66) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=258.0 clock=21:00 uav=TRACK     pos( 8.70, 9.65,10.24) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=259.0 clock=21:00 uav=REACQUIRE pos( 7.37, 8.92,10.18) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=259.26 EnemySpotted   uav=-1 track=674 value=0 combined=0 pos(10.3,10.7)
+t=260.0 clock=21:00 uav=TRACK     pos( 6.52, 7.09, 9.36) blobs=2 found=1 rover=EXPOSED (11.75,-13.75)
+t=261.0 clock=21:00 uav=TRACK     pos( 8.05, 6.73, 9.27) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+t=262.0 clock=21:00 uav=TRACK     pos(11.02, 7.68,10.55) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=263.0 clock=21:00 uav=TRACK     pos(12.11, 8.66,11.88) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=264.0 clock=21:00 uav=TRACK     pos(11.08, 9.38,11.15) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=265.0 clock=21:00 uav=REACQUIRE pos(10.64, 9.39, 9.04) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=266.0 clock=21:00 uav=REACQUIRE pos(12.19, 8.30, 8.66) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=266.36 EnemySpotted   uav=-1 track=690 value=0 combined=0 pos(11.0,10.5)
+t=267.0 clock=21:00 uav=TRACK     pos(13.62, 7.09,10.41) blobs=4 found=0 rover=EXPOSED (11.75,-13.75)
+t=268.0 clock=21:00 uav=TRACK     pos(12.62, 6.98,11.54) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=269.0 clock=21:00 uav=TRACK     pos(10.52, 7.77,10.30) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=270.0 clock=21:00 uav=TRACK     pos(10.21, 8.66, 7.65) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=271.0 clock=21:00 uav=TRACK     pos(11.09, 9.32, 7.26) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=272.0 clock=21:00 uav=TRACK     pos(10.86, 9.65, 9.46) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=273.0 clock=21:00 uav=TRACK     pos( 9.13, 9.77,10.92) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=274.0 clock=21:00 uav=REACQUIRE pos( 8.72, 9.71,10.02) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=275.0 clock=21:00 uav=REACQUIRE pos( 8.18, 8.07, 7.72) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=275.34 EnemySpotted   uav=-1 track=697 value=0 combined=0 pos(10.5,9.6)
+t=276.0 clock=21:00 uav=TRACK     pos( 9.03, 6.61, 5.77) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+t=277.0 clock=21:00 uav=TRACK     pos(10.32, 6.40, 6.41) blobs=4 found=1 rover=EXPOSED (11.75,-13.75)
+t=278.0 clock=21:00 uav=TRACK     pos(10.44, 7.34, 9.23) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=279.0 clock=21:00 uav=TRACK     pos( 8.42, 8.38,11.28) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=279.36 EnemySpotted   uav=-1 track=711 value=0 combined=0 pos(9.9,10.1)
+t=280.0 clock=21:00 uav=TRACK     pos( 7.92, 9.23,11.79) blobs=3 found=0 rover=EXPOSED (11.75,-13.75)
+t=281.0 clock=21:00 uav=TRACK     pos( 9.41, 9.60,10.23) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=282.0 clock=21:00 uav=TRACK     pos(11.61, 9.74, 9.55) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=283.0 clock=21:00 uav=REACQUIRE pos(11.61, 9.61,10.14) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=284.0 clock=21:00 uav=REACQUIRE pos(10.21, 8.17,12.16) blobs=2 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=284.51 EnemySpotted   uav=-1 track=713 value=0 combined=0 pos(10.5,10.2)
+t=285.0 clock=21:00 uav=TRACK     pos( 7.86, 6.62,13.20) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+t=286.0 clock=21:00 uav=TRACK     pos( 7.29, 6.15,12.52) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=287.0 clock=21:00 uav=TRACK     pos( 8.35, 6.99,10.40) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=288.0 clock=21:00 uav=TRACK     pos( 9.55, 8.23, 9.33) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=289.0 clock=21:00 uav=TRACK     pos(10.98, 9.12, 9.57) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=290.0 clock=21:00 uav=TRACK     pos(12.04, 9.62, 8.27) blobs=2 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=290.67 EnemySpotted   uav=-1 track=714 value=0 combined=0 pos(11.6,8.8)
+EVENT t=290.76 EnemySpotted   uav=-1 track=717 value=0 combined=0 pos(11.4,9.2)
+t=291.0 clock=21:00 uav=TRACK     pos(12.64, 9.61, 8.10) blobs=2 found=0 rover=EXPOSED (11.75,-13.75)
+t=292.0 clock=21:00 uav=TRACK     pos(11.23, 9.50, 8.48) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=293.0 clock=21:00 uav=TRACK     pos( 8.62, 9.68, 7.07) blobs=1 found=0 rover=EXPOSED (11.75,-13.75)
+t=294.0 clock=21:00 uav=TRACK     pos( 7.70, 9.78, 5.89) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=295.0 clock=21:00 uav=TRACK     pos( 8.59, 9.70, 6.76) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=296.0 clock=21:00 uav=TRACK     pos( 8.38, 9.63, 9.24) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=297.0 clock=21:00 uav=TRACK     pos( 7.92, 9.72,12.03) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=298.0 clock=21:00 uav=REACQUIRE pos( 8.42, 9.17,13.52) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=298.65 EnemySpotted   uav=-1 track=723 value=0 combined=0 pos(10.3,9.7)
+t=299.0 clock=21:00 uav=TRACK     pos( 7.43, 7.03,14.61) blobs=3 found=0 rover=EXPOSED (11.75,-13.75)
+t=300.0 clock=21:00 uav=TRACK     pos( 7.13, 6.04,13.72) blobs=1 found=1 rover=EXPOSED (11.75,-13.75)
+t=301.0 clock=21:00 uav=TRACK     pos( 8.34, 6.80,11.15) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=302.0 clock=21:00 uav=TRACK     pos(10.98, 7.95, 9.41) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=303.0 clock=21:00 uav=TRACK     pos(12.10, 8.96, 9.63) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=304.0 clock=21:00 uav=REACQUIRE pos(10.52, 9.44,10.87) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=305.0 clock=21:00 uav=REACQUIRE pos( 8.79, 9.09,10.91) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=306.0 clock=21:00 uav=REACQUIRE pos( 9.59, 8.00, 9.68) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+EVENT t=306.30 EnemySpotted   uav=-1 track=741 value=0 combined=0 pos(10.4,9.9)
+t=307.0 clock=21:00 uav=TRACK     pos(11.98, 7.18, 9.33) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+t=308.0 clock=21:00 uav=TRACK     pos(12.82, 7.37, 9.26) blobs=0 found=0 rover=EXPOSED (11.75,-13.75)
+  soldier 0 (-0.8, -0.3, 21) SENTRY  ON GUARD AT INNER GATE  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 1 (5.21692, -0.216077, 13.9935) WATCH  ON GUARD AT SANDBAG POST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 000
+  soldier 2 (-9.9963, 0.0721529, 10.4849) GUNNER  ON GUARD AT MG NEST  NIGHT SHIFT  SPEED 0.0 M/S  HDG 135
+  soldier 3 (-4, -3.4, 0.3) MECHANIC  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+  soldier 4 (-3, -3.4, 1.65) LOGISTICS  OFF DUTY AT MESS BENCH  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180  CARRYING CRATE
+  soldier 5 (0.00235263, -3.4, -5.23462) TECHNICIAN  WORKING AT COMMAND ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 180
+  soldier 6 (28.4878, -0.3, -10.3901) PATROL  ON GUARD AT GUARD TOWER E  NIGHT SHIFT  SPEED 0.0 M/S  HDG 110
+  soldier 7 (-4, -3.4, 2.5) RUNNER  OFF DUTY AT BUNK ROOM  NIGHT SHIFT  SPEED 0.0 M/S  HDG 090
+shot bunker_offduty at t=308.319 stat_mean=-6.21484 draws=2079 tris=6717132

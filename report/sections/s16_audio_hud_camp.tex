@@ -1,0 +1,40 @@
+% =====================================================================
+\section{Sound, Game HUD and the Hidden Camp}\label{sec:v5media}
+\pipestrip{10}
+\subsection{Procedural audio (\code{src/audio})}
+\sheetfig{s20_sounds}
+\sheetfig{s20_mixer}
+Like the geometry, the sound uses no files: every clip is synthesised at 48\,kHz from seeded noise, sines and state-variable filters (\code{Dsp.h}). The only third-party code is the single-header
+\code{miniaudio} (device output only). \code{AudioEngine} runs live when a device exists and does nothing headless.
+\begin{itemize}
+  \item \textbf{Continuous sources.} UAV hum: 4 detuned rotors $\times$ 6 blade-pass harmonics ($h^{-1.3}$) at $f=105+7v$\,Hz plus band-passed noise (one source per UAV). Helicopter: 25\,Hz blade-slap train scaled by rotor
+  fraction, turbine whine. Tank: 16\,Hz firing-pulse train plus track clatter while driving. Missiles and shells in flight: noise band-passes with Doppler.
+  \item \textbf{One-shots.} Launch whoosh (band-pass noise, centre $350\to2750$\,Hz); explosion (6\,ms crack, boom sweeping $100\to30$\,Hz, noise body through a closing low-pass $4\,\text{kHz}\to250$\,Hz, 90\,Hz rumble tail; length $2+1.5\,p$ s; energy grows with power);
+  cannon; Gatling (55 shots/s with spin-up); door motor and clunk; wave siren (650--1000\,Hz triangle sweep); breach klaxon; radio beeps for lock, confirm and kill.
+  \item \textbf{Ambient bed.} Gusting wind, seven crickets (4.3--5.2\,kHz chirps), 50\,Hz generator hum.
+  \item \textbf{Spatial mix.} Equal-power panning from the listener's right vector, gain $\text{ref}/\max(d,\text{ref})$, air absorption (one-pole cut-off $16\,\text{kHz}\,e^{-d/90}$), half-strength Doppler clamped to 0.9--1.1; a 24-voice pool steals the quietest
+  voice; master volume then a $\tanh$ soft limiter with ceiling 0.88 ($-1.1$\,dBFS).
+  \item \textbf{Offline mix for video.} \cli{record} renders the same engine offline (\code{renderOffline}) frame by frame into a WAV and muxes it into the MP4 with ffmpeg (AAC, 192\,kb/s), so the demo video has sound.
+\end{itemize}
+Demo mix (10\,s, two drones, lock, launch, explosion, siren): RMS $-22.0$\,dBFS, peak $-4.46$\,dBFS (no clipping). Tests T160--T169 (12 checks) pass. Levels were tuned by RMS and spectrogram only, not by ear.
+
+\subsection{Game HUD (\code{HudMath}, \code{AppHud})}
+\sheetfig{s20_hud_tests}
+The HUD logic is CPU-only and tested (T170--T178): marker projection with edge arrows, bracket size by distance (10--120\,px at 900p), banner timing and the event queue. It draws (a) \emph{enemy markers}: red brackets with ``ID n  d M'', a health bar, a pulsing LOCK ring on the squad target after 0.5\,s of lock, amber diamonds at the predicted lead points while rounds are inbound, edge arrows off-screen;
+(b) \emph{UAV tags} ``UAV-1 LEAD'', ``UAV-2 WING'', ``PATROL'' with lines to the target; (c) a \emph{top bar} with wave, score, kills (combined), enemies, a base-integrity bar (green to red) and the strike state
+(``COMBINED STRIKE PLANNED / INBOUND''); (d) \emph{banners}: WAVE n INCOMING, ENEMY SPOTTED, COMBINED STRIKE, ``+100'' / ``+150'', a white X hit marker, BREACH $-10$\,\% with a red edge flash, BASE LOST then RESTARTING; (e) a \emph{tactical mini-map}
+(180\,px, north up) with the perimeter, camp assets, UAV triangles, track dots (red confirmed, grey tentative, amber coasting), strike lines and a sweep; (f) in the thermal FPV view, boxes for all confirmed tracks (TRK / LOCK / LOST, range,
+``2-VIEW'' when triangulated). The director script has 13 shots in 120\,s; the strike captures are event-driven (they wait for the hit, kill or both rounds in flight).
+
+\subsection{Hidden camp (\code{Launchers}, \code{Base}, \code{Structures})}
+\sheetfig{s03_sam}
+\sheetfig{s14_sam}
+\sheetfig{s03_mlrs}
+\sheetfig{s14_mlrs}
+\textbf{Light discipline.} Surface practical lights number 11 (sum of intensity $\times$ range 107, against 1748 for a floodlit yard); the bunker keeps its 19 lights with entrance lamps dimmed to red. Windows are blacked out and only tiny red and blue-green markers remain, so the camp reads by moonlight, explosions and the UAV searchlights.
+\textbf{Camouflage.} Camo nets (sagging thin cubes with gaps), revetments (rotated cubes) and cut branches cover vehicles, launchers, the bunker entrance and bays (670 dressing parts; 297 net panels).
+\textbf{Launchers.} \emph{SAM-1}: a turntable ($\pm170^\circ$ at 22\,$^\circ$/s) carrying a cradle (elevation $0$--$60^\circ$ at 14\,$^\circ$/s, trapezoid velocity profile $v=\min(v_\text{max},\sqrt{2ad})$) with 4 canisters (90 parts); one canister per \texttt{Enter}
+(elevation $\ge5^\circ$), a round slides out (8 + 60\,$t$ m/s), 8\,s reload per canister. \emph{MLRS-1}: a truck with a $6\times2$ tube pod (116 parts), mount $\pm165^\circ$ at 18\,$^\circ$/s, elevation $0$--$55^\circ$, a ripple of up to 12 tubes 0.25\,s apart, 15\,s
+reload. Both are possessable (\texttt{\textbackslash} stows or readies, arrows aim, \texttt{Enter} fires). \textbf{Static vehicles.} Two parked tanks (226 parts each, turret locked) in earth revetments and an ammo bunker (43 parts); 1371 parts in total in \code{makeLaunchers()}. Tests T150--T159 pass.
+Known issues: the MLRS pod can poke through its net when turned sideways; controllables are marked dynamic, so the ~1000 static revetment parts are not in the static shadow cache.
+

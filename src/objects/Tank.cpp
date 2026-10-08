@@ -96,12 +96,13 @@ float distance(float z, float y) {
 
 // ---------------------------------------------------------------- rig
 
-Tank::Tank() { buildRig(); }
+Tank::Tank() { buildRig("TNK", "Main Battle Tank"); }
+Tank::Tank(const std::string& idPrefix, const std::string& objectName) { buildRig(idPrefix, objectName); }
 
-void Tank::buildRig() {
+void Tank::buildRig(const std::string& idPrefix, const std::string& objectName) {
     using P = PrimitiveType;
-    Builder b("Main Battle Tank", "TNK", ShadingModel::Phong);
-    root_ = b.root("Main Battle Tank", {0, 0, 0}, "User-controllable tracked tank (skid steer, stabilised turret)");
+    Builder b(objectName, idPrefix, ShadingModel::Phong);
+    root_ = b.root(objectName, {0, 0, 0}, "User-controllable tracked tank (skid steer, stabilised turret)");
     root_->animation = "World position / yaw from skid-steer integration, tilt from terrain height at the 4 track corners";
     root_->explodable = false;
     SceneNode* r = root_.get();
@@ -264,8 +265,56 @@ void Tank::buildRig() {
                               asLight(makeMaterial({1.0f, 0.65f, 0.25f}, 1.0f, Surface::Plain, 0.5f, 0.0f, 3.0f), 0.0f, 22.0f), "Muzzle flash (visible for 0.08 s)");
     muzzleFlashNode_->animation = "Flashes for 0.08 s per shot";
     muzzleFlashNode_->local.scale = {0.0001f, 0.0001f, 0.0001f};
+    muzzleFlashNode_->visible = false;  // only drawn (and seen by the thermal cameras) while firing
     muzzleFlashNode_->explodable = false;
     muzzleFlashNode_->obstacle = false;
+
+    // --- v7 detail pass (appended so every node id above stays stable) ----------------------------------------
+    // Worn bright edges (bevel cylinders catch a highlight along the plate edges), add-on armour, sights,
+    // stowage, markings and a convoy marker. Pure surface detail: no obstacles, same heat as the parent plates.
+    const Material edge = reworked(shade(camo, 1.35f), 0.45f, 0.25f);    // paint rubbed down towards bare steel
+    const Material cable = makeMaterial({0.07f, 0.07f, 0.065f}, 0.27f, Surface::Metal, 0.6f, 0.7f);
+    const Material marking = decal({0.58f, 0.55f, 0.45f}, 0.25f);         // faded sand turret number
+    const Material convoy = indicator({0.15f, 1.0f, 0.45f}, 0.8f);          // dim green convoy marker (no light)
+    const Material jerry = makeMaterial({0.20f, 0.23f, 0.13f}, 0.25f, Surface::Paint, 0.55f, 0.3f);
+    for (int s = -1; s <= 1; s += 2) {
+        const char* sd = s < 0 ? "R" : "L";
+        for (int k = 0; k < 2; ++k)
+            camoPart(detail(b, t, std::string("Side armour block ") + sd, P::Cube, {0.09f, 0.46f, 0.6f}, {0, 0, 0},
+                            {1.2f * s, 0.36f, -0.32f - 0.66f * k}, camoDark, "Bolt-on composite armour module"));
+        bevel(b, t, std::string("Turret roof edge ") + sd, {1.14f * s, 0.7f, -1.45f}, {1.14f * s, 0.7f, 1.25f}, 0.06f, edge,
+              "Rounded, paint-worn top edge of the turret side");
+        detail(b, t, std::string("Turret number ") + sd, P::Cube, {0.012f, 0.13f, 0.38f}, {0, 0, 0}, {1.106f * s, 0.38f, -1.95f},
+               marking, "Painted tactical number on the bustle");
+        bevel(b, h, std::string("Deck edge ") + sd, {1.45f * s, 1.42f, -2.75f}, {1.45f * s, 1.42f, 1.75f}, 0.05f, edge,
+              "Worn upper edge of the superstructure");
+        detail(b, h, std::string("Tow cable ") + sd, P::Cylinder, {0.05f, 0.05f, 2.4f}, {0, 0, 0}, {1.49f * s, 1.3f, -1.2f}, cable,
+               "Steel tow cable clipped to the hull side");
+        detail(b, h, std::string("Skirt rubber flap ") + sd, P::Cube, {0.05f, 0.14f, 4.95f}, {0, 0, 0}, {1.47f * s, 0.64f, -0.12f},
+               rubber, "Rubber dust flap under the side skirts");
+        detail(b, h, std::string("Jerry can ") + sd, P::Cube, {0.34f, 0.46f, 0.16f}, {0, 0, 0}, {0.45f * s, 0.82f, -3.05f}, jerry,
+               "20 l fuel can on the rear plate");
+        detail(b, h, std::string("Headlight guard ") + sd, P::Cube, {0.03f, 0.3f, 0.03f}, {4, 0, 0}, {1.15f * s, 1.3f, 3.2f}, steel,
+               "Brush guard bar over the headlight");
+    }
+    bevel(b, t, "Bustle rear edge", {-1.1f, 0.66f, -2.6f}, {1.1f, 0.66f, -2.6f}, 0.06f, edge, "Worn rear edge of the bustle");
+    bevel(b, h, "Glacis top edge", {-1.25f, 1.42f, 1.8f}, {1.25f, 1.42f, 1.8f}, 0.07f, edge, "Rounded joint between deck and glacis");
+    detail(b, t, "Panoramic sight post", P::Cylinder, {0.16f, 0.16f, 0.3f}, {90, 0, 0}, {0.05f, 0.9f, 0.35f}, steel,
+           "Commander's independent panoramic sight (post)");
+    detail(b, t, "Panoramic sight head", P::Cube, {0.32f, 0.22f, 0.3f}, {0, 0, 0}, {0.05f, 1.12f, 0.35f}, camoDark,
+           "Armoured sight head (rotates with the commander's view)");
+    detail(b, t, "Panoramic sight window", P::Cube, {0.24f, 0.12f, 0.02f}, {0, 0, 0}, {0.05f, 1.13f, 0.51f}, glass,
+           "Sight window");
+    detail(b, t, "Wind sensor mast", P::Cylinder, {0.03f, 0.03f, 0.42f}, {90, 0, 0}, {0.0f, 0.98f, -1.45f}, gunMetal,
+           "Crosswind sensor mast (fire control)");
+    detail(b, t, "Wind sensor head", P::Sphere, {0.07f, 0.07f, 0.07f}, {0, 0, 0}, {0.0f, 1.2f, -1.45f}, steel, "Crosswind sensor");
+    detail(b, t, "Loader hatch hinge", P::Cylinder, {0.06f, 0.06f, 0.4f}, {0, 90, 0}, {-0.65f, 0.8f, -1.12f}, gunMetal, "Hatch hinge");
+    detail(b, recoilNode_, "Muzzle bore", P::Cylinder, {0.12f, 0.12f, 0.02f}, {0, 0, 0}, {0, 0, 4.475f},
+           makeMaterial({0.01f, 0.01f, 0.01f}, 0.35f, Surface::Plain, 0.9f, 0.0f), "Dark bore opening of the smoothbore");
+    detail(b, recoilNode_, "Muzzle reference sensor", P::Cube, {0.1f, 0.07f, 0.14f}, {0, 0, 0}, {0, 0.13f, 4.0f}, steel,
+           "Muzzle reference system (barrel bend)");
+    detail(b, h, "Convoy marker", P::Cube, {0.16f, 0.05f, 0.02f}, {0, 0, 0}, {0, 1.28f, -2.97f}, convoy,
+           "Dim green convoy marker on the rear plate (emissive only)");
 
     place(layout::kMotorPool.x, layout::kMotorPool.z, layout::kTankParkYawDeg);
     turretYaw_ = turretCmd_ = yaw_;
@@ -318,6 +367,9 @@ void Tank::updateTurret(const WorldContext& w, const ControlInput* in) {
     if (in) {
         turretCmd_ -= radians(in->aimYaw * kTurretSlewDeg * dt + in->aimYawDelta);
         gunCmd_ = clampf(gunCmd_ + in->aimPitch * kGunSlewDeg * dt + in->aimPitchDelta, kGunMinDeg, kGunMaxDeg);
+    } else if (turretLocked_) {
+        turretCmd_ = yaw_;  // parked in a revetment: barrel held over the front wall
+        gunCmd_ += clampf(3.0f - gunCmd_, -3.0f * dt, 3.0f * dt);
     } else {
         // idle: the turret slowly scans +-70 deg around the hull heading, gun slightly raised
         float rel = wrapPi(turretCmd_ - yaw_);
@@ -458,6 +510,7 @@ void Tank::update(const WorldContext& w, const ControlInput* in) {
     const float fs = flash ? 1.0f : 0.0001f;
     muzzleFlashNode_->local.scale = {0.5f * fs, 0.5f * fs, 0.9f * fs};
     muzzleFlashNode_->material.lightIntensity = flash ? 40.0f : 0.0f;
+    muzzleFlashNode_->visible = flash;
     for (size_t i = 0; i < camoParts_.size(); ++i)
         camoParts_[i]->material.baseColor = camoBase_[i] * (1.0f - 0.6f * scorch_);
 
@@ -549,6 +602,26 @@ bool Tank::onBlast(const Vec3& point, float power) {
     return true;
 }
 
+ParkedTank::ParkedTank(const Vec3& pos, float yawDeg, int index)
+    : Tank("TNK" + std::to_string(index), "Main Battle Tank " + std::to_string(index)),
+      name_("MBT-" + std::to_string(index) + " (PARKED)") {
+    ownerId = 0;
+    place(pos.x, pos.z, yawDeg);
+    lockTurret(true);
+    for (int i = 0; i < 4; ++i) update(WorldContext{}, nullptr);
+    // Parked with the engine off: the exhaust and engine deck have cooled to near ambient.
+    std::vector<SceneNode*> stack{root()};
+    while (!stack.empty()) {
+        SceneNode* n = stack.back();
+        stack.pop_back();
+        if (n->isLeaf()) n->material.heat = std::min(n->material.heat, 0.45f);
+        for (auto& c : n->children) stack.push_back(c.get());
+    }
+}
+
 std::unique_ptr<Controllable> makeTank() { return std::make_unique<Tank>(); }
+std::unique_ptr<Controllable> makeParkedTank(const Vec3& pos, float yawDeg, int index) {
+    return std::make_unique<ParkedTank>(pos, yawDeg, index);
+}
 
 }  // namespace ts

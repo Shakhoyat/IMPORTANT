@@ -95,6 +95,7 @@ private:
     // searchlight: pan about the body Y (positive = left), tilt down from horizontal
     float lightPan_ = 0.0f, lightDown_ = 55.0f;
     bool lightOn_ = false;
+    bool beamsAllowed_ = true;   // v8: the visible beam cone only at night (a sunlit beam is invisible)
     float msgTimer_ = 0.0f;
     const char* msg_ = "";
     int refusals_ = 0;

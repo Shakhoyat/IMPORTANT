@@ -1,5 +1,7 @@
 #include "rendering/Hud.h"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 
@@ -18,6 +20,8 @@ Hud::~Hud() {
     if (vbo_) glDeleteBuffers(1, &vbo_);
     if (vao_) glDeleteVertexArrays(1, &vao_);
     if (atlas_) glDeleteTextures(1, &atlas_);
+    for (GLuint& t : gray_)
+        if (t) glDeleteTextures(1, &t);
 }
 
 bool Hud::init() {
@@ -69,6 +73,7 @@ void Hud::begin(int width, int height) {
     glyphs_.clear();
     image_.clear();
     imageTex_ = 0;
+    images_.clear();
 }
 
 void Hud::toNdc(float px, float py, float& nx, float& ny) const {
@@ -176,10 +181,140 @@ void Hud::end() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     upload(tris_, GL_TRIANGLES, 0, 0);
     if (imageTex_) upload(image_, GL_TRIANGLES, 2, imageTex_);
+    for (const Image& im : images_) upload(im.verts, GL_TRIANGLES, 2, im.tex);
     upload(lines_, GL_LINES, 0, 0);
     upload(glyphs_, GL_TRIANGLES, 1, atlas_);
     glBindVertexArray(0);
     glDisable(GL_BLEND);
+}
+
+void Hud::flush() {
+    end();
+    tris_.clear();
+    lines_.clear();
+    glyphs_.clear();
+    image_.clear();
+    imageTex_ = 0;
+    images_.clear();
+}
+
+// ---- v7.1 WP-U game UI primitives ---------------------------------------------------------------------------------------
+
+void Hud::rectGrad(float x, float y, float w, float h, Rgba top, Rgba bottom) {
+    push(tris_, x, y, top);
+    push(tris_, x, y + h, bottom);
+    push(tris_, x + w, y + h, bottom);
+    push(tris_, x, y, top);
+    push(tris_, x + w, y + h, bottom);
+    push(tris_, x + w, y, top);
+}
+
+void Hud::rectGradH(float x, float y, float w, float h, Rgba left, Rgba right) {
+    push(tris_, x, y, left);
+    push(tris_, x, y + h, left);
+    push(tris_, x + w, y + h, right);
+    push(tris_, x, y, left);
+    push(tris_, x + w, y + h, right);
+    push(tris_, x + w, y, right);
+}
+
+void Hud::tri(float x0, float y0, float x1, float y1, float x2, float y2, Rgba c) {
+    push(tris_, x0, y0, c);
+    push(tris_, x1, y1, c);
+    push(tris_, x2, y2, c);
+}
+
+void Hud::disc(float cx, float cy, float r, Rgba c, int segments) {
+    arc(cx, cy, 0.0f, r, 0.0f, 6.2831853f, c, segments);
+}
+
+void Hud::arc(float cx, float cy, float r0, float r1, float a0, float a1, Rgba c, int segments) {
+    if (segments <= 0) segments = std::max(12, std::min(96, static_cast<int>(r1 * std::fabs(a1 - a0) * 0.6f)));
+    for (int i = 0; i < segments; ++i) {
+        const float t0 = a0 + (a1 - a0) * static_cast<float>(i) / static_cast<float>(segments);
+        const float t1 = a0 + (a1 - a0) * static_cast<float>(i + 1) / static_cast<float>(segments);
+        const float c0 = std::cos(t0), s0 = std::sin(t0), c1 = std::cos(t1), s1 = std::sin(t1);
+        if (r0 <= 0.0f) {
+            tri(cx, cy, cx + c0 * r1, cy + s0 * r1, cx + c1 * r1, cy + s1 * r1, c);
+        } else {
+            tri(cx + c0 * r0, cy + s0 * r0, cx + c0 * r1, cy + s0 * r1, cx + c1 * r1, cy + s1 * r1, c);
+            tri(cx + c0 * r0, cy + s0 * r0, cx + c1 * r1, cy + s1 * r1, cx + c1 * r0, cy + s1 * r0, c);
+        }
+    }
+}
+
+void Hud::thickLine(float x0, float y0, float x1, float y1, float width, Rgba c) {
+    const float dx = x1 - x0, dy = y1 - y0, len = std::sqrt(dx * dx + dy * dy);
+    if (len < 1e-4f) return;
+    const float nx = -dy / len * width * 0.5f, ny = dx / len * width * 0.5f;
+    tri(x0 + nx, y0 + ny, x0 - nx, y0 - ny, x1 - nx, y1 - ny, c);
+    tri(x0 + nx, y0 + ny, x1 - nx, y1 - ny, x1 + nx, y1 + ny, c);
+}
+
+void Hud::roundRect(float x, float y, float w, float h, float r, Rgba c) {
+    r = std::max(0.0f, std::min(r, std::min(w, h) * 0.5f));
+    if (r < 0.5f) {
+        rect(x, y, w, h, c);
+        return;
+    }
+    rect(x + r, y, w - 2 * r, h, c);
+    rect(x, y + r, r, h - 2 * r, c);
+    rect(x + w - r, y + r, r, h - 2 * r, c);
+    const float pi = 3.14159265f;
+    arc(x + r, y + r, 0.0f, r, pi, 1.5f * pi, c, 8);
+    arc(x + w - r, y + r, 0.0f, r, 1.5f * pi, 2.0f * pi, c, 8);
+    arc(x + w - r, y + h - r, 0.0f, r, 0.0f, 0.5f * pi, c, 8);
+    arc(x + r, y + h - r, 0.0f, r, 0.5f * pi, pi, c, 8);
+}
+
+void Hud::roundFrame(float x, float y, float w, float h, float r, float width, Rgba c) {
+    r = std::max(0.0f, std::min(r, std::min(w, h) * 0.5f));
+    rect(x + r, y, w - 2 * r, width, c);
+    rect(x + r, y + h - width, w - 2 * r, width, c);
+    rect(x, y + r, width, h - 2 * r, c);
+    rect(x + w - width, y + r, width, h - 2 * r, c);
+    if (r < 0.5f) return;
+    const float pi = 3.14159265f, ri = std::max(0.0f, r - width);
+    arc(x + r, y + r, ri, r, pi, 1.5f * pi, c, 8);
+    arc(x + w - r, y + r, ri, r, 1.5f * pi, 2.0f * pi, c, 8);
+    arc(x + w - r, y + h - r, ri, r, 0.0f, 0.5f * pi, c, 8);
+    arc(x + r, y + h - r, ri, r, 0.5f * pi, pi, c, 8);
+}
+
+void Hud::heatImage(float x, float y, float w, float h, GLuint texture, bool topDown) {
+    if (!texture) return;
+    const Rgba white{1, 1, 1, 1};
+    Image im;
+    im.tex = texture;
+    const float vt = topDown ? 0.0f : 1.0f, vb = 1.0f - vt;
+    push(im.verts, x, y, white, 0, vt);
+    push(im.verts, x, y + h, white, 0, vb);
+    push(im.verts, x + w, y + h, white, 1, vb);
+    push(im.verts, x, y, white, 0, vt);
+    push(im.verts, x + w, y + h, white, 1, vb);
+    push(im.verts, x + w, y, white, 1, vt);
+    images_.push_back(std::move(im));
+}
+
+GLuint Hud::uploadGray(int slot, int w, int h, const unsigned char* data) {
+    if (slot < 0 || slot >= 4 || w <= 0 || h <= 0 || !data) return 0;
+    glActiveTexture(GL_TEXTURE0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    if (!gray_[slot] || grayW_[slot] != w || grayH_[slot] != h) {
+        if (!gray_[slot]) glGenTextures(1, &gray_[slot]);
+        glBindTexture(GL_TEXTURE_2D, gray_[slot]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        grayW_[slot] = w;
+        grayH_[slot] = h;
+    } else {
+        glBindTexture(GL_TEXTURE_2D, gray_[slot]);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_UNSIGNED_BYTE, data);
+    }
+    return gray_[slot];
 }
 
 }  // namespace ts

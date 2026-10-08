@@ -6,6 +6,9 @@ mode=0
 for a in "$@"; do
   case "$a" in --headless|--capture|--record|--benchmark|--trace|--export-docs|--help|-h) mode=1 ;; esac
 done
+if [ -z "$DISPLAY$WAYLAND_DISPLAY" ] && [ "$mode" = 0 ] && [ -S /mnt/wslg/.X11-unix/X0 ]; then
+  exec tools/run_wsl.sh "$@"   # WSL2: WSLg display exists even if this shell did not export DISPLAY
+fi
 if [ -z "$DISPLAY$WAYLAND_DISPLAY" ] && [ "$mode" = 0 ]; then
   cat <<'MSG'
 No display found (DISPLAY / WAYLAND_DISPLAY unset), so the interactive window cannot open.

@@ -15,7 +15,9 @@
 #include "rendering/Lighting.h"
 #include "scene/Combat.h"
 #include "scene/Controllable.h"
+#include "scene/DayCycle.h"
 #include "scene/GameEvents.h"
+#include "scene/Garrison.h"
 #include "scene/HeatTrail.h"
 #include "scene/Mission.h"
 #include "scene/SceneNode.h"
@@ -48,23 +50,64 @@ struct Intruder {
     float timer = 0.0f;      // Wreck / Gone: seconds since that phase began
     int spawnIndex = 0;
     Vec3 objective;          // camp asset it is heading for
+    float health = 100.0f;   // armoured rover: about 4-5 hits from the UAVs' rounds
+    int hits = 0;
     std::vector<DebrisPiece> debris;
     std::vector<std::pair<SceneNode*, Material>> savedMaterials;  // restored on respawn
     Vec3 wreckPosition;
+    // v6
+    float age = 0.0f;          // s since spawning
+    float switchAt = -1.0f;    // objective switch time (age), < 0 none
+    Vec3 altObjective;
+    float retreatTime = 0.0f;  // s since the dawn retreat began
+};
+
+// What the time of day allows (from the DayCycle each frame, or pinned by tests / captures).
+struct DayRules {
+    bool wavesAllowed = true;     // rover waves (night)
+    bool beamsOn = true;          // UAV searchlights
+    float practicalScale = 1.0f;  // lamps; the beacon is off below 0.5
+    float daylight = 0.0f;
 };
 
 constexpr float kWreckBurnTime = 15.0f;     // s of fire and smoke from the wreck
 constexpr float kWreckClearTime = 25.0f;    // s until the wreck is removed
 constexpr float kRespawnDelay = 3.0f;       // s between removal and the slot being free again
-constexpr float kUavReloadTime = 10.0f;     // s until a launched rail round is replaced
+constexpr float kUavReloadTime = 6.0f;      // s until a launched rail round is replaced
+constexpr float kRoverHealth = 100.0f;      // armoured intruder
+constexpr float kRoundDamage = 30.0f;       // damage of a power-1 blast at the centre, half at the edge of its radius
 constexpr int kDroneOwner = 0;              // Combat owner id of UAV 0 (UAV 1 = owner 10)
 constexpr int kUavCount = Squad::kCount;
+constexpr float kExitRadius = 17.5f;        // v6: a withdrawing rover leaves through a free cell at this radius
+constexpr float kRetreatTimeout = 90.0f;    // s: a rover that cannot reach its exit is withdrawn anyway
 
 class DroneControl;
 
+// v6 options. The defaults reproduce the v5 night scene exactly (fixed seeds, night, legacy rover routes), so the
+// unit tests stay deterministic; the application switches the v6 behaviour on.
+struct SceneOptions {
+    uint32_t seed = 0;            // 0 = legacy fixed seeds; otherwise every random stream derives from it
+    float startHour = 23.0f;      // time of day at start (0..24)
+    bool autoCycle = false;       // let the day/night cycle run
+    bool garrison = true;         // the 8 soldiers + sky clock (v6 controllables)
+    bool randomRoutes = false;    // v6 rover via-point chains + personalities
+    int residents = 0;            // v8: off-duty soldiers living in the barracks hall (sleep, PT, mess table); the app uses 6
+    static SceneOptions v6(uint32_t seed, float startHour, bool autoCycle) {
+        SceneOptions o;
+        o.seed = seed;
+        o.startHour = startHour;
+        o.autoCycle = autoCycle;
+        o.randomRoutes = true;
+        return o;
+    }
+};
+// Independent random stream 'stream' of a run seed (splitmix32); base 0 returns 0 (= legacy constants).
+uint32_t deriveSeed(uint32_t base, uint32_t stream);
+
 class Scene {
 public:
-    Scene();
+    explicit Scene(const SceneOptions& options = {});
+    const SceneOptions& options() const { return options_; }
     ~Scene();
 
     // Advances the simulation by dt seconds. 'det' is the v4 single-target tracker output of UAV 0, used only
@@ -125,6 +168,8 @@ public:
     void destroyIntruder(int i, const Vec3& blastPos, float power);
     // Activates a free intruder slot at 'at' heading for 'objective' (mission spawns, tests). Returns slot or -1.
     int spawnIntruder(const Vec3& at, float yaw, const Vec3& objective, uint32_t seed);
+    // v6: a mission spawn (random route, personality, objective switch when the request has them).
+    int spawnIntruder(const SpawnRequest& r);
     // Ground point at the centre of UAV i's camera image.
     bool designatorPoint(Vec3& p, int uav = 0) const;
     const std::vector<Box>& staticSolids() const { return solids_; }
@@ -133,6 +178,32 @@ public:
     void pushEvent(GameEvent e) { e.time = time_; events_.push_back(e); }
     // Mission waves on/off (tests switch them off to place intruders by hand).
     void setMissionEnabled(bool on) { missionOn_ = on; }
+
+    // --- v6 time of day, garrison ---
+    DayCycle& dayCycle() { return dayCycle_; }
+    const DayCycle& dayCycle() const { return dayCycle_; }
+    const Garrison* garrison() const { return garrison_.get(); }   // nullptr when options().garrison == false
+    Garrison* garrison() { return garrison_.get(); }
+    // The rules of the current frame (waves, searchlights, lamps). pinDayRules() overrides the clock's rules
+    // (tests, captures) until unpinDayRules().
+    const DayRules& dayRules() const { return rules_; }
+    void pinDayRules(const DayRules& r) { pinned_ = true; pinnedRules_ = r; refreshDayRules(); }
+    void unpinDayRules() { pinned_ = false; refreshDayRules(); }
+    // Sends every alive rover home (dawn): exit cell on its bearing at kExitRadius. Returns how many.
+    int withdrawIntruders();
+
+    // --- v7 (WP-G): the player drives an intruder rover ---
+    // Slot 'slot' takes 'in' (copied) for the next update() instead of its planner: the HideController pauses, the
+    // rover drives from the input (differential drive, kRoverDriveSpeed), the UAVs keep hunting it, a breach still
+    // counts. slot -1 (or a slot that is not alive) = every rover on its own planner again.
+    void setPlayerIntruder(int slot, const ControlInput* in);
+    int playerIntruder() const { return playerSlot_; }
+
+    // --- v7.1 (WP-D): UAV day/night duty (docked on the pads by day, patrol by night) ---
+    // uavAirborne(i): UAV i is off its pad (take-off, patrol, return, landing, or flown by the player).
+    // uavDutyState(i): "DOCKED", "TAKE-OFF", "PATROL", "RETURN", "LANDING" or "MANUAL" (static strings).
+    bool uavAirborne(int i) const;
+    const char* uavDutyState(int i) const;
 
 private:
     friend class DroneControl;
@@ -143,8 +214,10 @@ private:
     void releaseSlot(Intruder& in);
     void applyBlasts();
     void collectSceneLists();
+    void refreshDayRules();
+    void applyDayRules();
 
-    std::unique_ptr<SceneNode> terrain_, environment_, backdrop_, base_;
+    std::unique_ptr<SceneNode> terrain_, environment_, backdrop_, base_, hall_;   // hall_: v8 barracks hall
     std::vector<SceneNode*> aviationLights_;  // blinking red obstruction lights (radio masts)
     BunkerRig bunker_;
     UavRig uavs_[kUavCount];
@@ -154,6 +227,12 @@ private:
     void updateHeatTrail(float dt);
 
     DroneController manualCtl_;          // gimbal assist for manual flight
+    SceneOptions options_;
+    DayCycle dayCycle_;
+    std::unique_ptr<Garrison> garrison_;
+    DayRules rules_, pinnedRules_;
+    bool pinned_ = false;
+    bool nightRules_ = true;             // waves were allowed last frame (dawn = this turning false)
     Mission mission_;
     bool missionOn_ = true;
     SquadFrame vision_;                  // frames submitted since the last update
@@ -166,6 +245,14 @@ private:
     std::vector<GameEvent> events_;
     float time_ = 0.0f;
     float beamLength_[kUavCount] = {5.0f, 5.0f};
+    int playerSlot_ = -1;                // v7: intruder driven by the player (-1 none)
+    ControlInput playerIn_;
 };
+
+// v7 (WP-G): one step of a player-driven rover. W/S throttle, A/D steer (differential drive with the planner's
+// track width and wheel kinematics), Shift = boost; 'freeAt' (may be null) blocks cells the rover may not enter
+// (unless it is already stuck in one), the ground height follows the terrain.
+constexpr float kRoverDriveSpeed = 1.1f, kRoverBoostSpeed = 1.8f, kRoverTurnRate = 2.2f;   // m/s, m/s, rad/s
+void driveRover(RoverState& rover, const ControlInput& in, float dt, const HideController* freeAt);
 
 }  // namespace ts

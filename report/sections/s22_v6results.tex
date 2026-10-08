@@ -1,0 +1,29 @@
+% =====================================================================
+\section{Version 6 Results}\label{sec:v6results}
+All v6 numbers below were produced by the program on the RTX\,4070 machine (\runGpu, EPIC preset) or by the CPU test binary; the tables are generated from the trace logs and \code{test\_results.json} by \code{report/gen\_v6.py}.
+
+\paragraph{Unit tests.} \nVsixTests{} v6 tests, \nVsixPass{} pass (Table~\ref{tab:v6tests}); together with v5 and the later v7 work, \nTests{} tests run, \nPass{} pass (Table~\ref{tab:testareas}).
+\begin{table}[h]
+\centering\small
+\caption{v6 tests by work package (generated).}\label{tab:v6tests}
+\tabVsixTests
+\end{table}
+
+\paragraph{Determinism and game rules (600\,s traces).} \code{-{}-trace FILE 600 -{}-time cycle -{}-seed S} plays two full day--night cycles from 23:00 with the auto clock and writes a 4\,Hz state CSV, an event CSV and a rule check. Seed 42 was run twice: the trace and event files are \runSame{} (MD5 \runMdA{}); seed 43 gives a different game (\runMdC{}). Phase events of both seeds: \runPhaseEvents. Intruders spawned only in the \runSpawnPhases{} phase. Withdrawals for seed 42 at \runWithdrawA{} and for seed 43 at \runWithdrawC: one in the Dawn step itself and one exactly \code{kRetreatTimeout} later, a rover that found no exit cell. Table~\ref{tab:v6runs} lists the game outcome and the rule check.
+\begin{table}[h]
+\centering\scriptsize\setlength{\tabcolsep}{3.5pt}
+\caption{600\,s traces, two cycles each. $^*$Rule violations: spawns by day / kills without a UAV round blast / rounds without a confirmed vision track (computed by \code{traceMode} from the event stream).}\label{tab:v6runs}
+\tabRuns
+\end{table}
+Every kill followed a UAV round on a vision track, so the guarantee of Section~\ref{sec:realcv} holds in play, not only in tests. About 1\,\% of the frames are dropped, as configured. The balance is open: the breaches are as many as the kills.
+
+\paragraph{Night regression against v5.} The v5 shot list was re-captured with \code{-{}-time night -{}-seed 0 -{}-no-garrison} (night preset, legacy seeds, no soldiers) and compared with the v5 figures pixel by pixel (Table~\ref{tab:nightreg}, mean absolute error on 0--255 and PSNR). The \nrStaticN{} static views (no game event in the frame) differ by at most \nrStaticMax{} (PSNR $\ge$ \nrStaticMinPsnr\,dB): smoke and fire positions, nothing structural. The event shots differ because the game differs: v5's frames came from the removed scripted strike, v6's from real kills under sensor noise; the HUD also gained the clock panel. Median over all \nrCount{} shots: \nrMedian. The night preset therefore reproduces the v5 renderer.
+\begin{table}[h]
+\centering\scriptsize\setlength{\tabcolsep}{4pt}
+\caption{Night regression, v6 night preset vs.\ the v5 captures (generated from the two image sets).}\label{tab:nightreg}
+\tabNightReg
+\end{table}
+
+\paragraph{Captures.} The 18 v6 shots were rendered headless on the RTX\,4070 (EPIC, $1920\times1080$, seed 1; \code{report/figures\_v6}) and each image was reviewed. Most wait for a real game state (a Withdraw event, a mechanic ``WORKING AT MBT-2'', three soldiers seated off duty) rather than a fixed time, so they show the simulation, not a staged pose. They appear in Figures~\ref{fig:sky}, \ref{fig:soldierviews}, \ref{fig:routes}, \ref{fig:duties}, \ref{fig:dawn} and~\ref{fig:cvnoisecap}.
+
+\paragraph{Open issues.} The soldier roots are not in the explode list, so the \texttt{E} view shows them assembled (Figure~\ref{fig:soldierviews}). The day sky's straight cloud seams seen in the first v6 captures came from a float lattice hash and were fixed in v7 by an integer hash; the published day captures predate that fix. A v6 demo video has not been recorded yet (the recorder works: H.264 1080p30 + AAC), and frame times on the RTX are still not measured.

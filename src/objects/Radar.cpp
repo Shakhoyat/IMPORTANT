@@ -161,6 +161,19 @@ Radar::Radar() {
     for (int i = 0; i < 6; ++i)
         b.part(elNode_, "IFF dipole", P::Cube, {0.04f, 0.2f, 0.04f}, {0, 0, 0}, {(i - 2.5f) * 0.42f, 1.78f, kDishZ0}, steel,
                "IFF dipole element");
+    // v7 detail pass (appended: ids above unchanged): status display + LED and a warning placard at the shelter
+    // door, worn roof edges of the shelter, the bearing seal ring. Surface detail only.
+    detail(b, r, "Shelter status display", P::Cube, {0.012f, 0.3f, 0.26f}, {0, 0, 0}, {-3.393f, 1.5f, 0.8f},
+           makeMaterial({0.25f, 0.85f, 0.5f}, 0.32f, Surface::Screen, 0.3f, 0.0f, 0.7f), "Transmitter status display (emissive)");
+    detail(b, r, "Shelter status LED", P::Sphere, {0.05f, 0.05f, 0.05f}, {0, 0, 0}, {-3.395f, 1.76f, 0.8f},
+           indicator({1.0f, 0.5f, 0.05f}, 1.2f), "Radiating warning LED (emissive only)");
+    detail(b, r, "Door placard", P::Cube, {0.012f, 0.26f, 0.36f}, {0, 0, 0}, {-3.393f, 1.55f, -0.75f}, mats::warningSign(),
+           "RF RADIATION HAZARD placard");
+    for (float x : {-5.8f, -3.4f})
+        bevel(b, r, "Shelter roof edge", {x, 2.45f, -1.0f}, {x, 2.45f, 2.0f}, 0.05f, reworked(shade(shelter, 1.6f), 0.45f, 0.5f),
+              "Worn roof edge of the shelter");
+    detail(b, r, "Bearing seal", P::Cylinder, {1.04f, 1.04f, 0.04f}, {90, 0, 0}, {0, 5.06f, 0}, shade(dark, 0.6f),
+           "Rubber seal of the azimuth bearing");
     (void)y1;
     applyPose();
 }

@@ -12,8 +12,12 @@
 
 #include "scene/Combat.h"
 #include "scene/Controllable.h"
+#include "scene/DayCycle.h"
+#include "scene/Garrison.h"
 #include "scene/Scene.h"
 #include "scene/WalkSpace.h"
+#include "vision/CvPipeline.h"
+
 
 namespace ts::sa {
 
@@ -98,6 +102,24 @@ template <class S>
 void roverImpl(const S&, std::vector<Vec3>&, Pri<0>) {}
 
 template <class S>
+auto dayImpl(S& s, Pri<1>) -> decltype(static_cast<DayCycle*>(&s.dayCycle())) { return &s.dayCycle(); }
+template <class S>
+DayCycle* dayImpl(S&, Pri<0>) { return nullptr; }
+
+template <class S>
+auto garrisonImpl(const S& s, Pri<1>) -> decltype(static_cast<const Garrison*>(s.garrison())) { return s.garrison(); }
+template <class S>
+const Garrison* garrisonImpl(const S&, Pri<0>) { return nullptr; }
+
+template <class C>
+auto setCfgImpl(C& c, const DayCycleConfig& cfg, Pri<1>) -> decltype(c.setConfig(cfg), true) {
+    c.setConfig(cfg);
+    return true;
+}
+template <class C>
+bool setCfgImpl(C&, const DayCycleConfig&, Pri<0>) { return false; }
+
+template <class S>
 auto hiddenImpl(const S& s, Pri<1>) -> decltype(static_cast<bool>(s.rover.hidden)) { return s.rover.hidden; }
 template <class S>
 bool hiddenImpl(const S&, Pri<0>) { return false; }
@@ -153,5 +175,28 @@ inline float roverSpeed(const Scene& s) { return detail::speedImpl(s, detail::Pr
 inline bool roverHidden(const Scene& s) {
     return detail::hiddenImpl(s, detail::Pri<1>{});
 }
+
+// --- v6 ---
+// The scene's day / night clock (nullptr before the Scene wiring exists).
+inline DayCycle* dayCycle(const Scene& s) { return detail::dayImpl(const_cast<Scene&>(s), detail::Pri<1>{}); }
+// The 8 soldiers (nullptr when the scene was built without the garrison).
+inline const Garrison* garrison(const Scene& s) { return detail::garrisonImpl(s, detail::Pri<1>{}); }
+// Index of soldier i in controllables(), -1 if absent.
+inline int soldierIndex(const Scene& s, int i) {
+    const Garrison* g = garrison(s);
+    if (!g || i < 0 || i >= g->count()) return -1;
+    const Controllable* c = g->soldier(i);
+    const std::vector<Controllable*> list = controllables(s);
+    for (size_t k = 0; k < list.size(); ++k)
+        if (list[k] == c) return static_cast<int>(k);
+    return -1;
+}
+// Position of soldier i (fallback when absent).
+inline Vec3 soldierPosition(const Scene& s, int i, const Vec3& fallback) {
+    const Garrison* g = garrison(s);
+    return g && i >= 0 && i < g->count() && g->soldier(i) ? g->soldier(i)->position() : fallback;
+}
+// Changes the clock's rates (--cycle-seconds). False when DayCycle has no setConfig() yet.
+inline bool setDayCycleConfig(DayCycle& c, const DayCycleConfig& cfg) { return detail::setCfgImpl(c, cfg, detail::Pri<1>{}); }
 
 }  // namespace ts::sa

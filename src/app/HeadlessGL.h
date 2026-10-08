@@ -14,6 +14,9 @@ double nowSeconds();
 
 // True if a headless EGL context can exist on this platform (Linux).
 bool headlessSupported();
+// WSL2 (/dev/dxg, no /dev/dri): selects Mesa d3d12 on the NVIDIA adapter (TS_GPU_ADAPTER overrides) before any
+// GL context is made, headless or GLFW. Returns true on WSL.
+bool preferWslGpu();
 // Creates the context, makes it current and loads the GL functions. 'device' = EGL device index
 // (-1 = first device that works; environment variable TS_EGL_DEVICE overrides). Fills 'description'.
 bool createHeadlessContext(int device, std::string& description);

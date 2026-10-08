@@ -18,6 +18,17 @@ from wb_common import (BOLD, FAIL_FILL, INPUT_FILL, NOTE_FILL, PASS_FILL, PENDIN
                        finish, header, path, put, title, widths)
 
 FIG = "report/figures_v4/"
+FIG5 = "report/figures_v5/"
+FIG6 = "report/figures_v6/"
+
+
+class _AllIds:
+    """Membership test that accepts any ID (to count how many tests a spec lists, present or not)."""
+    def __contains__(self, _):
+        return True
+
+
+_ALL_IDS = _AllIds()
 
 
 def _expand(spec, known):
@@ -112,20 +123,71 @@ ROWS = [
      "src/objects/*.cpp", "T66 T67 T70 T76 T96 T113", "", None, ""),
     ("User v4", "U4-10", "Excel workbook regenerated from the program's output and extended", "docs/V4_PROGRESS.md",
      "tools/build_workbook.py, tools/wb_v4.py, tools/wb_audit.py, src/app/DocExport.cpp", "", "", "Done", "This workbook (18 sheets); verify_workbook.py"),
-    ("User v4", "U4-11", "Report rewritten with a full audit appendix", "docs/V4_PROGRESS.md", "report/main.tex", "", "", "Pending", "Owned by another engineer"),
-    ("User v4", "U4-12", "Windows executable rebuilt", "docs/V4_PROGRESS.md", "tools/cross_build_windows.sh", "", "", "Pending", "Supervisor to-do item 6"),
+    ("User v4", "U4-11", "Report rewritten with a full audit appendix", "docs/V4_PROGRESS.md", "report/main.pdf", "", "", None, "38 pages incl. appendix A (audit), v5 sections 13-17"),
+    ("User v4", "U4-12", "Windows executable rebuilt", "docs/V4_PROGRESS.md", "ThermalSense.exe", "", "", None, "Cross-compiled (zig, static GLFW); not run natively here"),
     # ---- course checklist ----------------------------------------------------------------------------------
-    ("Course checklist", "C1", "10-slide presentation", "Course note (V4_PROGRESS.md)", "report/*.pptx", "", "", "Pending", "Slides owned by another engineer"),
-    ("Course checklist", "C2", "Outline on slide 2", "Course note", "report/*.pptx", "", "", "Pending", "Checked when the deck exists"),
-    ("Course checklist", "C3", "2-minute video at the end of the slides", "Course note", "report/*.mp4", "T125 T129", "", None,
-     "Director sequence is 120 s / 12 shots (T125); the recorded file report/*.mp4 is pending"),
+    ("Course checklist", "C1", "10-slide presentation", "Course note (V4_PROGRESS.md)", "report/ThermalSense_Presentation.pptx", "", "", None, "tools/build_slides.py (10 slides, speaker notes)"),
+    ("Course checklist", "C2", "Outline on slide 2", "Course note", "report/ThermalSense_Presentation.pptx", "", "", None, "Slide 2 = Outline"),
+    ("Course checklist", "C3", "2-minute video at the end of the slides", "Course note", "report/demo_v5.mp4", "T125 T129", "", None,
+     "120 s director sequence with procedural sound, embedded on slide 10"),
     ("Course checklist", "C4", "Dynamic objects (scene animation, intruders, effects)", "Course note", "src/scene/Scene.cpp, src/scene/Combat.cpp", "T20 T49 T107 T113", "", None, ""),
     ("Course checklist", "C5", "Controllable objects", "Course note", "src/scene/Control.cpp", "T127 T128", FIG + "possess_tank_sight.png", None, "Sheet 14"),
     ("Course checklist", "C6", "Complex motion (hierarchical rigs, skid steer, rotor head, tracks)", "Course note", "src/objects/Tank.cpp, Helicopter.cpp, Radar.cpp",
      "T80-T84 T90-T91 T97-T98", FIG + "tank_closeup.png", None, "Sheet 5 joint chains"),
-    ("Course checklist", "C7", "Proper report", "Course note", "report/main.pdf", "", "", "Pending", "v3 report exists; v4 rewrite pending"),
-    ("Course checklist", "C8", "Proper slides", "Course note", "report/*.pptx", "", "", "Pending", ""),
+    ("Course checklist", "C7", "Proper report", "Course note", "report/main.pdf", "", "", None, "38-page report (v5)"),
+    ("Course checklist", "C8", "Proper slides", "Course note", "report/ThermalSense_Presentation.pptx", "", "", None, ""),
+    # ---- user requests v5 (2026-10-05) ------------------------------------------------------------------
+    ("User v5", "U5-1", "Enemy rovers keep spawning in waves, random paths, MicroMouse + LFR logic", "docs/PLAN_V5.md",
+     "src/scene/Mission.cpp, src/ai/HideController.cpp", "T143 T144 T145 T180 T181", FIG5 + "wave_banner.png", None,
+     "Waves min(2+n, 6), random edge spawns / objectives, weighted flood fill + per-rover noise"),
+    ("User v5", "U5-2", "Two UAVs patrol constantly to keep the camp and bunker safe", "docs/PLAN_V5.md",
+     "src/ai/Squad.cpp", "T139", FIG5 + "game_overview.png", None, "Opposite-phase breathing orbits, reacquire 12 s"),
+    ("User v5", "U5-3", "Computer vision tracking in real time (both UAVs)", "docs/PLAN_V5.md",
+     "src/vision/CvPipeline.cpp, src/vision/MultiTracker.cpp", "T130-T137 T142", FIG5 + "thermal_fpv_tracks.png", None,
+     "Otsu + floor threshold, despeckle, union-find, moments; Kalman + chi2 gating + Hungarian + two-view triangulation"),
+    ("User v5", "U5-4", "UAVs coordinate and make a combined attack (two rounds) that blasts the rover", "docs/PLAN_V5.md",
+     "src/ai/Squad.cpp, src/scene/Scene.cpp", "T138 T140 T141", FIG5 + "combined_strike.png", None,
+     "Lead / wing, time on target (rounds arrive within 0.35 s), lead prediction"),
+    ("User v5", "U5-5", "4-5 shots per kill (user rule)", "User message 2026-10-05",
+     "src/scene/Scene.cpp (kRoverHealth, kRoundDamage)", "T105 T140", FIG5 + "hit_marker.png", None,
+     "100 HP, 30 x power x falloff; T105: 5 hits; real-render run: 12 hits / 3 kills"),
+    ("User v5", "U5-6", "Marked like a game: markers, banners, score, waves, base integrity", "docs/PLAN_V5.md",
+     "src/app/AppHud.cpp, src/scene/HudMath.cpp", "T170-T178", FIG5 + "kill_banner.png", None, "Game HUD + tactical mini-map"),
+    ("User v5", "U5-7", "Sound", "docs/PLAN_V5.md", "src/audio/AudioEngine.cpp, src/audio/Synth.cpp", "T160-T169", "", None,
+     "Procedural synthesis, spatial mix, offline track in --record"),
+    ("User v5", "U5-8", "Hidden army camp with missile launchers and tanks", "docs/PLAN_V5.md",
+     "src/objects/Launchers.cpp, src/objects/Base.cpp, src/objects/Structures.cpp", "T150-T159", FIG5 + "camp_sam.png", None,
+     "Light discipline 21 -> 11 lights, 297 camo-net panels, SAM + MLRS (possessable), 2 parked tanks, ammo bunker"),
+    ("User v5", "U5-9", "Pro-level reflection / colour / shading", "docs/PLAN_V5.md", "src/rendering/ShaderSources.cpp", "", FIG5 + "base_overview.png", None,
+     "Procedural bump on every material (surfaceBump), SSR, PBR, grading; reflection probe not implemented"),
+    ("User v5", "U5-10", "Plan, critique the project, improve the plan, then implement", "User message 2026-10-05", "docs/PLAN_V5.md", "", "", None,
+     "Sections 2 (plan), 3 (critique G1-G10 / V1-V6 / E1-E4), 4 (improved plan), 6 (status)"),
+    # ---- user requests v6 (2026-10-05): Pending until the tests exist AND pass / the evidence file exists ------------
+    ("User v6", "U6-1", "Day / night cycle: sun path, key light, sky, ambient, fog, exposure, practicals off by day", "docs/PLAN_V6.md",
+     "src/scene/DayCycle.cpp, src/rendering/Lighting.cpp, src/rendering/ShaderSources.cpp", "T190-T197", FIG6 + "day_overview.png", "Pending",
+     "Sheet 21 recomputes the sun elevation by formula"),
+    ("User v6", "U6-2", "Floating clouds in the sky and moving cloud shadows on the camp", "User message 2026-10-05 (mid v6)",
+     "src/rendering/ShaderSources.cpp, src/scene/DayCycle.cpp", "T198-T199", FIG6 + "sky_noon.png", "Pending",
+     "Shared cloudDensity(xz, time); cloud_shadow_mean column on sheet 21"),
+    ("User v6", "U6-3", "Soldiers: curvy figures that walk spline routes, friendly, possessable", "docs/PLAN_V6.md",
+     "src/objects/Soldier.cpp, src/scene/Gait.cpp, src/scene/Garrison.cpp, src/math/Spline.cpp", "T200-T214", FIG6 + "soldier_closeup.png", "Pending",
+     "Sheet 22 (roster, joints, gait, routes); soldier parts on sheet 3"),
+    ("User v6", "U6-4", "Random rover routes (seeded via points, personalities, objective switch)", "docs/PLAN_V6.md",
+     "src/scene/Mission.cpp, src/ai/HideController.cpp", "T215-T224", FIG6 + "plan_routes.png", "Pending", "Legacy routes stay for seed 0"),
+    ("User v6", "U6-5", "Sensor noise and a real CV pipeline (no clean synthetic input)", "docs/PLAN_V6.md",
+     "src/vision/SensorModel.cpp, src/vision/CvPipeline.cpp", "T225-T236", FIG6 + "lab_cv_noise.png", "Pending",
+     "Sheet 23: sensor config + noise sweep"),
+    ("User v6", "U6-6", "De-cheating: no true-position targeting, no forced strikes in captures", "docs/PLAN_V6.md",
+     "src/app/App.cpp, src/ai/Squad.cpp", "T125 T126 T129 T177 T237-T238", "", "Pending",
+     "Blind squad never fires; capture waits for real kills"),
+    ("User v6", "U6-7", "Seeds: --seed N, per-stream deriveSeed, same seed = same run", "docs/PLAN_V6.md",
+     "src/scene/Scene.h, src/main.cpp", "T237-T239", "", "Pending", "Sheet 23 lists the derived stream seeds"),
+    ("User v6", "U6-8", "Video: new demo with day / night, soldiers and real CV", "docs/PLAN_V6.md",
+     "report/demo_v5.mp4", "", "", "Pending",
+     "The file present is the v5 cut. A v7 preview (150 s, h264 1080p30 + AAC, ffprobe ok) was recorded on 2026-10-08 but "
+     "is held back (build/cap-runs/demo_v7_preview.mp4): new features are coming; record the final cut after them"),
 ]
+
 
 
 def proposal_check():
@@ -162,6 +224,7 @@ def build_audit(wb, ctx):
     r = first
     for area, rid, req, src, files, tests, fig, manual, note in ROWS:
         tl = _expand(tests, known) if tests else []
+        v6_incomplete = rid.startswith("U6-") and bool(tests) and len(tl) < len(_expand(tests, _ALL_IDS))
         flist, prev_dir = [], ""
         for f in (x.strip() for x in files.split(",")):
             if not f:
@@ -181,7 +244,10 @@ def build_audit(wb, ctx):
             file_link(c, first_real, "\n".join(flist))
         put(ws, r, 6, present[0], fill=PASS_FILL if present[1] == "all" else (PENDING_FILL if present[1] == "none" else None))
         put(ws, r, 7, " ".join(tl) or "-")
-        if tl:
+        if v6_incomplete:
+            put(ws, r, 8, f"pending: {len(tl)} of {len(_expand(tests, _ALL_IDS))} tests present")
+            put(ws, r, 10, "Pending", font=BOLD)
+        elif tl:
             passed = "+".join(f'SUMPRODUCT(({ids}="{t}")*({st}="PASS"))' for t in tl)
             put(ws, r, 8, f'=({passed})&" / {len(tl)}"')
             put(ws, r, 10, f'=IF({passed}={len(tl)},"Verified","CHECK")', font=BOLD)
@@ -191,6 +257,8 @@ def build_audit(wb, ctx):
             if status == "Done" and present[1] == "none":
                 status = "Pending"
             put(ws, r, 10, status, font=BOLD)
+        if fig and fig.startswith(FIG) and not os.path.exists(path(fig)) and os.path.exists(path(FIG5 + fig[len(FIG):])):
+            fig = FIG5 + fig[len(FIG):]  # v4 shot names resolve to the v5 capture of the same shot (as \picfour does)
         figtext = fig if (not fig or os.path.exists(path(fig))) else f"pending: {fig}"
         c = put(ws, r, 9, figtext or "-", fill=PENDING_FILL if fig and not os.path.exists(path(fig)) else None)
         if fig and os.path.exists(path(fig)):

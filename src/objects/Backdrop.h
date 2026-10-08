@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "scene/SceneNode.h"
 
@@ -12,5 +13,12 @@ constexpr float kBackdropInnerRadius = 37.0f;  // no backdrop part comes closer 
 constexpr float kFarGroundGap = 0.05f;         // far ground top sits this far below the terrain rim
 
 std::unique_ptr<SceneNode> buildBackdrop();
+
+// v7.1 WP-T: the treeline pines (ground position, height, yaw) the backdrop builds; the open-world walker collides
+// with their crowns (crown base radius 0.28 * height).
+struct TreelinePine {
+    float x = 0.0f, z = 0.0f, height = 8.0f, yawDeg = 0.0f;
+};
+std::vector<TreelinePine> treelinePines();
 
 }  // namespace ts

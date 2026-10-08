@@ -1,0 +1,22 @@
+{
+  "pixel": [0.490286, 0.479435],
+  "radiance": [0.0751461, 0.0907022, 0.0722921],
+  "rays": [
+    {"id": 0, "kind": "primary", "parent": -1, "depth": 0, "t": 7.32683, "hit": true, "object": "Glass ball", "contribution": 0.0860658},
+    {"id": 1, "kind": "reflection", "parent": 0, "depth": 1, "t": 4.3284, "hit": true, "object": "Camo net panel", "contribution": 0.000104246},
+    {"id": 2, "kind": "refraction", "parent": 0, "depth": 1, "t": 1.1625, "hit": true, "object": "Glass ball", "contribution": 0.0841906},
+    {"id": 3, "kind": "reflection", "parent": 2, "depth": 2, "t": 1.16274, "hit": true, "object": "Glass ball", "contribution": 0.00143252},
+    {"id": 4, "kind": "reflection", "parent": 3, "depth": 3, "t": 1.16297, "hit": true, "object": "Glass ball", "contribution": 1.38661e-05},
+    {"id": 5, "kind": "reflection", "parent": 4, "depth": 4, "t": 1.16321, "hit": true, "object": "Glass ball", "contribution": 4.77032e-06},
+    {"id": 6, "kind": "reflection", "parent": 5, "depth": 5, "t": 1.16345, "hit": true, "object": "Glass ball", "contribution": 0},
+    {"id": 7, "kind": "refraction", "parent": 5, "depth": 5, "t": 0.213829, "hit": true, "object": "Terrain", "contribution": 4.77032e-06},
+    {"id": 8, "kind": "shadow", "parent": 7, "depth": 6, "t": -1, "hit": true, "object": "key light", "contribution": 2.804e-06},
+    {"id": 9, "kind": "refraction", "parent": 4, "depth": 4, "t": 2.36115, "hit": true, "object": "Canopy clump", "contribution": 9.09582e-06},
+    {"id": 10, "kind": "shadow", "parent": 9, "depth": 5, "t": -1, "hit": false, "object": "key light", "contribution": 0},
+    {"id": 11, "kind": "shadow", "parent": 9, "depth": 5, "t": 8.05957, "hit": false, "object": "lamp", "contribution": 0},
+    {"id": 12, "kind": "shadow", "parent": 9, "depth": 5, "t": 6.48782, "hit": false, "object": "lamp", "contribution": 0},
+    {"id": 13, "kind": "refraction", "parent": 3, "depth": 3, "t": 16.5857, "hit": true, "object": "Jersey body", "contribution": 0.00141865},
+    {"id": 14, "kind": "refraction", "parent": 2, "depth": 2, "t": 1.18468, "hit": true, "object": "Terrain", "contribution": 0.0827581},
+    {"id": 15, "kind": "shadow", "parent": 14, "depth": 3, "t": -1, "hit": true, "object": "key light", "contribution": 0.0528356}
+  ]
+}

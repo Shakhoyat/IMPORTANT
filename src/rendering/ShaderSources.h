@@ -49,4 +49,13 @@ std::string withPalette(const char* body);
 std::string withLighting(const char* body);
 std::string withLightingAndOutput(const char* body);
 
+// v7 WP-Q (ShadersInstanced.cpp): instanced scene-part programs; per-instance data in a buffer texture.
+enum class ShadingKind { Flat, Gouraud, Phong };
+struct InstancedSources {
+    std::string vert, geom, frag;   // geom empty except Flat
+};
+InstancedSources instancedSources(ShadingKind kind);
+extern const char* kDepthVertI;     // depth only, 4 texels per instance (+ kDepthFrag)
+extern const char* kPrepassVertI;   // pre-pass, 7 texels per instance (+ kPrepassFrag)
+
 }  // namespace ts::glsl

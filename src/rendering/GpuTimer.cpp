@@ -1,12 +1,28 @@
 #include "rendering/GpuTimer.h"
 
+#include <chrono>
+#include <cstdlib>
+
 namespace ts {
 
 GpuTimer::~GpuTimer() {
     for (Pass& p : passes_) glDeleteQueries(kLatency, p.query);
 }
 
+namespace {
+
+double wallSeconds() {
+    return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+}  // namespace
+
 void GpuTimer::begin(const char* pass) {
+    if (!syncChecked_) {
+        const char* v = std::getenv("TS_GPU_SYNC_TIMING");
+        syncTiming_ = v && *v == '1';
+        syncChecked_ = true;
+    }
     int index = -1;
     for (size_t i = 0; i < entries_.size(); ++i)
         if (entries_[i].name == pass) index = static_cast<int>(i);
@@ -16,14 +32,29 @@ void GpuTimer::begin(const char* pass) {
         passes_.emplace_back();
         glGenQueries(kLatency, passes_.back().query);
     }
+    current_ = index;
+    if (syncTiming_) {
+        glFinish();
+        syncStart_ = wallSeconds();
+        return;
+    }
     const int slot = frame_ % kLatency;
     glBeginQuery(GL_TIME_ELAPSED, passes_[index].query[slot]);
     passes_[index].issued[slot] = true;
-    current_ = index;
 }
 
 void GpuTimer::end() {
     if (current_ < 0) return;
+    if (syncTiming_) {
+        glFinish();
+        const double ms = 1000.0 * (wallSeconds() - syncStart_);
+        Entry& e = entries_[current_];
+        e.ms = e.samples == 0 ? ms : 0.9 * e.ms + 0.1 * ms;
+        e.sumMs += ms;
+        ++e.samples;
+        current_ = -1;
+        return;
+    }
     glEndQuery(GL_TIME_ELAPSED);
     current_ = -1;
 }

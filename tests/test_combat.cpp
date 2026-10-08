@@ -122,19 +122,31 @@ TS_TEST_GROUP(Combat) {
 }
 
 TS_TEST_GROUP(Intruders) {
-    // T105: a blast destroys an intruder inside its damage radius, not one three radii away.
+    // T105: armour: a blast inside the radius damages (hit event, alive), repeated hits destroy it after 4-5;
+    // a blast three radii away does nothing.
     {
         Scene s;
-        run(s, 15.0f);  // all three intruders have entered
-        const Vec3 a = s.intruders()[0]->state.position, b = s.intruders()[1]->state.position;
+        s.setMissionEnabled(false);
+        run(s, 1.0f);
+        const int b1 = s.spawnIntruder({-12.0f, 0.0f, -6.0f}, 0.0f, layout::kObjectives[1], 3u);
         const float r = Combat::kDamageRadiusPerPower;
-        s.combat().explode(a + Vec3{0.5f * r, 0.15f, 0.0f}, 1.0f, 0);
-        // a second blast 3 radii from intruder 1
-        s.combat().explode(b + Vec3{3.0f * r, 0.15f, 0.0f}, 1.0f, 0);
-        run(s, kDt * 2.0f);
-        const bool aDead = !s.roverAlive(0), bAlive = s.roverAlive(1);
-        record("T105", "Blast damage radius: destroyed at 0.5 r, untouched at 3 r", "intruder 0 destroyed, intruder 1 alive, kills 1",
-               fmt("intruder 0 alive=%d, intruder 1 alive=%d, kills %d", !aDead, bAlive, s.kills()), aDead && bAlive && s.kills() == 1);
+        int hitsToKill = 0, hitEvents = 0;
+        for (int k = 0; k < 8 && s.roverAlive(0); ++k) {
+            const Vec3 a = s.intruders()[0]->state.position;
+            s.combat().explode(a + Vec3{0.5f * r, 0.15f, 0.0f}, 1.0f, 0);
+            if (k == 0) s.combat().explode(s.intruders()[b1]->state.position + Vec3{3.0f * r, 0.15f, 0.0f}, 1.0f, 0);
+            for (int f = 0; f < 2; ++f) {
+                s.update(kDt, Detection{});
+                for (const GameEvent& e : s.events()) hitEvents += e.type == GameEventType::EnemyHit ? 1 : 0;
+            }
+            ++hitsToKill;
+        }
+        const bool bUntouched = s.roverAlive(b1) && s.intruders()[b1]->health == kRoverHealth;
+        record("T105", "Armoured rover: blasts at 0.5 r damage it (hit events), it dies on the 4th-5th hit; 3 r: no damage",
+               "4 or 5 hits to kill, hit events before the kill, far rover untouched, kills 1",
+               fmt("hits to kill %d, hit events %d, far rover untouched %d (slot %d, health %.0f), kills %d", hitsToKill, hitEvents,
+                   bUntouched, b1, b1 >= 0 ? s.intruders()[b1]->health : -1.0f, s.kills()),
+               !s.roverAlive(0) && hitsToKill >= 4 && hitsToKill <= 5 && hitEvents >= 1 && bUntouched && s.kills() == 1);
 
         // T106: debris pieces fly, then come to rest on the ground.
         float maxHeight = 0.0f;
@@ -231,8 +243,8 @@ TS_TEST_GROUP(Intruders) {
         run(s, kUavReloadTime + 0.2f);
         bool back = true;
         for (int i = 0; i < kUavMissiles; ++i) back = back && s.uav().missiles[i]->visible;
-        record("T112", "UAV launcher: 4 rail rounds, hidden at launch, replaced after the 10 s reload",
-               "4 launched, 0 ready, all hidden; 4 ready and visible after 10 s",
+        record("T112", "UAV launcher: 4 rail rounds, hidden at launch, replaced after the " + fmt("%.0f", kUavReloadTime) + " s reload",
+               "4 launched, 0 ready, all hidden; 4 ready and visible after " + fmt("%.0f", kUavReloadTime) + " s",
                fmt("launched %d, ready %d, hidden %d; after reload ready %d visible %d", launched, readyNow, hidden,
                    s.roundsReady(), back),
                launched == 4 && readyNow == 0 && hidden && s.roundsReady() == 4 && back);

@@ -2,6 +2,11 @@
 // Test files register a group with TS_TEST_GROUP(name) { ... } and are run after the built-in groups,
 // in file link order. IDs: T1-T59 test_main.cpp, T60-T69 bunker / walk space, T70-T79 base, T80-T89 ground
 // vehicles, T90-T99 air + sensors, T100-T119 combat, T120-T129 app / camera / control.
+// v6: T190-T199 day cycle / sky / clouds, T200-T214 soldiers, T215-T224 random paths + day rules, T225-T236 sensor model +
+// real CV, T237-T239 app v6.
+// v7: T240-T259 game camera / POV / possession (WP-G), T260-T279 ray tracing (WP-H), T280-T299 frame explorer (WP-I),
+// T300-T309 game audio (WP-L: foley, UI cues, HRTF-lite, Doppler, bunker reverb, echoes, ducking, limiter),
+// T310 v7 director cut (WP-CAP).
 #pragma once
 
 #include <cstdarg>

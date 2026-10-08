@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "scene/Controllable.h"
@@ -47,6 +48,7 @@ public:
     static constexpr int kStartRounds = 18;
 
     Tank();
+    Tank(const std::string& idPrefix, const std::string& objectName);   // second / third hull: unique node ids
 
     const char* name() const override { return "MBT-1 TANK"; }
     const char* controls() const override {
@@ -78,9 +80,10 @@ public:
     float scorch() const { return scorch_; }
     Vec3 muzzlePosition() const;
     Vec3 muzzleDirection() const;
+    void lockTurret(bool lock) { turretLocked_ = lock; }   // parked: no idle scanning, gun held at +3 deg
 
 private:
-    void buildRig();
+    void buildRig(const std::string& idPrefix, const std::string& objectName);
     void animateTracks(float dt);
     void updateTurret(const WorldContext& w, const ControlInput* in);
     void applyTerrain(float dt);
@@ -117,10 +120,25 @@ private:
     float shake_ = 0.0f, scorch_ = 0.0f;
     float antSwayX_ = 0.0f, antVelX_ = 0.0f, antSwayZ_ = 0.0f, antVelZ_ = 0.0f;
     float scanDir_ = 1.0f, dustAcc_ = 0.0f;
-    bool possessed_ = false, lightsOn_ = false;
+    bool possessed_ = false, lightsOn_ = false, turretLocked_ = false;
     Mat4 pitchWorld_, turretWorld_;                   // cached for camera / muzzle
 };
 
+// Tank standing in a camp bay: not possessable, turret locked forward, unique node ids (index 2, 3, ...).
+class ParkedTank : public Tank {
+public:
+    ParkedTank(const Vec3& pos, float yawDeg, int index);
+    const char* name() const override { return name_.c_str(); }
+    const char* controls() const override { return "(parked in its revetment)"; }
+    bool possessable() const override { return false; }
+    bool moves() const override { return false; }  // turret locked, parked: shadows go in the static cache
+    void update(const WorldContext& w, const ControlInput*) override { Tank::update(w, nullptr); }
+
+private:
+    std::string name_;
+};
+
 std::unique_ptr<Controllable> makeTank();
+std::unique_ptr<Controllable> makeParkedTank(const Vec3& pos, float yawDeg, int index = 2);
 
 }  // namespace ts

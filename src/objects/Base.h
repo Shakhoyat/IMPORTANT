@@ -112,5 +112,8 @@ struct ClearZone {
 };
 constexpr float kFlushHeight = 0.12f;
 std::vector<ClearZone> baseClearZones();
+// baseClearZones() plus the plan rectangles of the camp bays (SAM, MLRS, two parked tanks, ammo bunker and the
+// revetment around the original tank spot). Base geometry keeps out of all of them (flush markings excepted).
+std::vector<ClearZone> campClearZones();
 
 }  // namespace ts

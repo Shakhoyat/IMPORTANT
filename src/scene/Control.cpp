@@ -1,5 +1,7 @@
 #include "scene/Control.h"
 
+#include <cmath>
+
 #include <cctype>
 #include <cstring>
 
@@ -85,6 +87,47 @@ int nearestToggle(const std::vector<Controllable*>& c, const Vec3& p, float maxD
         }
     }
     return best;
+}
+
+
+float angleDiffDeg(float a, float b) {
+    float d = std::fmod(a - b, 360.0f);
+    if (d > 180.0f) d -= 360.0f;
+    if (d <= -180.0f) d += 360.0f;
+    return d;
+}
+
+ControlInput thirdPersonSoldierInput(const ControlInput& raw, float moveFwd, float moveRight, float camYawDeg,
+                                     float bodyYawDeg, bool aiming, float dt) {
+    ControlInput in = raw;
+    in.turn = in.aimYaw = 0.0f;
+    in.strafe = 0.0f;
+    in.forward = 0.0f;
+    in.aimYawDelta = 0.0f;
+    const float cy = radians(camYawDeg);
+    const Vec3 f{std::sin(cy), 0.0f, std::cos(cy)}, r{-std::cos(cy), 0.0f, std::sin(cy)};
+    float desired = bodyYawDeg, tau = 0.09f, mag = 0.0f;
+    if (aiming) {
+        desired = camYawDeg;
+        tau = 0.035f;
+        in.forward = clampf(moveFwd, -1.0f, 1.0f);
+        in.strafe = clampf(moveRight, -1.0f, 1.0f);
+    } else {
+        const Vec3 wish = f * moveFwd + r * moveRight;
+        mag = std::sqrt(wish.x * wish.x + wish.z * wish.z);
+        if (mag > 0.05f) {
+            desired = degrees(std::atan2(wish.x, wish.z));
+            in.forward = std::min(mag, 1.0f);
+        }
+    }
+    const float delta = angleDiffDeg(desired, bodyYawDeg);
+    const float k = dt > 0.0f ? 1.0f - std::exp(-dt / tau) : 0.0f;
+    const float maxStep = 720.0f * std::max(dt, 0.0f);
+    const float step = clampf(delta * k, -maxStep, maxStep);
+    in.aimYawDelta = -step;   // Soldier: yaw -= aimYawDelta (positive = turn right)
+    // Turning on the spot more than ~100 degrees: hold the walk until the body faces the way (no moonwalk arcs).
+    if (!aiming && mag > 0.05f && std::fabs(delta) > 100.0f) in.forward *= 0.35f;
+    return in;
 }
 
 }  // namespace ts

@@ -1,8 +1,41 @@
 #include "rendering/ShaderSources.h"
 
+#include <cstdio>
+
+#include "scene/DayCycle.h"
+
 namespace ts::glsl {
 
 namespace {
+
+// GLSL literal of a C++ float constant (always with a decimal point or exponent, exact to 9 digits).
+std::string glslFloat(float v) {
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%.9g", v);
+    std::string s = buf;
+    if (s.find_first_of(".eE") == std::string::npos) s += ".0";
+    return s;
+}
+
+// v6 cloud layer + solar loading constants: generated from the C++ constants in scene/DayCycle.h, so the
+// shaders and the CPU mirror (cloudDensity, cloudShadow, apparentHeat) can never drift apart.
+std::string cloudBlock() {
+    std::string c;
+    c += "const float kCloudAltitude = " + glslFloat(kCloudAltitude) + ";\n";
+    c += "const float kCloudScale = " + glslFloat(kCloudScale) + ";\n";
+    c += "const vec2 kCloudWind = vec2(" + glslFloat(kCloudWindX) + ", " + glslFloat(kCloudWindZ) + ");\n";
+    c += "const float kCloudLo = " + glslFloat(kCloudLo) + ", kCloudHi = " + glslFloat(kCloudHi) + ";\n";
+    c += "const float kCloudOpacity = " + glslFloat(kCloudOpacity) + ";\n";
+    c += "const float kSolarGain = " + glslFloat(kSolarGain) + ", kPassiveLo = " + glslFloat(kPassiveLo) +
+         ", kPassiveHi = " + glslFloat(kPassiveHi) + ";\n";
+    c += R"(
+// Density 0..1 of the drifting cloud layer at world (x, z) of its plane, time in seconds (scene time).
+float cloudDensity(vec2 xz, float time) {
+    return smoothstep(kCloudLo, kCloudHi, fbm((xz + kCloudWind * time) * kCloudScale));
+}
+)";
+    return c;
+}
 
 // Thermal colour maps (same stops as rendering/ThermalPalette.h): 0 ironbow, 1 white-hot, 2 rainbow.
 const char* kPalette = R"(
@@ -30,10 +63,22 @@ float hash21(vec2 p) {
     p += dot(p, p + 45.32);
     return fract(p.x * p.y);
 }
+// Integer hash of a noise lattice point (lowbias32 mix): exact on every GPU and on the CPU mirror. The float
+// hash21 above is only safe for small inputs: at a few hundred cells fract(p * 456.21) keeps ~5 bits, and
+// a driver that re-associates (i + 1) * k differently per call site (Mesa d3d12 / DXIL) then gives the same
+// lattice point two values in neighbouring cells -> hard-edged square blocks in the clouds (v7 WP-P fix).
+uint mixBits(uint h) {
+    h ^= h >> 16; h *= 0x7feb352du; h ^= h >> 15; h *= 0x846ca68bu; h ^= h >> 16;
+    return h;
+}
+float latticeHash(vec2 i) {
+    uvec2 u = uvec2(ivec2(i));
+    return float(mixBits(u.x + mixBits(u.y + 0x9e3779b9u)) >> 8) * (1.0 / 16777216.0);
+}
 float valueNoise(vec2 p) {
     vec2 i = floor(p), f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
-    float a = hash21(i), b = hash21(i + vec2(1, 0)), c = hash21(i + vec2(0, 1)), d = hash21(i + vec2(1, 1));
+    float a = latticeHash(i), b = latticeHash(i + vec2(1, 0)), c = latticeHash(i + vec2(0, 1)), d = latticeHash(i + vec2(1, 1));
     return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 float fbm(vec2 p) {
@@ -47,23 +92,34 @@ float fbm(vec2 p) {
 // per triangle (flat), per vertex (Gouraud) or per fragment (Phong). Each light's diffuse and specular
 // terms are kept separate so that shadows and ambient occlusion can still be applied per fragment.
 const char* kLighting = R"(
+// v7 WP-Q: per-object parameters are uniforms, except in the instanced programs (ShadersInstanced.cpp), which
+// define TS_PER_OBJECT as nothing and fill these globals from the per-instance buffer.
+#ifndef TS_PER_OBJECT
+#define TS_PER_OBJECT uniform
+#endif
 uniform vec3 uCamPos;
 uniform vec3 uAmbient;
 uniform vec3 uMoonDir;    uniform vec3 uMoonColor;                               // L0 directional
 uniform vec3 uBeaconPos;  uniform vec3 uBeaconColor; uniform vec2 uBeaconAtt;    // L1 point
 uniform vec3 uSpotPos;    uniform vec3 uSpotDir;     uniform vec3 uSpotColor;    // L2 spot
 uniform vec2 uSpotCos;    uniform vec2 uSpotAtt;
-uniform vec3 uBaseColor;  uniform float uHeat; uniform float uEmissive;
-uniform float uSpecular;  uniform float uShininess; uniform float uHeatVariation;
-uniform float uRoughness; uniform float uMetalness; uniform int uSurface;
+TS_PER_OBJECT vec3 uBaseColor;  TS_PER_OBJECT float uHeat; TS_PER_OBJECT float uEmissive;
+TS_PER_OBJECT float uSpecular;  TS_PER_OBJECT float uShininess; TS_PER_OBJECT float uHeatVariation;
+TS_PER_OBJECT float uRoughness; TS_PER_OBJECT float uMetalness; TS_PER_OBJECT int uSurface;
 uniform int uViewMode;    // 0 thermal, 1 visible, 2 primitive diagnostic, 3 depth, 4 raw heat (tracker)
 uniform int uHdr;         // 1: linear HDR pipeline (visible view), 0: display-referred (v1 look)
 uniform int uPbr;         // 1: GGX / Cook-Torrance, 0: classic Blinn-Phong
 uniform vec3 uSkyZenith;  uniform vec3 uGroundBounce;
 uniform float uWetness;   // 0 dry .. 1 soaked: up-facing surfaces get glossy (water film)
 uniform float uRain;      // rain intensity (sky, fog, ripples)
+uniform int uKeyIsSun;    // v6: the key light L0 is the sun (its light heats surfaces via the solar term instead)
+uniform float uDayWeight; // 0 night .. 1 day (sky reflections, v1 fog colour, the daylight sky model below)
+uniform vec3 uSkyHorizon; // v8: daylight sky radiance near the horizon (side ambient, environment reflections)
 
 const float PI = 3.14159265;
+// v8 geometric specular anti-aliasing (Kaplanyan / Tokuyoshi): the Phong fragment shaders set this to the screen-space
+// variance of the normal, which widens the GGX lobe where curvature changes faster than a pixel can resolve.
+float gSpecAA = 0.0;
 
 // Practical lights (lamps, fire, floodlight, explosion flashes): up to 16, windowed inverse-square falloff.
 #define TS_MAX_PRACTICALS 16
@@ -76,16 +132,20 @@ uniform vec4 uPracticalDir[16];    // xyz spot axis, w cos(cone) (-2 = omni)
 uniform int uIndoorCount;
 uniform vec3 uIndoorMin[8];
 uniform vec3 uIndoorMax[8];
-float indoorMask(vec3 P) {
+uniform vec2 uIndoorLight[8];   // v8: x = sky light let in, y = 1 when the key light still enters (windows)
+float indoorMask(vec3 P, out vec2 light) {
     float m = 0.0;
+    light = vec2(0.012, 0.0);
     for (int i = 0; i < 8; ++i) {
         if (i >= uIndoorCount) break;
         vec3 a = uIndoorMin[i] - P, b = P - uIndoorMax[i];
         float outside = max(max(max(a.x, b.x), max(a.y, b.y)), max(a.z, b.z));
-        m = max(m, 1.0 - smoothstep(-0.2, 0.2, outside));
+        float mi = 1.0 - smoothstep(-0.2, 0.2, outside);
+        if (mi > m) { m = mi; light = uIndoorLight[i]; }
     }
     return m;
 }
+float indoorMask(vec3 P) { vec2 l; return indoorMask(P, l); }
 
 float practicalAttenuation(int i, vec3 P, out vec3 L) {
     vec3 d = uPracticalPos[i].xyz - P;
@@ -133,22 +193,55 @@ void brdf(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 F0, float rough, out vec3 
     diff = radiance * nl * (1.0 - F) * (1.0 - uMetalness);
 }
 
+// ---- v8 daylight sky model (HDR view; uDayWeight blends it in, so the night keeps the v5 hemisphere exactly) ----
+// Irradiance on a face with normal N: the part of the sky dome it sees (zenith overhead, the brighter, whiter horizon
+// band for vertical faces), sunlit ground bounce from below, and the brighter circumsolar sky on the sun's side.
+vec3 dayAmbient(vec3 N) {
+    float up = clamp(N.y, -1.0, 1.0);
+    vec3 dome = mix(uSkyHorizon * 0.62, uSkyZenith, smoothstep(-0.1, 0.85, up));
+    vec3 sky = dome * (0.5 + 0.5 * up);
+    vec3 ground = uGroundBounce * (0.5 - 0.5 * up);
+    vec3 Ls = normalize(-uMoonDir);
+    vec3 sunSide = normalize(vec3(Ls.x, max(Ls.y, 0.0) * 0.6, Ls.z) + 1e-4);
+    float circum = max(dot(N, sunSide), 0.0) * (0.55 + 0.45 * up);
+    return sky + ground + uMoonColor * (0.035 * circum) * float(uKeyIsSun);
+}
+vec3 hemiAmbient(vec3 N) {
+    vec3 night = mix(uGroundBounce, uSkyZenith, 0.5 + 0.5 * N.y);
+    return uDayWeight > 0.0 ? mix(night, dayAmbient(N), uDayWeight) : night;
+}
+// Radiance the sky / ground send along a reflected direction R (specular ambient), pre-blurred by roughness: a
+// horizon-bright gradient, the ground below the horizon and a soft glow around the sun (the sharp sun highlight
+// itself is the key light's GGX lobe).
+vec3 skyEnvironment(vec3 R, float rough) {
+    vec3 night = mix(uGroundBounce, uSkyZenith * 1.6, smoothstep(-0.2, 0.6, R.y));
+    if (uDayWeight <= 0.0) return night;
+    float up = R.y;
+    vec3 sky = mix(uSkyHorizon * 1.05, uSkyZenith * 1.25, smoothstep(0.02, 0.75, up));
+    vec3 env = mix(uGroundBounce * 0.9, sky, smoothstep(-0.10 - 0.3 * rough, 0.03 + 0.2 * rough, up));
+    env = mix(env, 0.5 * (uSkyHorizon + uGroundBounce), rough * rough * 0.6);       // rough: a wide average
+    vec3 Ls = normalize(-uMoonDir);
+    env += uMoonColor * float(uKeyIsSun) * 0.05 * pow(max(dot(R, Ls), 0.0), mix(24.0, 3.0, rough)) * smoothstep(-0.05, 0.1, up);
+    return mix(night, env, uDayWeight);
+}
+
 Terms computeLight(vec3 P, vec3 N) {
     Terms t;
     vec3 V = normalize(uCamPos - P);
     vec3 albedo = toLinear(uBaseColor);
     vec3 F0 = mix(vec3(0.04), albedo, uMetalness);
     float rough = clamp(uRoughness, 0.05, 1.0);
+    if (gSpecAA > 0.0) { float a = rough * rough; rough = sqrt(sqrt(min(a * a + gSpecAA, 1.0))); }
     // A water film on up-facing surfaces: much smoother (sharp reflections of lamps), sides less so.
     float film = uHdr == 1 ? uWetness * clamp(N.y * 1.4 + 0.1, 0.0, 1.0) : 0.0;
     if (uSurface == 5) film *= 0.25;   // needles and leaves shed water: only a slight sheen
     rough = mix(rough, max(rough * 0.25, 0.07), film);
     if (uHdr == 1) {
-        t.amb = mix(uGroundBounce, uSkyZenith, 0.5 + 0.5 * N.y);
+        t.amb = hemiAmbient(N);
         vec3 R = reflect(-V, N);
         float nv = max(dot(N, V), 0.0);
         vec3 Fr = F0 + (max(vec3(1.0 - rough), F0) - F0) * pow(1.0 - nv, 5.0);
-        t.sa = mix(uGroundBounce, uSkyZenith * 1.6, smoothstep(-0.2, 0.6, R.y)) * Fr * (1.0 - 0.8 * rough);
+        t.sa = skyEnvironment(R, rough) * Fr * (1.0 - 0.8 * rough);
     } else {
         t.amb = uAmbient;
         t.sa = vec3(0.0);
@@ -156,7 +249,7 @@ Terms computeLight(vec3 P, vec3 N) {
 
     vec3 L = normalize(-uMoonDir);
     brdf(N, V, L, uMoonColor, F0, rough, t.d0, t.s0);
-    t.irr = luma(uMoonColor * max(dot(N, L), 0.0));
+    t.irr = uKeyIsSun == 1 ? 0.0 : luma(uMoonColor * max(dot(N, L), 0.0));
 
     vec3 d = uBeaconPos - P;
     float dist = max(length(d), 1e-4);
@@ -174,12 +267,14 @@ Terms computeLight(vec3 P, vec3 N) {
     t.irr += luma(rad * max(dot(N, L), 0.0));
 
     // Underground: the sky, the moon, the beacon and the UAV searchlight do not reach in.
-    float inside = indoorMask(P);
+    vec2 inLight;
+    float inside = indoorMask(P, inLight);
     if (inside > 0.0) {
         float out_ = 1.0 - inside;
-        t.amb *= mix(1.0, 0.012, inside);
-        t.sa *= mix(1.0, 0.012, inside);
-        t.d0 *= out_; t.s0 *= out_; t.d1 *= out_; t.s1 *= out_; t.d2 *= out_; t.s2 *= out_;
+        t.amb *= mix(1.0, inLight.x, inside);
+        t.sa *= mix(1.0, inLight.x, inside);
+        float keyIn = mix(out_, 1.0, inLight.y);   // v8: windowed buildings: the sun comes in where the shadow map lets it
+        t.d0 *= keyIn; t.s0 *= keyIn; t.d1 *= out_; t.s1 *= out_; t.d2 *= out_; t.s2 *= out_;
         t.irr *= out_;
     }
 
@@ -209,7 +304,7 @@ float surfaceHeat(vec3 P, float irradiance) {
 
 // Fragment-only: shadows, ambient occlusion, procedural surfaces and the per-view-mode output.
 const char* kOutput = R"(
-uniform float uFogDensity; uniform float uFogged; uniform float uTime; uniform float uGrain;
+uniform float uFogDensity; TS_PER_OBJECT float uFogged; uniform float uTime; uniform float uGrain;
 uniform vec2 uResolution;  uniform vec2 uNearFar;  uniform float uWorldRadius;
 uniform vec3 uFogColor;    uniform int uVolumetric; uniform float uEmissiveScale;
 uniform int uShadows;                                  // 0 off, 1 moon, 2 moon + searchlight
@@ -223,13 +318,34 @@ uniform int uPcfTaps;      // 8 (high) or 16 (ultra)
 uniform sampler2D uHeatTrail;                          // rover footprints (scene/HeatTrail)
 uniform float uTrailExtent; uniform float uTrailHeat;
 float trailHeat(vec3 P) { return uTrailHeat * texture(uHeatTrail, P.xz / (2.0 * uTrailExtent) + 0.5).r; }
-uniform float uOpacity;    // translucent parts (rotor blur discs)
+TS_PER_OBJECT float uOpacity;    // translucent parts (rotor blur discs)
 // Surface buffer (second render target): world normal and reflectivity, read by the screen-space reflection
 // pass. Every shader that includes this block writes it (finalColor sets a neutral default).
 layout(location = 1) out vec4 FragSurface;
 vec3 gReflectNormal = vec3(0.0, 1.0, 0.0);   // set by the surface shading below
 float gReflectivity = 0.0;
-uniform vec3 uPartCentre;  uniform float uPartRadius;
+TS_PER_OBJECT vec3 uPartCentre;  TS_PER_OBJECT float uPartRadius;
+// v6 time of day
+uniform float uSolar;          // thermal solar-loading weight (sun height), 0 at night
+uniform float uCloudShadowOn;  // 1 while the key light is the sun: the cloud layer shades it
+
+// Cloud shadow: the cloud layer's density where the ray towards the sun crosses it (same field as the sky).
+float cloudShadowAt(vec3 P) {
+    if (uCloudShadowOn <= 0.0) return 1.0;
+    vec3 toSun = normalize(-uMoonDir);
+    if (toSun.y <= 0.0) return 1.0;
+    vec3 q = P + toSun * ((kCloudAltitude - P.y) / max(toSun.y, 0.05));
+    return 1.0 - kCloudOpacity * cloudDensity(q.xz, uTime) * uCloudShadowOn;
+}
+
+// Solar loading of passive surfaces (CPU mirror: apparentHeat in scene/DayCycle.cpp). Engines, exhausts and
+// lamps (heat >= 0.75) get none, so daylight never lifts a passive surface to the CV detection floor.
+float solarLoad(vec3 P, vec3 N) {
+    if (uSolar <= 0.0) return 0.0;
+    float passive = 1.0 - smoothstep(kPassiveLo, kPassiveHi, uHeat);
+    float ndl = max(dot(N, normalize(-uMoonDir)), 0.0);
+    return kSolarGain * uSolar * passive * (0.3 + 0.7 * ndl * cloudShadowAt(P));
+}
 
 const vec2 kPoisson[16] = vec2[](
     vec2(-0.326, -0.406), vec2(0.962, -0.195), vec2(-0.203, 0.621), vec2(0.473, -0.480),
@@ -261,7 +377,7 @@ float cascadeShadow(int layer, mat4 vp, vec3 P, vec3 N, float texel) {
     return sum / float(uPcfTaps);
 }
 
-float moonShadow(vec3 P, vec3 N) {
+float moonShadowMap(vec3 P, vec3 N) {
     if (uShadows == 0) return 1.0;
     float dist = length(P - uCamPos);
     if (dist < uCascadeSplit) {
@@ -271,6 +387,9 @@ float moonShadow(vec3 P, vec3 N) {
     }
     return cascadeShadow(1, uMoonVP1, P, N, uMoonTexel.y);
 }
+
+// Visibility of the key light: shadow map x cloud shadow (1 at night: the moon is not shaded by the cloud layer).
+float moonShadow(vec3 P, vec3 N) { return moonShadowMap(P, N) * cloudShadowAt(P); }
 
 float spotShadow(vec3 P, vec3 N) {
     if (uShadows < 2) return 1.0;
@@ -375,7 +494,8 @@ vec3 surfaceAlbedo(vec3 P, vec3 N, vec3 base) {
         return base * (0.8 + 0.35 * agg) * (0.85 + 0.3 * n1) * (1.0 - crack);
     }
     if (uSurface == 17) {         // woodland camouflage: three large blobs over the base colour
-        float b1 = smoothstep(0.48, 0.52, fbm(side * 0.9 + 1.7)), b2 = smoothstep(0.55, 0.6, fbm(side * 1.3 - 4.2));
+        vec2 cs = side * (uRoughness > 0.94 ? 4.5 : 1.0);   // v7 WP-M: uniform cloth (roughness > 0.94): 4.5x finer print
+        float b1 = smoothstep(0.48, 0.52, fbm(cs * 0.9 + 1.7)), b2 = smoothstep(0.55, 0.6, fbm(cs * 1.3 - 4.2));
         vec3 c = mix(base, base * vec3(0.55, 0.62, 0.45), b1);
         c = mix(c, vec3(0.05, 0.045, 0.035), b2);
         return c * (0.85 + 0.25 * n2);
@@ -393,12 +513,56 @@ vec3 surfaceAlbedo(vec3 P, vec3 N, vec3 base) {
 }
 
 
+// ---- Procedural surface relief (bump) -----------------------------------------------------------------
+// Every material gets a height field in the same triplanar coordinates as its albedo pattern; its gradient
+// tilts the shading normal, so ribs, seams, rivets, mesh, planks and pores catch the light (the flat faces of
+// the unit primitives stop reading flat). Heights in metres.
+uniform int uBumpOff;         // 1: relief disabled (lab figures: bump ON / OFF); the default 0 keeps it on
+uniform int uGroundDetail;    // 1: detailed surfaces (ground relief, material bump) on HIGH and above
+float surfaceHeight(vec2 q) {
+    if (uSurface == 1) return 0.0015 * fbm(q * 9.0) + 0.0008 * valueNoise(q * 60.0);                 // concrete pores
+    if (uSurface == 3 || uSurface == 4) return 0.0004 * valueNoise(q * 40.0);                        // metal / paint
+    if (uSurface == 6) return 0.004 * abs(sin(q.x * 14.0 + 2.0 * valueNoise(q * vec2(2.0, 0.5))));   // bark ridges
+    if (uSurface == 7) return 0.012 * fbm(q * 3.0) + 0.003 * valueNoise(q * 18.0);                   // rock
+    if (uSurface == 8) return 0.0018 * smoothstep(0.0, 0.06, fract(q.y * 4.0)) * (1.0 - smoothstep(0.94, 1.0, fract(q.y * 4.0)));
+    if (uSurface == 12) return 0.009 * (0.5 + 0.5 * sin(q.x * 82.7));                                // corrugated ribs
+    if (uSurface == 13) {                                                                             // HESCO mesh + bags
+        vec2 g = abs(fract(q * 13.0) - 0.5);
+        return 0.006 * smoothstep(0.40, 0.47, max(g.x, g.y)) + 0.02 * valueNoise(q * 2.5);
+    }
+    if (uSurface == 16) return 0.0012 * valueNoise(q * 60.0);                                        // asphalt aggregate
+    if (uSurface == 17) return 0.0006 * smoothstep(0.78, 0.82, fbm(q * 9.0));                        // camo paint chips
+    if (uSurface == 18) {                                                                             // seams + rivets
+        vec2 pnl = fract(q / 0.6);
+        float e = min(min(pnl.x, 1.0 - pnl.x), min(pnl.y, 1.0 - pnl.y));
+        vec2 rv = fract(q / 0.6 * 8.0) - 0.5;
+        return -0.003 * (1.0 - smoothstep(0.0, 0.015, e)) + 0.002 * smoothstep(0.2, 0.08, length(rv)) * step(e, 0.06);
+    }
+    return 0.0;
+}
+
+vec3 surfaceBump(vec3 P, vec3 N) {
+    if (uBumpOff == 1 || uHdr == 0 || uGroundDetail == 0 || uSurface == 0 || uSurface == 2 || uSurface == 5 || uSurface == 15) return N;
+    vec3 T, B;
+    vec2 q;
+    if (abs(N.y) > 0.7) { q = P.xz; T = vec3(1, 0, 0); B = vec3(0, 0, 1); }
+    else if (abs(N.x) > abs(N.z)) { q = P.zy; T = vec3(0, 0, 1); B = vec3(0, 1, 0); }
+    else { q = P.xy; T = vec3(1, 0, 0); B = vec3(0, 1, 0); }
+    T = normalize(T - N * dot(N, T));
+    B = normalize(B - N * dot(N, B));
+    const float e = 0.004;
+    float dhu = (surfaceHeight(q + vec2(e, 0.0)) - surfaceHeight(q - vec2(e, 0.0))) / (2.0 * e);
+    float dhv = (surfaceHeight(q + vec2(0.0, e)) - surfaceHeight(q - vec2(0.0, e))) / (2.0 * e);
+    // Fade the relief with distance (no shimmer far away; TAA would otherwise have to average it out).
+    float k = 1.0 - smoothstep(12.0, 40.0, length(P - uCamPos));
+    return normalize(N - (dhu * T + dhv * B) * k);
+}
+
 // ---- Realistic terrain surface (Surface::Ground) ------------------------------------------------------
 // Material layout from the ground data map; small-scale relief (clods, pebbles, tyre ruts) as a height
 // field whose normal modulates the per-vertex (Gouraud) lighting; wet areas get their own glossy specular.
 uniform sampler2D uGroundMap;
 uniform float uGroundExtent;
-uniform int uGroundDetail;
 
 vec2 cellular(vec2 p) {   // x = distance to the nearest feature point, y = that cell's random id
     vec2 i = floor(p), f = fract(p);
@@ -500,6 +664,7 @@ vec3 terrainShade(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     brdf(Nd, V, Ls, uSpotColor * cone * cone / (1.0 + uSpotAtt.x * dist + uSpotAtt.y * dist * dist), vec3(0.03), rough, dd, sSpot);
     vec3 R = reflect(-V, Nd);
     vec3 sky = mix(vec3(0.020, 0.026, 0.042), vec3(0.004, 0.006, 0.013), clamp(R.y * 1.5, 0.0, 1.0));
+    if (uDayWeight > 0.0) sky = mix(sky, skyEnvironment(R, rough), uDayWeight);
     sky += uMoonColor * 6.0 * pow(max(dot(R, Lm), 0.0), 600.0) * sm * (1.0 - uRain);  // moon glint (not when overcast)
     float F = 0.02 + 0.98 * pow(1.0 - max(dot(Nd, V), 0.0), 5.0);
     vec3 reflection = 0.45 * sky * F * max(wetness, puddle) * (1.0 - rough) * (1.0 - 0.5 * uWetness);  // overcast: darker sky in the water
@@ -527,12 +692,19 @@ vec3 compose(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     // Wet porous materials (concrete, wood, bark, sand, canvas...) darken; metal, glass and paint do not.
     bool porous = uSurface == 1 || uSurface == 6 || uSurface == 7 || uSurface == 8 || uSurface == 9 || uSurface == 5 || uSurface == 13 || uSurface == 16;
     if (porous && uHdr == 1) albedo *= 1.0 - 0.45 * uWetness;
-    vec3 diffuse = t.amb * ao * (1.0 - uMetalness) + t.d0 * sm + t.d1 + t.d2 * ss;
-    vec3 specular = t.s0 * sm + t.s1 + t.s2 * ss + t.sa * ao;
+    // Relief: re-aim the (per-vertex or per-fragment) light terms by the bumped normal (Lambert ratio), darken
+    // cavities facing away from the sky, and let ridges catch more of the specular light.
+    vec3 Nb = surfaceBump(P, N);
+    vec3 Lm = normalize(-uMoonDir), Ls = normalize(uSpotPos - P);
+    float kMoon = clamp((max(dot(Nb, Lm), 0.0) + 0.03) / (max(dot(N, Lm), 0.0) + 0.03), 0.3, 2.0);
+    float kSpot = clamp((max(dot(Nb, Ls), 0.0) + 0.03) / (max(dot(N, Ls), 0.0) + 0.03), 0.3, 2.0);
+    float cavity = clamp(0.6 + 0.4 * dot(Nb, N) + 0.5 * (Nb.y - N.y), 0.6, 1.15);
+    vec3 diffuse = t.amb * ao * cavity * (1.0 - uMetalness) + t.d0 * sm * kMoon + t.d1 * cavity + t.d2 * ss * kSpot;
+    vec3 specular = t.s0 * sm * kMoon * kMoon + t.s1 * cavity + t.s2 * ss * kSpot * kSpot + t.sa * ao * cavity;
     // Wet tops (water film) and polished metal reflect the scene (screen-space reflection weight).
     float film = uWetness * clamp(N.y * 1.4 + 0.1, 0.0, 1.0) * (uSurface == 5 ? 0.0 : 1.0);
     float gloss = 1.0 - clamp(uRoughness, 0.0, 1.0);
-    gReflectNormal = N;
+    gReflectNormal = Nb;
     gReflectivity = max(0.45 * film, uMetalness * gloss * gloss * 0.6);
     return albedo * diffuse + specular + albedo * uEmissive * uEmissiveScale;
 }
@@ -566,7 +738,9 @@ vec4 finalColor(vec3 lit, float heat, vec3 P) {
         return vec4(mix(lit, uFogColor, fade), 1.0);
     }
     vec3 c = vec3(1.0) - exp(-1.25 * lit);  // v1: exposure tone mapping in the object shader
-    return vec4(mix(c, vec3(0.010, 0.013, 0.024), fade), 1.0);
+    vec3 fogV1 = vec3(0.010, 0.013, 0.024);
+    if (uDayWeight > 0.0) fogV1 = mix(fogV1, vec3(1.0) - exp(-1.25 * uFogColor), uDayWeight);
+    return vec4(mix(c, fogV1, fade), 1.0);
 }
 
 float partAlpha(vec3 P) {
@@ -579,7 +753,7 @@ float partAlpha(vec3 P) {
 }
 
 vec4 shadeFragment(Terms t, vec3 P, vec3 N) {
-    float heat = surfaceHeat(P, t.irr);
+    float heat = surfaceHeat(P, t.irr) + solarLoad(P, N);
     if (uSurface == 2) heat += trailHeat(P);   // ground keeps the rover's warm tracks for a while
     if (uViewMode == 0 || uViewMode >= 3) return finalColor(vec3(0.0), heat, P);
     // Shadow maps are only sampled where that light actually contributes (facing it / inside the cone).
@@ -597,7 +771,7 @@ vec4 shadeFragment(Terms t, vec3 P, vec3 N) {
 
 }  // namespace
 
-std::string withPalette(const char* body) { return std::string("#version 330 core\n") + kPalette + body; }
+std::string withPalette(const char* body) { return std::string("#version 330 core\n") + kPalette + cloudBlock() + body; }
 std::string withLighting(const char* body) { return withPalette(kLighting) + body; }
 std::string withLightingAndOutput(const char* body) { return withPalette(kLighting) + kOutput + body; }
 
@@ -704,6 +878,8 @@ layout(location = 0) out vec4 FragColor;
 void main() {
     vec3 N = normalize(vNormal);
     if (!gl_FrontFacing) N = -N;
+    vec3 dnx = dFdx(N), dny = dFdy(N);
+    gSpecAA = uHdr == 1 ? min(0.5 * (dot(dnx, dnx) + dot(dny, dny)), 0.18) : 0.0;
     FragColor = shadeFragment(computeLight(vWorld, N), vWorld, N);   // lighting per FRAGMENT
 }
 )";

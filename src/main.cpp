@@ -9,13 +9,17 @@
 //   ThermalSense --record FILE [SECONDS]     cinematic (default 120 s) video through ffmpeg
 // Common options: --quality low|high|ultra|epic, --size WxH, --headless (EGL, no window: remote GPU over SSH),
 //                 --gpu N (EGL device), --fullscreen, --fps 30|60, --encoder libx264|h264_nvenc|hevc_nvenc
+// v6 world options: --seed N, --time day|night|dusk|dawn|cycle|HH:MM, --cycle-seconds N, --no-garrison
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <random>
 #include <string>
 
 #include "app/App.h"
 #include "app/DocExport.h"
+#include "scene/HudMath.h"
 
 #if defined(_WIN32)
 // Laptops with hybrid graphics: ask the NVIDIA / AMD driver to run this program on the discrete GPU.
@@ -45,7 +49,14 @@ void usage() {
         "  --gpu N                       headless: EGL device index (or env TS_EGL_DEVICE)\n"
         "  --fps 30|60                   record: video frame rate\n"
         "  --encoder NAME                record: ffmpeg codec (libx264, h264_nvenc, hevc_nvenc)\n"
-        "  --ffmpeg PATH                 record: ffmpeg executable\n");
+        "  --ffmpeg PATH                 record: ffmpeg executable\n"
+        "world (v6):\n"
+        "  --seed N                      run seed: rover routes, patrols, sensor noise (default: random, printed;\n"
+        "                                1 for capture / benchmark / trace / record; 0 = the fixed v5 run, ideal sensor)\n"
+        "  --time T                      day | night | dusk | dawn | HH:MM (manual clock) | cycle (automatic)\n"
+        "                                default: cycle from 16:30 (interactive), night 23:00 manual (offline modes)\n"
+        "  --cycle-seconds N             length of one automatic day + night cycle\n"
+        "  --no-garrison                 no soldiers\n");
 }
 
 int parseQuality(const std::string& v) {
@@ -131,6 +142,32 @@ int main(int argc, char** argv) {
             ++i;
         } else if (arg == "--fullscreen") {
             opt.fullscreen = true;
+        } else if (arg == "--seed") {
+            char* end = nullptr;
+            const unsigned long v = std::strtoul(value.c_str(), &end, 0);
+            if (value.empty() || (end && *end)) {
+                std::fprintf(stderr, "--seed expects a number\n");
+                return 1;
+            }
+            opt.seed = static_cast<uint32_t>(v);
+            opt.seedGiven = true;
+            ++i;
+        } else if (arg == "--time") {
+            if (!ts::parseTimeOfDay(value, opt.hour, opt.autoCycle)) {
+                std::fprintf(stderr, "--time expects day, night, dusk, dawn, cycle or HH:MM\n");
+                return 1;
+            }
+            opt.timeGiven = true;
+            ++i;
+        } else if (arg == "--cycle-seconds") {
+            opt.cycleSeconds = static_cast<float>(std::atof(value.c_str()));
+            if (opt.cycleSeconds < 10.0f) {
+                std::fprintf(stderr, "--cycle-seconds expects a length of at least 10 s\n");
+                return 1;
+            }
+            ++i;
+        } else if (arg == "--no-garrison") {
+            opt.garrison = false;
         } else if (arg == "--help" || arg == "-h") {
             usage();
             return 0;
@@ -139,6 +176,17 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
+    if (!opt.seedGiven) {
+        // Offline modes are reproducible by default; the interactive game differs on every start.
+        if (opt.mode == ts::AppOptions::Mode::Interactive) {
+            std::random_device rd;
+            const auto ticks = static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+            opt.seed = ts::mixRunSeed(rd(), ticks);
+        } else {
+            opt.seed = 1;
+        }
+    }
+    std::printf("Run seed %u (repeat with --seed %u)\n", opt.seed, opt.seed);
     ts::App app(opt);
     return app.run();
 }

@@ -1,9 +1,9 @@
 % =====================================================================
 \section{Testing}\label{sec:testing}
-All tests are CPU-only (no GPU, no window) and were regenerated for this report by building and running the test binary
-(Table~\ref{tab:build}); \texttt{build/test\_results.json} holds the id, description, expected and observed text and the result of each. At the time of
-writing \textbf{\nTests{} tests were run, \nPass{} passed and \nFail{} failed}. Table~\ref{tab:testareas} groups them by area; the complete list is Table~\ref{tab:alltests}
-(generated from the JSON by \code{report/gen\_tables.py}, never typed by hand).
+\sheetfig{s10_testing}
+All tests are CPU-only (no GPU, no window), built and run for this report (Table~\ref{tab:build}); \texttt{build/test\_results.json} holds the id, description, expected and observed text and result of each.
+\textbf{\nTests{} tests were run, \nPass{} passed and \nFail{} failed.} Table~\ref{tab:testareas} groups them by area; the complete list is Table~\ref{tab:alltests}
+(generated from the JSON by \code{report/gen\_tables.py}).
 
 \begin{table}[h]
 \centering\small
@@ -12,11 +12,9 @@ writing \textbf{\nTests{} tests were run, \nPass{} passed and \nFail{} failed}. 
 \input{sections/gen_testareas}
 \end{table}
 
-What the tests do \emph{not} cover: anything that needs a GPU (rendering output, GLSL compilation, frame time), the interactive keyboard/mouse path in
-\code{App}, the HUD drawing and the video encoder. These parts were checked by looking at captures made with the llvmpipe software renderer (Section~\ref{sec:results}); the old visual checks of v2
-are listed in the workbook sheet \emph{Testing} (\code{docs/visual\_tests.json}).
-Test T38 was rewritten for v4: the old v3 budget of 1000 leaves no longer applies (the scene has \nLeaves{} leaves) and it now checks that every environment and backdrop leaf is a lab primitive.
-Some descriptions still carry v3 wording; for example T33 reports a texel of 2.15\,cm, which corresponds to a 22\,m shadow sphere at $2048^2$, while the renderer now fits a 39\,m sphere (3.8\,cm at $2048^2$). The test
-passes but no longer mirrors the renderer (see the audit).
+Not covered by tests: anything that needs a GPU (rendered output, GLSL compilation, frame time), the interactive keyboard/mouse path in
+\code{App}, the HUD drawing and the video encoder. Up to v5 these were checked on captures made with the llvmpipe renderer (Section~\ref{sec:results}); the v6 renderer changes were checked on RTX\,4070 captures, a night regression against the v5 images and 600\,s seeded traces whose rule checks the game emits itself (Section~\ref{sec:v6results}). The v6 tests T190--T239 (Table~\ref{tab:v6tests}) cover the pure functions behind those features: solar geometry and presets, splines, IK, the planner, the roster, random routes, the sensor model and the CV classes; the sensor tests run the real \code{SensorModel} and \code{detectAll} on synthetic frames.
+Some test descriptions are stale: T33 reports a shadow texel of 2.15\,cm (a 22\,m sphere at $2048^2$) while the renderer now fits a 39\,m sphere (3.8\,cm). The test
+passes but no longer mirrors the renderer (Appendix~\ref{app:audit}).
 
 \input{sections/gen_tests}

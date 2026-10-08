@@ -258,6 +258,42 @@ void MultiTracker::update(const std::vector<GroundMeasurement>& meas, float time
                                      return t.sinceUpdate > deleteAfter;
                                  }),
                   tracks_.end());
+    // Track merging: a flickering blob (foliage, partial occlusion) can spawn a second track on the same target.
+    // Two tracks closer than mergeDistance with similar velocities are one target: keep the older id (it holds
+    // the squad's lock) with the fresher state.
+    for (size_t i = 0; i < tracks_.size(); ++i) {
+        for (size_t j = i + 1; j < tracks_.size(); ++j) {
+            Track& a = tracks_[i];
+            Track& b = tracks_[j];
+            if (a.state == TrackState::Tentative && b.state == TrackState::Tentative) continue;
+            const float d = std::hypot(a.x[0] - b.x[0], a.x[1] - b.x[1]);
+            const float dv = std::hypot(a.x[2] - b.x[2], a.x[3] - b.x[3]);
+            if (d > mergeDistance || dv > 1.0f) continue;
+            Track& keep = a.id < b.id ? a : b;
+            Track& drop = a.id < b.id ? b : a;
+            if (drop.sinceUpdate < keep.sinceUpdate) {  // the newer track has the fresher measurement
+                if (drop.state == TrackState::Tentative && keep.state != TrackState::Tentative) {
+                    // A newborn track's velocity is still 0 +- its prior: fuse only its position into the older
+                    // track as a measurement, so the converged velocity survives the merge.
+                    kalmanUpdate(keep, drop.x[0], drop.x[1], std::max(at(drop.P, 0, 0), at(drop.P, 1, 1)));
+                } else {
+                    std::copy(drop.x, drop.x + 4, keep.x);
+                    std::copy(drop.P, drop.P + 16, keep.P);
+                }
+                keep.sinceUpdate = drop.sinceUpdate;
+                keep.height = drop.height;
+            }
+            keep.hits = std::max(keep.hits, drop.hits);
+            keep.seenNow |= drop.seenNow;
+            keep.lastSeen[0] = std::max(keep.lastSeen[0], drop.lastSeen[0]);
+            keep.lastSeen[1] = std::max(keep.lastSeen[1], drop.lastSeen[1]);
+            if (drop.state != TrackState::Tentative && keep.state == TrackState::Tentative) keep.state = drop.state;
+            drop.misses = 1 << 20;   // marked for removal
+            drop.sinceUpdate = 1e9f;
+        }
+    }
+    tracks_.erase(std::remove_if(tracks_.begin(), tracks_.end(), [](const Track& t) { return t.misses >= (1 << 20); }),
+                  tracks_.end());
 }
 
 const Track* MultiTracker::find(int id) const {

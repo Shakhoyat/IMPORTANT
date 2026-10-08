@@ -1,0 +1,42 @@
+\section{Controls}\label{app:controls}
+The key map follows the program's help screen (F1). The possession cycle \texttt{[ ]} also visits the SAM and MLRS launchers (\texttt{\textbackslash} stows or readies, arrows aim, \texttt{Enter} fires).
+
+\begin{table}[h]
+\centering\small
+\caption{Key bindings (verified in \code{Interactive.cpp}, \code{Control.cpp}; F1 shows the same list in the program).}
+\label{tab:keys}
+\begin{tabular}{@{}p{3.6cm}p{12.4cm}@{}}
+\toprule
+Key & Action\\\midrule
+\texttt{5} \texttt{6} \texttt{7} & possess the tank / the helicopter / the AA gun\\
+\texttt{8} \texttt{9} \texttt{0} & possess the radar / the blast doors / the UAV (manual flight)\\
+\texttt{[} \texttt{]} & cycle through the possessable objects (the flag and windsock are skipped; \nPossessable{} possessable, including the soldiers and the SKY clock)\\
+\texttt{Backspace} & release the possessed object (the UAV flies itself again)\\
+\texttt{W A S D} & drive / fly / turn (in walk mode: walk, \texttt{Shift} runs; free camera: move)\\
+\texttt{PgUp PgDn} & climb and descend (helicopter, UAV); free camera\\
+\texttt{Arrows}, mouse & aim: turret and gun, AA gun, gimbal, searchlight, radar (arrows held; mouse look as a delta)\\
+\texttt{Enter} / \texttt{L-Ctrl} & fire (tank shot, AA burst while held, UAV missile) or toggle (doors, barrier, searchlight, radar TX)\\
+\texttt{\textbackslash} & secondary action: start / land (helicopter), radar mode, gimbal assist (UAV), doors / barrier\\
+\texttt{Shift} & boost (tank $\times1.5$, helicopter 25\,m/s, UAV 9\,m/s)\\
+\texttt{C} & camera cycle: Orbit, Free, Chase, UAV CAM, Walk (T55); while possessing: switch chase view $\leftrightarrow$ sight\\
+\texttt{K} & cinematic director (restarts the world; v6 cut: 15 shots in 120\,s, night battle, dawn time-lapse, day duties, dusk, searchlights, the clock forced per shot); again to leave\\
+\texttt{V} / \texttt{Y} / \texttt{T} / \texttt{Q} & view: thermal, visible, diagnostic, depth; first-person or external thermal; palette; force a NUC\\
+\texttt{X} \texttt{Z} & edges (solid, hidden-line, x-ray); depth test on/off\\
+\texttt{O} \texttt{F} \texttt{G} \texttt{P} & shading: per object, all Flat, all Gouraud, all Phong\\
+\texttt{1} \texttt{2} \texttt{3} \texttt{4} & toggle moon, beacon, searchlight, practical lights\\
+\texttt{B} \texttt{N} & PBR vs Blinn--Phong; full pipeline vs the v1 look\\
+\texttt{E} \texttt{H} \texttt{M} \texttt{I} & explode view; local axes; MicroMouse flood field and line guide; indexed or flat drawing\\
+\texttt{F5}--\texttt{F10} & quality preset; TAA; SSR; lens flare; auto-exposure; depth of field\\
+\texttt{L} \texttt{J} \texttt{R} & foliage cards; fireflies; rain\\
+\texttt{+} \texttt{-} & exposure\\
+\texttt{U} \texttt{Tab} \texttt{Space} \texttt{F1} \texttt{F12} \texttt{Esc} & UAV feed; HUD; pause; help; screenshot; quit\\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering\small
+\caption{Keys added in v6 (generated from \code{v6.keys}, the same table as \code{HudMath::keyBindingsV6()} and the F1 overlay). Command line: \cli{seed N}, \cli{time day|night|dusk|dawn|cycle|HH:MM}, \cli{cycle-seconds N}, \cli{no-garrison}.}
+\label{tab:keysv6}
+\tabVsixKeys
+\end{table}
+

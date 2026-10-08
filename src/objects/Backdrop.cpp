@@ -43,15 +43,9 @@ void addHills(Builder& b, SceneNode* root) {
 void addTreeline(Builder& b, SceneNode* root) {
     const Material needles = mats::pineNeedles();
     SceneNode* line = b.group(root, "Treeline", {0, 0, 0}, {0, 0, 0}, "Ring of tall pines behind the perimeter wall");
-    PropRng rng(131u);
-    for (int i = 0; i < kTreelinePines; ++i) {
-        const float deg = 360.0f * static_cast<float>(i) / static_cast<float>(kTreelinePines) + rng.range(-4.0f, 4.0f);
-        const float d = rng.range(38.0f, 45.0f), h = rng.range(6.0f, 10.0f);
-        if (std::fabs(deg - 90.0f) < kRoadGapDeg) continue;
-        const float a = radians(deg);
-        SceneNode* pine = b.group(line, "Treeline pine", {d * std::cos(a), farGroundTop(), d * std::sin(a)},
-                                  {0, rng.range(0.0f, 360.0f), 0}, "Two stacked cones");
-        const float r = 0.28f * h;
+    for (const TreelinePine& p : treelinePines()) {
+        SceneNode* pine = b.group(line, "Treeline pine", {p.x, farGroundTop(), p.z}, {0, p.yawDeg, 0}, "Two stacked cones");
+        const float h = p.height, r = 0.28f * h;
         b.part(pine, "Pine crown", P::Cone, {2.0f * r, 2.0f * r, 0.62f * h}, {-90, 0, 0}, {0, 0.31f * h, 0}, needles,
                "Lower tier");
         b.part(pine, "Pine crown", P::Cone, {1.3f * r, 1.3f * r, 0.55f * h}, {-90, 30, 0}, {0, 0.725f * h, 0}, needles,
@@ -92,6 +86,25 @@ void markDecoration(SceneNode& n) {
 }
 
 }  // namespace
+
+// v7.1 WP-T: the treeline as data (the open-world walker collides with the pines). Same random sequence as before.
+std::vector<TreelinePine> treelinePines() {
+    std::vector<TreelinePine> out;
+    PropRng rng(131u);
+    for (int i = 0; i < kTreelinePines; ++i) {
+        const float deg = 360.0f * static_cast<float>(i) / static_cast<float>(kTreelinePines) + rng.range(-4.0f, 4.0f);
+        const float d = rng.range(38.0f, 45.0f), h = rng.range(6.0f, 10.0f);
+        if (std::fabs(deg - 90.0f) < kRoadGapDeg) continue;
+        const float a = radians(deg);
+        TreelinePine p;
+        p.x = d * std::cos(a);
+        p.z = d * std::sin(a);
+        p.height = h;
+        p.yawDeg = rng.range(0.0f, 360.0f);
+        out.push_back(p);
+    }
+    return out;
+}
 
 std::unique_ptr<SceneNode> buildBackdrop() {
     Builder b("Backdrop", "BKG", ShadingModel::Gouraud);

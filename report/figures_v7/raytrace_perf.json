@@ -1,0 +1,11 @@
+{
+  "renderer": "D3D12 (NVIDIA GeForce RTX 4070)",
+  "size": [1280, 720],
+  "modes": [
+    {"mode": "RASTER", "ms_per_frame": 11.68, "rt_pass_ms": 0.00, "internal": [0, 0]},
+    {"mode": "HYBRID RT", "ms_per_frame": 20.30, "rt_pass_ms": 9.98, "internal": [1280, 720]},
+    {"mode": "WHITTED RT", "ms_per_frame": 25.68, "rt_pass_ms": 19.89, "internal": [960, 540]},
+    {"mode": "PATH TRACING", "ms_per_frame": 21.88, "rt_pass_ms": 18.08, "internal": [640, 360]},
+    {"mode": "LIGHT TRACING", "ms_per_frame": 38.96, "rt_pass_ms": 32.63, "internal": [640, 360]}
+  ]
+}

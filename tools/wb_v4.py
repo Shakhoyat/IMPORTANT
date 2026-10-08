@@ -20,6 +20,23 @@ PRIM_ORDER = ["Cube", "Sphere", "Cylinder", "Cylinder (frustum)", "Cone", "Terra
 # ---- hand-maintained (design notes) ----------------------------------------------------------------------
 # key = substring of Controllable::name().  Source: docs/v4_notes/v4-b1/b2/a1/a2/d.md and the header comments.
 DESIGN_NOTES = {
+    "SOLDIER-": {
+        "dof": "Root x, z, yaw on a Catmull-Rom route; pelvis bob; two-link leg IK (hip, knee, ankle) per leg; arm swing "
+               "(shoulder, elbow); spine twist; head scan. Poses: Idle, Guard, Work, Sit, Duck (blast reaction).",
+        "technique": "Forward kinematics + two-link IK: feet world-locked in stance, swing arc between footfalls, counter-phase "
+                     "arm swing; speed law v = vmax / (1 + 1.5 kappa) along the spline; A* + string-pulling site planner. "
+                     "Friendly personnel: never a target, no damage model.",
+        "limits": "Walk / run speeds from the gait constants (sheet 22); friendly radius 1.2 m; roster by duty "
+                  "(sentry, watch, gunner, mechanic, logistics, technician, patrol, runner) with a shift change at dusk / daybreak.",
+    },
+    "SKY / TIME": {
+        "dof": "One scalar: the clock hour (0..24, auto or manual scrub); sun sphere node follows the solar direction.",
+        "technique": "Solar position sin e = sin(lat) sin(dec) + cos(lat) cos(dec) cos(15 (h - 12)); key light = sun by day, moon "
+                     "by night; ambient / fog / exposure blended by daylight weights; shared cloud field drives sky clouds and "
+                     "cloud shadows (sheet 21).",
+        "limits": "Scrub W / S (manual), auto / manual toggle, next phase; twilight (|elevation| < 6 deg) plays slower; "
+                  "waves and searchlight beams are gated by the phase.",
+    },
     "UAV": {
         "dof": "Body: x, y, z + yaw (autonomous or manual); attitude pitch / roll follow acceleration. Gimbal: 2 joints "
                "(yaw, pitch). 4 rotors spin. 4 rail rounds hidden at launch.",
@@ -103,7 +120,7 @@ def build_controllables(wb, ctx):
     scene = ctx["scene"]
     ctl = scene.get("controllables", [])
     title(ws, "14  Controllable Objects",
-          "Every object the user can possess (keys 5-9 and 0, [ ] to cycle, Backspace to release) plus the animated "
+          "Every object the user can possess (number keys, [ ] to cycle, Backspace to release) plus the animated "
           "scenery. Blue cells are exported by the program (Scene::controllables(): names, control text, part counts, "
           "camera hints, constants read from the class headers, animated nodes). Pale-yellow cells are hand-maintained "
           "text FROM THE DESIGN NOTES (docs/v4_notes) - degrees of freedom, motion technique and limits - not measured.",
@@ -585,7 +602,7 @@ def build_combat(wb, ctx):
               ("Burning wreck", f"={k['kWreckBurnTime']}", "Wreck burns for kWreckBurnTime: fire + smoke + embers, light flicker"),
               ("Wreck stays", f"={k['kWreckClearTime']}-{k['kWreckBurnTime']}", "Cold hulk until kWreckClearTime (drone ignores it, "
                                                                                  "kWreckIgnoreRadius / Time)"),
-              ("Respawn delay", f"={k['kRespawnDelay']}", "Gone, then a new intruder enters at the next spawn point")]
+              ("Respawn delay", f"={k['kRespawnDelay']}", "Gone, then the slot is free; the mission spawns the next intruder of the wave there (v5)")]
     for i, (a, f, d) in enumerate(phases):
         put(ws, r, 1, a, font=BOLD)
         put(ws, r, 2, f, "0.0")
@@ -600,7 +617,8 @@ def build_combat(wb, ctx):
     r += 2
     ev = sim.get("events", [])
     section(ws, r, 1, f"Measured in a headless Scene run ({sim.get('duration', 0):.0f} s at {1 / sim.get('dt', 1):.0f} Hz; "
-                      "intruder 0 destroyed at t = 40 s through Scene::destroyIntruder)")
+                      "intruder 0 destroyed at t = 40 s through Scene::destroyIntruder; no vision is submitted here, so the squad "
+                      "never fires and undefended rovers end as breaches = 'Alive -> Waiting')")
     header(ws, r + 1, ["Time (s)", "Intruder", "Event", "Delta to previous event of that intruder (s)"])
     r += 2
     ev_first = r
@@ -616,9 +634,9 @@ def build_combat(wb, ctx):
     ev_last = r - 1
     # measured vs constant check
     kill = next((i for i, e in enumerate(ev) if e["event"].startswith("destroy")), None)
-    alive_again = next((i for i, e in enumerate(ev) if e["intruder"] == 0 and e["event"] == "Gone -> Alive"), None)
+    alive_again = next((i for i, e in enumerate(ev) if e["intruder"] == 0 and e["event"] == "Gone -> Waiting"), None)
     r += 1
-    put(ws, r, 1, "Measured cycle (destroy -> next entry)", font=BOLD)
+    put(ws, r, 1, "Measured cycle (destroy -> slot free for the next spawn)", font=BOLD)
     ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=2)
     if kill is not None and alive_again is not None:
         put(ws, r, 3, f"=A{ev_first + alive_again}-A{ev_first + kill}", "0.00")

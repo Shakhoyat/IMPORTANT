@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "scene/Director.h"
 #include "scene/Scene.h"
 #include "scene/WalkSpace.h"
 
@@ -13,7 +14,9 @@ struct CameraView {
     float nearZ = 0.05f, farZ = 600.0f;
 };
 
-enum class CameraMode { Orbit, Free, Chase, UavCamera, Cinematic, Walk, Possess };
+// v7: Pov = riding along with any moving object (App: POV picker, Insert / Delete, middle click); the App computes
+// that view (scene/Pov.h), compute() treats it as the free camera.
+enum class CameraMode { Orbit, Free, Chase, UavCamera, Cinematic, Walk, Possess, Pov };
 const char* cameraModeName(CameraMode m);
 
 class Camera {
@@ -29,6 +32,7 @@ public:
     float freeYawDeg = 180.0f, freePitchDeg = -10.0f;
     float fovDeg = 50.0f;
     float directorTime = 0.0f;  // seconds into the cinematic sequence (Cinematic mode)
+    DirectorCut directorCut = DirectorCut::V6;  // v6 sequence (video, K); the report captures use the v5 cut
     // First-person walk camera: on the ground, eye 1.7 m above the terrain.
     float walkX = 0.0f, walkZ = 12.0f;
     float walkYawDeg = 180.0f, walkPitchDeg = 0.0f;  // yaw 180 = looking towards -Z (the bunker)

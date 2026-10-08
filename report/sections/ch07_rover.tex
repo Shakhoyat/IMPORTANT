@@ -1,0 +1,51 @@
+% =====================================================================
+\section{Rover Intelligence: MicroMouse and Line Following}\label{sec:rover}
+\pipestrip{10}
+The intruder rover is a differential-drive robot split as in a MicroMouse / line-follower competition: a grid \emph{planner} and a \emph{controller} that follows the planned line with five infrared sensors (both in \code{ai/HideController.cpp}).
+
+\subsection{The grid}
+\autofig{diagrams}{E1_planner_grids}
+The compound is $80\times80$ cells of 0.5\,m over $[-20,20]^2$. A cell is \emph{free} if vertical segments through the robot's body (centre plus eight points on its radius, up to 0.8\,m) miss every static part, with a 0.30\,m planning margin. A cell is \emph{hidden} from an observer (a UAV) if segments from five body points to it are blocked by an occluder. The test maps the segment into the primitive's unit space with $W^{-1}$, so spheres, cones and cylinders are intersected exactly (T25, T31, T37), and a 2\,m bucket grid makes it fast (T44: identical to brute force over 516 occluders).
+
+\subsection{Flood fill: BFS for hiding}
+When hiding, the goals are the hidden cells; the \emph{flood fill} is a breadth-first search over the 4-neighbourhood that stores in each free cell its step count $D$ to the nearest goal, the wave a MicroMouse spreads from the maze centre (Listing~\ref{lst:Flood}). Preferred goals are hidden cells whose free neighbours are all hidden (deep shadow); otherwise any hidden cell.
+\lstFlood
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\linewidth}\picdia{flood_bfs}{\linewidth}\caption{BFS distance field to the hidden cells}\end{subfigure}
+\begin{subfigure}{0.49\linewidth}\picdia{flood_dijkstra}{\linewidth}\caption{Weighted field to the objective}\end{subfigure}
+\caption{The two distance fields on the real compound grid (from the program's data). Dark = near the goal; white cells are blocked.}\label{fig:flood}
+\end{figure}
+
+\subsection{Weighted flood fill: Dijkstra for infiltration}
+\autofig{diagrams}{E2_flood_dijkstra}
+When infiltrating, the rover has an \emph{objective} (a camp asset). Dijkstra's algorithm with a priority queue computes the field from the objective cell; stepping into a cell costs, in $1/16$ units,
+\begin{equation}c(\text{cell})=16+24\,[\text{exposed}]+\lfloor24\,n(\text{cell})\rfloor,\end{equation}
+where \emph{exposed} means some UAV can see the cell and $n\in[0,1)$ is a value-noise field seeded per rover. A step costs one cell-length, plus 1.5 if exposed, plus up to 1.5 of random preference: rovers favour shadow and each picks different corridors (the ``random paths'' of T144) yet reaches the objective (T143). Exposure is recomputed at each replan (every 1.6\,s).
+\lstDijkstra
+
+\subsection{Steepest descent and Chaikin smoothing}
+The path is read off the field by \emph{steepest descent}: step to the smallest neighbour until a goal is reached, keeping the current heading among equals so the route has few turns (Listing~\ref{lst:Descend}). The staircase of cell centres is rounded by Chaikin's corner cutting: every segment $\vect a\vect b$ is replaced by the points at $\tfrac14$ and $\tfrac34$ of its length, $\vect q=\tfrac34\vect a+\tfrac14\vect b$, $\vect r=\tfrac14\vect a+\tfrac34\vect b$, three times (Listing~\ref{lst:Chaikin}), converging to a quadratic B-spline. The line starts under the robot along its heading.
+\lstDescend
+\lstChaikin
+\begin{figure}[h]
+\centering
+\picdia{path_chaikin}{0.8\linewidth}
+\caption{A staircase route (cell centres) and its Chaikin-smoothed virtual line (real route from the planner).}
+\end{figure}
+
+\subsection{Line follower: IR sensors, PD steering, differential drive}
+The planned line is \emph{virtual}, 10\,cm wide. Five IR sensors at lateral offsets $x_i=-0.12+0.06\,i$ m sit 0.31\,m ahead of the robot centre; sensor $i$ is \emph{active} if within 5\,cm of the line. The normalised error from the mean active offset is
+\begin{equation}e=\frac{1}{0.12}\cdot\frac{\sum_{i\in\text{active}}x_i}{|\text{active}|}\in[-1,1].\end{equation}
+A PD controller gives the angular velocity, $\omega=K_pe+K_d\,\dot e$ with $K_p=3.2$, $K_d=0.25$ (clamped to $\pm2.5$\,rad/s), and speed falls with error, $v=v_\text{max}(1-0.6|e|)$, $v_\text{max}=0.75$\,m/s. The differential drive converts $(v,\omega)$ to track speeds
+$v_{L,R}=v\mp\omega W/2$ ($W=0.5$\,m), limited to 2\,m/s$^2$ wheel acceleration, and integrates $v=\tfrac12(v_L+v_R)$, $\dot\psi=(v_R-v_L)/W$. With no sensor on the line the robot sweeps towards the line's side and replans after 0.8\,s; if blocked it pivots and, after 1.2\,s, reverses.
+\lstFollowLine
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.49\linewidth}\picdia{ir_sensors}{\linewidth}\caption{sensor bar on the line: error $e$ vs.\ pattern}\end{subfigure}
+\begin{subfigure}{0.49\linewidth}\picdia{rover_trace}{\linewidth}\caption{a driven path against the planned line}\end{subfigure}
+\caption{The line follower. Left: the five sensors and the resulting error; right: a rover's actual trace over its virtual line.}
+\end{figure}
+
+\subsection{Behaviours and tests}
+\emph{Hide}: goals are hidden cells, BFS field. \emph{Infiltrate}: goal is the objective, Dijkstra field, route committed for 1.6\,s. \emph{Evade}: a UAV within 5\,m switches the rover to hiding for 4\,s, then it resumes. Tests: T27 (BFS field valid, descent reaches a goal: start value 8, 8 cells), T28 (the rover drives into the UAV's blind spot within 60\,s), T143--T145 (infiltration, random routes ending 4.32\,m apart after 25\,s, evasion).

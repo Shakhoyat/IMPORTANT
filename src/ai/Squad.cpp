@@ -25,6 +25,7 @@ const char* squadRoleName(SquadRole r) {
         case SquadRole::Lead: return "LEAD";
         case SquadRole::Wing: return "WING";
         case SquadRole::Manual: return "MANUAL";
+        case SquadRole::Search: return "SEARCH";
     }
     return "?";
 }
@@ -39,12 +40,13 @@ const char* strikePhaseName(StrikePhase p) {
     return "?";
 }
 
-float roundFlightTime(float d) {
+float roundFlightTime(float dIn) {
     const float rampDist = 0.5f * (8.0f + 60.0f) * 0.4f;  // 13.6 m while accelerating
+    const float d = std::max(0.0f, dIn - 0.5f);             // the proximity fuse fires 0.5 m short
     float t;
     if (d <= rampDist) t = (-8.0f + std::sqrt(64.0f + 260.0f * d)) / 130.0f;  // d = 8 t + 65 t^2
     else t = 0.4f + (d - rampDist) / 60.0f;
-    return t + 0.08f;
+    return t;
 }
 
 Squad::Squad() {
@@ -54,15 +56,75 @@ Squad::Squad() {
 }
 
 void Squad::setObstacles(const std::vector<Box>& b) {
+    obstacles_ = b;
     for (DroneController& c : ctl_) c.setObstacles(b);
+}
+
+bool Squad::clearShot(const Vec3& from, const Vec3& to) const {
+    // Slab test of the segment against every box, ignoring the last 0.8 m (the target's own surroundings).
+    const Vec3 d = to - from;
+    const float len = length(d);
+    if (len < 1e-3f) return true;
+    const float tEnd = std::max(0.0f, 1.0f - 0.8f / len);
+    for (const Box& b : obstacles_) {
+        float t0 = 0.0f, t1 = tEnd;
+        const float o[3] = {from.x, from.y, from.z}, v[3] = {d.x, d.y, d.z};
+        const float lo[3] = {b.min.x, b.min.y, b.min.z}, hi[3] = {b.max.x, b.max.y, b.max.z};
+        bool hit = true;
+        for (int k = 0; k < 3 && hit; ++k) {
+            if (std::fabs(v[k]) < 1e-6f) {
+                if (o[k] < lo[k] || o[k] > hi[k]) hit = false;
+                continue;
+            }
+            float a = (lo[k] - o[k]) / v[k], c = (hi[k] - o[k]) / v[k];
+            if (a > c) std::swap(a, c);
+            t0 = std::max(t0, a);
+            t1 = std::min(t1, c);
+            if (t0 > t1) hit = false;
+        }
+        if (hit) return false;
+    }
+    return true;
+}
+
+bool Squad::friendlyAt(const Vec3& p) const {
+    for (const FriendlyMark& f : friendly_)
+        if (length(flat(p - f.p)) < f.r) return true;
+    return false;
 }
 
 bool Squad::ignored(const Vec3& p) const {
     for (const Ignore& z : ignore_)
         if (length(flat(p - z.p)) < kWreckIgnoreRadius) return true;
-    for (const Vec3& f : friendly_)
-        if (length(flat(p - f)) < kFriendlyRadius) return true;
-    return false;
+    return friendlyAt(p);
+}
+
+float Squad::prnd() {
+    prng_ = prng_ * 1664525u + 1013904223u;
+    return static_cast<float>(prng_ >> 8) / 16777216.0f;
+}
+
+void Squad::setPatrolSeed(uint32_t seed) {
+    patrolSeed_ = seed;
+    prng_ = seed ? seed : 1u;
+    for (int i = 0; i < kCount; ++i) {
+        patrol_[i] = PatrolParams{};
+        nextDetour_[i] = detourUntil_[i] = -1.0f;
+    }
+    if (!seed) return;
+    // One shared sweep rate keeps the two UAVs on opposite sides; radius and breathing differ per UAV
+    // (r_max <= 17.5 m stays inside the fence ring).
+    const float rate = (2.6f / 12.5f) * (0.85f + 0.3f * prnd());
+    for (int i = 0; i < kCount; ++i) {
+        PatrolParams& p = patrol_[i];
+        p.baseRadius = 10.0f + 2.5f * prnd();
+        p.amplitude = 3.0f + 2.0f * prnd();
+        p.breathing = 0.07f + 0.08f * prnd();
+        p.breathPhase = 2.0f * PI * prnd();
+        p.angularSpeed = rate;
+        p.aimSwing = 4.5f + 3.0f * prnd();
+        p.aimRate = 0.45f + 0.35f * prnd();
+    }
 }
 
 float Squad::threat(const Track& t) const {
@@ -89,6 +151,42 @@ void Squad::patrol(float dt, float time, int i) {
     // while the other covers the outer ring, so together they sweep the whole compound.
     DroneState& s = drones[i];
     const float phase = i == 0 ? 0.0f : PI;
+    if (patrolSeed_) {
+        // Seeded patrol: every so often a UAV leaves the orbit to look at a random spot of the compound.
+        if (nextDetour_[i] < 0.0f) nextDetour_[i] = time + kDetourMinGap * (0.3f + 0.7f * prnd()) + 8.0f * i;
+        if (detourUntil_[i] < time && time >= nextDetour_[i]) {
+            const float a = 2.0f * PI * prnd(), r = 3.0f + 12.0f * prnd();
+            detourPoint_[i] = {r * std::cos(a), 0.0f, r * std::sin(a)};
+            detourPoint_[i].y = terrainHeight(detourPoint_[i].x, detourPoint_[i].z);
+            detourUntil_[i] = time + kDetourMinTime + (kDetourMaxTime - kDetourMinTime) * prnd();
+            nextDetour_[i] = detourUntil_[i] + kDetourMinGap + (kDetourMaxGap - kDetourMinGap) * prnd();
+            ++detours_;
+        }
+        if (detourUntil_[i] >= time) {
+            // Hover off-set from the spot (camera looking down at it at ~50 deg), a little higher than the orbit.
+            const Vec3 c = detourPoint_[i];
+            const Vec3 away = length(flat(c)) > 1.0f ? normalize(flat(c)) : Vec3{1, 0, 0};
+            const Vec3 g = c - away * 5.0f;
+            ctl_[i].flyTo(dt, {g.x, terrainHeight(g.x, g.z) + kSquadPatrolAlt + 0.5f * i, g.z}, 3.2f, s);
+            ctl_[i].faceTowards(dt, c, 45.0f, s);
+            ctl_[i].aimGimbalAt(dt, c, s);
+            s.mode = DroneMode::Search;
+            return;
+        }
+        const PatrolParams& p = patrol_[i];
+        const float radius = p.baseRadius + p.amplitude * std::sin(p.breathing * time + p.breathPhase + phase);
+        const float angle = p.angularSpeed * time + phase;
+        const Vec3 goal{radius * std::cos(angle), 0.0f, radius * std::sin(angle)};
+        ctl_[i].flyTo(dt, {goal.x, terrainHeight(goal.x, goal.z) + kSquadPatrolAlt, goal.z}, 3.2f, s);
+        const Vec3 tangent{-std::sin(angle), 0.0f, std::cos(angle)};
+        ctl_[i].faceTowards(dt, s.position + tangent, 45.0f, s);
+        const float aimR = clampf(radius + p.aimSwing * std::sin(p.aimRate * time + 1.7f * phase), 2.0f, 18.5f);
+        const float aimA = angle + 0.35f;
+        const Vec3 aim{aimR * std::cos(aimA), 0.0f, aimR * std::sin(aimA)};
+        ctl_[i].aimGimbalAt(dt, {aim.x, terrainHeight(aim.x, aim.z), aim.z}, s);
+        s.mode = DroneMode::Search;
+        return;
+    }
     const float radius = 11.0f + 4.0f * std::sin(0.11f * time + phase);
     const float angle = (2.6f / 12.5f) * time + phase;
     const Vec3 goal{radius * std::cos(angle), 0.0f, radius * std::sin(angle)};
@@ -101,6 +199,19 @@ void Squad::patrol(float dt, float time, int i) {
     const Vec3 aim{aimR * std::cos(aimA), 0.0f, aimR * std::sin(aimA)};
     ctl_[i].aimGimbalAt(dt, {aim.x, terrainHeight(aim.x, aim.z), aim.z}, s);
     s.mode = DroneMode::Search;
+}
+
+void Squad::reacquire(float dt, float time, int i) {
+    // The target went behind cover: both UAVs circle its last known position on opposite sides and at
+    // different radii / heights, cameras on the spot, to look around the occluder from new angles.
+    DroneState& s = drones[i];
+    const float a = 0.45f * time + (i == 0 ? 0.0f : PI);
+    const float r = i == 0 ? 5.0f : 8.0f;
+    const Vec3 g = lastKnown_ + Vec3{std::cos(a), 0.0f, std::sin(a)} * r;
+    ctl_[i].flyTo(dt, {g.x, terrainHeight(g.x, g.z) + (i == 0 ? 6.0f : 8.5f), g.z}, 3.4f, s);
+    ctl_[i].faceTowards(dt, lastKnown_, 60.0f, s);
+    ctl_[i].aimGimbalAt(dt, lastKnown_, s);
+    s.mode = DroneMode::Reacquire;
 }
 
 void Squad::engage(float dt, const Track& t, int lead, int wing, const bool manual[kCount]) {
@@ -116,9 +227,14 @@ void Squad::engage(float dt, const Track& t, int lead, int wing, const bool manu
     }
     for (int i = 0; i < kCount; ++i) {
         if (manual[i] || (i != lead && i != wing)) continue;
-        const float a = i == lead ? aLead : aWing;
+        // No clear line of fire (trees, the watchtower...): keep circling round the target and climb for a
+        // steeper shot until one opens; the detour resets once the shot is clear.
+        const bool clear = clearShot(drones[i].position, target);
+        detour_[i] = clear ? std::max(0.0f, detour_[i] - dt) : std::min(detour_[i] + dt, 8.0f);
+        const float a = (i == lead ? aLead : aWing) + 0.35f * detour_[i] * (i == lead ? 1.0f : -1.0f);
         const Vec3 g = target + Vec3{std::cos(a), 0.0f, std::sin(a)} * kSquadStandOff;
-        ctl_[i].flyTo(dt, {g.x, terrainHeight(g.x, g.z) + kSquadEngageAlt, g.z}, 3.6f, drones[i]);
+        const float alt = kSquadEngageAlt + 0.6f * detour_[i];
+        ctl_[i].flyTo(dt, {g.x, terrainHeight(g.x, g.z) + alt, g.z}, 3.6f, drones[i]);
         ctl_[i].faceTowards(dt, target, 70.0f, drones[i]);
         ctl_[i].aimGimbalAt(dt, target, drones[i]);
         drones[i].mode = DroneMode::Track;
@@ -129,8 +245,9 @@ void Squad::engage(float dt, const Track& t, int lead, int wing, const bool manu
 
 void Squad::planStrike(float time, const Track& t, int lead, int wing, const bool manual[kCount], const int ready[kCount],
                        std::vector<GameEvent>& events) {
-    const bool wingOk = wing >= 0 && !manual[wing] && lock[wing] >= kSquadWingLock && ready[wing] > 0;
-    const bool leadOk = lock[lead] >= kSquadLeadLock && ready[lead] > 0;
+    const bool wingOk = wing >= 0 && !manual[wing] && lock[wing] >= kSquadWingLock && ready[wing] > 0 &&
+                        clearShot(drones[wing].position, t.position());
+    const bool leadOk = lock[lead] >= kSquadLeadLock && ready[lead] > 0 && clearShot(drones[lead].position, t.position());
     const bool solo = !wingOk && lock[lead] >= kSquadSoloLock && (time - strike_.started) > kSquadWingWait;
     if (!leadOk || (!wingOk && !solo)) return;
     const Vec3 now = t.position();
@@ -173,6 +290,7 @@ void Squad::planStrike(float time, const Track& t, int lead, int wing, const boo
 
 void Squad::update(float dt, float time, const SquadFrame& frame, const bool manual[kCount], const int ready[kCount],
                    std::vector<LaunchOrder>& orders, std::vector<GameEvent>& events) {
+    lastTime_ = time;
     for (Ignore& z : ignore_) z.t -= dt;
     ignore_.erase(std::remove_if(ignore_.begin(), ignore_.end(), [](const Ignore& z) { return z.t <= 0.0f; }), ignore_.end());
 
@@ -183,7 +301,7 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
         camPos_[i] = transformPoint(frame.camera[i], {0, 0, 0});
         for (const Measurement2D& b : frame.blobs[i]) {
             Vec3 hit;
-            if (!DroneController::imagePointToGround(b.u, b.v, frame.camera[i], hit)) continue;
+            if (!DroneController::imagePointToGround(b.u, b.v, frame.camera[i], hit, kSquadBlobHeight)) continue;
             if (ignored(hit)) continue;  // known wreck or friendly vehicle
             GroundMeasurement g;
             g.point = hit;
@@ -223,11 +341,18 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
     if (!target) {
         if (strike_.phase != StrikePhase::Inbound) strike_ = StrikeState{-1, StrikePhase::None, false, time};
     } else if (target->id != strike_.track) {
-        strike_ = StrikeState{};
-        strike_.track = target->id;
-        strike_.phase = StrikePhase::Tracking;
-        strike_.started = time;
-        lock[0] = lock[1] = 0.0f;
+        // Same rover under a new track id (re-acquired after cover): keep the locks and the strike state.
+        const bool sameRover = time - lastKnownTime_ < 3.0f && length(flat(target->position() - lastKnown_)) < 2.0f;
+        if (sameRover) {
+            strike_.track = target->id;
+            if (strike_.phase == StrikePhase::None) strike_.phase = StrikePhase::Tracking;
+        } else {
+            strike_ = StrikeState{};
+            strike_.track = target->id;
+            strike_.phase = StrikePhase::Tracking;
+            strike_.started = time;
+            lock[0] = lock[1] = 0.0f;
+        }
     }
     strike_.cooldown = std::max(0.0f, strike_.cooldown - dt);
 
@@ -236,7 +361,9 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
     if (target) {
         for (int i = 0; i < kCount; ++i) {
             const bool seen = (target->seenNow >> i) & 1u;
-            lock[i] = seen ? lock[i] + dt : std::max(0.0f, lock[i] - 1.5f * dt);
+            // Flicker-tolerant lock: time seen accumulates, a short dropout (foliage, partial occlusion) only
+            // bleeds it slowly; a long one clears it.
+            lock[i] = seen ? lock[i] + dt : std::max(0.0f, lock[i] - 0.4f * dt);
         }
         // Lead = the available UAV with the longer lock (ties: the closer one).
         for (int i = 0; i < kCount; ++i) {
@@ -256,10 +383,17 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
         }
     } else {
         lock[0] = lock[1] = 0.0f;
+        const bool search = time - lastKnownTime_ < kSquadReacquireTime;
         for (int i = 0; i < kCount; ++i) {
-            roles[i] = manual[i] ? SquadRole::Manual : SquadRole::Patrol;
-            if (!manual[i]) patrol(dt, time, i);
+            roles[i] = manual[i] ? SquadRole::Manual : (search ? SquadRole::Search : SquadRole::Patrol);
+            if (manual[i]) continue;
+            if (search) reacquire(dt, time, i);
+            else patrol(dt, time, i);
         }
+    }
+    if (target) {
+        lastKnown_ = target->position();
+        lastKnownTime_ = time;
     }
 
     // ---- 4. Strike: plan (time on target), release, keep the laser spots on the predicted target ----
@@ -303,6 +437,7 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
 
 void Squad::onKill(const Vec3& where) {
     ignoreNear(where, kWreckIgnoreTime);
+    if (length(flat(lastKnown_ - where)) < 3.0f) lastKnownTime_ = -1e9f;  // target dead: back to patrol
     const Track* t = tracker_.find(strike_.track);
     if (t && length(flat(t->position() - where)) < 3.0f) strike_ = StrikeState{};
     std::vector<int> drop;

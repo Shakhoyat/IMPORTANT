@@ -1,34 +1,20 @@
 % =====================================================================
 \section{Primitives, Indexed Rendering and Memory}\label{sec:prims}
-Every primitive is generated as a list of unique vertices $(x,y,z,n_x,n_y,n_z)$, 24 bytes each, plus a triangle
-index list. Triangles are wound counter-clockwise seen from outside, so with \code{glFrontFace(GL\_CCW)} and
-back-face culling only outward faces are rasterised. The angular resolution is $N=36$ slices,
-$\Delta\phi=2\pi/36=10^\circ$, as written on the lab sheet. The generators are in \code{src/primitives/} and are
-the \emph{only} source of geometry; the one exception, the terrain disc, is the cylinder cap subdivided into
-rings and lifted by a height field (documented as the single non-rigid surface).
-
-\begin{figure}[h]
-  \centering
-  \pictwo{primitive_library}{\linewidth}
-  \caption{The primitive library rendered by the program (v2 capture, still valid in v4: the generators did not
-  change). The counts are computed from the generators at capture time.}
-  \label{fig:library}
-\end{figure}
+\pipestrip{1}
+Every primitive is a list of unique vertices $(x,y,z,n_x,n_y,n_z)$, 24 bytes each, plus a triangle index list, wound counter-clockwise seen from outside so that \code{GL\_CCW} and back-face culling keep only outward faces. The resolution is $N=36$ slices, $\Delta\phi=10^\circ$. The generators in \code{src/primitives/} are the \emph{only} source of geometry, except the terrain disc (the cylinder cap subdivided into rings and lifted by a height field).
 
 \subsection{Cube, sphere, cylinder, cone and frustum}
 \textbf{Cube.} Each face has an outward normal $\vect n$ and in-plane axes $\vect u,\vect v$ with
 $\vect u\times\vect v=\vect n$; its corners are
 $\vect p_c=\tfrac12\vect n+\tfrac12 s_u\vect u+\tfrac12 s_v\vect v$ with
 $(s_u,s_v)\in\{(-,-),(+,-),(+,+),(-,+)\}$, counter-clockwise about $\vect n$, split into $(0,1,2)$ and
-$(0,2,3)$. A corner is stored once per face because its normal differs on each face: 24 vertices, 36 indices,
-12 triangles (T01--T03).
+$(0,2,3)$. A corner is stored once per face (its normal differs): 24 vertices, 36 indices, 12 triangles (T01--T03).
 
 \textbf{Sphere.} With $r=0.5$, $\theta_k=k\pi/S$, $\phi_j=2\pi j/N$ ($S=18$, $N=36$):
 $x=r\sin\theta_k\cos\phi_j$, $y=r\cos\theta_k$, $z=r\sin\theta_k\sin\phi_j$, $\vect n=\vect p/r$. Only the
-northern hemisphere is computed (a fan around the pole plus quads between rings). The southern half is its
-reflection $y\mapsto-y$, as sketched on the lab sheet. A reflection reverses orientation, so each mirrored triangle
+northern hemisphere is computed; the southern half is its reflection $y\mapsto-y$. A reflection reverses orientation, so each mirrored triangle
 $(a,b,c)$ is emitted as $(a',c',b')$. The shared equator gives $2+(S-1)N=614$ vertices and $2N(S-1)=1224$
-triangles with half the trigonometry (T04--T06).
+triangles (T04--T06).
 
 \textbf{Cylinder, cone, frustum.} The axis is the local $z$ axis, $z\in[-0.5,0.5]$. The side joins two rings,
 \begin{equation}
@@ -37,36 +23,68 @@ triangles with half the trigonometry (T04--T06).
   \vect n_j=\mathrm{normalize}(\cos\phi_j,\,\sin\phi_j,\,r_b-r_t),
 \end{equation}
 and each cap is a fan around its own centre. With $r_b=r_t=0.5$ this is the lab cylinder: $4N+2=146$ vertices,
-$4N=144$ triangles. With $r_t=0$ the same routine yields the \textbf{cone} (109 vertices, 72 triangles; the collapsed
-top ring is skipped, so there are no degenerate triangles; T36); with $0<r_t<r_b$ and no caps it yields the
-searchlight \textbf{frustum} (72 vertices, T10). Cones are used for pine whorls and the UAV missile noses (259 cone instances in the export), so the project still uses
-exactly one cylinder generator for cylinder, cone and frustum.
+$4N=144$ triangles. With $r_t=0$ the same routine yields the \textbf{cone} (109 vertices, 72 triangles; no degenerate triangles, T36); with $0<r_t<r_b$ and no caps it yields the
+searchlight \textbf{frustum} (72 vertices, T10). Cones (pine whorls, missile noses; 259 instances in the export) thus need no extra generator.
+
+\begin{figure}[h]
+\centering
+\picsheet{sheet_vertex_cube}{\linewidth}
+\caption{\sheetcaption{sheet_vertex_cube}}
+\end{figure}
+\begin{figure}[h]
+\centering
+\picdia{A1_cube_vertices}{0.92\linewidth}
+\caption{The cube: 24 vertices (4 per face with the face normal) and 36 indices; 720\,B indexed against 864\,B flat.}
+\end{figure}
+\begin{figure}[h]
+\centering
+\picdia{A2_sphere_rings}{0.92\linewidth}
+\caption{The sphere: rings of 36 slices, normals equal to the normalised positions, the southern half mirrored.}
+\end{figure}
+\begin{figure}[h]
+\centering
+\picdia{A3_cylinder_cone}{0.92\linewidth}
+\caption{Cylinder, cone and frustum from one generator.}
+\end{figure}
+\begin{figure}[h]
+\centering
+\picdia{A4_terrain_disc}{0.92\linewidth}
+\caption{The terrain disc: ring structure (left) and the real triangles with the entrance-ramp hole (right).}
+\end{figure}
+\subsection{The generator code}
+Listing~\ref{lst:Cube}: each face is a frame $(\vect n,\vect u,\vect v)$ with four counter-clockwise corners. Listing~\ref{lst:Sphere}: the northern hemisphere is generated ring by ring and mirrored. Listing~\ref{lst:Cylinder}: two rings joined by side quads with normals tilted by $r_b-r_t$, plus caps; a top radius of 0 gives the cone.
+\lstCube
+\lstSphere
+\lstCylinder
+\paragraph{The terrain disc.} The terrain is the cylinder cap subdivided into $R=130$ rings of $N=384$ slices ($1+RN=49\,921$ vertices, $N(2R-1)=99\,456$ triangles minus 2\,016 cut out for the entrance trench $=97\,440$, T13), radius 36\,m, each vertex lifted to
+$y=h(x,z)$: rolling hills, a levelled bunker pad, a creek, a track, a berm and a mound over the bunker. Normals come from central differences of $h$.
 
 \subsection{Indexed rendering and memory}
-Without indexing every triangle stores its three vertices (lab ``technique 1'': 18 floats for a square); with
-indexing unique vertices go to the VBO and triangles reference them through the EBO (technique 2: 12 floats $+$ 6
+\sheetfig{s02_cube_indices}
+\sheetfig{s06_geometry_stats}
+\sheetfig{s06_charts}
+Without indexing every triangle stores its three vertices (lab technique 1: 18 floats for a square); with
+indexing, unique vertices go to the VBO and triangles reference them through the EBO (technique 2: 12 floats $+$ 6
 indices). The VAO records \emph{location 0: offset 0, stride 24\,B} (position) and \emph{location 1: offset 12\,B}
 (normal); one VAO+VBO+EBO per primitive is shared by every part. Memory per mesh is
-$M_\text{flat}=3T\cdot 24$\,B and $M_\text{indexed}=24V+12T$\,B (Table~\ref{tab:memory}, generated from
-\code{scene\_export.json}). The six meshes take \memIndexed\,B indexed against \memNonIndexed\,B non-indexed; the
-terrain disc (49\,921 vertices, 36\,m radius) dominates both. The mesh instance counts show how few distinct meshes
-serve the \nLeaves{} parts. Test T12 checks that every indexed mesh is smaller than its flat version.
+$M_\text{flat}=3T\cdot 24$\,B and $M_\text{indexed}=24V+12T$\,B (Table~\ref{tab:memory}). The six meshes take \memIndexed\,B indexed against \memNonIndexed\,B non-indexed, dominated by the
+terrain disc; they serve all \nLeaves{} parts. T12 checks that every indexed mesh is smaller than its flat version.
 
 \begin{table}[h]
 \centering\small
-\caption{GPU meshes (rows from \code{build/scene\_export.json}, byte sums computed by \code{gen\_tables.py}). The
-terrain's function string in the export still reads radius 20, a stale label in the exporter; the vertex count
-(49\,921) is that of the 36\,m mesh (T13).}
+\caption{GPU meshes (from \code{build/scene\_export.json}). The terrain's vertex count (49\,921) is that of the 36\,m mesh (T13).}
 \label{tab:memory}
 \input{sections/gen_meshes}
 \end{table}
 
-\paragraph{Instancing and culling.} The grass is the unit cube drawn with \code{glDrawElementsInstanced} (one VAO,
-a per-instance buffer with \code{glVertexAttribDivisor}); the preset decides the count: LOW 14\,000, HIGH 35\,000,
-ULTRA 140\,000, EPIC 450\,000 blades (\code{qualityProfile}). Rain streaks and foliage cards use the same mechanism,
-and the v4 effect sprites reuse the cube's $+Z$ face (Section~\ref{sec:pipeline}). Every pass (main view, UAV camera,
-shadow maps, pre-pass) culls parts whose bounding sphere $r=\tfrac12\sqrt{s_x^2+s_y^2+s_z^2}$ lies outside one of the six
-frustum planes of the view-projection matrix (Gribb--Hartmann).
+\begin{figure}[h]
+\centering
+\picsheet{sheet_memory}{\linewidth}
+\caption{\sheetcaption{sheet_memory}}
+\end{figure}
+\paragraph{Instancing and culling.} The grass is the unit cube drawn with \code{glDrawElementsInstanced} (per-instance buffer, \code{glVertexAttribDivisor}); the quality preset sets the count: LOW 14\,000, HIGH 35\,000,
+ULTRA 140\,000, EPIC 450\,000 blades. Rain streaks, foliage cards and effect sprites use the same mechanism. Every pass culls parts whose bounding sphere $r=\tfrac12\sqrt{s_x^2+s_y^2+s_z^2}$ lies outside one of the six
+frustum planes (Gribb--Hartmann, Chapter~\ref{sec:geomchain}).
 
-\paragraph{Tests.} Unit tests T01--T13 check counts, centring, normal length, winding, sphere reflection, cylinder
-axis, index validity and the memory comparison. Section~\ref{sec:testing} lists all \nTests{} tests.
+\paragraph{Tests.} T01--T13 check counts, centring, normal length, winding, sphere reflection, cylinder
+axis, index validity and the memory comparison (all \nTests{} tests: Section~\ref{sec:testing}).

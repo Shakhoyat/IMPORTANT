@@ -19,7 +19,7 @@ public:
     ~GrassField();
     bool init();                 // builds the shader and the cube geometry
     void setCount(int blades);   // (re)generates the instance buffer; deterministic placement
-    void setDensityMap(const GroundMap* map) { map_ = map; count_ = -1; }
+    void setDensityMap(const GroundMap* map) { map_ = map; count_ = requested_ = -1; }
     int count() const { return count_; }
 
     struct Pusher {              // something that flattens the grass (rover, rotor wash)
@@ -44,6 +44,7 @@ private:
     GLuint vao_ = 0, vbo_ = 0, ebo_ = 0, instanceVbo_ = 0;
     GLsizei indexCount_ = 0;
     int count_ = -1;
+    int requested_ = -1;   // v7 WP-Q: blade budget of the last build (count_ = blades placed, usually fewer)
     std::vector<Cell> cells_;
     const GroundMap* map_ = nullptr;
 };
