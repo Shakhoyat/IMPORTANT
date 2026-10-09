@@ -106,6 +106,28 @@ modes `prims`, `parts:<object>`, `build:<object>` (capture group `m3`).
 | Limitations | "no torus, wedge, hemisphere or helix generator" | "no level of detail; the ray tracer stands in a sphere, cylinder or box for seven of the sixteen and leaves the helix out" |
 | Conclusion Table | "7 primitives" | "16 primitives" |
 
+### Regenerated after the M3 merge
+
+- Workbook: new sheet `Vertex_Groups` (groups A, C, D as live formulas; leg forward kinematics reproduces the exported ankle path) shown in Section 7.1 and Appendix A.4; 15 sheets, 2 355 formula cells, 0 errors. Primitives sheet now prints on two pages (page break before the parametric block).
+- All captures re-rendered (scene, v5, play, lab, rt, game, m3 groups); Frame Explorer insets, plots and workbook recomputed.
+- Benchmark re-run (`TS_BENCH_V10=1`, 3 rounds x 10 s, RTX 4070): Table 30.x and the analysis paragraph are generated from the new CSV. Fewer triangles after the helix replaced 312 wire cylinders.
+
+| Configuration | mean ms old -> new | fps old -> new | triangles old -> new |
+|---|---|---|---|
+| EPIC day 10:30 | 14.87 -> 11.90 | 67.3 -> 84.1 | 5.73 M -> 4.11 M |
+| EPIC night 23:00 (game: waves, UAVs) | 16.38 -> 15.33 | 61.0 -> 65.2 | 5.80 M -> 4.12 M |
+| EPIC day, thermal view | 10.72 -> 12.93 | 93.3 -> 77.3 | 2.73 M -> 1.48 M |
+| EPIC night, thermal view | 12.62 -> 13.32 | 79.2 -> 75.1 | 2.50 M -> 1.55 M |
+| EPIC day, shadows off | 16.42 -> 15.43 | 60.9 -> 64.8 | 5.86 M -> 4.14 M |
+| EPIC night, shadows off | 17.18 -> 16.78 | 58.2 -> 59.6 | 5.87 M -> 4.17 M |
+| EPIC day, non-indexed | 54.47 -> 52.97 | 18.4 -> 18.9 | 5.86 M -> 4.13 M |
+| ULTRA day | 16.76 -> 16.69 | 59.7 -> 59.9 | 4.31 M -> 2.61 M |
+| HIGH day | 15.11 -> 14.91 | 66.2 -> 67.1 | 1.41 M -> 1.52 M |
+| LOW day | 14.16 -> 12.62 | 70.6 -> 79.3 | 1.32 M -> 1.39 M |
+| v1 look (no post) day | 13.01 -> 11.70 | 76.9 -> 85.5 | 1.34 M -> 1.44 M |
+
+The analysis sentence "Every configuration except non-indexed drawing averages at least 60 fps" is no longer generated: EPIC night with shadows off (59.6 fps) and ULTRA (59.9 fps) fall just below 60 in this run.
+
 ## M4: pipeline flow, explanatory diagrams, Game mode, explosions, intruder algorithm
 
 ### New explanatory diagrams (`tools/v10/diagrams.py` -> `figures/diagrams/*.pdf`)
