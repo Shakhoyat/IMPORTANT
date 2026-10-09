@@ -11,6 +11,12 @@ fragments behind it, in any drawing order.}
 \end{equation}
 
 \begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_hsr.pdf}
+\caption{Left: back-face culling keeps the faces whose normal points towards the eye. Right: the Z-buffer keeps the smallest depth per pixel, whatever order the wall and the crate are drawn in.}
+\label{fig:d-hsr}
+\end{figure}
+
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_hiddenline}{\linewidth}\caption{Hidden-line wireframe (\key{X}).}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_xray}{\linewidth}\caption{X-ray wireframe: no depth test.}\end{subfigure}\hfill

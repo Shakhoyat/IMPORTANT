@@ -70,3 +70,66 @@ Test content removed (per request): cover "Verification" row; Table 3.1 "Verific
 link them without a GPU" -> "that runs without a GPU (the --export-docs path uses it)"); Section 5 ("a test checks it
 has no conflicts" -> "it has no conflicts"); Table 23.1 "Test" column and caption clause; test ids in Sections 3, 23,
 28 and Table 31.1.
+
+## M4: pipeline flow, explanatory diagrams, Game mode, explosions, intruder algorithm
+
+### New explanatory diagrams (`tools/v10/diagrams.py` -> `figures/diagrams/*.pdf`)
+Teaching drawings of each section's maths; every constant drawn from the code is the code's value. All checked at
+150 dpi for overlaps; smallest text 7.5 pt at natural size (>= 7.0 pt where a figure is scaled to the text width).
+
+| New figure | Section | Shows |
+|---|---|---|
+| "The order matters" | 7 Modelling transformations | unit square through S, RS, TRS; SRT (translate first) lands elsewhere |
+| "Why world = parent x local" | 8 Hierarchy | two-link arm, shoulder 20 -> 55 deg, elbow local angle unchanged |
+| camera basis | 9 Viewing | e, a, n, u, v; camera looks along -n |
+| perspective vs parallel | 10 Projection | two equal posts, projectors meeting at the eye vs parallel |
+| frustum -> NDC | 11 Projective division | equal depth slices crowd towards z_ndc = 1 |
+| clipping by hand | 12 Clipping | Cohen-Sutherland outcodes, Liang-Barsky interval, Sutherland-Hodgman (6 vertices) |
+| back faces / Z-buffer | 13 HSR | culled faces, per-pixel nearest depth |
+| rasterisation and colour interpolation | 14 Rasterisation | covered pixel centres (edge functions), barycentric RGB mix with the weights of a sample point |
+| lighting vectors | 15 Illumination | N, L, V, H, R and how diffuse / specular fall off with angle |
+| texture mapping and mip pyramid | 17 Texture | uv triangle, mapped on screen, 2x2-averaged mip levels |
+| ray-sphere, reflection / refraction | 18 Ray tracing | two roots, nearest hit; Snell, critical angle 41.8 deg for n = 1.5 |
+| two-view triangulation, Mahalanobis gate | 26 Game mode | skew pixel rays, midpoint; gate chi2 = 9.21 |
+| particle integrators, debris bounce | 27 Explosions | one particle of each kind with the code's laws; debris restitution 0.3, friction 0.7 |
+| blackbody ramp | 27 Explosions | bb(T) = (T^0.45, T^1.9, 0.85 T^4.5), flame and spark temperature over life |
+| flood fill + PD line follower | 28 Paths | BFS distances, descent, Chaikin x3 guide line; IR array at the code's scale |
+
+### Report flow
+- New Figure "Part B on the pipeline" at the start of Part B: each Part B section placed under the pipeline stage it
+  extends (same stage boxes as the Part A banner).
+
+### Section 26: "Game-mode AI" -> "Game mode" (rewritten)
+- Title "Game-mode AI" -> "Game mode".
+- Intro: "hold a lock for 1.5 s" -> "hold a lock (lead 0.8 s, wing 0.5 s)": 1.5 s is `DroneController::kLockTime`
+  (single-UAV controller); the squad that plays the game uses `kSquadLeadLock` 0.8 s / `kSquadWingLock` 0.5 s
+  (`kSquadSoloLock` 1.3 s after `kSquadWingWait` 2.5 s), from `--export-docs` v5.squad.
+- State diagram (a): node "LOCK 1.5 s" -> "LOCK lead 0.8 s / wing 0.5 s"; "reload 6 s" now from the export
+  (kUavReloadTime).
+- New: 26.1 "From pixels to a target" (detection-chain figure; table of the CV concepts used: Otsu threshold with
+  floor 204, despeckle, union-find connected components, image moments, classification, back-projection with
+  sigma = 0.12 + 0.015 d); "How the two UAVs work together" (shared track picture: Kalman predict, Mahalanobis gate
+  9.21, Hungarian assignment, two-view triangulation, life cycle 3 hits / 0.25 s / 3 s; LEAD / WING roles, 6.5 m
+  stand-off, 5 m height; combined strike, time on target, Eq. 26.1; flight-time table from v5.flight_time;
+  proportional navigation clamped to 6 rad/s with Rodrigues rotation); sequence diagram of the cooperation;
+  workbook sheet Tracking (new); figure of one engagement (launch, combined strike, thermal gimbal, kill banner).
+  All values via `tools/v10/gen_game.py` (`\gv{...}` macros from the export or read out of the source).
+
+### New Section 27: "Explosions: particles, physics and colour"
+- Spawn table per blast power (0.15 / 1 / 1.6) from the export's effect census (UAV round: 122 particles, empty after
+  11.7 s), motion law and colour law per kind; exact exponential drag; buoyancy; bounce; debris from the destroyed
+  object's own primitives; colour from temperature bb(T); HDR emission; premultiplied blending with two sorted
+  groups; thermal heat decay; workbook sheet Explosion (new); four frames of one blast.
+
+### Section 28 (paths)
+- New figure: flood fill + line follower diagram; new Algorithm 1 "Intruder rover, one tick" (pseudocode of
+  `HideController::update / replan / followLine`); new paragraph: infiltration uses a weighted flood fill
+  (Dijkstra, exposure and noise costs), hiding uses the breadth-first one; workbook sheet Line_Follower (new).
+
+### Workbook
+- 11 -> 14 sheets: Tracking, Line_Follower, Explosion (2 195 formula cells, 0 errors after LibreOffice recalculation);
+  appendix A.20-A.22 added (smallest printed text 7.0 pt; Explosion prints at 80 %).
+
+### Capture harness
+- New capture group `game` in `tools/v10/capture_all.sh`; the explosion shots now wait up to 180 s for a real kill
+  (was 60 s, after which they were skipped).

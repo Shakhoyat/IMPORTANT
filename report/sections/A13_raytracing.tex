@@ -16,6 +16,12 @@ refraction rays, Whitted \cite{whitted1980}). The program includes a CPU/GPU ray
 \end{equation}
 
 \begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_raytrace.pdf}
+\caption{Left: solving Eq.~\ref{eq:rays} for a sphere gives two roots; the nearest positive one is the visible hit. Right: at a glass surface the ray splits into a reflected and a refracted ray (Snell); from inside the glass beyond the critical angle there is no refracted ray.}
+\label{fig:d-rt}
+\end{figure}
+
+\begin{figure}[H]
 \centering
 \raw{rt/raytrace_modes}{\linewidth}
 \caption{The same view in the five render modes (\key{;}): raster, hybrid (raster plus ray-traced reflections),

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v10 teaching workbook: report/workbooks/cg_workbook.xlsx (11 formula-driven sheets) + per-sheet PNG snaps.
+"""v10 teaching workbook: report/workbooks/cg_workbook.xlsx (14 formula-driven sheets) + per-sheet PNG snaps.
 
 Run:  ~/.local/bin/uv run -q --with openpyxl --with matplotlib python tools/v10/build_cg_workbook.py
       [--export FILE.json]  (default: runs ./build/ts-v9 --export-docs into a temp file)
@@ -32,7 +32,8 @@ UV = Path.home() / ".local/bin/uv"
 NSS_LIB = Path.home() / ".local/opt/nss/root/usr/lib/x86_64-linux-gnu"
 
 SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "View_Projection", "Clipping", "Illumination",
-          "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Duty_Cycle", "Performance"]
+          "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
+          "Performance"]
 
 # --------------------------------------------------------------------------------------------- workbook helpers
 if __name__ == "__main__" and "--snap-only" not in sys.argv:
@@ -1598,6 +1599,291 @@ def sheet_performance(wb):
     s.finish(last_col=9, last_row=last + 3 + 19)
 
 
+def code_values():
+    """Constants read out of the source / export by tools/v10/gen_game.py (also writes report/sections/gen_game.tex)."""
+    sys.path.insert(0, str(ROOT / "tools" / "v10"))
+    import gen_game
+    return gen_game.vals, gen_game.EXP
+
+
+def sheet_explosion(wb, exp):
+    v, ex = code_values()
+    s = Sheet(wb, "Explosion", "Explosion: colour from temperature, particle motion, debris bounce",
+              "rendering/Effects.cpp bb(T), fire / spark colour; scene/Combat.cpp updateParticles (spark integrator); "
+              "scene/Scene.cpp updateDebris (restitution). Yellow = constants copied from the code.")
+    s.widths({"A": 13, **{get_column_letter(c): 9 for c in range(2, 26)}})
+    S = s.put
+    r = 5
+    S(r, 1, "inputs", bold=True, border=False)
+    labels = [("bb R exp", v["bbR"]), ("bb G exp", v["bbG"]), ("bb B gain", v["bbBk"]), ("bb B exp", v["bbB"]),
+              ("fire life exp", v["fireLife"]), ("emit a", v["fireEmitA"]), ("emit b", v["fireEmitB"]),
+              ("spark cool", v["sparkCool"])]
+    cell = {}
+    for j, (lab, val) in enumerate(labels):
+        S(r + 1, 2 + j, lab, head=True)
+        cell[lab] = A(r + 2, 2 + j, True)
+        S(r + 2, 2 + j, val, inp=True, fmt="0.00")
+    s.ws.row_dimensions[r + 1].height = 28
+    r = 9
+    S(r, 1, "A. Blackbody ramp bb(T) = (T^a, T^b, k T^c) and fire emission bb(T)(a' + b' T^2)", border=False, bold=True)
+    s.heads(r + 1, 1, ["T", "R", "G", "B", "a'+b'T^2", "R emit", "G emit", "B emit"], height=18)
+    for i in range(11):
+        rr = r + 2 + i
+        S(rr, 1, i / 10, inp=True, fmt="0.0")
+        T = A(rr, 1)
+        S(rr, 2, f"={T}^{cell['bb R exp']}")
+        S(rr, 3, f"={T}^{cell['bb G exp']}")
+        S(rr, 4, f"={cell['bb B gain']}*{T}^{cell['bb B exp']}")
+        S(rr, 5, f"={cell['emit a']}+{cell['emit b']}*{T}^2")
+        for k in range(3):
+            S(rr, 6 + k, f"={A(rr, 2 + k)}*{A(rr, 5)}")
+    r = 9
+    c0 = 10
+    S(r, c0, "B. A flame core and a spark over their lives (t = age / life)", border=False, bold=True)
+    s.heads(r + 1, c0, ["t", "fire T", "R", "G", "B", "spark Tn", "bb arg", "R", "G", "B"], height=18)
+    for i in range(11):
+        rr = r + 2 + i
+        S(rr, c0, i / 10, inp=True, fmt="0.0")
+        t = A(rr, c0)
+        S(rr, c0 + 1, f"=(1-{t})^{cell['fire life exp']}")
+        S(rr, c0 + 2, f"={A(rr, c0 + 1)}^{cell['bb R exp']}")
+        S(rr, c0 + 3, f"={A(rr, c0 + 1)}^{cell['bb G exp']}")
+        S(rr, c0 + 4, f"={cell['bb B gain']}*{A(rr, c0 + 1)}^{cell['bb B exp']}")
+        S(rr, c0 + 5, f"=MAX(0,MIN(1,1-{t}*{cell['spark cool']}))")
+        S(rr, c0 + 6, f"=0.1+0.9*{A(rr, c0 + 5)}")
+        S(rr, c0 + 7, f"={A(rr, c0 + 6)}^{cell['bb R exp']}")
+        S(rr, c0 + 8, f"={A(rr, c0 + 6)}^{cell['bb G exp']}")
+        S(rr, c0 + 9, f"={cell['bb B gain']}*{A(rr, c0 + 6)}^{cell['bb B exp']}")
+    r = 24
+    S(r, 1, "C. One spark, step by step: v_y -= g dt; v *= exp(-k dt); p += v dt; below ground: v_y = -e v_y, v_x *= f",
+      border=False, bold=True)
+    pr = [("g", v["gravity"]), ("drag k", v["sparkDrag"]), ("bounce e", v["bounce"]), ("keep f", v["bounceH"]),
+          ("dt (s)", 0.05), ("v_x0", 11.0), ("v_y0", 6.0), ("y0", 1.0)]
+    pc = {}
+    for j, (lab, val) in enumerate(pr):
+        S(r + 1, 2 + j, lab, head=True)
+        S(r + 2, 2 + j, val, inp=True, fmt="0.00")
+        pc[lab] = A(r + 2, 2 + j, True)
+    S(r + 2, 1, "inputs", bold=True)
+    s.heads(r + 3, 1, ["step", "t (s)", "x", "y", "v_x", "v_y"], height=18)
+    r0 = r + 4
+    S(r0, 1, 0, fmt="0")
+    S(r0, 2, 0.0)
+    S(r0, 3, 0.0)
+    S(r0, 4, f"={pc['y0']}")
+    S(r0, 5, f"={pc['v_x0']}")
+    S(r0, 6, f"={pc['v_y0']}")
+    for i in range(1, 29):
+        rr = r0 + i
+        p_ = rr - 1
+        S(rr, 1, i, fmt="0")
+        S(rr, 2, f"={A(p_, 2)}+{pc['dt (s)']}")
+        vy_free = f"({A(p_, 6)}-{pc['g']}*{pc['dt (s)']})*EXP(-{pc['drag k']}*{pc['dt (s)']})"
+        vx_free = f"{A(p_, 5)}*EXP(-{pc['drag k']}*{pc['dt (s)']})"
+        y_free = f"({A(p_, 4)}+{vy_free}*{pc['dt (s)']})"
+        S(rr, 3, f"={A(p_, 3)}+{vx_free}*{pc['dt (s)']}")
+        S(rr, 4, f"=MAX(0.02,{y_free})")
+        S(rr, 5, f"=IF({y_free}<0.02,{vx_free}*{pc['keep f']},{vx_free})")
+        S(rr, 6, f"=IF({y_free}<0.02,-{vy_free}*{pc['bounce e']},{vy_free})")
+    r = 24
+    c0 = 10
+    S(r, c0, "D. Debris bounces (restitution e, no drag): apex = v^2 / 2g, flight = 2v / g", border=False, bold=True)
+    S(r + 1, c0, "e", head=True)
+    S(r + 2, c0, v["debrisRest"], inp=True, fmt="0.00")
+    S(r + 1, c0 + 1, "v0 (m/s)", head=True)
+    S(r + 2, c0 + 1, 5.0, inp=True, fmt="0.00")
+    S(r + 1, c0 + 2, "rest below", head=True)
+    S(r + 2, c0 + 2, v["debrisRestSpeed"], inp=True, fmt="0.00")
+    S(r + 1, c0 + 3, "g", head=True)
+    S(r + 2, c0 + 3, v["gravity"], inp=True, fmt="0.00")
+    e_, v0, vr, g = (A(r + 2, c0 + j, True) for j in range(4))
+    s.heads(r + 3, c0, ["bounce n", "v_n (m/s)", "apex (m)", "flight (s)", "moving?"], height=18)
+    for n in range(6):
+        rr = r + 4 + n
+        S(rr, c0, n, fmt="0")
+        S(rr, c0 + 1, f"={v0}*{e_}^{A(rr, c0)}")
+        S(rr, c0 + 2, f"={A(rr, c0 + 1)}^2/(2*{g})")
+        S(rr, c0 + 3, f"=2*{A(rr, c0 + 1)}/{g}")
+        S(rr, c0 + 4, f"=IF({A(rr, c0 + 1)}>={vr},\"yes\",\"rest\")", center=True)
+    rr = r + 11
+    S(rr, c0, "total time", bold=True)
+    S(rr, c0 + 3, f"=SUMIF({rng(r + 4, c0 + 4, r + 9, c0 + 4)},\"yes\",{rng(r + 4, c0 + 3, r + 9, c0 + 3)})")
+    s.finish(last_col=19, fit=False, scale=80)
+
+
+def sheet_tracking(wb, exp):
+    v, ex = code_values()
+    s = Sheet(wb, "Tracking", "Tracking: Kalman predict / gate / update, two-view triangulation, time on target",
+              "vision/MultiTracker.cpp predict, mahalanobis2, kalmanUpdate, triangulate; ai/Squad.cpp roundFlightTime, "
+              "planStrike. Worked example values in yellow; q, gate, flight model from --export-docs.")
+    s.widths({"A": 15, **{get_column_letter(c): 9 for c in range(2, 26)}})
+    S = s.put
+    r = 5
+    S(r, 1, "A. Predict: x' = F x, P' = F P F^T + Q (white-noise acceleration q)", border=False, bold=True)
+    S(r + 1, 1, "dt (s)", bold=True)
+    S(r + 1, 2, 0.1, inp=True, fmt="0.00")
+    S(r + 1, 3, "q (m/s2)", bold=True)
+    S(r + 1, 4, v["accelNoise"], inp=True, fmt="0.00")
+    S(r + 1, 5, "gate", bold=True)
+    S(r + 1, 6, v["gateChi2"], inp=True, fmt="0.00")
+    S(r + 1, 7, "meas. sigma (m)", bold=True)
+    s.ws.merge_cells(start_row=r + 1, start_column=7, end_row=r + 1, end_column=8)
+    S(r + 1, 9, 0.5, inp=True, fmt="0.00")
+    dt, q, gate, sig = A(r + 1, 2, True), A(r + 1, 4, True), A(r + 1, 6, True), A(r + 1, 9, True)
+    b = r + 3
+    S(b, 1, "x = (x, z, vx, vz)", bold=True)
+    xs = [2.0, 5.0, 1.2, -0.4]
+    for i, val in enumerate(xs):
+        S(b + 1 + i, 1, val, inp=True, fmt="0.00")
+    X = [A(b + 1 + i, 1, True) for i in range(4)]
+    F = s.grid(b, 3, "F", [[1, 0, f"={dt}", 0], [0, 1, 0, f"={dt}"], [0, 0, 1, 0], [0, 0, 0, 1]])
+    P = s.grid(b, 8, "P (before)", [[0.3, 0, 0.1, 0], [0, 0.3, 0, 0.1], [0.1, 0, 0.5, 0], [0, 0.1, 0, 0.5]], inp=True)
+    Qg = s.grid(b, 13, "Q", [[f"={q}^2*{dt}^4/4", 0, f"={q}^2*{dt}^3/2", 0], [0, f"={q}^2*{dt}^4/4", 0, f"={q}^2*{dt}^3/2"],
+                            [f"={q}^2*{dt}^3/2", 0, f"={q}^2*{dt}^2", 0], [0, f"={q}^2*{dt}^3/2", 0, f"={q}^2*{dt}^2"]])
+    FP = [[f"=SUMPRODUCT({rng(F[0] + i, F[1], F[0] + i, F[1] + 3)},TRANSPOSE({rng(P[0], P[1] + j, P[0] + 3, P[1] + j)}))"
+           for j in range(4)] for i in range(4)]
+    # SUMPRODUCT with TRANSPOSE needs array evaluation; write the products out instead (portable)
+    FP = [["=" + "+".join(f"{A(F[0] + i, F[1] + k)}*{A(P[0] + k, P[1] + j)}" for k in range(4)) for j in range(4)]
+          for i in range(4)]
+    fp = s.grid(b, 18, "F P", FP)
+    b2 = b + 6
+    xp = s.grid(b2, 1, "x' = F x", [["=" + "+".join(f"{A(F[0] + i, F[1] + k)}*{X[k]}" for k in range(4))] for i in range(4)])
+    PP = [["=" + "+".join(f"{A(fp[0] + i, fp[1] + k)}*{A(F[0] + j, F[1] + k)}" for k in range(4)) +
+           f"+{A(Qg[0] + i, Qg[1] + j)}" for j in range(4)] for i in range(4)]
+    pp = s.grid(b2, 3, "P' = F P F^T + Q", PP)
+    b3 = b2 + 6
+    S(b3, 1, "B. Gate and update with a measurement m (ground point)", border=False, bold=True)
+    S(b3 + 1, 1, "m = (x, z)", bold=True)
+    S(b3 + 1, 2, 2.5, inp=True, fmt="0.00")
+    S(b3 + 1, 3, 4.6, inp=True, fmt="0.00")
+    S(b3 + 2, 1, "innovation nu", bold=True)
+    S(b3 + 2, 2, f"={A(b3 + 1, 2)}-{A(xp[0], 1)}")
+    S(b3 + 2, 3, f"={A(b3 + 1, 3)}-{A(xp[0] + 1, 1)}")
+    Sm = s.grid(b3 + 3, 1, "S = H P' H^T + sigma^2 I", [[f"={A(pp[0], pp[1])}+{sig}^2", f"={A(pp[0], pp[1] + 1)}"],
+                                                       [f"={A(pp[0] + 1, pp[1])}", f"={A(pp[0] + 1, pp[1] + 1)}+{sig}^2"]])
+    det = f"({A(Sm[0], 1)}*{A(Sm[0] + 1, 2)}-{A(Sm[0], 2)}*{A(Sm[0] + 1, 1)})"
+    Si = s.grid(b3 + 3, 4, "S^-1", [[f"={A(Sm[0] + 1, 2)}/{det}", f"=-{A(Sm[0], 2)}/{det}"],
+                                   [f"=-{A(Sm[0] + 1, 1)}/{det}", f"={A(Sm[0], 1)}/{det}"]])
+    n1, n2 = A(b3 + 2, 2), A(b3 + 2, 3)
+    S(b3 + 7, 1, "d^2 = nu^T S^-1 nu", bold=True)
+    S(b3 + 7, 3, f"={n1}*({A(Si[0], 4)}*{n1}+{A(Si[0], 5)}*{n2})+{n2}*({A(Si[0] + 1, 4)}*{n1}+{A(Si[0] + 1, 5)}*{n2})")
+    S(b3 + 7, 4, f"=IF({A(b3 + 7, 3)}<{gate},\"inside gate\",\"rejected\")", center=True)
+    K = s.grid(b3 + 3, 7, "K = P' H^T S^-1 (4x2)",
+               [["=" + f"{A(pp[0] + i, pp[1])}*{A(Si[0], 4 + j)}+{A(pp[0] + i, pp[1] + 1)}*{A(Si[0] + 1, 4 + j)}"
+                 for j in range(2)] for i in range(4)])
+    s.grid(b3 + 3, 10, "x_new = x' + K nu",
+           [[f"={A(xp[0] + i, 1)}+{A(K[0] + i, K[1])}*{n1}+{A(K[0] + i, K[1] + 1)}*{n2}"] for i in range(4)])
+    b4 = b3 + 10
+    S(b4, 1, "C. Two-view triangulation: minimise |o1 + s d1 - (o2 + t d2)|", border=False, bold=True)
+    s.heads(b4 + 1, 1, ["", "x", "y", "z"], height=18)
+    rays = [("o1 (UAV 1)", [-6.0, 8.0, 0.0]), ("d1", [0.55, -0.70, 0.15]), ("o2 (UAV 2)", [7.0, 9.0, 5.0]),
+            ("d2", [-0.50, -0.65, -0.32])]
+    rc = {}
+    for i, (lab, vec) in enumerate(rays):
+        rr = b4 + 2 + i
+        S(rr, 1, lab, bold=True)
+        for j, val in enumerate(vec):
+            S(rr, 2 + j, val, inp=True, fmt="0.00")
+        rc[lab] = [A(rr, 2 + j, True) for j in range(3)]
+    o1, d1, o2, d2 = rc["o1 (UAV 1)"], rc["d1"], rc["o2 (UAV 2)"], rc["d2"]
+    w = [f"({o1[k]}-{o2[k]})" for k in range(3)]
+
+    def dot(p, q_):
+        return "(" + "+".join(f"{p[k]}*{q_[k]}" for k in range(3)) + ")"
+
+    rr = b4 + 6
+    names = ["a = d1.d1", "b = d1.d2", "c = d2.d2", "d = d1.w", "e = d2.w"]
+    exprs = [dot(d1, d1), dot(d1, d2), dot(d2, d2), dot(d1, w), dot(d2, w)]
+    for j, (nm, ex_) in enumerate(zip(names, exprs)):
+        S(rr, 1 + 2 * j, nm, bold=True)
+        S(rr, 2 + 2 * j, "=" + ex_)
+    a_, b_, c_, d_, e_ = (A(rr, 2 + 2 * j, True) for j in range(5))
+    S(rr + 1, 1, "s", bold=True)
+    S(rr + 1, 2, f"=({b_}*{e_}-{c_}*{d_})/({a_}*{c_}-{b_}^2)")
+    S(rr + 1, 3, "t", bold=True)
+    S(rr + 1, 4, f"=({a_}*{e_}-{b_}*{d_})/({a_}*{c_}-{b_}^2)")
+    sv, tv = A(rr + 1, 2, True), A(rr + 1, 4, True)
+    s.heads(rr + 2, 1, ["", "x", "y", "z"], height=18)
+    for i, (lab, fn) in enumerate([("p1 = o1 + s d1", lambda k: f"={o1[k]}+{sv}*{d1[k]}"),
+                                   ("p2 = o2 + t d2", lambda k: f"={o2[k]}+{tv}*{d2[k]}"),
+                                   ("midpoint", lambda k: f"=({A(rr + 3, 2 + k)}+{A(rr + 4, 2 + k)})/2")]):
+        S(rr + 3 + i, 1, lab, bold=True)
+        for k in range(3):
+            S(rr + 3 + i, 2 + k, fn(k))
+    S(rr + 6, 1, "residual |p1-p2|", bold=True)
+    S(rr + 6, 2, "=SQRT(" + "+".join(f"({A(rr + 3, 2 + k)}-{A(rr + 4, 2 + k)})^2" for k in range(3)) + ")")
+    c0 = 13
+    b5 = b3
+    S(b5, c0, "D. Time on target (roundFlightTime, planStrike)", border=False, bold=True)
+    fm = [("v0", v["flight_launch_speed"]), ("accel", v["flight_accel"]), ("ramp (s)", v["flight_ramp_time"]),
+          ("cruise", v["flight_cruise_speed"]), ("fuse (m)", v["flight_fuse_m"])]
+    for j, (lab, val) in enumerate(fm):
+        S(b5 + 1, c0 + j, lab, head=True)
+        S(b5 + 2, c0 + j, val, inp=True, fmt="0.00")
+    v0, acc, ramp, cru, fuse = (A(b5 + 2, c0 + j, True) for j in range(5))
+    s.heads(b5 + 3, c0, ["UAV", "distance", "d - fuse", "ramp dist", "T (s)", "launch +s"], height=18)
+    for i, dist in enumerate([18.0, 9.0]):
+        rr = b5 + 4 + i
+        S(rr, c0, i + 1, fmt="0")
+        S(rr, c0 + 1, dist, inp=True, fmt="0.0")
+        S(rr, c0 + 2, f"=MAX(0,{A(rr, c0 + 1)}-{fuse})")
+        S(rr, c0 + 3, f"=0.5*({v0}+{cru})*{ramp}")
+        S(rr, c0 + 4, f"=IF({A(rr, c0 + 2)}<={A(rr, c0 + 3)},(-{v0}+SQRT({v0}^2+2*{acc}*{A(rr, c0 + 2)}))/{acc},"
+                      f"{ramp}+({A(rr, c0 + 2)}-{A(rr, c0 + 3)})/{cru})")
+    for i in range(2):
+        rr = b5 + 4 + i
+        S(rr, c0 + 5, f"=MAX({A(b5 + 4, c0 + 4)},{A(b5 + 5, c0 + 4)})-{A(rr, c0 + 4)}")
+    S(b5 + 6, c0, "both rounds arrive together: launch delay = T_far - T_k", border=False, italic=True)
+    s.finish(last_col=21)
+
+
+def sheet_line_follower(wb, exp):
+    v, ex = code_values()
+    s = Sheet(wb, "Line_Follower", "Line_Follower: IR sensor array, PD steering, differential drive (one tick)",
+              "ai/HideController.cpp followLine (kSensorForward, kSensorSpacing, kLineHalfWidth, kKp, kKd, kMaxSpeed); "
+              "objects/Rover.h kRoverTrackWidth. Line offset, previous error and dt are worked-example inputs.")
+    s.widths({"A": 16, **{get_column_letter(c): 10 for c in range(2, 14)}})
+    S = s.put
+    r = 5
+    ins = [("spacing (m)", v["kSensorSpacing"]), ("half width", v["kLineHalfWidth"]), ("err scale", v["errScale"]),
+           ("Kp", v["kKp"]), ("Kd", v["kKd"]), ("v max", v["kMaxSpeed"]), ("slow-down", v["slowDown"]),
+           ("omega max", v["omegaMax"]), ("track w", v["kRoverTrackWidth"]), ("line offset", 0.07), ("prev e", 0.45), ("dt (s)", 1 / 60)]
+    c = {}
+    for j, (lab, val) in enumerate(ins):
+        S(r, 2 + j, lab, head=True)
+        S(r + 1, 2 + j, val, inp=True, fmt="0.000")
+        c[lab] = A(r + 1, 2 + j, True)
+    S(r + 1, 1, "inputs", bold=True)
+    s.ws.row_dimensions[r].height = 28
+    r = 8
+    S(r, 1, "A. Sensors: lateral offset x_i = -2 spacing + i spacing (left > 0); on the line if |x_i - line| < half width",
+      border=False, bold=True)
+    s.heads(r + 1, 1, ["sensor i", "x_i (m)", "|x_i - line|", "on line"], height=18)
+    for i in range(5):
+        rr = r + 2 + i
+        S(rr, 1, i, fmt="0")
+        S(rr, 2, f"=-2*{c['spacing (m)']}+{A(rr, 1)}*{c['spacing (m)']}")
+        S(rr, 3, f"=ABS({A(rr, 2)}-{c['line offset']})")
+        S(rr, 4, f"=IF({A(rr, 3)}<{c['half width']},1,0)", fmt="0")
+    on = rng(r + 2, 4, r + 6, 4)
+    xs = rng(r + 2, 2, r + 6, 2)
+    r = 16
+    S(r, 1, "B. PD steering and wheel speeds", border=False, bold=True)
+    rows = [("active sensors", f"=SUM({on})"),
+            ("error e", f"=IF({A(r + 1, 2)}>0,SUMPRODUCT({xs},{on})/{A(r + 1, 2)}/{c['err scale']},1)"),
+            ("de/dt", f"=({A(r + 2, 2)}-{c['prev e']})/{c['dt (s)']}"),
+            ("omega (rad/s)", f"=MAX(-{c['omega max']},MIN({c['omega max']},{c['Kp']}*{A(r + 2, 2)}+{c['Kd']}*{A(r + 3, 2)}))"),
+            ("speed v (m/s)", f"={c['v max']}*(1-{c['slow-down']}*ABS({A(r + 2, 2)}))"),
+            ("left wheel", f"={A(r + 5, 2)}-{A(r + 4, 2)}*{c['track w']}/2"),
+            ("right wheel", f"={A(r + 5, 2)}+{A(r + 4, 2)}*{c['track w']}/2"),
+            ("turn", f"=IF({A(r + 4, 2)}>0,\"left\",IF({A(r + 4, 2)}<0,\"right\",\"straight\"))")]
+    for i, (lab, f) in enumerate(rows):
+        S(r + 1 + i, 1, lab, bold=True)
+        S(r + 1 + i, 2, f, center=i == 7)
+    s.note(r + 10, 1, "Rate limits (kWheelAccel) and the line-lost search are not modelled here; see followLine.")
+    s.finish(last_col=13)
+
+
 def build(export_path):
     exp = load_export(export_path)
     wb = Workbook()
@@ -1614,6 +1900,9 @@ def build(export_path):
     sheet_color_interp(wb, exp)
     sheet_ray_tracing(wb)
     sheet_thermal_kernels(wb)
+    sheet_tracking(wb, exp)
+    sheet_line_follower(wb, exp)
+    sheet_explosion(wb, exp)
     sheet_duty_cycle(wb, exp)
     sheet_performance(wb)
     wb._sheets.sort(key=lambda ws: SHEETS.index(ws.title))

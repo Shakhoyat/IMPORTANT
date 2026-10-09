@@ -12,6 +12,12 @@ a=\frac{\sum_k\lambda_k a_k/w_k}{\sum_k\lambda_k/w_k}
 \end{equation}
 
 \begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_raster.pdf}
+\caption{Rasterisation and colour interpolation. Left: a pixel is covered when its centre is on the inner side of all three edges. Right: inside the triangle each point mixes the three vertex colours with its barycentric weights (sub-triangle areas); the same weights interpolate depth, normals and texture coordinates.}
+\label{fig:d-raster}
+\end{figure}
+
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_raster_scan}{\linewidth}\caption{Frame Explorer: the raster scan of one triangle.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_interp_affine_perspective}{\linewidth}\caption{Affine (left) vs perspective-correct (right).}\end{subfigure}

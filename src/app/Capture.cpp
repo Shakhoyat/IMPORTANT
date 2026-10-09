@@ -793,8 +793,8 @@ int App::captureMode() {
     // scripted blast, no synthetic HUD event): without one the explosion shots are logged and skipped.
     bool impactFound = false;
     auto findImpact = [&]() {
-        impactFound = waitFor(Trig::Kill, 60.0f);
-        if (!impactFound) log << "no kill within 60 s at t=" << t << ": explosion shots skipped\n";
+        impactFound = waitFor(Trig::Kill, 180.0f);
+        if (!impactFound) log << "no kill within 180 s at t=" << t << ": explosion shots skipped\n";
         strikePoint = eventPos;
         impactT = t;
     };

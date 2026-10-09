@@ -13,8 +13,9 @@ G[v5]="primitive_library,scene_thermal,uav_closeup_visible,scene_primitives_expl
 G[play]="play_select,play_first_person,play_third_person,play_prompt_uav,play_door_closed,play_door_opening,play_door_open,play_exposure_enter,play_exposure_adapted,play_hall_inside,play_sprint_fov"
 G[lab]="lab_shading,lab_buffers,lab_cv,lab_materials,lab_relief,lab_reflect,explorer"
 G[rt]="raytrace_modes,raytrace_tree,raytrace_perf"
+G[game]="uav_missile_launch,combined_strike,thermal_fpv_strike,explosion_early,explosion_mid,explosion_smoke,wreck_burning,kill_banner"
 SEL=("$@")
-[ ${#SEL[@]} -eq 0 ] && SEL=(scene v5 play lab rt)
+[ ${#SEL[@]} -eq 0 ] && SEL=(scene v5 play lab rt game)
 for g in "${SEL[@]}"; do
   mkdir -p "$OUT/$g"
   echo "== $g: ${G[$g]}"

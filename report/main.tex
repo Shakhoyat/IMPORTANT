@@ -10,6 +10,8 @@
 \usepackage{subcaption}
 \usepackage{float}
 \usepackage{tikz}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,shapes.misc,backgrounds}
 \usepackage[hidelinks]{hyperref}
 \usepackage{enumitem}
@@ -75,6 +77,7 @@
 \input{sections/gen_numbers}
 \input{sections/gen_tables}
 \input{sections/gen_fecrops}
+\input{sections/gen_game}
 
 \begin{document}
 \input{sections/00_cover}
@@ -102,6 +105,27 @@
 
 \part*{Part B. Advanced work}
 \addcontentsline{toc}{part}{Part B. Advanced work}
+\noindent Part B goes beyond the class material, but every topic still sits on one stage of the same pipeline.
+Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be read as a second pass along the pipeline.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[sb/.style={draw=blue!50,fill=blue!6,rounded corners=1.5pt,text width=1.5cm,align=center,
+  font=\fontsize{7}{8}\selectfont,inner sep=1.5pt,minimum height=0.62cm}, up/.style={-{Latex[length=1mm]},blue!45}]
+ \psn{1}{0}{vertices\\primitives}\psn{2}{0}{model\\$T R S$}\psn{3}{0}{view\\$u,v,n$}\psn{4}{0}{projection\\frustum}
+ \psn{5}{0}{clip, divide\\NDC, viewport}\psn{6}{0}{hidden\\surfaces}\psn{7}{0}{raster\\interpolate}\psn{8}{0}{light +\\shade}
+ \psn{9}{0}{texture\\post}\psn{10}{0}{rays}
+ \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!60] ({1.7*\x+0.78},0) -- ({1.7*\x+0.92},0);
+ \foreach \k/\r/\t in {1/1/{\ref{sec:decomp} decomposition},1/2/{\ref{sec:curved} curves, surfaces},
+   2/1/{\ref{sec:dynamic} dynamics, springs},2/2/{\ref{sec:paths} paths, line follower},3/1/{\ref{sec:dynamic} cameras},
+   6/1/{\ref{sec:hard} depth precision},7/1/{\ref{sec:explode} particles, blending},
+   8/1/{\ref{sec:day} day / night},8/2/{\ref{sec:color} colour},8/3/{\ref{sec:explode} fire colour},
+   9/1/{\ref{sec:thermal} thermal, CV},9/2/{\ref{sec:color} tone map},10/1/{\ref{sec:rtadv} reflection},10/2/{\ref{sec:game} game: hits, vision rays}}
+   {\node[sb] (n\k\r) at (1.7*\k,-0.15-0.72*\r) {\S\t};}
+ \foreach \k in {1,2,3,6,7,8,9,10} \draw[up] (n\k1.north) -- (1.7*\k,-0.4);
+\end{tikzpicture}
+\caption{Part B on the pipeline: each box is a Part B section (number and topic) under the stage it extends.}
+\label{fig:partb-map}
+\end{figure}
 \input{sections/B01_decomposition}
 \input{sections/B02_color}
 \input{sections/B03_daynight}
@@ -110,6 +134,7 @@
 \input{sections/B06_reflection}
 \input{sections/B07_thermal}
 \input{sections/B08_game}
+\input{sections/B08b_explosions}
 \input{sections/B09_paths}
 \input{sections/B10_hard}
 

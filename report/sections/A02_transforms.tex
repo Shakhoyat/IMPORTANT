@@ -25,6 +25,12 @@ Mat4 matrix() const { return translate(translation) * rotateEulerYXZ(rotationDeg
 \end{lstlisting}
 
 \begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_trs_order.pdf}
+\caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\ref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$).}
+\label{fig:d-trs}
+\end{figure}
+
+\begin{figure}[H]
 \centering
 \raw{scene/soldier_axes}{0.72\linewidth}
 \caption{Local versus world coordinates (\key{H}: local axes of the hierarchy), shown on a soldier's joints: each

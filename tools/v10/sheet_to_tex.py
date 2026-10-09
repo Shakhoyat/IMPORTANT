@@ -74,6 +74,27 @@ BLOCKS = {
         ("mats", "patch", [("I", "B16:F20"), ("S_x", "H16:J18"), ("S_y", "L16:N18")]),
         ("mats", "out", [("G_x", "B24:D26"), ("G_y", "F24:H26"), ("\\lVert\\nabla I\\rVert", "J24:L26"), ("\\text{edge}", "N24:P26")]),
     ],
+    "Tracking": [
+        ("mats", "predict", [("\\mathbf{x}", "A9:A12"), ("F", "C9:F12"), ("P", "H9:K12"), ("Q", "M9:P12")]),
+        ("mats", "predict2", [("\\mathbf{x}'=F\\mathbf{x}", "A15:A18"), ("P'=FPF^\\top+Q", "C15:F18")]),
+        ("table", "meas", "A21:C22", dict(first="2.6cm")),
+        ("mats", "update", [("S", "A24:B25"), ("S^{-1}", "D24:E25"), ("K", "G24:H27"), ("\\mathbf{x}_{\\text{new}}", "J24:J27")]),
+        ("table", "d2", "A27:D27", dict(first="2.6cm", head=0)),
+        ("table", "tri", "A31:D35", dict(first="2.2cm")),
+        ("table", "tri2", "A38:D42", dict(first="2.6cm")),
+        ("table", "tot", "M23:R25", dict(hw="1.3cm")),
+    ],
+    "Line_Follower": [
+        ("table", "inputs", "B5:M6", dict(hw="1.1cm")),
+        ("table", "sensors", "A9:D14", dict()),
+        ("table", "pd", "A17:B24", dict(first="2.6cm", head=0)),
+    ],
+    "Explosion": [
+        ("table", "bb", "A10:H21", dict(hw="1.1cm")),
+        ("table", "life", "J10:S21", dict(hw="1.0cm")),
+        ("table", "spark", "A27:F56", dict(rows=[27, 28, 32, 36, 40, 44, 48, 52, 54, 56], hw="1.1cm")),
+        ("table", "debris", "J27:N33", dict(hw="1.3cm")),
+    ],
     "Duty_Cycle": [
         ("table", "roster", "A7:Z15", dict(cols=L("ABYZ"))),
         ("table", "grid", "A18:Z28", dict(hw="0.5cm")),

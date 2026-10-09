@@ -15,6 +15,12 @@ z_w=\tfrac12(z_n+1)=\tfrac12\Big(\tfrac{F+N}{F-N}-\tfrac{2FN}{(F-N)\,d}+1\Big),\
 \end{equation}
 
 \begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_frustum_ndc.pdf}
+\caption{The perspective divide squeezes the frustum into the NDC cube: slices equally spaced in depth (orange) crowd towards the far face, which is why depth precision is best near the camera (Eq.~\ref{eq:ndc}).}
+\label{fig:d-ndc}
+\end{figure}
+
+\begin{figure}[H]
 \centering\plot{p_depth_precision}{\linewidth}
 \caption{Depth mapping of the program's projection ($F=600$\,m, plotted from Eq.~\eqref{eq:ndc}). Notice in (a)
 that with $N=0.05$\,m half of the depth range is used in the first 0.1\,m, and in (b) that at 100\,m two surfaces

@@ -14,6 +14,12 @@ The code writes the same matrix with $\vect f=-\vect n$ (forward), $\vect s=\vec
 (\code{math/Math3D.cpp lookAt}); the camera looks down its $-z$ axis.
 
 \begin{figure}[H]
+\centering\includegraphics[width=0.6\linewidth]{figures/diagrams/d_view_basis.pdf}
+\caption{The camera basis of Eq.~\ref{eq:view}, seen from the side: $\mathbf{n}$ points from the target back to the eye, $\mathbf{u}$ to the side, $\mathbf{v}$ completes the frame; the camera looks along $-\mathbf{n}$.}
+\label{fig:d-view}
+\end{figure}
+
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{play/play_first_person}{\linewidth}\caption{Soldier, first person.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Third person (spring arm).}\end{subfigure}\hfill

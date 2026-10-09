@@ -11,7 +11,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PDF = os.path.join(ROOT, "report", "workbooks", "cg_workbook.pdf")
 OUT = os.path.join(ROOT, "report", "sections", "gen_wb_appendix.tex")
 SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "View_Projection", "Clipping", "Illumination",
-          "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Duty_Cycle", "Performance"]
+          "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
+          "Performance"]
 W_MM, H_MM = 272.0, 172.0  # landscape: the portrait text height (277 mm) less a little; room for the caption
 PT_PER_MM = 72 / 25.4
 MIN_PT = 7.0

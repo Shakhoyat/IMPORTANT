@@ -18,6 +18,66 @@ e=\frac{\sum_{i=1}^{5}w_i s_i}{\sum_i s_i},\ \ u=K_p e+K_d\dot e,\ \ v_{L,R}=v\m
 with $w_i$ the sensors' lateral offsets, $s_i\in\{0,1\}$ their readings, $K_p=3.2$, $K_d=0.25$.
 
 \begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_floodfill.pdf}
+\caption{The two layers on a small example grid. (a) Breadth-first distances from the hidden goal cells (green, 0);
+the rover (red dot) steps to the smaller neighbour each time (dashed) and the cell path is rounded by three Chaikin
+passes into the guide line (red). (b) The line follower drawn to scale with the constants of
+\code{HideController.cpp}; here two sensors on the left see the line, so the error is positive and the rover turns left.}
+\label{fig:floodfill}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\wbblock{Line_Follower}{inputs}\\[1.5mm]
+\begin{minipage}[t]{0.48\linewidth}\centering\wbblock{Line_Follower}{sensors}\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}\centering\wbblock{Line_Follower}{pd}\end{minipage}\\[1mm]
+{\footnotesize\wbkey}
+\caption{Workbook sheet \code{Line\_Follower}: one tick of the IR array, the PD law and the wheel speeds. \fullsheet{Line_Follower}}
+\label{fig:wb-lfr}
+\end{figure}
+
+When the rover is infiltrating towards an objective (instead of hiding), the plain flood fill becomes a weighted
+one (Dijkstra from the goal cell): a step costs one cell plus a penalty if either UAV can see that cell plus a little
+smooth noise, so each rover picks its own covered route. Algorithm~\ref{alg:intruder} is the whole controller of one
+rover, run every tick.
+\begin{algorithm}[H]
+\caption{Intruder rover, one tick (\code{HideController::update}, \code{replan}, \code{followLine})}
+\label{alg:intruder}
+\footnotesize
+\begin{algorithmic}[1]
+\Require UAV positions $O$, rover pose $(\mathbf{p},\psi)$, grid of \gv{kGridCells}$\times$\gv{kGridCells} cells of \gv{kCellSize}\,m
+\State $\mathbf{o}\gets$ nearest UAV (horizontal distance $d$)
+\If{infiltrating \textbf{and} $d<\gv{kEvadeRadius}$\,m} \State $t_{\mathrm{evade}}\gets\gv{kEvadeTime}$\,s \Comment{a UAV is overhead: hide}
+\Else \State $t_{\mathrm{evade}}\gets\max(0,t_{\mathrm{evade}}-\Delta t)$ \EndIf
+\If{via point reached} \State goal $\gets$ next via point, else the objective \EndIf
+\If{time since last plan $\geq$ (infiltrating and not evading ? \gv{kInfiltrateReplan} : \gv{kReplanPeriod})\,s} \State \Call{Replan}{$\mathbf{o}$} \EndIf
+\State \Call{FollowLine}{$\Delta t$}
+\State hidden $\gets$ all 5 body points blocked from $\mathbf{o}$ (rays against the occluders)
+\If{just entered cover} \State maybe pause 1.5--4\,s (personality) \EndIf
+\Statex
+\Procedure{Replan}{$\mathbf{o}$}
+  \If{infiltrating and not evading}
+    \State exposed$(c)\gets$ some UAV sees cell $c$
+    \State $D\gets$ Dijkstra from the goal cell, step cost $=$ cell $+$ exposure$\cdot[\text{exposed}]$ $+$ noise$(c)$
+  \Else
+    \State hidden$(c)\gets$ a robot parked on $c$ is invisible from $\mathbf{o}$ (5 test points)
+    \State goals $\gets$ hidden cells whose 4 neighbours are hidden too (else any hidden cell)
+    \State $D\gets$ breadth-first flood fill from the goals: $D(\text{goal})=0$, $D(c)=1+\min_{n\in N_4(c)}D(n)$
+  \EndIf
+  \State path $\gets$ from the rover's cell repeatedly step to the neighbour with the smallest $D$ (ties: keep heading)
+  \State line $\gets$ \Call{Chaikin}{$[\mathbf{p},\ \mathbf{p}+\mathbf{f}\,(\gv{kSensorForward}+0.1),\ $path$]$, 3}
+\EndProcedure
+\Procedure{FollowLine}{$\Delta t$}
+  \For{$i=0..4$} \State $x_i\gets-0.12+\gv{kSensorSpacing}\,i$; \ $s_i\gets$ dist(sensor $i$, line) $<\gv{kLineHalfWidth}$ \EndFor
+  \If{any $s_i$} \State $e\gets\mathrm{mean}\{x_i: s_i\}/\gv{errScale}$; \ $v\gets\gv{kMaxSpeed}\,(1-\gv{slowDown}|e|)$
+  \Else \State $e\gets\pm1$ towards the line's side; \ $v\gets$ creep; re-plan if lost for long \EndIf
+  \State $\omega\gets\mathrm{clamp}(\gv{kKp}\,e+\gv{kKd}\,\dot e,\ \pm\gv{omegaMax})$; \ wheels $v_{L,R}\gets v\mp\omega\,w/2$ (rate limited)
+  \State move along the heading unless the next position collides (then pivot, then back off)
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{v5/plan_routes}{\linewidth}\caption{\key{M}: flood field, routes and guide lines.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{scene/day_patrol_spline}{\linewidth}\caption{A soldier's A* patrol spline.}\end{subfigure}
