@@ -1,0 +1,177 @@
+Run seed 1 (repeat with --seed 1)
+Headless OpenGL context: EGL surfaceless (WSL d3d12) (Mesa Project, EGL 1.5)
+OpenGL 4.6 (Core Profile) Mesa 26.0.8-1ubuntu0.3 | Microsoft Corporation | D3D12 (NVIDIA GeForce RTX 4070)
+Quality preset: EPIC
+Vegetation assets: 55 variants (3098565 LOD0 triangles), impostors baked, 7.38 s (/home/vscode/IMPORTANT/assets)
+EPIC day 10:30                       67.6 FPS  14.785 ms/frame  (median of 3 rounds, 2018 frames)
+      cpu: simulation + UAV cameras 5.61 ms, render 9.25 ms (incl. UAV image CV 5.18 ms; main thread busy 3.71 ms), present 0.01 ms
+      uav camera (CV)      2.11 ms
+      shadow maps          0.68 ms
+      vegetation depth     1.10 ms
+      pre-pass             0.25 ms
+      volumetric fog       0.59 ms
+      scene                4.64 ms
+      grass                1.70 ms
+      vegetation           3.21 ms
+      resolve              0.24 ms
+      combine + ssr        0.32 ms
+      taa                  0.12 ms
+      exposure / agc       0.02 ms
+      bloom                0.05 ms
+      lens flare           0.02 ms
+      composite            0.06 ms
+      gtao                 0.64 ms
+      contact shadows      0.16 ms
+EPIC night 23:00 (game: waves, UAVs)   62.0 FPS  16.129 ms/frame  (median of 3 rounds, 1833 frames)
+      cpu: simulation + UAV cameras 9.16 ms, render 7.21 ms (incl. UAV image CV 3.09 ms; main thread busy 4.06 ms), present 0.00 ms
+      uav camera (CV)      2.72 ms
+      shadow maps          0.70 ms
+      vegetation depth     1.09 ms
+      pre-pass             0.26 ms
+      ssao                 0.44 ms
+      volumetric fog       1.86 ms
+      scene                3.56 ms
+      grass                1.70 ms
+      vegetation           2.70 ms
+      resolve              0.24 ms
+      combine + ssr        0.31 ms
+      taa                  0.13 ms
+      exposure / agc       0.02 ms
+      bloom                0.05 ms
+      lens flare           0.02 ms
+      composite            0.05 ms
+EPIC day, thermal view               98.8 FPS  10.124 ms/frame  (median of 3 rounds, 2801 frames)
+      cpu: simulation + UAV cameras 6.51 ms, render 4.20 ms (incl. UAV image CV 2.50 ms; main thread busy 1.38 ms), present 0.00 ms
+      uav camera (CV)      3.75 ms
+      scene                1.26 ms
+      grass                0.66 ms
+      vegetation           0.39 ms
+      resolve              0.19 ms
+      combine + ssr        0.05 ms
+      taa                  0.17 ms
+      exposure / agc       0.03 ms
+      bloom                0.00 ms
+      composite            0.15 ms
+EPIC night, thermal view             77.6 FPS  12.895 ms/frame  (median of 3 rounds, 2379 frames)
+      cpu: simulation + UAV cameras 9.06 ms, render 3.56 ms (incl. UAV image CV 2.34 ms; main thread busy 1.13 ms), present 0.00 ms
+      uav camera (CV)      4.34 ms
+      scene                0.76 ms
+      grass                1.17 ms
+      vegetation           0.87 ms
+      resolve              0.27 ms
+      combine + ssr        0.05 ms
+      taa                  0.19 ms
+      exposure / agc       0.03 ms
+      bloom                0.00 ms
+      composite            0.18 ms
+EPIC day, shadows off                64.3 FPS  15.543 ms/frame  (median of 3 rounds, 1828 frames)
+      cpu: simulation + UAV cameras 10.28 ms, render 6.14 ms (incl. UAV image CV 2.98 ms; main thread busy 3.13 ms), present 0.00 ms
+      uav camera (CV)      6.76 ms
+      vegetation depth     0.69 ms
+      pre-pass             0.27 ms
+      volumetric fog       0.50 ms
+      scene                4.04 ms
+      grass                1.54 ms
+      vegetation           2.65 ms
+      resolve              0.24 ms
+      combine + ssr        0.33 ms
+      taa                  0.13 ms
+      exposure / agc       0.02 ms
+      bloom                0.06 ms
+      lens flare           0.02 ms
+      composite            0.06 ms
+      gtao                 0.64 ms
+EPIC night, shadows off              61.9 FPS  16.157 ms/frame  (median of 3 rounds, 1748 frames)
+      cpu: simulation + UAV cameras 11.00 ms, render 6.17 ms (incl. UAV image CV 3.00 ms; main thread busy 3.15 ms), present 0.00 ms
+      uav camera (CV)      6.97 ms
+      vegetation depth     0.69 ms
+      pre-pass             0.28 ms
+      ssao                 0.43 ms
+      volumetric fog       1.70 ms
+      scene                3.24 ms
+      grass                1.53 ms
+      vegetation           2.52 ms
+      resolve              0.24 ms
+      combine + ssr        0.32 ms
+      taa                  0.14 ms
+      exposure / agc       0.02 ms
+      bloom                0.06 ms
+      lens flare           0.02 ms
+      composite            0.05 ms
+EPIC day, non-indexed                18.6 FPS  53.857 ms/frame  (median of 3 rounds, 552 frames)
+      cpu: simulation + UAV cameras 10.17 ms, render 44.30 ms (incl. UAV image CV 9.80 ms; main thread busy 9.11 ms), present 0.00 ms
+      uav camera (CV)     38.07 ms
+      shadow maps          1.05 ms
+      vegetation depth     1.22 ms
+      pre-pass             0.30 ms
+      volumetric fog       0.67 ms
+      scene                7.86 ms
+      grass                2.06 ms
+      vegetation           3.94 ms
+      resolve              0.43 ms
+      combine + ssr        0.39 ms
+      taa                  0.17 ms
+      exposure / agc       0.02 ms
+      bloom                0.06 ms
+      lens flare           0.03 ms
+      composite            0.07 ms
+      gtao                 0.75 ms
+      contact shadows      0.20 ms
+ULTRA day                            62.7 FPS  15.950 ms/frame  (median of 3 rounds, 1791 frames)
+      cpu: simulation + UAV cameras 9.93 ms, render 6.82 ms (incl. UAV image CV 2.93 ms; main thread busy 3.88 ms), present 0.00 ms
+      uav camera (CV)      5.25 ms
+      shadow maps          0.69 ms
+      vegetation depth     1.01 ms
+      pre-pass             0.25 ms
+      ssao                 0.12 ms
+      volumetric fog       0.44 ms
+      scene                4.99 ms
+      grass                0.64 ms
+      vegetation           3.96 ms
+      resolve              0.36 ms
+      combine + ssr        0.31 ms
+      taa                  0.12 ms
+      exposure / agc       0.02 ms
+      bloom                0.05 ms
+      lens flare           0.02 ms
+      composite            0.06 ms
+      contact shadows      0.04 ms
+HIGH day                             66.0 FPS  15.156 ms/frame  (median of 3 rounds, 1988 frames)
+      cpu: simulation + UAV cameras 9.21 ms, render 5.89 ms (incl. UAV image CV 2.85 ms; main thread busy 3.04 ms), present 0.00 ms
+      uav camera (CV)      6.64 ms
+      shadow maps          0.29 ms
+      pre-pass             0.28 ms
+      ssao                 0.09 ms
+      volumetric fog       0.08 ms
+      scene                4.93 ms
+      grass                0.17 ms
+      resolve              0.17 ms
+      combine + ssr        0.05 ms
+      taa                  0.11 ms
+      exposure / agc       0.02 ms
+      bloom                0.06 ms
+      lens flare           0.02 ms
+      composite            0.06 ms
+      contact shadows      0.03 ms
+LOW day                              70.5 FPS  14.191 ms/frame  (median of 3 rounds, 2119 frames)
+      cpu: simulation + UAV cameras 9.38 ms, render 4.78 ms (incl. UAV image CV 2.60 ms; main thread busy 2.17 ms), present 0.00 ms
+      uav camera (CV)      5.52 ms
+      shadow maps          0.18 ms
+      scene                4.17 ms
+      grass                0.08 ms
+      resolve              0.11 ms
+      combine + ssr        0.04 ms
+      exposure / agc       0.02 ms
+      bloom                0.06 ms
+      composite            0.06 ms
+v1 look (no post) day                76.8 FPS  13.027 ms/frame  (median of 3 rounds, 2307 frames)
+      cpu: simulation + UAV cameras 9.26 ms, render 3.75 ms (incl. UAV image CV 2.20 ms; main thread busy 1.54 ms), present 0.00 ms
+      uav camera (CV)      4.48 ms
+      scene                2.61 ms
+      grass                0.17 ms
+      resolve              0.26 ms
+      combine + ssr        0.06 ms
+      bloom                0.00 ms
+      composite            0.03 ms
+Benchmark written to report/data/bench.json
+exit 0

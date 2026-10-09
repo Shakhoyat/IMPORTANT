@@ -1,0 +1,154 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[a4paper,margin=16mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,trees,shapes.misc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\setlist{nosep,leftmargin=1.2em}
+\captionsetup{font=small,labelfont=bf}
+\setlength{\parskip}{2pt}
+\setlength{\emergencystretch}{3em}
+\setcounter{tocdepth}{1}
+
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\cli}[1]{\texttt{-{}-#1}}
+
+% ---- status words used by the audit appendix -------------------------------------------------------------
+\definecolor{okc}{RGB}{20,120,60}
+\definecolor{partc}{RGB}{190,110,0}
+\definecolor{nmc}{RGB}{170,40,40}
+\newcommand{\sDone}{\textcolor{okc}{\textbf{done}}}
+\newcommand{\sPart}{\textcolor{partc}{\textbf{partial}}}
+\newcommand{\sNM}{\textcolor{nmc}{\textbf{not measured}}}
+
+% ---- figures: a fallback box is printed while a captured image does not exist yet ---------------------
+\newcommand{\pendingbox}[2]{%
+  \fbox{\parbox[c][0.5625\dimexpr#2\relax][c]{\dimexpr#2-2\fboxsep-2\fboxrule\relax}{\centering\footnotesize\ttfamily
+  figure pending:\\ \detokenize{#1}}}}
+\newcommand{\pic}[2]{\IfFileExists{img/#1.jpg}{\includegraphics[width=#2]{img/#1.jpg}}{\IfFileExists{img/#1.png}{\includegraphics[width=#2]{img/#1.png}}{\IfFileExists{#1.png}{\includegraphics[width=#2]{#1.png}}{\pendingbox{#1}{#2}}}}}
+\newcommand{\picdia}[2]{\pic{diagrams/#1}{#2}}      % matplotlib diagrams from program data (report/diagrams)
+\newcommand{\piclab}[2]{\pic{figures_lab/#1}{#2}}   % in-program renders of single techniques (report/figures_lab)
+\newcommand{\picfour}[2]{\IfFileExists{figures_v5/#1.png}{\pic{figures_v5/#1}{#2}}{\pic{figures_v4/#1}{#2}}}   % v4 shot names: the current v5 capture of the same shot
+\newcommand{\picthree}[2]{\pic{figures_v3/#1}{#2}}  % v3 set
+\newcommand{\pictwo}[2]{\pic{figures/#1}{#2}}       % v2 set
+\newcommand{\picfive}[2]{\pic{figures_v5/#1}{#2}}  % v5 set (night-watch game)
+\newcommand{\picsix}[2]{\pic{figures_v6/#1}{#2}}   % v6 set (day cycle, soldiers, real CV; RTX 4070 captures)
+
+
+\definecolor{lstbg}{gray}{0.96}
+\lstdefinelanguage{GLSL}{morekeywords={uniform,in,out,flat,vec2,vec3,vec4,mat3,mat4,float,int,bool,void,return,if,else,for,break,continue,const,layout,struct,sampler2D,sampler2DShadow,location,discard,smooth},
+  morekeywords=[2]{normalize,dot,cross,reflect,mix,clamp,pow,max,min,abs,sqrt,smoothstep,step,texture,fract,floor,length,sin,cos,exp,any,lessThan,greaterThan,transpose,inverse},sensitive=true,morecomment=[l]{//},morestring=[b]"}
+\lstset{basicstyle=\ttfamily\fontsize{6.8}{8}\selectfont,backgroundcolor=\color{lstbg},keywordstyle=\color{blue!60!black}\bfseries,keywordstyle=[2]\color{purple!70!black},
+  commentstyle=\color{green!40!black}\itshape,numbers=left,numberstyle=\tiny\color{gray},numbersep=4pt,frame=single,rulecolor=\color{black!25},
+  breaklines=true,breakatwhitespace=false,columns=fullflexible,keepspaces=true,showstringspaces=false,captionpos=b,
+  aboveskip=4pt,belowskip=2pt,xleftmargin=10pt,framexleftmargin=8pt,tabsize=2,
+  literate={→}{$\rightarrow$}1 {×}{$\times$}1 {·}{.}1 {²}{$^2$}1 {≈}{$\approx$}1 {≤}{$\le$}1 {≥}{$\ge$}1 {°}{$^\circ$}1 {—}{--}1 {–}{-}1 {µ}{u}1 {é}{e}1 {ü}{u}1 {α}{a}1 {β}{b}1 {ω}{w}1 {π}{pi}1 {σ}{s}1 {λ}{l}1 {Δ}{D}1 {⁻}{-}1 {¹}{1}1 {χ}{x}1,
+  morekeywords={nullptr,constexpr,uint8_t,size_t,uint32_t,auto,std}}
+\renewcommand{\lstlistingname}{Listing}
+\captionsetup[lstlisting]{font=small,labelfont=bf}
+\input{sections/gen_listings}
+
+% ---- "where we are in the pipeline" strip: \pipestrip{k} highlights stage k (1..10) ----------------------------------------
+\newcommand{\psnode}[3]{\ifnum#1=#2 \node[draw,rounded corners=1pt,fill=orange!55,minimum width=1.5cm,minimum height=0.75cm,align=center,line width=0.8pt] at (1.62*#1,0) {#3};\else \node[draw,rounded corners=1pt,fill=black!5,minimum width=1.5cm,minimum height=0.75cm,align=center,text=black!60] at (1.62*#1,0) {#3};\fi}
+\newcommand{\pipestrip}[1]{\begin{center}\begin{tikzpicture}[font=\fontsize{5.6}{6.4}\selectfont]
+ \psnode{1}{#1}{vertex data}
+ \psnode{2}{#1}{model\\matrix $TRS$}
+ \psnode{3}{#1}{view +\\projection}
+ \psnode{4}{#1}{clip/NDC\\viewport}
+ \psnode{5}{#1}{raster\\interpolation}
+ \psnode{6}{#1}{fragment\\shading}
+ \psnode{7}{#1}{depth +\\shadows}
+ \psnode{8}{#1}{HDR post\\SSR/TAA}
+ \psnode{9}{#1}{heat render\\+ vision}
+ \psnode{10}{#1}{tracking +\\decisions}
+ \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!50] ({1.62*\x+0.75},0) -- ({1.62*\x+0.87},0);
+\end{tikzpicture}\end{center}\vspace{-3mm}}
+\newcommand{\picsheet}[2]{\pic{sheets/#1}{#2}}   % Excel workbook screenshots (report/sheets)
+\input{sections/gen_sheets}   % sheet captions from sheets/captions.json
+\input{sections/gen_stats}
+\input{sections/gen_v6}       % v6 numbers and tables (report/gen_v6.py)
+
+\title{\textbf{ThermalSense v6: A Day-and-Night Base-Defence Game Built from Unit Primitives}\\[3pt]
+\large Computer Graphics Laboratory --- OpenGL 3.3 simulation with a solar day cycle, an animated garrison, an underground command bunker, controllable machines, two coordinating thermal UAVs with computer vision on a modelled sensor, waves of armoured intruder robots, procedural audio, and a complete audit}
+\author{Md.\ Shakhoyat Rahman Shujon \quad Roll: 2107104}
+\date{Report for ThermalSense v6 (generated numbers: \texttt{build/test\_results.json}, \texttt{build/scene\_export.json})}
+
+\extrafloats{200}\renewcommand{\topfraction}{0.9}\renewcommand{\bottomfraction}{0.8}\renewcommand{\textfraction}{0.07}\renewcommand{\floatpagefraction}{0.7}\setcounter{totalnumber}{6}\setcounter{topnumber}{4}
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{figure}[h]
+  \centering
+  \IfFileExists{figures_v5/game_overview.png}{\picfive{game_overview}{\linewidth}}{\picfour{base_overview}{\linewidth}}
+  \caption{The v4 base at night, rendered by the program (\cli{capture}). The HESCO wall, guard towers, helipad,
+  motor pool, radar and the flag are all made of cubes, spheres and cylinders.}
+  \label{fig:hero}
+\end{figure}
+
+\begin{abstract}\noindent
+ThermalSense began as a lab assignment: build objects only from unit cube, sphere and cylinder primitives
+centred at the origin, with a scale/rotation/translation table, and show Flat, Gouraud and Phong shading, three
+light sources, a Z-buffer and wireframe edges. Over four stages it grew into a physically based, HDR, night-time
+renderer (v2), an RTX\,4070 target with a first-person FLIR thermal camera (v3), and, in v4, a military-base game
+scene. The base has an underground, walkable command bunker, an apron with a HESCO wall, guard towers, a helipad,
+a motor pool, a flag and a windsock, and \emph{seven user-controllable machines}: a UAV, a main battle tank (80
+animated track links), a helicopter, an anti-aircraft Gatling gun, a radar, the bunker's blast doors and the gate
+barrier. Three intruder rovers hide from the UAV with a MicroMouse planner; the UAV finds them in its thermal
+image, holds a lock for 1.5\,s, and launches laser-guided missiles; the rovers explode into rigid-body debris
+and a burning wreck, and respawn. In v5 it became a playable base-defence game: two UAVs patrol, track several intruders with a Kalman multi-target tracker fed by Otsu/union-find vision and two-view triangulation, and strike together with time-on-target; waves, score, base integrity, a game HUD and procedural audio were added, and the camp was made light-disciplined with launchers and nets. Version~6 adds a 24-hour solar cycle (sun position, Kasten--Young sun colour, sky and cloud shadows, presets blended in log space), \nSoldiers{} soldiers who walk centripetal Catmull--Rom routes planned by A* with a gait from forward and two-link inverse kinematics, seeded random intruder routes with a dawn withdrawal, and a microbolometer sensor model (PSF, fixed pattern with NUC, NETD, jitter, drops) whose noisy images are now the only path to a kill. The whole scene has \nLeaves{} parts, all drawn from the lab's primitives.
+This report documents every object, transformation, shading model, render pass and game rule, lists the
+\nTests{} automated tests (\nPass{} pass), and ends with an audit appendix in which every requirement and every
+small detail has a status and an evidence pointer. Frame rates on the RTX\,4070 have \emph{not} been measured yet;
+the benchmark command is given in Section~\ref{sec:platform}.
+\end{abstract}
+
+\clearpage
+{\small\tableofcontents}
+\vspace{4mm}
+
+\input{sections/s01_intro}
+\input{sections/s02_primitives}
+\input{sections/ch03_builder}
+\input{sections/s04_transforms}
+\input{sections/s03_objects}
+\input{sections/ch_geometry}
+\input{sections/ch04_interpolation}
+\input{sections/ch05_lighting}
+\input{sections/ch06_reflection}
+\input{sections/s06_pipeline}
+\input{sections/ch07_rover}
+\input{sections/s14_vision}
+\input{sections/s13_v5plan}
+\input{sections/s15_squad}
+\input{sections/s16_audio_hud_camp}
+\input{sections/s07_control}
+\input{sections/s08_game}
+\input{sections/s09_walk}
+\input{sections/s10_platform}
+\input{sections/s11_testing}
+\input{sections/s17_v5results}
+\input{sections/s18_daycycle}
+\input{sections/s19_soldiers}
+\input{sections/s20_randompaths}
+\input{sections/s21_realcv}
+\input{sections/s22_v6results}
+\input{sections/s12_results}
+
+\appendix
+\input{sections/sA_audit}
+\input{sections/sB_controls}
+
+\end{document}

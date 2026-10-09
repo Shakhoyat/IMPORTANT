@@ -1,0 +1,39 @@
+\section{Colour interpolation, with critique}
+\label{sec:color}
+\textit{Builds on: rasterisation (\ref{sec:raster}), shading (\ref{sec:shading}), illumination (\ref{sec:illum}).}
+
+Colour is interpolated in four places: across a triangle (barycentric), between shading models (Gouraud vs Phong),
+between colour spaces (sRGB vs linear), and over time (sky and fog presets over the day). Each has a naive version
+that fails visibly.
+\begin{equation}
+c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.055}\big)^{2.4} & \text{else}\end{cases},\qquad
+\text{mixLog}(a,b,t)=\exp\big((1-t)\ln a+t\ln b\big)
+\label{eq:srgb}
+\end{equation}
+
+\begin{figure}[H]
+\centering\wb{Color_Interp}{0.95\linewidth}
+\caption{Workbook sheet \code{Color\_Interp}: barycentric weights at sample points of one triangle, Gouraud vs Phong
+values at the same points, affine vs perspective-correct texture coordinates with $w$, sRGB vs linear blends of two
+colours, and the sky colours tabulated over the day.}
+\label{fig:wb-color}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXXl@{}}
+\toprule
+Interpolation & Naive version and its failure & What the program does & Evidence\\\midrule
+Across a triangle & affine in screen space: textures bend & perspective-correct ($a/w$, $1/w$) & Fig.~\ref{fig:raster}b\\
+Lighting & Gouraud: highlight between vertices lost, Mach bands & Phong per fragment & Figs.~\ref{fig:shading}, \ref{fig:gp}\\
+Colour space & blending sRGB values: mid-tones too dark, e.g.\ 50\,\% red/green gives a muddy (0.5, 0.5, 0) & material colours converted to linear (\code{toLinear}), lit and blended in linear HDR, encoded once at the end & Fig.~\ref{fig:wb-color}\\
+Sky over the day & linear mix of night and day presets: the night tint is swamped by the day value until very late & presets blended in log space (Eq.~\ref{eq:srgb}): equal steps are equal ratios, which the eye sees as even & Figs.~\ref{fig:hero}, \ref{fig:daycycle}\\
+\bottomrule
+\end{tabularx}
+\caption{Colour interpolation: naive method, failure, the program's method.}
+\end{table}
+\where{toLinear() and the output encoding in src/rendering/ShaderSources.cpp; mixLog() in src/scene/DayCycle.cpp; Frame Explorer interpolation stage}
+\critique{Log-space blending (\code{mixLog}, base 2 in the code) is undefined for a zero channel: every preset
+must stay strictly positive, and a preset with a near-zero channel makes the blend linger near black for most of the
+transition. Linear-space blending is right for light, but the result is still stored in 8 bits per channel; the only
+defence against banding in dark gradients is the film grain added in the final pass (\code{ShadersPostFx.cpp}).}

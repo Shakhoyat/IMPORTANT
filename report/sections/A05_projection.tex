@@ -1,0 +1,47 @@
+\section{Projection: perspective, orthographic, isometric}
+\label{sec:proj}
+\here{4}
+\concept{A projection maps the view volume to the canonical cube $[-1,1]^3$. Perspective shrinks distant objects
+(projectors meet at the eye); parallel projections keep sizes (projectors are parallel). Multiview drawings use
+orthographic views along the principal axes; an isometric view looks along $(1,1,1)$ so the three axes are
+foreshortened equally.}
+\begin{equation}
+P_{\text{persp}}=\begin{bmatrix}\frac{f}{a}&0&0&0\\0&f&0&0\\0&0&\frac{-(F+N)}{F-N}&\frac{-2FN}{F-N}\\0&0&-1&0\end{bmatrix},\
+f=\cot\tfrac{\text{fov}}{2};\qquad
+P_{\text{ortho}}=\begin{bmatrix}\frac{2}{r-l}&0&0&-\frac{r+l}{r-l}\\0&\frac{2}{t-b}&0&-\frac{t+b}{t-b}\\0&0&\frac{-2}{F-N}&-\frac{F+N}{F-N}\\0&0&0&1\end{bmatrix}
+\label{eq:proj}
+\end{equation}
+Isometric view direction: elevation $\arctan(1/\sqrt2)=35.26^\circ$, azimuth $45^\circ$; each axis is foreshortened by
+$\sqrt{2/3}=0.816$.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_persp}{\linewidth}\caption{Perspective (fov $56^\circ$).}\end{subfigure}\hfill
+\begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_iso}{\linewidth}\caption{Isometric (axonometric).}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.325\linewidth}\raw{scene/v10_proj_top}{\linewidth}\caption{Orthographic top (plan).}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{scene/v10_proj_front}{\linewidth}\caption{Orthographic front (from $+z$).}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{scene/v10_proj_side}{\linewidth}\caption{Orthographic side (from $+x$).}\end{subfigure}
+\caption{The same scene and time under five projections (\key{Ctrl+P}). Notice in (a) that the near huts look larger
+than identical far ones and parallel roads converge; in (b)--(e) equal objects stay equal anywhere in the frame.
+In (c) the plan shows true distances (it is the site plan of Figure~\ref{fig:layout}); in (d) and (e) everything
+is flattened onto a vertical plane, so depth is lost and only heights can be read.}
+\label{fig:proj}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXXl@{}}
+\toprule
+Method & Visual result & Cost & When to use\\\midrule
+Perspective & depth cue, convergence, realistic & same matrix cost; non-linear depth (Section~\ref{sec:projective}) & play views, video\\
+Orthographic multiview & true lengths along two axes, no depth cue & same; linear depth & plans, elevations, shadow maps\\
+Isometric & three faces visible, equal foreshortening & same; linear depth & layout overviews, games\\
+\bottomrule
+\end{tabularx}
+\caption{Differences between the projections.}
+\end{table}
+
+\where{src/math/Math3D.cpp perspective / ortho; src/app/AppGame.cpp composeView (teaching projections); the sun's shadow cascades use ortho}
+\critique{The screen-space effects (SSAO/GTAO, SSR, fog, TAA) reconstruct positions assuming a perspective
+projection. In the orthographic views they still run, so fog and reflections in (d) and (e) are not physically
+meaningful; the views are for geometry, not for lighting.}

@@ -1,0 +1,45 @@
+\section{Shading: flat, Gouraud, Phong}
+\label{sec:shading}
+\here{8}
+\concept{Shading decides where Eq.~\eqref{eq:phong} is evaluated. Flat: once per triangle with the face normal.
+Gouraud: at the vertices, colours interpolated. Phong: normals interpolated and the model evaluated per fragment.}
+\begin{equation}
+\text{Gouraud: } I(\vect x)=\textstyle\sum_k\lambda_k\,I(\vect N_k),\qquad
+\text{Phong: } I(\vect x)=I\Big(\frac{\sum_k\lambda_k\vect N_k}{\lVert\sum_k\lambda_k\vect N_k\rVert}\Big)
+\label{eq:shading}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\raw{lab/shading_uav_compare}{\linewidth}\\[1mm]
+\raw{lab/shading_sphere_compare}{\linewidth}
+\caption{The same UAV and a low-polygon sphere under flat, Gouraud and Phong shading (\key{O}, lab figure). Notice
+the facets in flat shading, the Mach bands (bright and dark lines the eye adds at the slope changes of a
+piecewise-linear intensity) along Gouraud's triangle edges, and the round, sharp highlight that only Phong keeps.}
+\label{fig:shading}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.42\linewidth}\centering\plot{p_gouraud_vs_phong}{\linewidth}\end{minipage}\hfill
+\begin{minipage}{0.56\linewidth}\centering\raw{lab/explorer_interp_gouraud_phong}{\linewidth}\end{minipage}
+\caption{Left: intensity along one edge whose highlight peak falls between the vertices. Gouraud interpolates the two
+dim vertex values and misses the peak entirely; Phong recovers it. Right: the same comparison in the Frame Explorer.}
+\label{fig:gp}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXll@{}}
+\toprule
+Method & Visual result & Cost & When to use\\\midrule
+Flat & faceted, constant per face & 1 evaluation per triangle & hard-edged boxes, CAD views\\
+Gouraud & smooth, but highlights smeared or lost, Mach bands & 1 per vertex & dense meshes, diffuse-only\\
+Phong & smooth, correct highlights & 1 per fragment & everything shiny; the default here\\
+\bottomrule
+\end{tabularx}
+\caption{Differences between the shading methods.}
+\end{table}
+\where{ShadingOverride in src/rendering/Renderer.h; flat: a geometry shader computes the face normal and lights the centroid once (kFlatGeom); Gouraud: lighting in the vertex shader (kGouraudVert); Phong: per fragment (src/rendering/ShaderSources.cpp)}
+\critique{The terrain uses a hybrid: per-vertex irradiance re-aimed per fragment by a detail normal (\code{terrainShade}),
+because per-fragment lighting of 97\,440 terrain triangles under every lamp would cost more than it shows.}

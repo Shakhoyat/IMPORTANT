@@ -1,0 +1,47 @@
+\section{Line follower and MicroMouse logic}
+\label{sec:paths}
+\textit{Builds on: grids, curves (\ref{sec:curved}), ray casting for line of sight (\ref{sec:rt}).}
+
+The intruder rovers are built like two classic robot-contest machines. \textbf{Planning (MicroMouse):} the
+40\,m$\times$40\,m area is divided into $80\times80$ cells of 0.5\,m; every cell hidden from the UAVs by an occluder
+is a goal; a breadth-first flood fill spreads distances out from the goals, and the rover walks ``downhill'' to the
+neighbour with the smaller value, as a MicroMouse descends its maze towards the centre. \textbf{Driving (line-follower
+robot):} the planned cell path is smoothed into a virtual guide line; five reflectance sensors in front of the rover
+report whether they are over the line, and the weighted sensor error drives a PD controller that sets the left and
+right wheel speeds of a differential drive. The soldiers use A* on a $72\times72$ grid of 1\,m cells with 0.40\,m
+clearance, smoothed into centripetal Catmull--Rom splines.
+\begin{equation}
+d(c)=1+\min_{n\in N_4(c)}d(n),\ d(\text{goal})=0;\qquad
+e=\frac{\sum_{i=1}^{5}w_i s_i}{\sum_i s_i},\ \ u=K_p e+K_d\dot e,\ \ v_{L,R}=v\mp u
+\label{eq:paths}
+\end{equation}
+with $w_i$ the sensors' lateral offsets, $s_i\in\{0,1\}$ their readings, $K_p=3.2$, $K_d=0.25$.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\linewidth}\raw{v5/plan_routes}{\linewidth}\caption{\key{M}: flood field, routes and guide lines.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{scene/day_patrol_spline}{\linewidth}\caption{A soldier's A* patrol spline.}\end{subfigure}
+\caption{Path debug views drawn by the program. Notice in (a) that the routes bend towards cover (cells the UAVs cannot
+see) rather than taking the straight line, and in (b) that the spline rounds the grid path's corners while keeping
+clear of the walls.}
+\label{fig:paths}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXXl@{}}
+\toprule
+Method & Result & Cost & Used by\\\midrule
+Flood fill (BFS) & distance to the nearest goal from every cell; any start descends greedily & $O(\text{cells})$ per replan, then $O(1)$ per step & rovers\\
+A* & one shortest path, start to goal & expands far fewer cells with a good heuristic & soldiers\\
+PD line following & smooth tracking of a drawn line with sensor feedback & 5 samples per tick & rovers\\
+Catmull--Rom (centripetal) & smooth curve through the waypoints, no loops or cusps & a few evaluations per sample & soldiers\\
+\bottomrule
+\end{tabularx}
+\caption{Differences between the path methods.}
+\end{table}
+\where{src/ai/HideController.{h,cpp} (flood fill, guide line, PD gains kKp / kKd), src/scene/Garrison.cpp SitePlanner (A*), src/math/Spline.cpp}
+\critique{The rover's sensors are simulated against a line the planner drew, not against a painted line in the scene,
+so the line-follower layer adds realistic lag and overshoot rather than new information. On top of it, a deliberate
+lateral weave, speed wander and short hesitations (\code{weave}, \code{speedWander}, \code{hesitate}) keep the UAVs'
+tracker from extrapolating a rover along one straight, constant-speed line.}

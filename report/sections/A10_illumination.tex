@@ -1,0 +1,59 @@
+\section{Illumination model}
+\label{sec:illum}
+\here{8}
+\concept{The local illumination model sums an ambient term, and for every light a diffuse (Lambert) and a
+specular (Blinn--Phong) term, scaled by the light's attenuation and, for a spot light, its cone factor.}
+\begin{equation}
+I = k_a I_a + \sum_{l} f_{\text{att},l}\,c_l\,I_l\Big[k_d\,\max(0,\vect N\cdot\vect L_l) + k_s\,\max(0,\vect N\cdot\vect H_l)^{n}\Big],
+\qquad \vect H=\frac{\vect L+\vect V}{\lVert\vect L+\vect V\rVert}
+\label{eq:phong}
+\end{equation}
+\begin{equation}
+f_{\text{att}}=\frac{1}{1+k_l d+k_q d^2},\qquad
+c_{\text{spot}}=\Big(\mathrm{clamp}\Big(\frac{\cos\gamma-\cos\theta_o}{\cos\theta_i-\cos\theta_o},0,1\Big)\Big)^2
+\label{eq:att}
+\end{equation}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}llXl@{}}
+\toprule
+Light & Type & Parameters (exported by the program) & When\\\midrule
+Sun & directional & direction and colour from the solar model (Section~\ref{sec:day}), intensity up to 3.2 & sun above $-1^\circ$\\
+Moon & directional & intensity \moonI, colour (0.55, 0.62, 0.80) & night\\
+Beacon & point & $k_l=\beaconLin$, $k_q=\beaconQuad$, pulsing 0.6--2.0 & night\\
+UAV searchlight & spot & $\theta_i=\spotInner^\circ$, $\theta_o=\spotOuter^\circ$, $k_l=\spotLin$, $k_q=\spotQuad$ & night, UAV airborne\\
+Practical lamps & point & up to 16 at once (floodlights, lamps, fire barrel) & dusk to dawn\\
+Ambient & hemisphere / SH & night constant; by day the irradiance of the drawn sky & always\\
+\bottomrule
+\end{tabularx}
+\caption{Light sources (\code{--export-docs}, \code{scene/DayCycle}).}
+\label{tab:lights}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_all}{\linewidth}\caption{All terms.}\end{subfigure}\hfill
+\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_ambient}{\linewidth}\caption{Ambient only.}\end{subfigure}\hfill
+\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_diffuse}{\linewidth}\caption{Diffuse only.}\end{subfigure}\hfill
+\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_specular}{\linewidth}\caption{Specular only.}\end{subfigure}
+\caption{The terms of Eq.~\eqref{eq:phong} one at a time on the ammunition bunker at 10:30 (\key{Ctrl+L}). Notice:
+ambient (b) has no direction, so the shape reads only through colour; diffuse (c) depends on $\vect N\cdot\vect L$
+and darkens faces turned from the sun; specular (d) is small and sits on edges and rims, and moves with the camera
+because $\vect H$ depends on $\vect V$.}
+\label{fig:terms}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.45\linewidth}\centering\plot{p_specular_falloff}{\linewidth}\end{minipage}\hfill
+\begin{minipage}{0.53\linewidth}\centering\wb{Illumination}{\linewidth}\end{minipage}
+\caption{Left: the specular lobe $(\vect N\cdot\vect H)^n$ for shininess values that occur in the scene (2 to 64).
+Notice that $n=64$ gives a highlight eight times narrower than $n=2$. Right: workbook sheet \code{Illumination}: the
+three terms for one roof point at noon, sunset, under the moon and under a UAV searchlight.}
+\label{fig:spec}
+\end{figure}
+\where{kLighting in src/rendering/ShaderSources.cpp (compose(), brdf()); lights in src/scene/Scene.cpp, src/scene/DayCycle.cpp}
+\critique{At HIGH and above the program uses a physically based GGX/Cook--Torrance BRDF by default; \key{B} switches to
+classic Blinn--Phong. The term split (\key{Ctrl+L}) applies to the scene-object and terrain shaders; grass and
+foliage use their own shaders and always show all terms.}

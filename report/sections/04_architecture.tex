@@ -1,0 +1,57 @@
+\section{Architecture and scene layout}
+\label{sec:arch}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  m/.style={draw,rounded corners=2pt,fill=#1,align=center,minimum height=8mm,text width=25mm},
+  a/.style={-{Latex[length=1.6mm]},black!60}]
+\node[m=black!8] (main) at (0,0) {\textbf{main.cpp}\\command line, modes};
+\node[m=orange!20] (app) at (0,-1.35) {\textbf{app/} App\\loop, input, HUD, capture, record, replay};
+\node[m=blue!12] (scene) at (-4.6,-2.9) {\textbf{scene/}\\scene graph, day cycle, garrison, combat, mission};
+\node[m=blue!12] (objects) at (-4.6,-4.5) {\textbf{objects/}\\bunker, UAV, tank, soldier, base\dots};
+\node[m=blue!6] (prims) at (-4.6,-6.0) {\textbf{primitives/}\\cube, sphere, cylinder, terrain};
+\node[m=green!14] (render) at (0,-2.9) {\textbf{rendering/}\\passes, shaders, shadows, post, HUD};
+\node[m=green!8] (rt) at (0,-4.5) {\textbf{raytrace/}\\BVH, Whitted, path / light tracing};
+\node[m=purple!12] (vision) at (4.6,-2.9) {\textbf{vision/}\\thermal sensor model, CV pipeline};
+\node[m=purple!8] (ai) at (4.6,-4.5) {\textbf{ai/}\\UAV squad, drone control, hide planner};
+\node[m=black!6] (math) at (0,-6.0) {\textbf{math/}\\Math3D, frustum, shadow, sky, tone maps};
+\node[m=black!6] (audio) at (4.6,-6.0) {\textbf{audio/}\\procedural synthesis};
+\draw[a] (main) -- (app);
+\draw[a] (app) -- (scene); \draw[a] (app) -- (render); \draw[a] (app) -- (vision);
+\draw[a] (scene) -- (objects); \draw[a] (objects) -- (prims);
+\draw[a] (render) -- (rt); \draw[a] (vision) -- (ai); \draw[a] (ai.west) -- (scene.east);
+\draw[a] (render) -- (scene); \draw[a] (rt.south) -- (math); \draw[a] (prims) -- (math); \draw[a] (app.east) -| (audio.north);
+\end{tikzpicture}
+\caption{Module architecture (directories under \code{src/}). Notice the split: \code{scene/} and \code{objects/} are
+pure CPU code, so the \nTests{} tests link them without a GPU; everything that touches OpenGL lives in
+\code{rendering/} and \code{app/}.}
+\label{fig:arch}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\node[anchor=south west,inner sep=0] (im) at (0,0) {\raw{scene/v10_proj_top}{0.86\linewidth}};
+\begin{scope}[x={(im.south east)},y={(im.north west)},font=\scriptsize\bfseries,
+  lab/.style={fill=white,fill opacity=0.8,text opacity=1,inner sep=1.5pt,rounded corners=1pt}]
+\node[lab] at ({0.5+20.3/106.67},{0.5-17/60}) {helipad};
+\node[lab] at ({0.5+29/106.67},{0.5+3/60}) {radar};
+\node[lab] at ({0.5+21/106.67},{0.5+19/60}) {AA gun};
+\node[lab] at ({0.5-22/106.67},{0.5+16/60}) {motor pool};
+\node[lab] at ({0.5-27/106.67},{0.5-11/60}) {barracks};
+\node[lab] at ({0.5+0/106.67},0.05) {to the outer gate (z = 34 m)};
+\node[lab] at ({0.5-6/106.67},{0.5+28.5/60-0.03}) {fuel depot};
+\node[lab] at ({0.5+0/106.67},{0.5+2/60}) {bunker (below ground)};
+\draw[-{Latex},thick,red] (0.06,0.08) -- ++(0.08,0) node[right,red] {$+x$ (east)};
+\draw[-{Latex},thick,blue] (0.06,0.08) -- ++(0,-0.07) node[below,blue] {$+z$ (north)};
+\end{scope}
+\end{tikzpicture}
+\caption{Top-down layout: an orthographic top view rendered by the program (\key{Ctrl+P}). Labels are placed
+from the world coordinates in \code{objects/BaseLayout.h}; the perimeter wall has radius 34\,m. Notice that an
+orthographic top view keeps distances true, so this picture doubles as a scaled site plan; $+y$ points at the viewer.}
+\label{fig:layout}
+\end{figure}
+
+\textbf{Frame loop.} Each frame: fixed 60\,Hz simulation ticks (scene, AI, combat, UAV cameras), render with
+interpolation between the last two ticks, the UAV images' vision on a worker thread, HUD, present. Offline modes
+(\code{--capture}, \code{--record}) run the same code with a fixed step.

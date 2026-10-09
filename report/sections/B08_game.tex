@@ -1,0 +1,74 @@
+\section{Game-mode AI}
+\label{sec:game}
+\textit{Builds on: ray casting (\ref{sec:rt}), the thermal pipeline (\ref{sec:thermal}), paths (\ref{sec:paths}).}
+
+At night intruder rovers attack from the perimeter in waves; two UAVs patrol, detect them in their thermal images,
+hold a lock for 1.5\,s and launch guided rounds. The player can join in by taking control of a soldier, a tank, the AA
+gun or a launcher. Hits are ray tests: each tick a projectile's path segment (previous to current position) is
+intersected with every target's bounding sphere and with the static solids' boxes, so a fast round cannot tunnel
+through a target between two ticks; an explosion then damages targets inside its blast radius.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,s/.style={draw,rounded corners=3pt,fill=#1,minimum width=15mm,minimum height=6mm,align=center},
+  a/.style={-{Latex[length=1.5mm]},black!60},node distance=6mm and 9mm]
+\node[s=blue!10] (dock) {DOCKED};
+\node[s=blue!10,right=of dock] (to) {TAKE-OFF};
+\node[s=orange!20,right=of to] (pat) {PATROL};
+\node[s=red!15,right=of pat] (trk) {TRACK};
+\node[s=red!30,right=of trk] (lock) {LOCK 1.5\,s};
+\node[s=red!45,right=of lock] (fire) {LAUNCH};
+\node[s=blue!10,below=of pat] (ret) {RETURN};
+\node[s=blue!10,left=of ret] (land) {LANDING};
+\draw[a] (dock) -- node[above]{dusk} (to);
+\draw[a] (to) -- node[above]{4\,m} (pat);
+\draw[a] (pat) -- node[above]{blob} (trk);
+\draw[a] (trk) -- node[above]{held} (lock);
+\draw[a] (lock) -- (fire);
+\draw[a] (fire.south) |- ++(0,-0.35) -| node[pos=0.25,below]{reload 6\,s} (pat.south east);
+\draw[a] (trk.north) .. controls +(0,0.5) and +(0,0.5) .. node[above]{lost} (pat.north);
+\draw[a] (pat) -- node[right]{dawn, field clear} (ret);
+\draw[a] (ret) -- (land);
+\draw[a] (land) -| (dock);
+\end{tikzpicture}
+\\[3mm]
+\begin{tikzpicture}[font=\scriptsize,s/.style={draw,rounded corners=3pt,fill=#1,minimum width=15mm,minimum height=6mm,align=center},
+  a/.style={-{Latex[length=1.5mm]},black!60},node distance=6mm and 10mm]
+\node[s=black!8] (sp) {SPAWN\\perimeter};
+\node[s=black!8,right=of sp] (ad) {ADVANCE\\route};
+\node[s=black!8,right=of ad] (hide) {HIDE\\from UAV};
+\node[s=red!20,right=of hide] (hit) {HIT /\\WRECK};
+\node[s=black!8,below=of ad] (wd) {WITHDRAW\\(dawn)};
+\draw[a] (sp)--(ad); \draw[a] (ad) -- node[above]{UAV $<5$\,m} (hide); \draw[a] (hide.south) .. controls +(0,-0.5) and +(0,-0.5) .. node[below]{after 4\,s} (ad.south east);
+\draw[a] (hide)--(hit); \draw[a] (ad)--node[left]{dawn}(wd);
+\node[s=green!12,right=22mm of hit] (duty) {ON DUTY\\post / patrol};
+\node[s=green!12,below=of duty] (sc) {SHIFT\\CHANGE};
+\node[s=green!6,left=of sc] (off) {OFF DUTY\\barracks};
+\draw[a] (duty) -- node[right]{06:24 / 17:36} (sc); \draw[a] (sc) -- (off); \draw[a] (off.north) |- (duty.west);
+\end{tikzpicture}
+\caption{State diagrams. Top: a UAV (duty cycle \code{ai/SquadDuty.cpp}, engagement \code{ai/Squad.cpp}); each UAV
+runs it independently. Bottom left: an intruder rover (\code{ai/HideController.cpp}); bottom right: a soldier's shift
+(\code{scene/Garrison.cpp}).}
+\label{fig:fsm}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.325\linewidth}\raw{v5/thermal_fpv}{\linewidth}\caption{Detect and track (gimbal).}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{v5/tank_fire}{\linewidth}\caption{Ground fire.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{v5/aa_gun_burst}{\linewidth}\caption{AA gun burst.}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.49\linewidth}\raw{scene/dusk_shift_change}{\linewidth}\caption{Shift change at dusk.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{scene/dawn_withdraw}{\linewidth}\caption{Dawn: survivors withdraw.}\end{subfigure}
+\caption{Game events captured by the program. Notice in (a) the HUD lock ring and the tracking ID from the CV tracker.}
+\label{fig:events}
+\end{figure}
+
+\begin{figure}[H]
+\centering\wb{Duty_Cycle}{0.95\linewidth}
+\caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift.}
+\label{fig:wb-duty}
+\end{figure}
+\where{src/ai/Squad.cpp, SquadDuty.cpp, DroneController.cpp, HideController.cpp; src/scene/Combat.cpp (segmentSphere, segmentBoxT), Mission.cpp (waves, score), Garrison.cpp (shifts)}
+\critique{The brief asked for shifts every 6 in-game hours and an explicit ``backup fire'' call from the nearest soldiers.
+The code has two shifts (day 06:24--17:36 and night) with staggered changes, and AI soldiers do not fire: ground
+backup fire exists only when the player controls a soldier or a weapon. Both UAVs can independently detect, lock
+and fire, and they coordinate a combined strike when both hold the same track.}

@@ -1,0 +1,30 @@
+\section{Curved objects and tessellation}
+\label{sec:curved}
+\textit{Builds on: primitives (\ref{sec:prims}), shading (\ref{sec:shading}).}
+
+Curved surfaces are drawn as polygons. The silhouette error of a sphere with $s$ slices is the sagitta of one chord;
+the triangle count of \code{createSphere(s, k)} is $2s(k-1)$. Halving the error costs about twice the triangles.
+\begin{equation}
+\varepsilon=r\Big(1-\cos\frac{\pi}{s}\Big)\approx\frac{r\pi^2}{2s^2},\qquad N_\triangle=2s(k-1)
+\label{eq:tess}
+\end{equation}
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.42\linewidth}\centering\plot{p_tessellation}{\linewidth}\end{minipage}\hfill
+\begin{minipage}{0.56\linewidth}\centering
+\raw{lab/shading_sphere_lowpoly_flat}{0.32\linewidth}\hfill\raw{lab/shading_sphere_lowpoly_gouraud}{0.32\linewidth}\hfill\raw{lab/shading_sphere_lowpoly_phong}{0.32\linewidth}
+\end{minipage}
+\caption{Left: silhouette error against triangle count (Eq.~\eqref{eq:tess}); the scene uses 36 slices (0.38\,\% of the
+radius, 1224 triangles). Right: a low-polygon sphere under flat, Gouraud and Phong shading. Notice that smooth
+shading hides the facets inside the outline but cannot hide the polygonal silhouette: only more triangles fix the edge.}
+\label{fig:tess}
+\end{figure}
+
+\textbf{Curved objects in the scene.} Tank road wheels and tyres, barrels, masts, helmets and heads (spheres and
+cylinders); the bunker's earth berm (a flattened sphere); rotor blur discs (flat cylinders); the soldiers' walking
+paths and the patrol routes are curves too (centripetal Catmull--Rom splines, Section~\ref{sec:paths}). The CC0
+trees (v9) carry their own detail levels: three simplified meshes (meshoptimizer) and an octahedral impostor far away.
+\where{src/primitives/Sphere.cpp, Cylinder.cpp; LOD chain in src/rendering/Foliage.cpp}
+\critique{There is no torus or helix generator, and the primitives have no level of detail: a distant sphere costs
+the same 1224 triangles as a close one. Choosing $s$ from projected size (e.g.\ $s\propto\sqrt{\text{pixels}}$) would cut
+the sphere triangles by a large factor in the overview shots.}

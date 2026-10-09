@@ -3,8 +3,8 @@
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-02-24> (article.cls
 Document Class: article 2021/10/04 v1.4n Standard LaTeX document class
-(size10.clo
-File: size10.clo 2021/10/04 v1.4n Standard LaTeX file (size option)
+(size11.clo
+File: size11.clo 2021/10/04 v1.4n Standard LaTeX file (size option)
 )
 \c@part=\count181
 \c@section=\count182
@@ -45,41 +45,90 @@ LaTeX Font Info:    Trying to load font information for T1+lmr on input line 11
 2.
 (t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)) (lmodern.sty
-Package: lmodern 2015/05/01 v1.6.1 Latin Modern Fonts
-LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmr/m/n --> OT1/lmr/m/n on input line 22.
-LaTeX Font Info:    Overwriting symbol font `letters' in version `normal'
-(Font)                  OML/cmm/m/it --> OML/lmm/m/it on input line 23.
-LaTeX Font Info:    Overwriting symbol font `symbols' in version `normal'
-(Font)                  OMS/cmsy/m/n --> OMS/lmsy/m/n on input line 24.
-LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `normal'
-(Font)                  OMX/cmex/m/n --> OMX/lmex/m/n on input line 25.
-LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/lmr/bx/n on input line 26.
-LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
-(Font)                  OML/cmm/b/it --> OML/lmm/b/it on input line 27.
-LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
-(Font)                  OMS/cmsy/b/n --> OMS/lmsy/b/n on input line 28.
-LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
-(Font)                  OMX/cmex/m/n --> OMX/lmex/m/n on input line 29.
-LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmr/bx/n --> OT1/lmr/bx/n on input line 31.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
-(Font)                  OT1/cmss/m/n --> OT1/lmss/m/n on input line 32.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmr/m/it --> OT1/lmr/m/it on input line 33.
-LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/cmtt/m/n --> OT1/lmtt/m/n on input line 34.
-LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
-(Font)                  OT1/cmr/bx/n --> OT1/lmr/bx/n on input line 35.
-LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
-(Font)                  OT1/cmss/bx/n --> OT1/lmss/bx/n on input line 36.
-LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/bx/it --> OT1/lmr/bx/it on input line 37.
-LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/m/n --> OT1/lmtt/m/n on input line 38.
-) (amsmath.sty
+)) (newtxtext.sty
+Package: newtxtext 2022/02/28 v1.71(Michael Sharpe) latex and unicode latex sup
+port for TeXGyreTermesX
+
+`newtxtext' v1.71, 2022/02/28 Text macros taking advantage of TeXGyre Termes an
+d its extensions (msharpe) (xkeyval.sty
+Package: xkeyval 2020/11/20 v2.8 package option processing (HA)
+ (xkeyval (xkvutils
+\XKV@toks=\toks18
+\XKV@tempa@toks=\toks19
+)
+\XKV@depth=\count192
+File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
+)) (etoolbox.sty
+Package: etoolbox 2020/10/05 v2.5k e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count193
+)
+(textcomp.sty
+Package: textcomp 2020/02/02 v2.0n Standard LaTeX package
+) (xstring.sty (xstring.tex
+\integerpart=\count194
+\decimalpart=\count195
+)
+Package: xstring 2021/07/21 v1.84 String manipulations (CT)
+) (ifthen.sty
+Package: ifthen 2020/11/24 v1.1c Standard LaTeX ifthen package (DPC)
+) (scalefnt.sty)
+LaTeX Font Info:    Setting ntxLF sub-encoding to TS1/0 on input line 21.
+LaTeX Font Info:    Setting ntxTLF sub-encoding to TS1/0 on input line 21.
+LaTeX Font Info:    Setting ntxOsF sub-encoding to TS1/0 on input line 21.
+LaTeX Font Info:    Setting ntxTOsF sub-encoding to TS1/0 on input line 21.
+ (binhex)
+\ntx@tmpcnta=\count196
+\ntx@cnt=\count197
+ntx@otftexttrue
+(fontspec.sty (xparse.sty (expl3.sty
+Package: expl3 2022-02-24 L3 programming layer (loader) 
+ (l3backend-xetex.def
+File: l3backend-xetex.def 2022-02-07 L3 backend support: XeTeX
+\c__kernel_sys_dvipdfmx_version_int=\count198
+\l__color_backend_stack_int=\count199
+\g__color_backend_stack_int=\count266
+\g__graphics_track_int=\count267
+\l__pdf_internal_box=\box50
+\g__pdf_backend_object_int=\count268
+\g__pdf_backend_annotation_int=\count269
+\g__pdf_backend_link_int=\count270
+))
+Package: xparse 2022-01-12 L3 Experimental document command parser
+)
+Package: fontspec 2022/01/15 v2.8a Font selection for XeLaTeX and LuaLaTeX
+
+(fontspec-xetex.sty
+Package: fontspec-xetex 2022/01/15 v2.8a Font selection for XeLaTeX and LuaLaTe
+X
+\l__fontspec_script_int=\count271
+\l__fontspec_language_int=\count272
+\l__fontspec_strnum_int=\count273
+\l__fontspec_tmp_int=\count274
+\l__fontspec_tmpa_int=\count275
+\l__fontspec_tmpb_int=\count276
+\l__fontspec_tmpc_int=\count277
+\l__fontspec_em_int=\count278
+\l__fontspec_emdef_int=\count279
+\l__fontspec_strong_int=\count280
+\l__fontspec_strongdef_int=\count281
+\l__fontspec_tmpa_dim=\dimen147
+\l__fontspec_tmpb_dim=\dimen148
+\l__fontspec_tmpc_dim=\dimen149
+ (fontenc.sty
+Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
+) (fontspec.cfg)))
+LaTeX Info: Redefining \oldstylenums on input line 479.
+LaTeX Info: Redefining \liningnums on input line 483.
+ (realscripts.sty
+Package: realscripts 2016/02/13 v0.3d Access OpenType subscripts and superscrip
+ts
+\subsupersep=\dimen150
+))
+(newtxmath.sty
+Package: newtxmath 2022/01/16 v1.71
+
+`newtxmath' v1.71, 2022/01/16 Math macros based originally on txfonts (msharpe)
+(amsmath.sty
 Package: amsmath 2021/10/15 v2.17l AMS math features
 \@mathmargin=\skip49
 
@@ -88,62 +137,163 @@ For additional information on amsmath, use the `?' option.
 Package: amstext 2021/08/26 v2.01 AMS text
  (amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
-\@emptytoks=\toks18
-\ex@=\dimen147
+\@emptytoks=\toks20
+\ex@=\dimen151
 )) (amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
-\pmbraise@=\dimen148
+\pmbraise@=\dimen152
 ) (amsopn.sty
 Package: amsopn 2021/08/26 v2.02 operator names
 )
-\inf@bad=\count192
+\inf@bad=\count282
 LaTeX Info: Redefining \frac on input line 234.
-\uproot@=\count193
-\leftroot@=\count194
+\uproot@=\count283
+\leftroot@=\count284
 LaTeX Info: Redefining \overline on input line 399.
-\classnum@=\count195
-\DOTSCASE@=\count196
+\classnum@=\count285
+\DOTSCASE@=\count286
 LaTeX Info: Redefining \ldots on input line 496.
 LaTeX Info: Redefining \dots on input line 499.
 LaTeX Info: Redefining \cdots on input line 620.
-\Mathstrutbox@=\box50
-\strutbox@=\box51
-\big@size=\dimen149
+\Mathstrutbox@=\box51
+\strutbox@=\box52
+\big@size=\dimen153
 LaTeX Font Info:    Redeclaring font encoding OML on input line 743.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
-\macc@depth=\count197
-\c@MaxMatrixCols=\count198
+\macc@depth=\count287
+\c@MaxMatrixCols=\count288
 \dotsspace@=\muskip16
-\c@parentequation=\count199
-\dspbrk@lvl=\count266
-\tag@help=\toks19
-\row@=\count267
-\column@=\count268
-\maxfields@=\count269
-\andhelp@=\toks20
-\eqnshift@=\dimen150
-\alignsep@=\dimen151
-\tagshift@=\dimen152
-\tagwidth@=\dimen153
-\totwidth@=\dimen154
-\lineht@=\dimen155
-\@envbody=\toks21
+\c@parentequation=\count289
+\dspbrk@lvl=\count290
+\tag@help=\toks21
+\row@=\count291
+\column@=\count292
+\maxfields@=\count293
+\andhelp@=\toks22
+\eqnshift@=\dimen154
+\alignsep@=\dimen155
+\tagshift@=\dimen156
+\tagwidth@=\dimen157
+\totwidth@=\dimen158
+\lineht@=\dimen159
+\@envbody=\toks23
 \multlinegap=\skip50
 \multlinetaggap=\skip51
-\mathdisplay@stack=\toks22
+\mathdisplay@stack=\toks24
 LaTeX Info: Redefining \[ on input line 2938.
 LaTeX Info: Redefining \] on input line 2939.
-) (amssymb.sty
-Package: amssymb 2013/01/14 v3.01 AMS font symbols
+) (ifxetex.sty
+Package: ifxetex 2019/10/25 v0.7 ifxetex legacy package. Use iftex instead.
+)
+(ifluatex.sty
+Package: ifluatex 2019/10/25 v1.5 ifluatex legacy package. Use iftex instead.
+) (centernot.sty
+Package: centernot 2016/05/16 v1.4 Centers the not symbol horizontally (HO)
+)
+\tx@cntz=\count294
+ (binhex)
+\tx@Isdigit=\count295
+\tx@IsAlNum=\count296
+\tx@tA=\toks25
+\tx@tB=\toks26
+\tx@su=\read2
 
-(amsfonts.sty
-Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
-\symAMSa=\mathgroup4
-\symAMSb=\mathgroup5
-LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
-LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
-(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
-)) (graphicx.sty
+amsthm NOT loaded
+LaTeX Font Info:    Redeclaring symbol font `operators' on input line 376.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
+(Font)                  OT1/cmr/m/n --> OT1/minntx/m/n on input line 376.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/minntx/m/n on input line 376.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/minntx/m/n --> OT1/minntx/b/n on input line 377.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 383.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
+(Font)                  OT1/cmss/m/n --> TU/lmss/m/n on input line 383.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  OT1/cmss/bx/n --> TU/lmss/m/n on input line 383.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 384.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
+(Font)                  OT1/cmr/m/it --> OT1/minntx/m/it on input line 384.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmr/bx/it --> OT1/minntx/m/it on input line 384.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 385.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
+(Font)                  OT1/cmtt/m/n --> TU/lmtt/m/n on input line 385.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
+(Font)                  OT1/cmtt/m/n --> TU/lmtt/m/n on input line 385.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 387.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
+(Font)                  OT1/cmr/bx/n --> OT1/minntx/b/n on input line 387.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `bold'
+(Font)                  OT1/cmr/bx/n --> OT1/minntx/b/n on input line 387.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/minntx/m/it --> OT1/minntx/b/it on input line 388.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  TU/lmss/m/n --> TU/lmss/b/n on input line 389.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
+(Font)                  TU/lmtt/m/n --> TU/lmtt/b/n on input line 390.
+LaTeX Font Info:    Redeclaring symbol font `letters' on input line 491.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `normal'
+(Font)                  OML/cmm/m/it --> OML/ntxmi/m/it on input line 491.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
+(Font)                  OML/cmm/b/it --> OML/ntxmi/m/it on input line 491.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
+(Font)                  OML/ntxmi/m/it --> OML/ntxmi/b/it on input line 492.
+\symlettersA=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `lettersA' in version `bold'
+(Font)                  U/ntxmia/m/it --> U/ntxmia/b/it on input line 547.
+LaTeX Font Info:    Redeclaring symbol font `symbols' on input line 568.
+LaTeX Font Info:    Encoding `OMS' has changed to `LMS' for symbol font
+(Font)              `symbols' in the math version `normal' on input line 568.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `normal'
+(Font)                  OMS/cmsy/m/n --> LMS/ntxsy/m/n on input line 568.
+LaTeX Font Info:    Encoding `OMS' has changed to `LMS' for symbol font
+(Font)              `symbols' in the math version `bold' on input line 568.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
+(Font)                  OMS/cmsy/b/n --> LMS/ntxsy/m/n on input line 568.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
+(Font)                  LMS/ntxsy/m/n --> LMS/ntxsy/b/n on input line 569.
+\symAMSm=\mathgroup5
+LaTeX Font Info:    Overwriting symbol font `AMSm' in version `bold'
+(Font)                  U/ntxsym/m/n --> U/ntxsym/b/n on input line 594.
+\symsymbolsC=\mathgroup6
+LaTeX Font Info:    Overwriting symbol font `symbolsC' in version `bold'
+(Font)                  U/ntxsyc/m/n --> U/ntxsyc/b/n on input line 615.
+LaTeX Font Info:    Redeclaring symbol font `largesymbols' on input line 628.
+LaTeX Font Info:    Encoding `OMX' has changed to `LMX' for symbol font
+(Font)              `largesymbols' in the math version `normal' on input line 6
+28.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `normal'
+(Font)                  OMX/cmex/m/n --> LMX/ntxexx/m/n on input line 628.
+LaTeX Font Info:    Encoding `OMX' has changed to `LMX' for symbol font
+(Font)              `largesymbols' in the math version `bold' on input line 628
+.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
+(Font)                  OMX/cmex/m/n --> LMX/ntxexx/m/n on input line 628.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
+(Font)                  LMX/ntxexx/m/n --> LMX/ntxexx/b/n on input line 629.
+\symlargesymbolsTXA=\mathgroup7
+LaTeX Font Info:    Overwriting symbol font `largesymbolsTXA' in version `bold'
+
+(Font)                  U/ntxexa/m/n --> U/ntxexa/b/n on input line 643.
+\tx@sbptoks=\toks27
+LaTeX Font Info:    Redeclaring math delimiter \lfloor on input line 866.
+LaTeX Font Info:    Redeclaring math delimiter \rfloor on input line 867.
+LaTeX Font Info:    Redeclaring math delimiter \lceil on input line 868.
+LaTeX Font Info:    Redeclaring math delimiter \rceil on input line 869.
+LaTeX Font Info:    Redeclaring math delimiter \lbrace on input line 870.
+LaTeX Font Info:    Redeclaring math delimiter \rbrace on input line 871.
+LaTeX Font Info:    Redeclaring math delimiter \langle on input line 872.
+LaTeX Font Info:    Redeclaring math delimiter \rangle on input line 874.
+LaTeX Font Info:    Redeclaring math delimiter \arrowvert on input line 878.
+LaTeX Font Info:    Redeclaring math delimiter \vert on input line 879.
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 925.
+LaTeX Font Info:    Redeclaring math accent \dot on input line 950.
+LaTeX Font Info:    Redeclaring math accent \ddot on input line 951.
+LaTeX Font Info:    Redeclaring math accent \vec on input line 2020.
+LaTeX Info: Redefining \Bbbk on input line 2810.
+LaTeX Info: Redefining \not on input line 2959.
+) (graphicx.sty
 Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
  (graphics.sty
 Package: graphics 2021/03/04 v1.4d Standard LaTeX Graphics (DPC,SPQR)
@@ -153,58 +303,56 @@ Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: xetex.def on input line 107.
-
-(xetex.def
+ (xetex.def
 File: xetex.def 2021/03/18 v5.0k Graphics/color driver for xetex
 ))
-\Gin@req@height=\dimen156
-\Gin@req@width=\dimen157
-) (booktabs.sty
+\Gin@req@height=\dimen160
+\Gin@req@width=\dimen161
+)
+(booktabs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
-\heavyrulewidth=\dimen158
-\lightrulewidth=\dimen159
-\cmidrulewidth=\dimen160
-\belowrulesep=\dimen161
-\belowbottomsep=\dimen162
-\aboverulesep=\dimen163
-\abovetopsep=\dimen164
-\cmidrulesep=\dimen165
-\cmidrulekern=\dimen166
-\defaultaddspace=\dimen167
-\@cmidla=\count270
-\@cmidlb=\count271
-\@aboverulesep=\dimen168
-\@belowrulesep=\dimen169
-\@thisruleclass=\count272
-\@lastruleclass=\count273
-\@thisrulewidth=\dimen170
-) (longtable.sty
-Package: longtable 2021-09-01 v4.17 Multi-page Table package (DPC)
-\LTleft=\skip52
-\LTright=\skip53
-\LTpre=\skip54
-\LTpost=\skip55
-\LTchunksize=\count274
-\LTcapwidth=\dimen171
-\LT@head=\box52
-\LT@firsthead=\box53
-\LT@foot=\box54
-\LT@lastfoot=\box55
-\LT@gbox=\box56
-\LT@cols=\count275
-\LT@rows=\count276
-\c@LT@tables=\count277
-\c@LT@chunks=\count278
-\LT@p@ftn=\toks23
-) (array.sty
+\heavyrulewidth=\dimen162
+\lightrulewidth=\dimen163
+\cmidrulewidth=\dimen164
+\belowrulesep=\dimen165
+\belowbottomsep=\dimen166
+\aboverulesep=\dimen167
+\abovetopsep=\dimen168
+\cmidrulesep=\dimen169
+\cmidrulekern=\dimen170
+\defaultaddspace=\dimen171
+\@cmidla=\count297
+\@cmidlb=\count298
+\@aboverulesep=\dimen172
+\@belowrulesep=\dimen173
+\@thisruleclass=\count299
+\@lastruleclass=\count300
+\@thisrulewidth=\dimen174
+) (tabularx.sty
+Package: tabularx 2020/01/15 v2.11c `tabularx' package (DPC)
+ (array.sty
 Package: array 2021/10/04 v2.5f Tabular extension package (FMi)
-\col@sep=\dimen172
-\ar@mcellbox=\box57
-\extrarowheight=\dimen173
-\NC@list=\toks24
-\extratabsurround=\skip56
-\backup@length=\skip57
-\ar@cellbox=\box58
+\col@sep=\dimen175
+\ar@mcellbox=\box53
+\extrarowheight=\dimen176
+\NC@list=\toks28
+\extratabsurround=\skip52
+\backup@length=\skip53
+\ar@cellbox=\box54
+)
+\TX@col@width=\dimen177
+\TX@old@table=\dimen178
+\TX@old@col=\dimen179
+\TX@target=\dimen180
+\TX@delta=\dimen181
+\TX@cols=\count301
+\TX@ftn=\toks29
+) (multirow.sty
+Package: multirow 2021/03/15 v2.8 Span multiple rows of a table
+\multirow@colwidth=\skip54
+\multirow@cntb=\count302
+\multirow@dima=\skip55
+\bigstrutjot=\dimen182
 ) (xcolor.sty
 Package: xcolor 2021/10/31 v2.13 LaTeX color extensions (UK)
  (color.cfg
@@ -223,84 +371,86 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1375.
 Package: caption 2022/03/01 v3.6b Customizing captions (AR)
  (caption3.sty
 Package: caption3 2022/03/17 v2.3b caption3 kernel (AR)
-\caption@tempdima=\dimen174
-\captionmargin=\dimen175
-\caption@leftmargin=\dimen176
-\caption@rightmargin=\dimen177
-\caption@width=\dimen178
-\caption@indent=\dimen179
-\caption@parindent=\dimen180
-\caption@hangindent=\dimen181
+\caption@tempdima=\dimen183
+\captionmargin=\dimen184
+\caption@leftmargin=\dimen185
+\caption@rightmargin=\dimen186
+\caption@width=\dimen187
+\caption@indent=\dimen188
+\caption@parindent=\dimen189
+\caption@hangindent=\dimen190
 Package caption Info: Standard document class detected.
 )
-\c@caption@flags=\count279
-\c@continuedfloat=\count280
-Package caption Info: longtable package is loaded.
- (ltcaption.sty
-Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
-)) (subcaption.sty
+\c@caption@flags=\count303
+\c@continuedfloat=\count304
+) (subcaption.sty
 Package: subcaption 2022/01/07 v1.5 Sub-captions (AR)
-\c@subfigure=\count281
-\c@subtable=\count282
-) (tikz.sty
-(pgf.sty (pgfrcs.sty (pgfutil-common.tex
-\pgfutil@everybye=\toks25
-\pgfutil@tempdima=\dimen182
-\pgfutil@tempdimb=\dimen183
- (pgfutil-common-lists.tex))
-(pgfutil-latex.def
-\pgfutil@abb=\box59
+\c@subfigure=\count305
+\c@subtable=\count306
+) (float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count307
+\float@exts=\toks30
+\float@box=\box55
+\@float@everytoks=\toks31
+\@floatcapt=\box56
+) (tikz.sty (pgf.sty (pgfrcs.sty (pgfutil-common.tex
+\pgfutil@everybye=\toks32
+\pgfutil@tempdima=\dimen191
+\pgfutil@tempdimb=\dimen192
+ (pgfutil-common-lists.tex)) (pgfutil-latex.def
+\pgfutil@abb=\box57
 ) (pgfrcs.code.tex (pgf.revision.tex)
 Package: pgfrcs 2021/05/15 v3.1.9a (3.1.9a)
 ))
 Package: pgf 2021/05/15 v3.1.9a (3.1.9a)
- (pgfcore.sty
-(pgfsys.sty (pgfsys.code.tex
+ (pgfcore.sty (pgfsys.sty
+(pgfsys.code.tex
 Package: pgfsys 2021/05/15 v3.1.9a (3.1.9a)
  (pgfkeys.code.tex
-\pgfkeys@pathtoks=\toks26
-\pgfkeys@temptoks=\toks27
+\pgfkeys@pathtoks=\toks33
+\pgfkeys@temptoks=\toks34
  (pgfkeysfiltered.code.tex
-\pgfkeys@tmptoks=\toks28
+\pgfkeys@tmptoks=\toks35
 ))
-\pgf@x=\dimen184
-\pgf@y=\dimen185
-\pgf@xa=\dimen186
-\pgf@ya=\dimen187
-\pgf@xb=\dimen188
-\pgf@yb=\dimen189
-\pgf@xc=\dimen190
-\pgf@yc=\dimen191
-\pgf@xd=\dimen192
-\pgf@yd=\dimen193
+\pgf@x=\dimen193
+\pgf@y=\dimen194
+\pgf@xa=\dimen195
+\pgf@ya=\dimen196
+\pgf@xb=\dimen197
+\pgf@yb=\dimen198
+\pgf@xc=\dimen199
+\pgf@yc=\dimen256
+\pgf@xd=\dimen257
+\pgf@yd=\dimen258
 \w@pgf@writea=\write3
-\r@pgf@reada=\read2
-\c@pgf@counta=\count283
-\c@pgf@countb=\count284
-\c@pgf@countc=\count285
-\c@pgf@countd=\count286
-\t@pgf@toka=\toks29
-\t@pgf@tokb=\toks30
-\t@pgf@tokc=\toks31
-\pgf@sys@id@count=\count287
-
-(pgf.cfg
+\r@pgf@reada=\read3
+\c@pgf@counta=\count308
+\c@pgf@countb=\count309
+\c@pgf@countc=\count310
+\c@pgf@countd=\count311
+\t@pgf@toka=\toks36
+\t@pgf@tokb=\toks37
+\t@pgf@tokc=\toks38
+\pgf@sys@id@count=\count312
+ (pgf.cfg
 File: pgf.cfg 2021/05/15 v3.1.9a (3.1.9a)
 )
 Driver file for pgf: pgfsys-xetex.def
- (pgfsys-xetex.def
+
+(pgfsys-xetex.def
 File: pgfsys-xetex.def 2021/05/15 v3.1.9a (3.1.9a)
  (pgfsys-dvipdfmx.def
 File: pgfsys-dvipdfmx.def 2021/05/15 v3.1.9a (3.1.9a)
  (pgfsys-common-pdf.def
 File: pgfsys-common-pdf.def 2021/05/15 v3.1.9a (3.1.9a)
 )
-\pgfsys@objnum=\count288
+\pgfsys@objnum=\count313
 )))
 (pgfsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfsyssoftpath@smallbuffer@items=\count289
-\pgfsyssoftpath@bigbuffer@items=\count290
+\pgfsyssoftpath@smallbuffer@items=\count314
+\pgfsyssoftpath@bigbuffer@items=\count315
 ) (pgfsysprotocol.code.tex
 File: pgfsysprotocol.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )) (pgfcore.code.tex
@@ -308,60 +458,60 @@ Package: pgfcore 2021/05/15 v3.1.9a (3.1.9a)
 
 (pgfmath.code.tex (pgfmathcalc.code.tex (pgfmathutil.code.tex)
 (pgfmathparser.code.tex
-\pgfmath@dimen=\dimen194
-\pgfmath@count=\count291
-\pgfmath@box=\box60
-\pgfmath@toks=\toks32
-\pgfmath@stack@operand=\toks33
-\pgfmath@stack@operation=\toks34
+\pgfmath@dimen=\dimen259
+\pgfmath@count=\count316
+\pgfmath@box=\box58
+\pgfmath@toks=\toks39
+\pgfmath@stack@operand=\toks40
+\pgfmath@stack@operation=\toks41
 ) (pgfmathfunctions.code.tex
 (pgfmathfunctions.basic.code.tex) (pgfmathfunctions.trigonometric.code.tex)
 (pgfmathfunctions.random.code.tex) (pgfmathfunctions.comparison.code.tex)
 (pgfmathfunctions.base.code.tex) (pgfmathfunctions.round.code.tex)
 (pgfmathfunctions.misc.code.tex) (pgfmathfunctions.integerarithmetics.code.tex)
 )) (pgfmathfloat.code.tex
-\c@pgfmathroundto@lastzeros=\count292
+\c@pgfmathroundto@lastzeros=\count317
 )) (pgfint.code.tex) (pgfcorepoints.code.tex
 File: pgfcorepoints.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@picminx=\dimen195
-\pgf@picmaxx=\dimen196
-\pgf@picminy=\dimen197
-\pgf@picmaxy=\dimen198
-\pgf@pathminx=\dimen199
-\pgf@pathmaxx=\dimen256
-\pgf@pathminy=\dimen257
-\pgf@pathmaxy=\dimen258
-\pgf@xx=\dimen259
-\pgf@xy=\dimen260
-\pgf@yx=\dimen261
-\pgf@yy=\dimen262
-\pgf@zx=\dimen263
-\pgf@zy=\dimen264
+\pgf@picminx=\dimen260
+\pgf@picmaxx=\dimen261
+\pgf@picminy=\dimen262
+\pgf@picmaxy=\dimen263
+\pgf@pathminx=\dimen264
+\pgf@pathmaxx=\dimen265
+\pgf@pathminy=\dimen266
+\pgf@pathmaxy=\dimen267
+\pgf@xx=\dimen268
+\pgf@xy=\dimen269
+\pgf@yx=\dimen270
+\pgf@yy=\dimen271
+\pgf@zx=\dimen272
+\pgf@zy=\dimen273
 )
 (pgfcorepathconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@path@lastx=\dimen265
-\pgf@path@lasty=\dimen266
+\pgf@path@lastx=\dimen274
+\pgf@path@lasty=\dimen275
 ) (pgfcorepathusage.code.tex
 File: pgfcorepathusage.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@shorten@end@additional=\dimen267
-\pgf@shorten@start@additional=\dimen268
+\pgf@shorten@end@additional=\dimen276
+\pgf@shorten@start@additional=\dimen277
 )
 (pgfcorescopes.code.tex
 File: pgfcorescopes.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfpic=\box61
-\pgf@hbox=\box62
-\pgf@layerbox@main=\box63
-\pgf@picture@serial@count=\count293
+\pgfpic=\box59
+\pgf@hbox=\box60
+\pgf@layerbox@main=\box61
+\pgf@picture@serial@count=\count318
 ) (pgfcoregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgflinewidth=\dimen269
+\pgflinewidth=\dimen278
 )
 (pgfcoretransformations.code.tex
 File: pgfcoretransformations.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@pt@x=\dimen270
-\pgf@pt@y=\dimen271
-\pgf@pt@temp=\dimen272
+\pgf@pt@x=\dimen279
+\pgf@pt@y=\dimen280
+\pgf@pt@temp=\dimen281
 ) (pgfcorequick.code.tex
 File: pgfcorequick.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
@@ -372,18 +522,18 @@ File: pgfcorepathprocessing.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
 (pgfcorearrows.code.tex
 File: pgfcorearrows.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfarrowsep=\dimen273
+\pgfarrowsep=\dimen282
 ) (pgfcoreshade.code.tex
 File: pgfcoreshade.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@max=\dimen274
-\pgf@sys@shading@range@num=\count294
-\pgf@shadingcount=\count295
+\pgf@max=\dimen283
+\pgf@sys@shading@range@num=\count319
+\pgf@shadingcount=\count320
 ) (pgfcoreimage.code.tex
 File: pgfcoreimage.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 
 (pgfcoreexternal.code.tex
 File: pgfcoreexternal.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfexternal@startupbox=\box64
+\pgfexternal@startupbox=\box62
 )) (pgfcorelayers.code.tex
 File: pgfcorelayers.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
@@ -395,14 +545,14 @@ File: pgfcorepatterns.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 File: pgfcorerdf.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 ))) (pgfmoduleshapes.code.tex
 File: pgfmoduleshapes.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfnodeparttextbox=\box65
+\pgfnodeparttextbox=\box63
 ) (pgfmoduleplot.code.tex
 File: pgfmoduleplot.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
 (pgfcomp-version-0-65.sty
 Package: pgfcomp-version-0-65 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@nodesepstart=\dimen275
-\pgf@nodesepend=\dimen276
+\pgf@nodesepstart=\dimen284
+\pgf@nodesepend=\dimen285
 ) (pgfcomp-version-1-18.sty
 Package: pgfcomp-version-1-18 2021/05/15 v3.1.9a (3.1.9a)
 )) (pgffor.sty (pgfkeys.sty (pgfkeys.code.tex)) (pgfmath.sty (pgfmath.code.tex)
@@ -410,50 +560,50 @@ Package: pgfcomp-version-1-18 2021/05/15 v3.1.9a (3.1.9a)
 Package: pgffor 2021/05/15 v3.1.9a (3.1.9a)
 
 (pgfmath.code.tex)
-\pgffor@iter=\dimen277
-\pgffor@skip=\dimen278
-\pgffor@stack=\toks35
-\pgffor@toks=\toks36
+\pgffor@iter=\dimen286
+\pgffor@skip=\dimen287
+\pgffor@stack=\toks42
+\pgffor@toks=\toks43
 )) (tikz.code.tex
 Package: tikz 2021/05/15 v3.1.9a (3.1.9a)
  (pgflibraryplothandlers.code.tex
 File: pgflibraryplothandlers.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@plot@mark@count=\count296
-\pgfplotmarksize=\dimen279
+\pgf@plot@mark@count=\count321
+\pgfplotmarksize=\dimen288
 )
-\tikz@lastx=\dimen280
-\tikz@lasty=\dimen281
-\tikz@lastxsaved=\dimen282
-\tikz@lastysaved=\dimen283
-\tikz@lastmovetox=\dimen284
-\tikz@lastmovetoy=\dimen285
-\tikzleveldistance=\dimen286
-\tikzsiblingdistance=\dimen287
-\tikz@figbox=\box66
-\tikz@figbox@bg=\box67
-\tikz@tempbox=\box68
-\tikz@tempbox@bg=\box69
-\tikztreelevel=\count297
-\tikznumberofchildren=\count298
-\tikznumberofcurrentchild=\count299
-\tikz@fig@count=\count300
+\tikz@lastx=\dimen289
+\tikz@lasty=\dimen290
+\tikz@lastxsaved=\dimen291
+\tikz@lastysaved=\dimen292
+\tikz@lastmovetox=\dimen293
+\tikz@lastmovetoy=\dimen294
+\tikzleveldistance=\dimen295
+\tikzsiblingdistance=\dimen296
+\tikz@figbox=\box64
+\tikz@figbox@bg=\box65
+\tikz@tempbox=\box66
+\tikz@tempbox@bg=\box67
+\tikztreelevel=\count322
+\tikznumberofchildren=\count323
+\tikznumberofcurrentchild=\count324
+\tikz@fig@count=\count325
 
 (pgfmodulematrix.code.tex
 File: pgfmodulematrix.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfmatrixcurrentrow=\count301
-\pgfmatrixcurrentcolumn=\count302
-\pgf@matrix@numberofcolumns=\count303
+\pgfmatrixcurrentrow=\count326
+\pgfmatrixcurrentcolumn=\count327
+\pgf@matrix@numberofcolumns=\count328
 )
-\tikz@expandcount=\count304
+\tikz@expandcount=\count329
  (tikzlibrarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )))
 (pgflibraryarrows.meta.code.tex
 File: pgflibraryarrows.meta.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfarrowinset=\dimen288
-\pgfarrowlength=\dimen289
-\pgfarrowwidth=\dimen290
-\pgfarrowlinewidth=\dimen291
+\pgfarrowinset=\dimen297
+\pgfarrowlength=\dimen298
+\pgfarrowwidth=\dimen299
+\pgfarrowlinewidth=\dimen300
 ) (tikzlibrarypositioning.code.tex
 File: tikzlibrarypositioning.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
@@ -461,21 +611,30 @@ File: tikzlibrarypositioning.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 File: tikzlibraryfit.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 ) (tikzlibrarycalc.code.tex
 File: tikzlibrarycalc.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-) (tikzlibrarytrees.code.tex
-File: tikzlibrarytrees.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-) (tikzlibraryshapes.misc.code.tex
+)
+(tikzlibraryshapes.geometric.code.tex
+File: tikzlibraryshapes.geometric.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+ (pgflibraryshapes.geometric.code.tex
+File: pgflibraryshapes.geometric.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+))
+(tikzlibraryshapes.misc.code.tex
 File: tikzlibraryshapes.misc.code.tex 2021/05/15 v3.1.9a (3.1.9a)
  (pgflibraryshapes.misc.code.tex
 File: pgflibraryshapes.misc.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 ))
-(hyperref.sty
+(tikzlibrarybackgrounds.code.tex
+File: tikzlibrarybackgrounds.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+\pgf@layerbox@background=\box68
+\pgf@layerboxsaved@background=\box69
+) (hyperref.sty
 Package: hyperref 2022-02-21 v7.00n Hypertext links for LaTeX
  (ltxcmds.sty
 Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
 ) (pdftexcmds.sty
 Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
 )
- (infwarerr.sty
+
+(infwarerr.sty
 Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
 )
 Package pdftexcmds Info: \pdf@primitive is available.
@@ -483,12 +642,12 @@ Package pdftexcmds Info: \pdf@ifprimitive is available.
 Package pdftexcmds Info: \pdfdraftmode not found.
 ) (kvsetkeys.sty
 Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
-)
-(kvdefinekeys.sty
+) (kvdefinekeys.sty
 Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
 ) (pdfescape.sty
 Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
-) (hycolor.sty
+)
+(hycolor.sty
 Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
 ) (letltxmacro.sty
 Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
@@ -497,17 +656,18 @@ Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
 ) (kvoptions.sty
 Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
 )
-\@linkdim=\dimen292
-\Hy@linkcounter=\count305
-\Hy@pagecounter=\count306
+\@linkdim=\dimen301
+\Hy@linkcounter=\count330
+\Hy@pagecounter=\count331
  (pd1enc.def
 File: pd1enc.def 2022-02-21 v7.00n Hyperref: PDFDocEncoding definition (HO)
-) (intcalc.sty
+)
+(intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 ) (etexcmds.sty
 Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 )
-\Hy@SavedSpaceFactor=\count307
+\Hy@SavedSpaceFactor=\count332
  (puenc.def
 File: puenc.def 2022-02-21 v7.00n Hyperref: PDF Unicode definition (HO)
 )
@@ -518,23 +678,24 @@ Package hyperref Info: Plain pages OFF on input line 4152.
 Package hyperref Info: Backreferencing OFF on input line 4157.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4390.
-\c@Hy@tempcnt=\count308
-
-(url.sty
+\c@Hy@tempcnt=\count333
+ (url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 4749.
-\XeTeXLinkMargin=\dimen293
+\XeTeXLinkMargin=\dimen302
+Requested font "pzdr" at 0.00002pt
+ -> pzdr
  (bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
  (bigintcalc.sty
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
-\Fld@menulength=\count309
-\Field@Width=\dimen294
-\Fld@charsize=\dimen295
+\Fld@menulength=\count334
+\Field@Width=\dimen303
+\Fld@charsize=\dimen304
 Package hyperref Info: Hyper figures OFF on input line 6027.
 Package hyperref Info: Link nesting OFF on input line 6032.
 Package hyperref Info: Hyper index ON on input line 6035.
@@ -548,26 +709,26 @@ LaTeX Info: Redefining \pageref on input line 6101.
 Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
 package with kernel methods
 )
-\Hy@abspage=\count310
-\c@Item=\count311
-\c@Hfootnote=\count312
+\Hy@abspage=\count335
+\c@Item=\count336
+\c@Hfootnote=\count337
 )
 Package hyperref Info: Driver (autodetected): hxetex.
  (hxetex.def
 File: hxetex.def 2022-02-21 v7.00n Hyperref driver for XeTeX
-
-(stringenc.sty
+ (stringenc.sty
 Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
 )
 )
 \pdfm@box=\box70
-\c@Hy@AnnotLevel=\count313
-\HyField@AnnotCount=\count314
-\Fld@listcount=\count315
-\c@bookmark@seq@number=\count316
+\c@Hy@AnnotLevel=\count338
+\HyField@AnnotCount=\count339
+\Fld@listcount=\count340
+\c@bookmark@seq@number=\count341
  (rerunfilecheck.sty
 Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
- (atveryend-ltx.sty
+
+(atveryend-ltx.sty
 Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend pac
 kage
 with kernel methods
@@ -577,78 +738,187 @@ Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 86.
 )
-\Hy@SectionHShift=\skip58
-)
-(enumitem.sty
+\Hy@SectionHShift=\skip56
+) (enumitem.sty
 Package: enumitem 2019/06/20 v3.9 Customized lists
-\labelindent=\skip59
-\enit@outerparindent=\dimen296
-\enit@toks=\toks37
+\labelindent=\skip57
+\enit@outerparindent=\dimen305
+\enit@toks=\toks44
 \enit@inbox=\box71
-\enit@count@id=\count317
-\enitdp@description=\count318
+\enit@count@id=\count342
+\enitdp@description=\count343
 ) (listings.sty
-\lst@mode=\count319
+\lst@mode=\count344
 \lst@gtempboxa=\box72
-\lst@token=\toks38
-\lst@length=\count320
-\lst@currlwidth=\dimen297
-\lst@column=\count321
-\lst@pos=\count322
-\lst@lostspace=\dimen298
-\lst@width=\dimen299
-\lst@newlines=\count323
-\lst@lineno=\count324
-\lst@maxwidth=\dimen300
- (lstmisc.sty
+\lst@token=\toks45
+\lst@length=\count345
+\lst@currlwidth=\dimen306
+\lst@column=\count346
+\lst@pos=\count347
+\lst@lostspace=\dimen307
+\lst@width=\dimen308
+\lst@newlines=\count348
+\lst@lineno=\count349
+\lst@maxwidth=\dimen309
+
+(lstmisc.sty
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
-\c@lstnumber=\count325
-\lst@skipnumbers=\count326
+\c@lstnumber=\count350
+\lst@skipnumbers=\count351
 \lst@framebox=\box73
 ) (listings.cfg
 File: listings.cfg 2020/03/24 1.8d listings configuration
 ))
 Package: listings 2020/03/24 1.8d (Carsten Heinz)
+ (fancyhdr.sty
+Package: fancyhdr 2021/01/28 v4.0.1 Extensive control of page headers and foote
+rs
+\f@nch@headwidth=\skip58
+\f@nch@O@elh=\skip59
+\f@nch@O@erh=\skip60
+\f@nch@O@olh=\skip61
+\f@nch@O@orh=\skip62
+\f@nch@O@elf=\skip63
+\f@nch@O@erf=\skip64
+\f@nch@O@olf=\skip65
+\f@nch@O@orf=\skip66
+) (sections/gen_numbers)
+(sections/gen_tables) (TeXGyreTermesX.fontspec)
+Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 10.94997pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 10.95003pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;" at 
+10.95003pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;" at 10.
+95003pt
+ -> TeXGyreTermesX-Bold.otf
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;" at 1
+0.95003pt
+ -> TeXGyreTermesX-Italic.otf
+Requested font "[TeXGyreTermesX-Slanted.otf]/OT:script=latn;language=dflt;" at 
+10.95003pt
+ -> TeXGyreTermesX-Slanted.otf
+Requested font "[TeXGyreTermesX-BoldItalic.otf]/OT:script=latn;language=dflt;" 
+at 10.95003pt
+ -> TeXGyreTermesX-BoldItalic.otf
+Requested font "[TeXGyreTermesX-BoldSlanted.otf]/OT:script=latn;language=dflt;"
+ at 10.95003pt
+ -> TeXGyreTermesX-BoldSlanted.otf
 
-(sections/gen_listings) (sections/gen_sheets) (sections/gen_stats)
-(sections/gen_v6) (l3backend-xetex.def
-File: l3backend-xetex.def 2022-02-07 L3 backend support: XeTeX
-\c__kernel_sys_dvipdfmx_version_int=\count327
-\l__color_backend_stack_int=\count328
-\g__color_backend_stack_int=\count329
-\g__graphics_track_int=\count330
-\l__pdf_internal_box=\box74
-\g__pdf_backend_object_int=\count331
-\g__pdf_backend_annotation_int=\count332
-\g__pdf_backend_link_int=\count333
-) (main.aux)
+Package fontspec Info: Font family 'TeXGyreTermesX(0)' created for font
+(fontspec)             'TeXGyreTermesX' with options [Ligatures = TeX,Scale =
+(fontspec)             1,Extension = .otf,SmallCapsFeatures={RawFeature =
+(fontspec)             +pcap, },RawFeature=-ss05,Ligatures=TeX,Extension =
+(fontspec)             .otf,UprightFont = TeXGyreTermesX-Regular,BoldFont =
+(fontspec)             TeXGyreTermesX-Bold,ItalicFont =
+(fontspec)             TeXGyreTermesX-Italic,BoldItalicFont =
+(fontspec)             TeXGyreTermesX-BoldItalic,SlantedFont =
+(fontspec)             *-Slanted,BoldSlantedFont= *-BoldSlanted,Numbers =
+(fontspec)             {Monospaced,Lining},UprightFont = *-Regular,ItalicFont
+(fontspec)             = *-Italic,BoldFont = *-Bold,BoldItalicFont =
+(fontspec)             *-BoldItalic,SlantedFont = *-Slanted,BoldSlantedFont=
+(fontspec)             *-BoldSlanted].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Regular.otf]/OT:script=latn;lan
+guage=dflt;-ss05;+tnum;+lnum;mapping=tex-text;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Regular.otf]/OT:script=latn;lan
+guage=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Bold.otf]/OT:script=latn;langua
+ge=dflt;-ss05;+tnum;+lnum;mapping=tex-text;"
+(fontspec)             - 'bold small caps'  (b/sc) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Bold.otf]/OT:script=latn;langua
+ge=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Italic.otf]/OT:script=latn;lang
+uage=dflt;-ss05;+tnum;+lnum;mapping=tex-text;"
+(fontspec)             - 'italic small caps'  (m/scit) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Italic.otf]/OT:script=latn;lang
+uage=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
+(fontspec)             - 'slanted' (m/sl) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Slanted.otf]/OT:script=latn;lan
+guage=dflt;-ss05;+tnum;+lnum;mapping=tex-text;"
+(fontspec)             - 'slanted small caps'  (m/scsl) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-Slanted.otf]/OT:script=latn;lan
+guage=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-BoldItalic.otf]/OT:script=latn;
+language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;"
+(fontspec)             - 'bold italic small caps'  (b/scit) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-BoldItalic.otf]/OT:script=latn;
+language=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
+(fontspec)             - 'bold slanted' (b/sl) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-BoldSlanted.otf]/OT:script=latn
+;language=dflt;-ss05;+tnum;+lnum;mapping=tex-text;"
+(fontspec)             - 'bold slanted small caps'  (b/scsl) with NFSS spec.:
+(fontspec)             <->s*[1]"[TeXGyreTermesX-BoldSlanted.otf]/OT:script=latn
+;language=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
+
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 10.95pt on input line 72.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 10.95pt
+ -> TeXGyreTermesX-Regular.otf
+ (main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 89.
-LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 8
-9.
- (ts1cmr.fd
+LaTeX Font Info:    Checking defaults for OML/ntxmi/m/it on input line 72.
+LaTeX Font Info:    Trying to load font information for OML+ntxmi on input line
+ 72.
+ (omlntxmi.fd
+File: omlntxmi.fd 2015/08/25 Fontinst v1.933 font definitions for OML/ntxmi.
+)
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 72.
+LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 7
+2.
+
+(ts1cmr.fd
 File: ts1cmr.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 89.
-LaTeX Font Info:    ... okay on input line 89.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 72.
+LaTeX Font Info:    Trying to load font information for U+ntxexa on input line 
+72.
+ (untxexa.fd
+File: untxexa.fd 2012/04/16 Fontinst v1.933 font definitions for U/ntxexa.
+)
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 72.
+LaTeX Font Info:    Trying to load font information for LMS+ntxsy on input line
+ 72.
+ (lmsntxsy.fd
+File: lmsntxsy.fd 2016/07/02 Fontinst v1.933 font definitions for LMS/ntxsy.
+)
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 72.
+LaTeX Font Info:    Trying to load font information for LMX+ntxexx on input lin
+e 72.
+ (lmxntxexx.fd
+File: lmxntxexx.fd 2016/07/03 Fontinst v1.933 font definitions for LMX/ntxexx.
+)
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: xetex
@@ -658,23 +928,23 @@ LaTeX Font Info:    ... okay on input line 89.
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * modes: 
-* h-part:(L,W,R)=(45.5244pt, 506.45908pt, 45.5244pt)
-* v-part:(T,H,B)=(45.5244pt, 753.99805pt, 45.5244pt)
+* h-part:(L,W,R)=(51.21495pt, 495.07797pt, 51.21495pt)
+* v-part:(T,H,B)=(45.5244pt, 748.3075pt, 51.21495pt)
 * \paperwidth=597.50787pt
 * \paperheight=845.04684pt
-* \textwidth=506.45908pt
-* \textheight=753.99805pt
-* \oddsidemargin=-26.74559pt
-* \evensidemargin=-26.74559pt
+* \textwidth=495.07797pt
+* \textheight=748.3075pt
+* \oddsidemargin=-21.05504pt
+* \evensidemargin=-21.05504pt
 * \topmargin=-63.74559pt
 * \headheight=12.0pt
 * \headsep=25.0pt
-* \topskip=10.0pt
+* \topskip=11.0pt
 * \footskip=30.0pt
-* \marginparwidth=57.0pt
-* \marginparsep=11.0pt
+* \marginparwidth=50.0pt
+* \marginparsep=10.0pt
 * \columnsep=10.0pt
-* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \skip\footins=10.0pt plus 4.0pt minus 2.0pt
 * \hoffset=0.0pt
 * \voffset=0.0pt
 * \mag=1000
@@ -685,10 +955,11 @@ LaTeX Font Info:    ... okay on input line 89.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring OFF on input line 89.
+Package hyperref Info: Link coloring OFF on input line 72.
 (nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
  (refcount.sty
@@ -696,113 +967,360 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ) (gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count334
+\c@section@level=\count352
 )
-LaTeX Info: Redefining \ref on input line 89.
-LaTeX Info: Redefining \pageref on input line 89.
-LaTeX Info: Redefining \nameref on input line 89.
+LaTeX Info: Redefining \ref on input line 72.
+LaTeX Info: Redefining \pageref on input line 72.
+LaTeX Info: Redefining \nameref on input line 72.
  (main.out) (main.out)
 \@outlinefile=\write4
 \openout4 = `main.out'.
 
-\c@lstlisting=\count335
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 9
-1.
+\c@lstlisting=\count353
 
-(ot1lmr.fd
-File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+(sections/00_cover
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 12.0pt on input line 3.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 12.0pt
+ -> TeXGyreTermesX-Regular.otf
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 17.28pt on input line 8.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 17.28pt
+ -> TeXGyreTermesX-Regular.otf
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 17.28pt on input line 8.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 17.28pt
+ -> TeXGyreTermesX-Bold.otf
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 14.4pt on input line 10.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 14.4pt
+ -> TeXGyreTermesX-Regular.otf
+File: figures/img/scene/day_overview.jpg Graphic file (type bmp)
+<figures/img/scene/day_overview.jpg>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 9.0pt on input line 16.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 9.0pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[lmmono9-regular]:" at 9.0pt
+ -> lmmono9-regular
+Requested font "[lmmono10-regular]:" at 10.0pt
+ -> lmmono10-regular
+LaTeX Font Info:    Trying to load font information for OT1+minntx on input lin
+e 16.
+ (ot1minntx.fd
+File: ot1minntx.fd 2022/01/20 v1.0 font definition file for OT1/minntx
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 9
-1.
- (omllmm.fd
-File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+Requested font "ntx-Regular-tlf-ot1" at 9.0pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntx-Regular-tlf-ot1" at 7.3pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntx-Regular-tlf-ot1" at 5.5pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntxmi" at 9.0pt
+ -> ntxmi
+Requested font "ntxmi7" at 7.3pt
+ -> ntxmi7
+Requested font "ntxmi5" at 5.5pt
+ -> ntxmi5
+Requested font "ntxsy" at 9.0pt
+ -> ntxsy
+Requested font "ntxsy7" at 7.3pt
+ -> ntxsy7
+Requested font "ntxsy5" at 5.5pt
+ -> ntxsy5
+Requested font "ntxexx" at 9.0pt
+ -> ntxexx
+Requested font "ntxexx" at 7.3pt
+ -> ntxexx
+Requested font "ntxexx" at 5.5pt
+ -> ntxexx
+LaTeX Font Info:    Trying to load font information for U+ntxmia on input line 
+16.
+ (untxmia.fd
+File: untxmia.fd 2018/04/14 Fontinst v1.933 font definitions for U/ntxmia.
 )
-LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-91.
- (omslmsy.fd
-File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+Requested font "ntxmia" at 9.0pt
+ -> ntxmia
+Requested font "ntxmia" at 7.3pt
+ -> ntxmia
+Requested font "ntxmia" at 5.5pt
+ -> ntxmia
+LaTeX Font Info:    Trying to load font information for U+ntxsym on input line 
+16.
+ (untxsym.fd
+File: untxsym.fd 2015/03/20 Fontinst v1.933 font definitions for U/ntxsym.
 )
-LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-91.
- (omxlmex.fd
-File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+Requested font "ntxsym" at 9.0pt
+ -> ntxsym
+Requested font "ntxsym" at 7.3pt
+ -> ntxsym
+Requested font "ntxsym" at 5.5pt
+ -> ntxsym
+LaTeX Font Info:    Trying to load font information for U+ntxsyc on input line 
+16.
+ (untxsyc.fd
+File: untxsyc.fd 2012/04/12 Fontinst v1.933 font definitions for U/ntxsyc.
 )
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 91.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 91.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 91.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 91.
+Requested font "ntxsyc" at 9.0pt
+ -> ntxsyc
+Requested font "ntxsyc" at 7.3pt
+ -> ntxsyc
+Requested font "ntxsyc" at 5.5pt
+ -> ntxsyc
+Requested font "ntxexa" at 9.0pt
+ -> ntxexa
+Requested font "ntxexa" at 7.3pt
+ -> ntxexa
+Requested font "ntxexa" at 5.5pt
+ -> ntxexa
+Requested font "ntx-Regular-tlf-ot1" at 10.95pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntx-Regular-tlf-ot1" at 8.0pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntx-Regular-tlf-ot1" at 6.1pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntxmi" at 10.95pt
+ -> ntxmi
+Requested font "ntxmi7" at 8.0pt
+ -> ntxmi7
+Requested font "ntxmi5" at 6.1pt
+ -> ntxmi5
+Requested font "ntxsy" at 10.95pt
+ -> ntxsy
+Requested font "ntxsy7" at 8.0pt
+ -> ntxsy7
+Requested font "ntxsy5" at 6.1pt
+ -> ntxsy5
+Requested font "ntxexx" at 10.95pt
+ -> ntxexx
+Requested font "ntxexx" at 8.0pt
+ -> ntxexx
+Requested font "ntxexx" at 6.1pt
+ -> ntxexx
+Requested font "ntxmia" at 10.95pt
+ -> ntxmia
+Requested font "ntxmia" at 8.0pt
+ -> ntxmia
+Requested font "ntxmia" at 6.1pt
+ -> ntxmia
+Requested font "ntxsym" at 10.95pt
+ -> ntxsym
+Requested font "ntxsym" at 8.0pt
+ -> ntxsym
+Requested font "ntxsym" at 6.1pt
+ -> ntxsym
+Requested font "ntxsyc" at 10.95pt
+ -> ntxsyc
+Requested font "ntxsyc" at 8.0pt
+ -> ntxsyc
+Requested font "ntxsyc" at 6.1pt
+ -> ntxsyc
+Requested font "ntxexa" at 10.95pt
+ -> ntxexa
+Requested font "ntxexa" at 8.0pt
+ -> ntxexa
+Requested font "ntxexa" at 6.1pt
+ -> ntxexa
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 10.0pt on input line 27.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 10.0pt
+ -> TeXGyreTermesX-Regular.otf
 
- (umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Trying to load font information for U+msb on input line 91.
+[1
 
- (umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 9
-1.
-
-(t1lmtt.fd
-File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-File: img/figures_v5/game_overview.jpg Graphic file (type bmp)
-<img/figures_v5/game_overview.jpg>
- [1
-
-] [2] (main.toc)
+]
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 14.4pt on input line 31.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 14.4pt
+ -> TeXGyreTermesX-Bold.otf
+ (main.toc
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 10.0pt on input line 1.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 10.0pt
+ -> TeXGyreTermesX-Bold.otf
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 12.0pt on input line 6.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 12.0pt
+ -> TeXGyreTermesX-Bold.otf
+ [1])
 \tf@toc=\write5
 \openout5 = `main.toc'.
 
- (sections/s01_intro
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 4.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 4.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 4.
+ [2]) (sections/01_intro
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 10.95pt on input line 8.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 10.95pt
+ -> TeXGyreTermesX-Bold.otf
+Requested font "[lmmono10-regular]:" at 10.95pt
+ -> lmmono10-regular
+) (sections/02_scene
+File: figures/img/scene/sky_noon.jpg Graphic file (type bmp)
+<figures/img/scene/sky_noon.jpg>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 9.0pt on input line 8.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 9.0pt
+ -> TeXGyreTermesX-Bold.otf
+File: figures/img/scene/sky_sunset.jpg Graphic file (type bmp)
+<figures/img/scene/sky_sunset.jpg>
+File: figures/img/v5/base_overview.jpg Graphic file (type bmp)
+<figures/img/v5/base_overview.jpg>
+File: figures/img/scene/night_searchlights.jpg Graphic file (type bmp)
+<figures/img/scene/night_searchlights.jpg>
+File: figures/img/play/play_third_person.jpg Graphic file (type bmp)
+<figures/img/play/play_third_person.jpg>
+File: figures/img/v5/thermal_fpv.jpg Graphic file (type bmp)
+<figures/img/v5/thermal_fpv.jpg>
  [3
 
 ]
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 16.
- [4])
-(sections/s02_primitives
-LaTeX Font Info:    Calculating math sizes for size <5.6> on input line 3.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5.6> on input line 3.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <3.91998> on input line 3.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <2.8> on input line 3.
-File: img/sheets/sheet_vertex_cube.png Graphic file (type bmp)
-<img/sheets/sheet_vertex_cube.png>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 8.0pt on input line 23.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[lmmono8-regular]:" at 8.0pt
+ -> lmmono8-regular
+)
+(sections/03_setup
+Requested font "ntx-Regular-tlf-ot1" at 10.0pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntxmi" at 10.0pt
+ -> ntxmi
+Requested font "ntxsy" at 10.0pt
+ -> ntxsy
+Requested font "ntxexx" at 10.0pt
+ -> ntxexx
+Requested font "ntxmia" at 10.0pt
+ -> ntxmia
+Requested font "ntxsym" at 10.0pt
+ -> ntxsym
+Requested font "ntxsyc" at 10.0pt
+ -> ntxsyc
+Requested font "ntxexa" at 10.0pt
+ -> ntxexa
+
+Underfull \hbox (badness 1708) in paragraph at lines 20--20
+[]|\TU/TeXGyreTermesX(0)/m/n/10 C++17; GNU Make (\TU/lmtt/m/n/10 Makefile\TU/Te
+XGyreTermesX(0)/m/n/10 ), CMake, and a zig/clang cross-build of \TU/lmtt/m/n/10
+ ThermalSense.exe
+ []
 
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Underfull \hbox (badness 1769) in paragraph at lines 20--20
+[]|\TU/lmtt/m/n/10 --capture \TU/TeXGyreTermesX(0)/m/n/10 (named shots), \TU/lm
+tt/m/n/10 --benchmark\TU/TeXGyreTermesX(0)/m/n/10 , \TU/lmtt/m/n/10 --export-do
+cs \TU/TeXGyreTermesX(0)/m/n/10 (every part and matrix as JSON),
+ []
 
-File: img/diagrams/A1_cube_vertices.png Graphic file (type bmp)
-<img/diagrams/A1_cube_vertices.png>
+[4]) (sections/04_architecture
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 8.0pt on input line 8.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 8.0pt
+ -> TeXGyreTermesX-Bold.otf
+File: figures/img/scene/v10_proj_top.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_top.jpg>
+Requested font "ntx-Regular-tlf-ot1" at 6.2pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntxmi5" at 6.2pt
+ -> ntxmi5
+Requested font "ntxsy5" at 6.2pt
+ -> ntxsy5
+Requested font "ntxexx" at 6.2pt
+ -> ntxexx
+Requested font "ntxmia" at 6.2pt
+ -> ntxmia
+Requested font "ntxsym" at 6.2pt
+ -> ntxsym
+Requested font "ntxsyc" at 6.2pt
+ -> ntxsyc
+Requested font "ntxexa" at 6.2pt
+ -> ntxexa
+ [5]) (sections/05_controls) [6]
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 20.74pt on input line 80.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 20.74pt
+ -> TeXGyreTermesX-Regular.otf
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 20.74pt on input line 80.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 20.74pt
+ -> TeXGyreTermesX-Bold.otf
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+(sections/A01_primitives
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 6.0pt on input line 3.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 6.0pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "ntx-Regular-tlf-ot1" at 6.5pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntxmi7" at 6.5pt
+ -> ntxmi7
+Requested font "ntxsy7" at 6.5pt
+ -> ntxsy7
+Requested font "ntxexx" at 6.5pt
+ -> ntxexx
+Requested font "ntxmia" at 6.5pt
+ -> ntxmia
+Requested font "ntxsym" at 6.5pt
+ -> ntxsym
+Requested font "ntxsyc" at 6.5pt
+ -> ntxsyc
+Requested font "ntxexa" at 6.5pt
+ -> ntxexa
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 6.1pt on input line 11.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 6.1pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "ntx-Bold-tlf-ot1" at 10.95pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntx-Bold-tlf-ot1" at 8.0pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntx-Bold-tlf-ot1" at 6.1pt
+ -> ntx-Bold-tlf-ot1
+File: figures/img/v5/primitive_library.jpg Graphic file (type bmp)
+<figures/img/v5/primitive_library.jpg>
+File: figures/img/v5/scene_primitives_exploded.jpg Graphic file (type bmp)
+<figures/img/v5/scene_primitives_exploded.jpg>
+ [7]
+Requested font "ntx-Bold-tlf-ot1" at 10.0pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntx-Bold-tlf-ot1" at 7.3pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntx-Bold-tlf-ot1" at 5.5pt
+ -> ntx-Bold-tlf-ot1
+File: figures/workbook/Primitives.png Graphic file (type bmp)
+<figures/workbook/Primitives.png>
+) (sections/A02_transforms [8]
+Requested font "ntx-Bold-tlf-ot1" at 6.5pt
+ -> ntx-Bold-tlf-ot1
 
-File: img/diagrams/A2_sphere_rings.png Graphic file (type bmp)
-<img/diagrams/A2_sphere_rings.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/A3_cylinder_cone.png Graphic file (type bmp)
-<img/diagrams/A3_cylinder_cone.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/A4_terrain_disc.png Graphic file (type bmp)
-<img/diagrams/A4_terrain_disc.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
+Overfull \hbox (10.94695pt too wide) detected at line 13
+[][]\OML/ntxmi/m/it/10.95 M \U/ntxmia/m/it/10.95 = \OML/ntxmi/m/it/10.95 T\LMS/
+ntxsy/m/n/10.95 ¹\OT1/minntx/b/n/10.95 t\LMS/ntxsy/m/n/10.95 º \OML/ntxmi/m/it/
+10.95 R[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95  \LMS/ntxsy/m/n/10.95 º \O
+ML/ntxmi/m/it/10.95 R[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95 ^^R\LMS/ntxs
+y/m/n/10.95 º \OML/ntxmi/m/it/10.95 R[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10
+.95 '\LMS/ntxsy/m/n/10.95 º \OML/ntxmi/m/it/10.95 S\LMS/ntxsy/m/n/10.95 ¹\OT1/m
+inntx/b/n/10.95 s\LMS/ntxsy/m/n/10.95 º\OML/ntxmi/m/it/10.95 ;  T \U/ntxmia/m/i
+t/10.95 = [] \OML/ntxmi/m/it/10.95 ;  R[] \U/ntxmia/m/it/10.95 = [] \OML/ntxmi/
+m/it/10.95 ;  S \U/ntxmia/m/it/10.95 = []\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/
+10.95 s[]; s[]; s[]; \OT1/minntx/m/n/10.95 1\LMS/ntxsy/m/n/10.95 º
+ []
 
 (lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
@@ -810,1267 +1328,345 @@ File: lstlang1.sty 2020/03/24 1.8d listings language file
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (lstmisc.sty
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
-) [5]
+)
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 56.
- (../src/primitives/Cube.cpp
-consecutive:
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <6.8> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 30.
-[6]) (../src/primitives/Sphere.cpp
-consecutive:
-[7]) (../src/primitives/Cylinder.cpp
-consecutive:
-[8])
-File: img/sheets/s02_cube_indices.png Graphic file (type bmp)
-<img/sheets/s02_cube_indices.png>
-File: img/sheets/s06_geometry_stats.png Graphic file (type bmp)
-<img/sheets/s06_geometry_stats.png>
-File: img/sheets/s06_charts.png Graphic file (type bmp)
-<img/sheets/s06_charts.png>
- (sections/gen_meshes) [9]
-File: img/sheets/sheet_memory.png Graphic file (type bmp)
-<img/sheets/sheet_memory.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (sections/ch03_builder [10] (../src/objects/Builder.cpp
-consecutive:
-) [11] (../src/scene/Transform.h
-consecutive:
-) (../src/scene/Scene.cpp
-consecutive:
-)) (sections/s04_transforms
-File: img/sheets/s04_inputs_blocks.png Graphic file (type bmp)
-<img/sheets/s04_inputs_blocks.png>
-File: img/sheets/s04_rows_error.png Graphic file (type bmp)
-<img/sheets/s04_rows_error.png>
-File: img/sheets/s04_rows_m.png Graphic file (type bmp)
-<img/sheets/s04_rows_m.png>
-File: img/sheets/s05_world_matrix.png Graphic file (type bmp)
-<img/sheets/s05_world_matrix.png>
-
-Underfull \hbox (badness 10000) in paragraph at lines 39--39
-[]|\T1/lmr/m/n/8 Track link L17
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 39--40
-[]|\T1/lmr/m/n/8 arc-length pa-ram-e-ter
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 40--40
-[]|\T1/lmr/m/n/8 Track link L03
- []
-
-
-Underfull \hbox (badness 6775) in paragraph at lines 42--42
-[]|\T1/lmr/m/n/8 Gatling bar-rel 2
- []
-
-
-Underfull \hbox (badness 3375) in paragraph at lines 43--43
-[]|\T1/lmr/m/n/8 Array tile c2 r2
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 43--44
-[]|\T1/lmr/m/n/8 azimuth / el-e-va-tion
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 44--44
-[]|\T1/lmr/m/n/8 Door leaf plate
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 44--45
-[]|\T1/lmr/m/n/8 leaf node: $\OML/lmm/m/it/8 T[] \OT1/lmr/m/n/8 =
- []
-
-
-Underfull \hbox (badness 1137) in paragraph at lines 46--46
-[]|\T1/lmr/m/n/8 Missile fin (UAV-
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[12] [13]
-File: img/diagrams/A5_trs_worked_example.png Graphic file (type bmp)
-<img/diagrams/A5_trs_worked_example.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/A6_hierarchy_uav.png Graphic file (type bmp)
-<img/diagrams/A6_hierarchy_uav.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/A6_hierarchy_tank.png Graphic file (type bmp)
-<img/diagrams/A6_hierarchy_tank.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (sections/s03_objects (sections/gen_parts)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[14]
-File: img/sheets/sheet_hierarchy.png Graphic file (type bmp)
-<img/sheets/sheet_hierarchy.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s03_primitive_mix.png Graphic file (type bmp)
-<img/sheets/s03_primitive_mix.png>
-File: img/sheets/s03_bunker.png Graphic file (type bmp)
-<img/sheets/s03_bunker.png>
-(sections/gen_tree_bunker)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-(sections/gen_tree_base)
-File: img/figures_v5/base_gate.jpg Graphic file (type bmp)
-<img/figures_v5/base_gate.jpg>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s03_uav.png Graphic file (type bmp)
-<img/sheets/s03_uav.png>
-[15]
-File: img/sheets/s03_rover.png Graphic file (type bmp)
-<img/sheets/s03_rover.png>
-File: img/sheets/sheet_construction_tank.png Graphic file (type bmp)
-<img/sheets/sheet_construction_tank.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s05_tank_chain.png Graphic file (type bmp)
-<img/sheets/s05_tank_chain.png>
-File: img/sheets/s03_tank_material.png Graphic file (type bmp)
-<img/sheets/s03_tank_material.png>
-(sections/gen_tree_uav)
-Overfull \hbox (51.99629pt too wide) in paragraph at lines 48--101
-[][] 
- []
-
-(sections/gen_tree_rover)
-Overfull \hbox (29.82166pt too wide) in paragraph at lines 10--102
-[][] 
- []
-
-(sections/gen_tree_tank)
-Overfull \hbox (98.16982pt too wide) in paragraph at lines 40--103
-[][] 
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s03_aagun.png Graphic file (type bmp)
-<img/sheets/s03_aagun.png>
-[16] [17]
-File: img/sheets/s03_helicopter.png Graphic file (type bmp)
-<img/sheets/s03_helicopter.png>
-File: img/sheets/s03_radar.png Graphic file (type bmp)
-<img/sheets/s03_radar.png>
- (sections/gen_tree_heli) (sections/gen_tree_aa)
-(sections/gen_tree_radar)
-Overfull \hbox (1.59502pt too wide) in paragraph at lines 20--134
-[][] 
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s03_gate.png Graphic file (type bmp)
-<img/sheets/s03_gate.png>
-File: img/sheets/s03_flag.png Graphic file (type bmp)
-<img/sheets/s03_flag.png>
-(sections/gen_tree_barrier)
-Overfull \hbox (98.47603pt too wide) in paragraph at lines 10--149
-[][] 
- []
-
-(sections/gen_tree_windsock)
-Overfull \hbox (25.15118pt too wide) in paragraph at lines 16--150
-[][] 
- []
-
-(sections/gen_tree_flag)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[18] (sections/gen_tree_env)
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (sections/ch_geometry [19] [20] (../src/math/Math3D.cpp
-consecutive:
-) [21] (../src/math/Math3D.cpp
-consecutive:
-[22]) [23]
-File: img/diagrams/raster_edges.png Graphic file (type bmp)
-<img/diagrams/raster_edges.png>
-File: img/diagrams/frustum_ndc.png Graphic file (type bmp)
-<img/diagrams/frustum_ndc.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/figures_lab/buffer_03_depth.jpg Graphic file (type bmp)
-<img/figures_lab/buffer_03_depth.jpg>
-[24]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/sheet_mmult.png Graphic file (type bmp)
-<img/sheets/sheet_mmult.png>
-) (sections/ch04_interpolation [25] [26]
-File: img/diagrams/B1_barycentric.png Graphic file (type bmp)
-<img/diagrams/B1_barycentric.png>
-
-Overfull \hbox (54.86288pt too wide) in paragraph at lines 18--24
- [][] 
- []
-
-(../src/rendering/ShaderSources.cpp
-consecutive:
-[27]) (../src/rendering/ShaderSources.cpp
-consecutive:
+nput line 22.
+Requested font "[lmmono8-regular]:" at 7.4pt
+ -> lmmono8-regular
+Requested font "[lmmono10-italic]:" at 7.4pt
+ -> lmmono10-italic
+LaTeX Font Info:    Font shape `TU/lmtt/bx/n' in size <7.4> not available
+(Font)              Font shape `TU/lmtt/b/n' tried instead on input line 25.
+Requested font "[lmmonolt10-bold]:" at 7.4pt
+ -> lmmonolt10-bold
+File: figures/img/scene/soldier_axes.jpg Graphic file (type bmp)
+<figures/img/scene/soldier_axes.jpg>
+File: figures/workbook/Transform_Trace.png Graphic file (type bmp)
+<figures/workbook/Transform_Trace.png>
+ [9]) (sections/A03_hierarchy
+Requested font "ntx-Bold-tlf-ot1" at 6.2pt
+ -> ntx-Bold-tlf-ot1
+
+[10]
+File: figures/img/v5/iso_uav_assembled.jpg Graphic file (type bmp)
+<figures/img/v5/iso_uav_assembled.jpg>
+File: figures/img/v5/iso_uav_exploded.jpg Graphic file (type bmp)
+<figures/img/v5/iso_uav_exploded.jpg>
+) (sections/A04_viewing
+File: figures/img/play/play_first_person.jpg Graphic file (type bmp)
+<figures/img/play/play_first_person.jpg>
+File: figures/img/play/play_third_person.jpg Graphic file (type bmp)
+<figures/img/play/play_third_person.jpg>
+File: figures/img/v5/uav_camera_view.jpg Graphic file (type bmp)
+<figures/img/v5/uav_camera_view.jpg>
+ [11]
+File: figures/workbook/View_Projection.png Graphic file (type bmp)
+<figures/workbook/View_Projection.png>
+) (sections/A05_projection [12]
+File: figures/img/scene/v10_proj_persp.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_persp.jpg>
+Requested font "ntx-Bold-tlf-ot1" at 9.0pt
+ -> ntx-Bold-tlf-ot1
+File: figures/img/scene/v10_proj_iso.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_iso.jpg>
+File: figures/img/scene/v10_proj_top.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_top.jpg>
+File: figures/img/scene/v10_proj_front.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_front.jpg>
+File: figures/img/scene/v10_proj_side.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_side.jpg>
 )
-File: img/figures_lab/shading_sphere_compare.jpg Graphic file (type bmp)
-<img/figures_lab/shading_sphere_compare.jpg>
-File: img/diagrams/B2_shading_models_real.png Graphic file (type bmp)
-<img/diagrams/B2_shading_models_real.png>
-File: img/sheets/s08_shading.png Graphic file (type bmp)
-<img/sheets/s08_shading.png>
-File: img/figures_lab/shading_models.jpg Graphic file (type bmp)
-<img/figures_lab/shading_models.jpg>
+(sections/A06_projective [13]
+File: figures/plots/p_depth_precision.pdf Graphic file (type pdf)
+<use figures/plots/p_depth_precision.pdf>
+File: figures/img/v5/scene_depth.jpg Graphic file (type bmp)
+<figures/img/v5/scene_depth.jpg>
+File: figures/img/lab/explorer_stage_02_vertex.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_02_vertex.jpg>
+) (sections/A07_clipping [14]
+File: figures/img/scene/v10_proj_front.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_front.jpg>
+File: figures/img/lab/explorer_stage_03_assembly.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_03_assembly.jpg>
+File: figures/workbook/Clipping.png Graphic file (type bmp)
+<figures/workbook/Clipping.png>
+
+Underfull \hbox (badness 1122) in paragraph at lines 41--41
+[]|\TU/TeXGyreTermesX(0)/m/n/10 cheap for mostly inside/outside
+ []
 
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Underfull \hbox (badness 2865) in paragraph at lines 41--41
+[]|\TU/TeXGyreTermesX(0)/m/n/10 whole object against 6 planes
+ []
 
-) (sections/ch05_lighting
-File: img/diagrams/B3_lambert.png Graphic file (type bmp)
-<img/diagrams/B3_lambert.png>
-File: img/figures_lab/materials_blinnphong_row.jpg Graphic file (type bmp)
-<img/figures_lab/materials_blinnphong_row.jpg>
- [28] [29]
-File: img/diagrams/C3_specular_grid.png Graphic file (type bmp)
-<img/diagrams/C3_specular_grid.png>
- (../src/rendering/ShaderSources.cpp
-consecutive:
-) [30]
-File: img/figures_lab/material_grid.jpg Graphic file (type bmp)
-<img/figures_lab/material_grid.jpg>
-File: img/diagrams/ggx_curves.png Graphic file (type bmp)
-<img/diagrams/ggx_curves.png>
+[15]) (sections/A08_hsr
+File: figures/img/v5/scene_hiddenline.jpg Graphic file (type bmp)
+<figures/img/v5/scene_hiddenline.jpg>
+File: figures/img/v5/scene_xray.jpg Graphic file (type bmp)
+<figures/img/v5/scene_xray.jpg>
+File: figures/img/v5/scene_depth.jpg Graphic file (type bmp)
+<figures/img/v5/scene_depth.jpg>
+File: figures/img/lab/explorer_stage_06_depth.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_06_depth.jpg>
+ [16]) (sections/A09_raster
+File: figures/img/lab/explorer_raster_scan.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_raster_scan.jpg>
+File: figures/img/lab/explorer_interp_affine_perspective.jpg Graphic file (type
+ bmp)
+<figures/img/lab/explorer_interp_affine_perspective.jpg>
+File: figures/img/lab/explorer_stage_15_taa.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_15_taa.jpg>
+ [17])
+(sections/A10_illumination
+File: figures/img/scene/v10_light_all.jpg Graphic file (type bmp)
+<figures/img/scene/v10_light_all.jpg>
+File: figures/img/scene/v10_light_ambient.jpg Graphic file (type bmp)
+<figures/img/scene/v10_light_ambient.jpg>
+File: figures/img/scene/v10_light_diffuse.jpg Graphic file (type bmp)
+<figures/img/scene/v10_light_diffuse.jpg>
+File: figures/img/scene/v10_light_specular.jpg Graphic file (type bmp)
+<figures/img/scene/v10_light_specular.jpg>
+ [18]
+File: figures/plots/p_specular_falloff.pdf Graphic file (type pdf)
+<use figures/plots/p_specular_falloff.pdf>
+File: figures/workbook/Illumination.png Graphic file (type bmp)
+<figures/workbook/Illumination.png>
+) (sections/A11_shading
+File: figures/img/lab/shading_uav_compare.jpg Graphic file (type bmp)
+<figures/img/lab/shading_uav_compare.jpg>
+File: figures/img/lab/shading_sphere_compare.jpg Graphic file (type bmp)
+<figures/img/lab/shading_sphere_compare.jpg>
+ [19]
+File: figures/plots/p_gouraud_vs_phong.pdf Graphic file (type pdf)
+<use figures/plots/p_gouraud_vs_phong.pdf>
+File: figures/img/lab/explorer_interp_gouraud_phong.jpg Graphic file (type bmp)
+
+<figures/img/lab/explorer_interp_gouraud_phong.jpg>
+ [20]
+Underfull \hbox (badness 1721) in paragraph at lines 45--45
+\TU/TeXGyreTermesX(0)/b/n/10.95 Critique. \TU/TeXGyreTermesX(0)/m/n/10.95 The t
+errain uses a hybrid: per-vertex irradiance re-aimed per fragment by a detail n
+ormal
+ []
 
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Underfull \hbox (badness 1742) in paragraph at lines 45--45
+\TU/TeXGyreTermesX(0)/m/n/10.95 (\TU/lmtt/m/n/10 terrainShade\TU/TeXGyreTermesX
+(0)/m/n/10.95 ), because per-fragment lighting of 97440 terrain triangles under
+ every lamp would cost
+ []
 
-[31] [32] (../src/rendering/ShaderSources.cpp
-consecutive:
+) (sections/A12_texture
+File: figures/img/lab/relief_compare.jpg Graphic file (type bmp)
+<figures/img/lab/relief_compare.jpg>
+File: figures/img/lab/material_grid.jpg Graphic file (type bmp)
+<figures/img/lab/material_grid.jpg>
+File: figures/img/scene/m6_grass_close.jpg Graphic file (type bmp)
+<figures/img/scene/m6_grass_close.jpg>
+File: figures/img/scene/m6_tree_close.jpg Graphic file (type bmp)
+<figures/img/scene/m6_tree_close.jpg>
+ [21]) (sections/A13_raytracing [22]
+File: figures/img/rt/raytrace_modes.jpg Graphic file (type bmp)
+<figures/img/rt/raytrace_modes.jpg>
+File: figures/img/rt/raytrace_tree.jpg Graphic file (type bmp)
+<figures/img/rt/raytrace_tree.jpg>
+File: figures/workbook/Ray_Tracing.png Graphic file (type bmp)
+<figures/workbook/Ray_Tracing.png>
 )
-File: img/diagrams/attenuation.png Graphic file (type bmp)
-<img/diagrams/attenuation.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/sheet_lighting.png Graphic file (type bmp)
-<img/sheets/sheet_lighting.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s07_attenuation.png Graphic file (type bmp)
-<img/sheets/s07_attenuation.png>
-File: img/sheets/s07_charts.png Graphic file (type bmp)
-<img/sheets/s07_charts.png>
-[33] (../src/rendering/ShaderSources.cpp
-consecutive:
+(sections/B01_decomposition (sections/gen_decomp)
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
+(Font)              scaled to size 10.95pt on input line 4.
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
++tnum;+lnum;mapping=tex-text;" at 10.95pt
+ -> TeXGyreTermesX-Italic.otf
+ [23]
+File: figures/img/v5/iso_uav_assembled.jpg Graphic file (type bmp)
+<figures/img/v5/iso_uav_assembled.jpg>
+File: figures/img/v5/iso_uav_exploded.jpg Graphic file (type bmp)
+<figures/img/v5/iso_uav_exploded.jpg>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
+(Font)              scaled to size 8.0pt on input line 26.
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
++tnum;+lnum;mapping=tex-text;" at 8.0pt
+ -> TeXGyreTermesX-Italic.otf
+ [24]
+File: figures/img/scene/soldier_front.jpg Graphic file (type bmp)
+<figures/img/scene/soldier_front.jpg>
+File: figures/img/scene/soldier_exploded.jpg Graphic file (type bmp)
+<figures/img/scene/soldier_exploded.jpg>
+File: figures/img/v5/iso_rover_assembled.jpg Graphic file (type bmp)
+<figures/img/v5/iso_rover_assembled.jpg>
+File: figures/img/v5/iso_rover_exploded.jpg Graphic file (type bmp)
+<figures/img/v5/iso_rover_exploded.jpg>
+ [25]
+File: figures/img/v5/iso_bunker_assembled.jpg Graphic file (type bmp)
+<figures/img/v5/iso_bunker_assembled.jpg>
+File: figures/img/v5/iso_bunker_exploded.jpg Graphic file (type bmp)
+<figures/img/v5/iso_bunker_exploded.jpg>
+File: figures/img/scene/iso_tank.jpg Graphic file (type bmp)
+<figures/img/scene/iso_tank.jpg>
+ [26]
+File: figures/img/scene/iso_heli.jpg Graphic file (type bmp)
+<figures/img/scene/iso_heli.jpg>
+File: figures/img/scene/iso_aa.jpg Graphic file (type bmp)
+<figures/img/scene/iso_aa.jpg>
+File: figures/img/scene/iso_sam.jpg Graphic file (type bmp)
+<figures/img/scene/iso_sam.jpg>
+File: figures/img/scene/iso_mlrs.jpg Graphic file (type bmp)
+<figures/img/scene/iso_mlrs.jpg>
+ [27]
+File: figures/workbook/Decomposition.png Graphic file (type bmp)
+<figures/workbook/Decomposition.png>
 )
-File: img/figures_lab/shadow_cascades.jpg Graphic file (type bmp)
-<img/figures_lab/shadow_cascades.jpg>
+(sections/B02_color [28]
+File: figures/workbook/Color_Interp.png Graphic file (type bmp)
+<figures/workbook/Color_Interp.png>
+
+Underfull \hbox (badness 1117) in paragraph at lines 32--32
+[]|\TU/TeXGyreTermesX(0)/m/n/10 blending sRGB values: mid-tones too
+ []
 
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Underfull \hbox (badness 10000) in paragraph at lines 32--32
+[]|\TU/TeXGyreTermesX(0)/m/n/10 material colours converted to linear
+ []
 
-[34] (../src/rendering/ShaderSources.cpp
-consecutive:
-) [35]
-File: img/figures_lab/surface_patterns.jpg Graphic file (type bmp)
-<img/figures_lab/surface_patterns.jpg>
- (sections/sx_bump [36] (../src/rendering/ShaderSources.cpp
-consecutive:
+
+Underfull \hbox (badness 1448) in paragraph at lines 32--32
+\TU/TeXGyreTermesX(0)/m/n/10 (\TU/lmtt/m/n/10 toLinear\TU/TeXGyreTermesX(0)/m/n
+/10 ), lit and blended in linear
+ []
+
+) (sections/B03_daynight [29]
+Overfull \hbox (12.07419pt too wide) detected at line 12
+[][][] \OML/ntxmi/m/it/10.95 e \U/ntxmia/m/it/10.95 = [] \OML/ntxmi/m/it/10.95 
+' [] ^^N \LMS/ntxsy/m/n/10.95 Ï [] \OML/ntxmi/m/it/10.95 ' [] ^^N [] H;  H \U/n
+txmia/m/it/10.95 = \OT1/minntx/m/n/10.95 15[]\LMS/ntxsy/m/n/10.95 ¹[] ^^@ \OT1/
+minntx/m/n/10.95 12\LMS/ntxsy/m/n/10.95 º\OT1/minntx/m/n/10.95 ;  \OML/ntxmi/m/
+it/10.95 T[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95 e\LMS/ntxsy/m/n/10.95 º
+ \U/ntxmia/m/it/10.95 = []  [] \LMS/ntxsy/m/n/10.95 ^^@ \OML/ntxmi/m/it/10.95 ^
+^\[] \LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95 m\LMS/ntxsy/m/n/10.95 ¹\OML/nt
+xmi/m/it/10.95 e\LMS/ntxsy/m/n/10.95 º ^^@ \OT1/minntx/m/n/10.95 1\LMS/ntxsy/m/
+n/10.95 º[]\OML/ntxmi/m/it/10.95 ;  ^^\ \U/ntxmia/m/it/10.95 = \LMS/ntxsy/m/n/1
+0.95 ¹\OT1/minntx/m/n/10.95 0\OML/ntxmi/m/it/10.95 :\OT1/minntx/m/n/10.95 06\OM
+L/ntxmi/m/it/10.95 ; \OT1/minntx/m/n/10.95 0\OML/ntxmi/m/it/10.95 :\OT1/minntx/
+m/n/10.95 11\OML/ntxmi/m/it/10.95 ; \OT1/minntx/m/n/10.95 0\OML/ntxmi/m/it/10.9
+5 :\OT1/minntx/m/n/10.95 21\LMS/ntxsy/m/n/10.95 º
+ []
+
+File: figures/plots/p_day_cycle.pdf Graphic file (type pdf)
+<use figures/plots/p_day_cycle.pdf>
+File: figures/img/scene/dawn_withdraw.jpg Graphic file (type bmp)
+<figures/img/scene/dawn_withdraw.jpg>
+File: figures/img/scene/sky_noon.jpg Graphic file (type bmp)
+<figures/img/scene/sky_noon.jpg>
+File: figures/img/scene/dusk_shift_change.jpg Graphic file (type bmp)
+<figures/img/scene/dusk_shift_change.jpg>
+[30]) (sections/B04_curved
+File: figures/plots/p_tessellation.pdf Graphic file (type pdf)
+<use figures/plots/p_tessellation.pdf>
+File: figures/img/lab/shading_sphere_lowpoly_flat.jpg Graphic file (type bmp)
+<figures/img/lab/shading_sphere_lowpoly_flat.jpg>
+File: figures/img/lab/shading_sphere_lowpoly_gouraud.jpg Graphic file (type bmp
 )
-File: img/figures_lab/bump_on_off.jpg Graphic file (type bmp)
-<img/figures_lab/bump_on_off.jpg>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-)) (sections/ch06_reflection
-File: img/diagrams/D2_fresnel_reflectivity.png Graphic file (type bmp)
-<img/diagrams/D2_fresnel_reflectivity.png>
- (../src/rendering/ShadersPostFx.cpp
-consecutive:
-[37] [38])
-File: img/figures_lab/ssr_on_off.jpg Graphic file (type bmp)
-<img/figures_lab/ssr_on_off.jpg>
-File: img/diagrams/ssr_raymarch.png Graphic file (type bmp)
-<img/diagrams/ssr_raymarch.png>
-File: img/diagrams/fresnel.png Graphic file (type bmp)
-<img/diagrams/fresnel.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[39] (../src/rendering/ShadersPostFx.cpp
-consecutive:
+<figures/img/lab/shading_sphere_lowpoly_gouraud.jpg>
+File: figures/img/lab/shading_sphere_lowpoly_phong.jpg Graphic file (type bmp)
+<figures/img/lab/shading_sphere_lowpoly_phong.jpg>
+) (sections/B05_dynamic [31]
+File: figures/img/play/play_door_closed.jpg Graphic file (type bmp)
+<figures/img/play/play_door_closed.jpg>
+File: figures/img/play/play_door_opening.jpg Graphic file (type bmp)
+<figures/img/play/play_door_opening.jpg>
+File: figures/img/play/play_door_open.jpg Graphic file (type bmp)
+<figures/img/play/play_door_open.jpg>
+File: figures/img/play/play_exposure_enter.jpg Graphic file (type bmp)
+<figures/img/play/play_exposure_enter.jpg>
+File: figures/img/play/play_exposure_adapted.jpg Graphic file (type bmp)
+<figures/img/play/play_exposure_adapted.jpg>
+File: figures/img/play/play_sprint_fov.jpg Graphic file (type bmp)
+<figures/img/play/play_sprint_fov.jpg>
 )
-File: img/figures_lab/pipeline_buffers.jpg Graphic file (type bmp)
-<img/figures_lab/pipeline_buffers.jpg>
-) (sections/s06_pipeline
+(sections/B06_reflection [32]
+File: figures/img/lab/reflections_compare.jpg Graphic file (type bmp)
+<figures/img/lab/reflections_compare.jpg>
+File: figures/img/rt/raytrace_ssr.jpg Graphic file (type bmp)
+<figures/img/rt/raytrace_ssr.jpg>
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Underfull \hbox (badness 4819) in paragraph at lines 42--42
+[]|\TU/TeXGyreTermesX(0)/m/n/10 exact mirrors, refraction, hard
+ []
 
-File: img/diagrams/G1_render_pipeline.png Graphic file (type bmp)
-<img/diagrams/G1_render_pipeline.png>
-[40] [41]
-File: img/sheets/s09_pipeline_passes.png Graphic file (type bmp)
-<img/sheets/s09_pipeline_passes.png>
-File: img/sheets/s09_features.png Graphic file (type bmp)
-<img/sheets/s09_features.png>
+) (sections/B07_thermal [33]
+File: figures/img/lab/cv_pipeline_uav1.jpg Graphic file (type bmp)
+<figures/img/lab/cv_pipeline_uav1.jpg>
+File: figures/img/lab/explorer_imagelab_gauss_gamma.jpg Graphic file (type bmp)
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (sections/ch07_rover [42]
-File: img/diagrams/E1_planner_grids.png Graphic file (type bmp)
-<img/diagrams/E1_planner_grids.png>
- (../src/ai/HideController.cpp
-consecutive:
-[43])
-File: img/diagrams/flood_bfs.png Graphic file (type bmp)
-<img/diagrams/flood_bfs.png>
-File: img/diagrams/flood_dijkstra.png Graphic file (type bmp)
-<img/diagrams/flood_dijkstra.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/E2_flood_dijkstra.png Graphic file (type bmp)
-<img/diagrams/E2_flood_dijkstra.png>
-[44] (../src/ai/HideController.cpp
-consecutive:
-[45]) (../src/ai/HideController.cpp
-consecutive:
-) (../src/ai/HideController.cpp
-consecutive:
+<figures/img/lab/explorer_imagelab_gauss_gamma.jpg>
+File: figures/img/lab/explorer_imagelab_sobel.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_imagelab_sobel.jpg>
+File: figures/plots/p_thermal_histogram.pdf Graphic file (type pdf)
+<use figures/plots/p_thermal_histogram.pdf>
+File: figures/plots/p_separable_cost.pdf Graphic file (type pdf)
+<use figures/plots/p_separable_cost.pdf>
+ [34]
+File: figures/workbook/Thermal_Kernels.png Graphic file (type bmp)
+<figures/workbook/Thermal_Kernels.png>
+File: figures/img/v5/scene_thermal.jpg Graphic file (type bmp)
+<figures/img/v5/scene_thermal.jpg>
+File: figures/img/scene/day_thermal_fpv_persons.jpg Graphic file (type bmp)
+<figures/img/scene/day_thermal_fpv_persons.jpg>
+ [35]) (sections/B08_game
+File: figures/img/v5/thermal_fpv.jpg Graphic file (type bmp)
+<figures/img/v5/thermal_fpv.jpg>
+File: figures/img/v5/tank_fire.jpg Graphic file (type bmp)
+<figures/img/v5/tank_fire.jpg>
+File: figures/img/v5/aa_gun_burst.jpg Graphic file (type bmp)
+<figures/img/v5/aa_gun_burst.jpg>
+File: figures/img/scene/dusk_shift_change.jpg Graphic file (type bmp)
+<figures/img/scene/dusk_shift_change.jpg>
+File: figures/img/scene/dawn_withdraw.jpg Graphic file (type bmp)
+<figures/img/scene/dawn_withdraw.jpg>
+ [36]
+File: figures/workbook/Duty_Cycle.png Graphic file (type bmp)
+<figures/workbook/Duty_Cycle.png>
 )
-File: img/diagrams/path_chaikin.png Graphic file (type bmp)
-<img/diagrams/path_chaikin.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[46] (../src/ai/HideController.cpp
-consecutive:
-[47])
-File: img/diagrams/ir_sensors.png Graphic file (type bmp)
-<img/diagrams/ir_sensors.png>
-File: img/diagrams/rover_trace.png Graphic file (type bmp)
-<img/diagrams/rover_trace.png>
-) (sections/s14_vision
-File: img/diagrams/G2_cv_pipeline.png Graphic file (type bmp)
-<img/diagrams/G2_cv_pipeline.png>
-File: img/figures_lab/cv_thermal.jpg Graphic file (type bmp)
-<img/figures_lab/cv_thermal.jpg>
-File: img/figures_lab/cv_threshold.jpg Graphic file (type bmp)
-<img/figures_lab/cv_threshold.jpg>
-File: img/figures_lab/cv_despeckle.jpg Graphic file (type bmp)
-<img/figures_lab/cv_despeckle.jpg>
-File: img/figures_lab/cv_labels.jpg Graphic file (type bmp)
-<img/figures_lab/cv_labels.jpg>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/F1_threshold_histogram.png Graphic file (type bmp)
-<img/diagrams/F1_threshold_histogram.png>
-[48] (../src/vision/CvPipeline.cpp
-consecutive:
-) (../src/vision/CvPipeline.cpp
-consecutive:
-) [49]
-File: img/diagrams/F3_union_find.png Graphic file (type bmp)
-<img/diagrams/F3_union_find.png>
- (../src/vision/CvPipeline.cpp
-consecutive:
-[50])
-File: img/diagrams/F4_blob_moments.png Graphic file (type bmp)
-<img/diagrams/F4_blob_moments.png>
- [51] (../src/vision/CvPipeline.cpp
-consecutive:
-)
-File: img/sheets/s18_params_footprint.png Graphic file (type bmp)
-<img/sheets/s18_params_footprint.png>
-
-Overfull \hbox (35.16429pt too wide) in paragraph at lines 66--68
-[]\T1/lmr/m/n/10 The cam-era looks along the pitch node's $\OT1/lmr/m/n/10 +\OM
-L/lmm/m/it/10 Z$\T1/lmr/m/n/10 . A pixel $\OT1/lmr/m/n/10 (\OML/lmm/m/it/10 u; 
-v\OT1/lmr/m/n/10 )$ \T1/lmr/m/n/10 de-fines the ray di-rec-tion $\OT1/lmr/bx/n/
-10 d \OT1/lmr/m/n/10 = [][]\OML/lmm/m/it/10 W[] \OT1/lmr/m/n/10 (\OMS/lmsy/m/n/
-10 ^^@\OML/lmm/m/it/10 u t[];  v t[];  \OT1/lmr/m/n/10 1)[][]$
- []
-
-[52] (../src/ai/DroneController.cpp
-consecutive:
-) (../src/vision/MultiTracker.cpp
-consecutive:
-) (../src/vision/MultiTracker.cpp
-consecutive:
-[53])
-File: img/diagrams/kalman_demo.png Graphic file (type bmp)
-<img/diagrams/kalman_demo.png>
-File: img/diagrams/gating_ellipse.png Graphic file (type bmp)
-<img/diagrams/gating_ellipse.png>
- (../src/vision/MultiTracker.cpp
-consecutive:
-) (../src/vision/MultiTracker.cpp
-consecutive:
-[54]) (../src/vision/MultiTracker.cpp
-consecutive:
-)
-File: img/diagrams/triangulation.png Graphic file (type bmp)
-<img/diagrams/triangulation.png>
-File: img/sheets/sheet_cv.png Graphic file (type bmp)
-<img/sheets/sheet_cv.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/figures_lab/cv_strip.jpg Graphic file (type bmp)
-<img/figures_lab/cv_strip.jpg>
-File: img/sheets/s18_tests.png Graphic file (type bmp)
-<img/sheets/s18_tests.png>
-File: img/figures_lab/cv_tracks.jpg Graphic file (type bmp)
-<img/figures_lab/cv_tracks.jpg>
-File: img/figures_v5/thermal_fpv_tracks.jpg Graphic file (type bmp)
-<img/figures_v5/thermal_fpv_tracks.jpg>
-) (sections/s13_v5plan [55]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-Underfull \hbox (badness 1715) in paragraph at lines 31--31
-[]|\T1/lmr/m/n/9 ring spawns, via sec-tors, per-son-al-i-ties, ob-jec-tive
- []
-
-
-Underfull \hbox (badness 1184) in paragraph at lines 31--31
-\T1/lmr/m/n/9 switch, dawn with-drawal, one seed with de-rived
- []
-
-) (sections/s15_squad
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[56] [57]
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 4.
-File: img/diagrams/F8_squad_state_machine.png Graphic file (type bmp)
-<img/diagrams/F8_squad_state_machine.png>
-File: img/sheets/s19_roles.png Graphic file (type bmp)
-<img/sheets/s19_roles.png>
- [58] [59]
-File: img/diagrams/F9_time_on_target.png Graphic file (type bmp)
-<img/diagrams/F9_time_on_target.png>
-
-Underfull \hbox (badness 1107) in paragraph at lines 17--17
-\T1/lmr/m/n/9 (ac-cel-er-at-ing launch, then 60 m/s, det-o-nat-ing 0.5 m short)
-, launches the far-ther UAV first and the nearer one
- []
-
-
-Underfull \hbox (badness 1189) in paragraph at lines 17--17
-\T1/lmr/m/n/9 later so the blasts co-in-cide; the right plot shows the model ag
-ainst the sim-u-lated mis-sile and the dis-tances of
- []
-
-File: img/sheets/s19_combined.png Graphic file (type bmp)
-<img/sheets/s19_combined.png>
-File: img/sheets/sheet_mission.png Graphic file (type bmp)
-<img/sheets/sheet_mission.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/F11_mission_waves.png Graphic file (type bmp)
-<img/diagrams/F11_mission_waves.png>
-File: img/sheets/s19_waves.png Graphic file (type bmp)
-<img/sheets/s19_waves.png>
-[60]
-File: img/sheets/s19_armour.png Graphic file (type bmp)
-<img/sheets/s19_armour.png>
-) (sections/s16_audio_hud_camp [61] [62]
-File: img/sheets/s20_sounds.png Graphic file (type bmp)
-<img/sheets/s20_sounds.png>
-File: img/sheets/s20_mixer.png Graphic file (type bmp)
-<img/sheets/s20_mixer.png>
-File: img/sheets/s20_hud_tests.png Graphic file (type bmp)
-<img/sheets/s20_hud_tests.png>
-File: img/sheets/s03_sam.png Graphic file (type bmp)
-<img/sheets/s03_sam.png>
-File: img/sheets/s14_sam.png Graphic file (type bmp)
-<img/sheets/s14_sam.png>
-File: img/sheets/s03_mlrs.png Graphic file (type bmp)
-<img/sheets/s03_mlrs.png>
-File: img/sheets/s14_mlrs.png Graphic file (type bmp)
-<img/sheets/s14_mlrs.png>
- [63] [64] [65])
-(sections/s07_control
-Underfull \hbox (badness 2698) in paragraph at lines 13--13
-\T1/lmr/m/n/8 tur-ret yaw, gun pitch, re-coil, hull
- []
-
-
-Underfull \hbox (badness 1325) in paragraph at lines 14--14
-[]|\T1/lmr/m/n/8 position (3), yaw, pitch, roll, ro-tor
- []
-
-
-Overfull \hbox (2.63042pt too wide) in paragraph at lines 18--18
-[]|\T1/lmtt/m/n/8 DroneControl| 
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/sheet_controllables.png Graphic file (type bmp)
-<img/sheets/sheet_controllables.png>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/sheets/s14_tank.png Graphic file (type bmp)
-<img/sheets/s14_tank.png>
-[66] [67] [68]
-File: img/sheets/s14_helicopter.png Graphic file (type bmp)
-<img/sheets/s14_helicopter.png>
- [69]
-File: img/sheets/s14_aagun.png Graphic file (type bmp)
-<img/sheets/s14_aagun.png>
-File: img/sheets/s14_radar.png Graphic file (type bmp)
-<img/sheets/s14_radar.png>
-File: img/sheets/s14_doors.png Graphic file (type bmp)
-<img/sheets/s14_doors.png>
- [70]
-File: img/sheets/s14_gate.png Graphic file (type bmp)
-<img/sheets/s14_gate.png>
-File: img/sheets/s14_uav.png Graphic file (type bmp)
-<img/sheets/s14_uav.png>
- [71]
-File: img/figures_v5/possess_tank_sight.jpg Graphic file (type bmp)
-<img/figures_v5/possess_tank_sight.jpg>
-File: img/figures_v5/possess_heli_cockpit.jpg Graphic file (type bmp)
-<img/figures_v5/possess_heli_cockpit.jpg>
-File: img/figures_v5/possess_aa_sight.jpg Graphic file (type bmp)
-<img/figures_v5/possess_aa_sight.jpg>
-File: img/figures_v5/possess_uav_manual.jpg Graphic file (type bmp)
-<img/figures_v5/possess_uav_manual.jpg>
-File: img/figures_v5/possess_doors.jpg Graphic file (type bmp)
-<img/figures_v5/possess_doors.jpg>
-File: img/figures_v5/heli_takeoff.jpg Graphic file (type bmp)
-<img/figures_v5/heli_takeoff.jpg>
-File: img/figures_v5/tank_closeup.jpg Graphic file (type bmp)
-<img/figures_v5/tank_closeup.jpg>
-File: img/figures_v5/tank_fire.jpg Graphic file (type bmp)
-<img/figures_v5/tank_fire.jpg>
-File: img/figures_v5/helipad.jpg Graphic file (type bmp)
-<img/figures_v5/helipad.jpg>
-File: img/figures_v5/radar.jpg Graphic file (type bmp)
-<img/figures_v5/radar.jpg>
-File: img/figures_v5/aa_gun_burst.jpg Graphic file (type bmp)
-<img/figures_v5/aa_gun_burst.jpg>
-) (sections/s08_game
-File: img/diagrams/G3_game_loop.png Graphic file (type bmp)
-<img/diagrams/G3_game_loop.png>
-
-Underfull \hbox (badness 7379) in paragraph at lines 26--26
-[]\T1/lmr/bx/n/9 Figure 111: |\T1/lmr/m/n/9 In-truder life cy-cle (\T1/lmtt/m/n
-/9 Intruder::Life\T1/lmr/m/n/9 ); con-stants \T1/lmtt/m/n/9 kWreckBurnTime\T1/l
-mr/m/n/9 =15s, \T1/lmtt/m/n/9 kWreckClearTime\T1/lmr/m/n/9 =25s,
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[72]
-File: img/sheets/s16_weapons.png Graphic file (type bmp)
-<img/sheets/s16_weapons.png>
- [73]
-File: img/sheets/s16_effects.png Graphic file (type bmp)
-<img/sheets/s16_effects.png>
- [74]
-File: img/figures_v5/thermal_fpv_strike.jpg Graphic file (type bmp)
-<img/figures_v5/thermal_fpv_strike.jpg>
-File: img/figures_v5/uav_missile_launch.jpg Graphic file (type bmp)
-<img/figures_v5/uav_missile_launch.jpg>
-File: img/figures_v5/explosion_early.jpg Graphic file (type bmp)
-<img/figures_v5/explosion_early.jpg>
-File: img/figures_v5/explosion_mid.jpg Graphic file (type bmp)
-<img/figures_v5/explosion_mid.jpg>
-File: img/figures_v5/explosion_smoke.jpg Graphic file (type bmp)
-<img/figures_v5/explosion_smoke.jpg>
-File: img/figures_v5/wreck_burning.jpg Graphic file (type bmp)
-<img/figures_v5/wreck_burning.jpg>
-) (sections/s09_walk [75]
-File: img/figures_v5/bunker_ramp.jpg Graphic file (type bmp)
-<img/figures_v5/bunker_ramp.jpg>
-File: img/figures_v5/bunker_door.jpg Graphic file (type bmp)
-<img/figures_v5/bunker_door.jpg>
-File: img/figures_v5/bunker_tunnel.jpg Graphic file (type bmp)
-<img/figures_v5/bunker_tunnel.jpg>
-File: img/figures_v5/bunker_cic.jpg Graphic file (type bmp)
-<img/figures_v5/bunker_cic.jpg>
-) (sections/s10_platform
-Underfull \hbox (badness 7704) in paragraph at lines 13--13
-[]|\T1/lmr/m/n/9 Windows one click
- []
-
-
-Underfull \hbox (badness 2970) in paragraph at lines 15--15
-[]|\T1/lmr/m/n/9 Windows cross-build
- []
-
-
-Underfull \hbox (badness 6758) in paragraph at lines 15--15
-[]|\T1/lmtt/m/n/9 tools/cross_build_windows.sh \T1/lmr/m/n/9 (zig cc, GLFW
- []
-
-
-Underfull \hbox (badness 2503) in paragraph at lines 16--16
-[]|\T1/lmtt/m/n/9 ./build.sh \T1/lmr/m/n/9 or \T1/lmtt/m/n/9 make -j$(nproc)\T1
-/lmr/m/n/9 , then \T1/lmtt/m/n/9 ./run.sh
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 18--18
-[]|\T1/lmtt/m/n/9 cmake -B build-cmake && cmake --build
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 19--19
-[]|\T1/lmtt/m/n/9 make -j6 HEADLESS=1 CXX=zcxx CC=zcc
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 19--19
-\T1/lmtt/m/n/9 OBJ=build/obj-e1 APP=build/ts-e1
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 20--20
-[]|\T1/lmtt/m/n/9 make docs $\OMS/lmsy/m/n/9 !$ \T1/lmtt/m/n/9 build/scene_expo
-rt.json\T1/lmr/m/n/9 ,
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-Underfull \hbox (badness 1715) in paragraph at lines 54--56
-\T1/lmtt/m/n/10 --fullscreen\T1/lmr/m/n/10 . On hy-brid lap-tops \T1/lmtt/m/n/1
-0 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia
- []
-
-
-Overfull \hbox (29.14833pt too wide) in paragraph at lines 56--57
-[]\T1/lmr/bx/n/10 Linux head-less over SSH. \T1/lmr/m/n/10 Needs only the NVIDI
-A driver (EGL) and ffm-peg for video; \T1/lmtt/m/n/10 tools/remote_setup_linux.
-sh
- []
-
-[76]) (sections/s11_testing
-File: img/sheets/s10_testing.png Graphic file (type bmp)
-<img/sheets/s10_testing.png>
- [77] [78] (sections/gen_testareas)
-(sections/gen_tests
-Underfull \hbox (badness 5832) in paragraph at lines 11--11
-[]|\T1/lmr/m/n/7 min (-0.500,-0.500,-0.500), max (0.500,0.500,
- []
-
-
-Underfull \hbox (badness 1521) in paragraph at lines 21--21
-[]|\T1/lmr/m/n/7 cube 720<864, sphere 29424<88128, cylin-der
- []
-
-
-Underfull \hbox (badness 1688) in paragraph at lines 40--40
-[]|\T1/lmr/m/n/7 sphere cor-ner=0 cen-tre=1, cylin-der cor-ner=0
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 64--64
-[]|\T1/lmr/m/n/7 ORBIT>FREE>CHASE>UAV
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 146--146
-[]|\T1/lmr/m/n/7 1459 parts, 0 vi-o-la-tions; SAM-1
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 146--146
-\T1/lmr/m/n/7 LAUNCHER=112 MLRS-1 ROCKET
- []
-
-
-Underfull \hbox (badness 1270) in paragraph at lines 188--188
-[]|\T1/lmr/m/n/7 Auto clock wraps past mid-night; HUD clock text 'HH:MM PHASE
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 199--199
-[]|\T1/lmr/m/n/7 mechanic stops MBT-2 EN-GINE
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 199--199
-\T1/lmr/m/n/7 DECK;HELICOPTER;MBT-2 EN-GINE
- []
-
-
-Underfull \hbox (badness 3189) in paragraph at lines 274--274
-[]|\T1/lmr/m/n/7 round trip 0.00018, d(near) 0.00000, d(far)
- []
-
-[79] [80] [81] [82] [83] [84])) (sections/s17_v5results
-File: img/diagrams/F10_run_timeline.png Graphic file (type bmp)
-<img/diagrams/F10_run_timeline.png>
-File: img/figures_v5/game_overview.jpg Graphic file (type bmp)
-<img/figures_v5/game_overview.jpg>
-File: img/figures_v5/combined_strike.jpg Graphic file (type bmp)
-<img/figures_v5/combined_strike.jpg>
-File: img/figures_v5/hit_marker.jpg Graphic file (type bmp)
-<img/figures_v5/hit_marker.jpg>
-File: img/figures_v5/kill_banner.jpg Graphic file (type bmp)
-<img/figures_v5/kill_banner.jpg>
-File: img/figures_v5/wave_banner.jpg Graphic file (type bmp)
-<img/figures_v5/wave_banner.jpg>
-File: img/figures_v5/tactical_map.jpg Graphic file (type bmp)
-<img/figures_v5/tactical_map.jpg>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/figures_v5/camp_sam.jpg Graphic file (type bmp)
-<img/figures_v5/camp_sam.jpg>
-File: img/figures_v5/camp_mlrs.jpg Graphic file (type bmp)
-<img/figures_v5/camp_mlrs.jpg>
-File: img/figures_v5/camp_under_nets.jpg Graphic file (type bmp)
-<img/figures_v5/camp_under_nets.jpg>
-File: img/figures_v5/possess_sam.jpg Graphic file (type bmp)
-<img/figures_v5/possess_sam.jpg>
-File: img/figures_v5/possess_mlrs.jpg Graphic file (type bmp)
-<img/figures_v5/possess_mlrs.jpg>
-File: img/figures_v5/base_overview.jpg Graphic file (type bmp)
-<img/figures_v5/base_overview.jpg>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) (sections/s18_daycycle [85] (../src/scene/DayCycle.cpp
-consecutive:
-)
-File: img/diagrams/H1_daycycle_curves.png Graphic file (type bmp)
-<img/diagrams/H1_daycycle_curves.png>
- [86]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-File: img/diagrams/H2_kasten_young.png Graphic file (type bmp)
-<img/diagrams/H2_kasten_young.png>
-[87] (../src/scene/DayCycle.cpp
-consecutive:
-) [88] [89]
-File: img/figures_v6/sky_noon.jpg Graphic file (type bmp)
-<img/figures_v6/sky_noon.jpg>
-File: img/figures_v6/sky_sunset.jpg Graphic file (type bmp)
-<img/figures_v6/sky_sunset.jpg>
-File: img/figures_v6/day_overview.jpg Graphic file (type bmp)
-<img/figures_v6/day_overview.jpg>
-File: img/figures_v6/night_searchlights.jpg Graphic file (type bmp)
-<img/figures_v6/night_searchlights.jpg>
-
-Overfull \hbox (41.96735pt too wide) detected at line 62
-[][]\OML/lmm/m/it/10 h \OT1/lmr/m/n/10 = \OML/lmm/m/it/10 u \OT1/lmr/m/n/10 + 0
-\OML/lmm/m/it/10 :\OT1/lmr/m/n/10 04 [](\OML/lmm/m/it/10 E[]; \OT1/lmr/m/n/10 1
-\OML/lmm/m/it/10 :\OT1/lmr/m/n/10 5) + \OML/lmm/m/it/10 g s\OT1/lmr/m/n/10 (\OM
-L/lmm/m/it/10 e\OT1/lmr/m/n/10 ) \OML/lmm/m/it/10 ^^Y\OT1/lmr/m/n/10 (\OML/lmm/
-m/it/10 u\OT1/lmr/m/n/10 ) []0\OML/lmm/m/it/10 :\OT1/lmr/m/n/10 3 + 0\OML/lmm/m
-/it/10 :\OT1/lmr/m/n/10 7 ([] \OMS/lmsy/m/n/10 ^^A []\OT1/lmr/m/n/10 ) \OML/lmm
-/m/it/10 ^^[[];  ^^Y\OT1/lmr/m/n/10 (\OML/lmm/m/it/10 u\OT1/lmr/m/n/10 ) = 1 \O
-MS/lmsy/m/n/10 ^^@ []\OT1/lmr/m/n/10 (0\OML/lmm/m/it/10 :\OT1/lmr/m/n/10 55\OML
-/lmm/m/it/10 ; \OT1/lmr/m/n/10 0\OML/lmm/m/it/10 :\OT1/lmr/m/n/10 75\OML/lmm/m/
-it/10 ; u\OT1/lmr/m/n/10 )\OML/lmm/m/it/10 ;  s\OT1/lmr/m/n/10 (\OML/lmm/m/it/1
-0 e\OT1/lmr/m/n/10 ) = [][][]\OML/lmm/m/it/10 ; \OT1/lmr/m/n/10 0\OML/lmm/m/it/
-10 ; \OT1/lmr/m/n/10 1[]
- []
-
-[90] (../src/scene/DayCycle.cpp
-consecutive:
-)
-File: img/sheets/sheet_daycycle.png Graphic file (type bmp)
-<img/sheets/sheet_daycycle.png>
-) (sections/s19_soldiers [91] (sections/gen_tree_soldier)
-File: img/figures_v6/soldier_closeup.jpg Graphic file (type bmp)
-<img/figures_v6/soldier_closeup.jpg>
-File: img/figures_v6/soldier_axes.jpg Graphic file (type bmp)
-<img/figures_v6/soldier_axes.jpg>
-File: img/figures_v6/soldier_exploded.jpg Graphic file (type bmp)
-<img/figures_v6/soldier_exploded.jpg>
-File: img/figures_v6/soldier_possess_tp.jpg Graphic file (type bmp)
-<img/figures_v6/soldier_possess_tp.jpg>
-File: img/diagrams/H3_catmull_rom.png Graphic file (type bmp)
-<img/diagrams/H3_catmull_rom.png>
-
-(../src/math/Spline.cpp
-consecutive:
-[92]) (../src/math/Spline.cpp
-consecutive:
-) [93] (../src/scene/Garrison.cpp
-consecutive:
-)
-File: img/figures_v6/plan_routes.jpg Graphic file (type bmp)
-<img/figures_v6/plan_routes.jpg>
-File: img/figures_v6/day_patrol_spline.jpg Graphic file (type bmp)
-<img/figures_v6/day_patrol_spline.jpg>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-(../src/scene/Garrison.cpp
-consecutive:
-[94]) (../src/scene/Garrison.cpp
-consecutive:
-[95])
-File: img/diagrams/H4_gait_cycle.png Graphic file (type bmp)
-<img/diagrams/H4_gait_cycle.png>
- [96] (../src/scene/Gait.cpp
-consecutive:
-)
-File: img/diagrams/H5_two_link_ik.png Graphic file (type bmp)
-<img/diagrams/H5_two_link_ik.png>
- [97] (../src/scene/Gait.cpp
-consecutive:
-) (../src/scene/Gait.cpp
-consecutive:
-)
-Underfull \hbox (badness 10000) in paragraph at lines 92--92
-[]|\T1/lmr/m/n/7 guard: east guard tower (GUARD
- []
-
-File: img/figures_v6/day_mechanic.jpg Graphic file (type bmp)
-<img/figures_v6/day_mechanic.jpg>
-File: img/figures_v6/day_logistics.jpg Graphic file (type bmp)
-<img/figures_v6/day_logistics.jpg>
-File: img/figures_v6/dusk_shift_change.jpg Graphic file (type bmp)
-<img/figures_v6/dusk_shift_change.jpg>
-File: img/figures_v6/bunker_offduty.jpg Graphic file (type bmp)
-<img/figures_v6/bunker_offduty.jpg>
-File: img/figures_v6/soldier_possess_fp.jpg Graphic file (type bmp)
-<img/figures_v6/soldier_possess_fp.jpg>
-File: img/sheets/sheet_soldiers.png Graphic file (type bmp)
-<img/sheets/sheet_soldiers.png>
-) (sections/s20_randompaths [98] [99]
-File: img/diagrams/H6_spawn_ring.png Graphic file (type bmp)
-<img/diagrams/H6_spawn_ring.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-(../src/scene/Mission.cpp
-consecutive:
-[100] [101])
-File: img/figures_v6/dawn_withdraw.jpg Graphic file (type bmp)
-<img/figures_v6/dawn_withdraw.jpg>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-(../src/scene/Scene.cpp
-consecutive:
-[102])) (sections/s21_realcv
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[103] (../src/vision/SensorModel.cpp
-consecutive:
-) [104] (../src/vision/CvPipeline.cpp
-consecutive:
-)
-File: img/figures_v6/lab_cv_noise.jpg Graphic file (type bmp)
-<img/figures_v6/lab_cv_noise.jpg>
-File: img/figures_v6/day_thermal_fpv_persons.jpg Graphic file (type bmp)
-<img/figures_v6/day_thermal_fpv_persons.jpg>
-File: img/diagrams/H7_pd_netd.png Graphic file (type bmp)
-<img/diagrams/H7_pd_netd.png>
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[105]
-File: img/sheets/sheet_cvnoise.png Graphic file (type bmp)
-<img/sheets/sheet_cvnoise.png>
-) (sections/s22_v6results [106] [107]
-Overfull \hbox (5.5444pt too wide) in paragraph at lines 27--28
- []\T1/lmr/bx/n/10 Captures.[] \T1/lmr/m/n/10 The 18 v6 shots were ren-dered he
-ad-less on the RTX4070 (EPIC, $\OT1/lmr/m/n/10 1920 \OMS/lmsy/m/n/10 ^^B \OT1/l
-mr/m/n/10 1080$\T1/lmr/m/n/10 , seed 1; \T1/lmtt/m/n/10 report/figures_v6\T1/lm
-r/m/n/10 )
- []
-
-) (sections/s12_results [108]
-File: img/sheets/s00_cover_kpis.png Graphic file (type bmp)
-<img/sheets/s00_cover_kpis.png>
- [109]) (sections/sA_audit
-Underfull \hbox (badness 10000) in paragraph at lines 19--19
-[]|\T1/lmtt/m/n/7 Lighting.h\T1/lmr/m/n/7 ;
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 21--21
-[]|\T1/lmr/m/n/7 A10| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 22--22
-[]|\T1/lmr/m/n/7 A11| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 23--23
-[]|\T1/lmr/m/n/7 A12| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 24--24
-[]|\T1/lmr/m/n/7 A13| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 25--25
-[]|\T1/lmr/m/n/7 A14| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 25--25
-[]|\T1/lmtt/m/n/7 tools/build_workbook.py\T1/lmr/m/n/7 ,
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 26--26
-[]|\T1/lmr/m/n/7 A15| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 26--26
-[]|[]\T1/lmr/bx/n/7 not
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 26--26
-\T1/lmr/bx/n/7 mea-
- []
-
-
-Overfull \hbox (2.18105pt too wide) in paragraph at lines 38--38
-[]|\T1/lmr/m/n/7 B10| 
- []
-
-
-Overfull \hbox (2.18105pt too wide) in paragraph at lines 39--39
-[]|\T1/lmr/m/n/7 B11| 
- []
-
-
-Overfull \hbox (2.18105pt too wide) in paragraph at lines 40--40
-[]|\T1/lmr/m/n/7 B12| 
- []
-
-
-Overfull \hbox (2.18105pt too wide) in paragraph at lines 41--41
-[]|\T1/lmr/m/n/7 B13| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 41--41
-[]|\T1/lmr/m/n/7 Environment (652), back-drop
- []
-
-
-Overfull \hbox (2.18105pt too wide) in paragraph at lines 42--42
-[]|\T1/lmr/m/n/7 B15| 
- []
-
-
-Overfull \hbox (2.18105pt too wide) in paragraph at lines 43--43
-[]|\T1/lmr/m/n/7 B16| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 46--46
-[]|\T1/lmtt/m/n/7 Interactive.cpp:173--178\T1/lmr/m/n/7 ;
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 54--54
-[]|\T1/lmtt/m/n/7 F5--F10, L J R, +/-, U, Tab,
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 55--55
-[]|\T1/lmr/m/n/7 C10| 
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 56--56
-[]|\T1/lmr/m/n/7 C11| 
- []
-
-
-Underfull \hbox (badness 1009) in paragraph at lines 56--56
-[]|\T1/lmr/m/n/7 Helicopter state ma-chine, cyclic,
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 57--57
-[]|\T1/lmr/m/n/7 C12| 
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 58--58
-[]|\T1/lmr/m/n/7 C13| 
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 59--59
-[]|\T1/lmr/m/n/7 C14| 
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 60--60
-[]|\T1/lmr/m/n/7 C15| 
- []
-
-
-Underfull \hbox (badness 4859) in paragraph at lines 60--60
-[]|\T1/lmr/m/n/7 Flag trav-el-ling wave, wind-sock
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 61--61
-[]|\T1/lmr/m/n/7 C16| 
- []
-
-
-Overfull \hbox (2.29955pt too wide) in paragraph at lines 62--62
-[]|\T1/lmr/m/n/7 C17| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 62--62
-[]|[]\T1/lmr/bx/n/7 not
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 62--62
-\T1/lmr/bx/n/7 mea-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 68--68
-[]|\T1/lmtt/m/n/7 DroneController.cpp:123, 166\T1/lmr/m/n/7 ; T109--
- []
-
-
-Underfull \hbox (badness 1867) in paragraph at lines 70--70
-[]|\T1/lmr/m/n/7 Blast dam-age, ex-plo-sion ef-fects,
- []
-
-
-Underfull \hbox (badness 5008) in paragraph at lines 73--73
-[]|\T1/lmr/m/n/7 Behaviour statis-tics (90s game
- []
-
-
-Overfull \hbox (5.61118pt too wide) in paragraph at lines 73--73
-[]|\T1/lmtt/m/n/7 docs/v5_notes/runs/trace_v5_low_90s.csv| 
- []
-
-
-Overfull \hbox (1.96606pt too wide) in paragraph at lines 85--85
-[]|\T1/lmr/m/n/7 E10| 
- []
-
-
-Overfull \hbox (1.96606pt too wide) in paragraph at lines 86--86
-[]|\T1/lmr/m/n/7 E11| 
- []
-
-
-Overfull \hbox (1.96606pt too wide) in paragraph at lines 87--87
-[]|\T1/lmr/m/n/7 E12| 
- []
-
-
-Underfull \hbox (badness 4328) in paragraph at lines 87--87
-[]|\T1/lmr/m/n/7 GLSL com-pile on an NVIDIA
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 87--87
-[]|[]\T1/lmr/bx/n/7 not
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 87--87
-\T1/lmr/bx/n/7 mea-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 95--95
-[]|\T1/lmr/m/n/7 Windows MinGW
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 95--95
-[]|[]\T1/lmr/bx/n/7 not
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 95--95
-\T1/lmr/bx/n/7 mea-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 100--100
-[]|\T1/lmtt/m/n/7 Mission.cpp\T1/lmr/m/n/7 ; \T1/lmtt/m/n/7 HideController.cpp:
-222\T1/lmr/m/n/7 ;
- []
-
-
-Underfull \hbox (badness 1874) in paragraph at lines 102--102
-[]|\T1/lmr/m/n/7 Coordinated track-ing with com-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 102--102
-[]|\T1/lmtt/m/n/7 vision/CvPipeline.cpp\T1/lmr/m/n/7 ,
- []
-
-
-Underfull \hbox (badness 6559) in paragraph at lines 103--103
-[]|\T1/lmr/m/n/7 Combined at-tack, two rounds,
- []
-
-
-Underfull \hbox (badness 5403) in paragraph at lines 107--107
-[]|\T1/lmr/m/n/7 Hidden army camp, launch-ers,
- []
-
-
-Underfull \hbox (badness 4765) in paragraph at lines 108--108
-[]|\T1/lmtt/m/n/7 Scene.h:62--63\T1/lmr/m/n/7 , \T1/lmtt/m/n/7 Scene.cpp:501\T1
-/lmr/m/n/7 ; T105,
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 109--109
-[]|\T1/lmr/m/n/7 H10| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 110--110
-[]|\T1/lmr/m/n/7 H11| 
- []
-
-
-Underfull \hbox (badness 1796) in paragraph at lines 110--110
-[]|\T1/lmr/m/n/7 Headless real-render run (LOW,
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 111--111
-[]|\T1/lmr/m/n/7 H12| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 112--112
-[]|\T1/lmr/m/n/7 H13| 
- []
-
-
-Overfull \hbox (6.9107pt too wide) in paragraph at lines 113--113
-[]|\T1/lmr/m/n/7 H13b| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 114--114
-[]|\T1/lmr/m/n/7 H14| 
- []
-
-
-Overfull \hbox (2.49405pt too wide) in paragraph at lines 115--115
-[]|\T1/lmr/m/n/7 H15| 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 123--123
-[]|\T1/lmr/m/n/7 SKY clock con-trol-lable (sun
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 125--125
-[]|\T1/lmr/m/n/7 Centripetal Catmull--Rom, arc
- []
-
-
-Underfull \hbox (badness 6741) in paragraph at lines 134--134
-[]|\T1/lmtt/m/n/7 SensorModel.cpp\T1/lmr/m/n/7 ; T225--T228, T231,
- []
-
-
-Underfull \hbox (badness 7012) in paragraph at lines 136--136
-[]|\T1/lmr/m/n/7 Kills only through vi-sion (no
- []
-
-[110] [111]) (sections/sB_controls
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-) [112] [113] (main.aux)
+(sections/B09_paths [37]
+File: figures/img/v5/plan_routes.jpg Graphic file (type bmp)
+<figures/img/v5/plan_routes.jpg>
+File: figures/img/scene/day_patrol_spline.jpg Graphic file (type bmp)
+<figures/img/scene/day_patrol_spline.jpg>
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 7.3pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 5.5pt
+ -> TeXGyreTermesX-Regular.otf
+
+Underfull \hbox (badness 1515) in paragraph at lines 40--40
+[]|\TU/TeXGyreTermesX(0)/m/n/10 expands far fewer cells with a good
+ []
+
+) (sections/B10_hard [38] [39]) (sections/C01_performance
+Underfull \hbox (badness 10000) in paragraph at lines 3--10
+\TU/TeXGyreTermesX(0)/b/n/10.95 Setup. \TU/lmtt/m/n/10 TS_BENCH_V10=1 ts --head
+less --quality epic --size 1920x1080 --seed 1 --benchmark
+ []
+
+File: figures/plots/p_benchmark.pdf Graphic file (type pdf)
+<use figures/plots/p_benchmark.pdf>
+(sections/gen_bench_text [40])
+File: figures/workbook/Performance.png Graphic file (type bmp)
+<figures/workbook/Performance.png>
+ [41]) (sections/C02_limits)
+(sections/C03_conclusion [42]) (main.bbl
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
+(Font)              scaled to size 10.0pt on input line 4.
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
++tnum;+lnum;mapping=tex-text;" at 10.0pt
+ -> TeXGyreTermesX-Italic.otf
+) [43] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: BB26BE18EF50C5F6FB342C44248B7521;6127.
+(rerunfilecheck)             Checksum: 314A1988F7F0BDD7A2280FD3866CD5FD;6581.
  )
-Output written on main.xdv (113 pages, 1794676 bytes).
+Output written on main.xdv (44 pages, 1155384 bytes).

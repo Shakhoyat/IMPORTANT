@@ -1,0 +1,44 @@
+\section{Primitives and geometry}
+\label{sec:prims}
+\here{1}
+\concept{Every solid object in the scene is a hierarchy of instances of a few unit meshes centred at the origin.
+A mesh is a vertex array (position + normal) and an index array; one mesh is uploaded once and drawn many times
+with different model matrices.}
+
+\begin{gather}
+\text{sphere: } \vect{p}(\theta,\phi)=r\,(\cos\phi\cos\theta,\ \sin\phi,\ \cos\phi\sin\theta)\label{eq:param}\\
+\text{cylinder, frustum, cone: } \vect{p}(\theta,y)=\big(r(y)\cos\theta,\ y,\ r(y)\sin\theta\big),\quad r(y)=r_b+(r_t-r_b)\big(y+\tfrac12\big)\nonumber
+\end{gather}
+with $\theta\in[0,2\pi)$ sampled at $s$ slices and $\phi\in[-\tfrac{\pi}{2},\tfrac{\pi}{2}]$ at $k$ stacks; a cone is a
+frustum with $r_t=0$. Cuboids are scaled unit cubes.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\linewidth}\raw{v5/primitive_library}{\linewidth}\caption{The unit primitives, as the program draws them.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{v5/scene_primitives_exploded}{\linewidth}\caption{\key{G}: the camp exploded into primitives, coloured by type.}\end{subfigure}
+\caption{Primitives in the program. Notice in (b) that the whole camp (bunker, vehicles, towers, soldiers) is made
+of the same few meshes: the colour shows which primitive each part is.}
+\label{fig:prims}
+\end{figure}
+
+\begin{table}[H]
+\centering\small
+\primtable
+\caption{The primitive library (\code{ts --export-docs}). Instances are counted over the whole scene.}
+\label{tab:prims}
+\end{table}
+
+\begin{figure}[H]
+\centering\wb{Primitives}{0.92\linewidth}
+\caption{Workbook sheet \code{Primitives}: vertex and triangle counts as formulas of the slice and stack
+parameters, checked against the counts the program exports. Notice that indexing saves the vertices shared by
+neighbouring triangles: the sphere draws 1224 triangles from 614 vertices instead of 3672.}
+\label{fig:wb-prims}
+\end{figure}
+
+\where{src/primitives/Cube.cpp, Sphere.cpp (createSphere(36,18)), Cylinder.cpp (createCylinder(slices, rTop, rBottom, caps)), Terrain.cpp}
+\critique{The brief lists eleven primitives. This code has seven: cube (and cuboid), sphere, cylinder, frustum,
+cone, the terrain disc, and an instanced 5-triangle grass blade (\code{rendering/Grass.cpp}). There is no torus,
+wedge, hemisphere or helix generator; where the scene needs a mound (the bunker's earth berm) it uses a flattened sphere
+($5.4\times1.0\times2.0$\,m, \code{objects/Bunker.cpp}). A fixed tessellation is also wasteful: all 826 sphere instances use 1224 triangles each
+(about 1.0 million triangles) even when a sphere covers a few pixels (Section~\ref{sec:curved}).}

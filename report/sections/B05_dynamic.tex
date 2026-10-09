@@ -1,0 +1,46 @@
+\section{Dynamic and controllable objects}
+\label{sec:dynamic}
+\textit{Builds on: hierarchy (\ref{sec:hier}), viewing (\ref{sec:view}).}
+
+\nControllables{} units can be controlled (soldiers, two UAVs, tanks, helicopter, AA gun, radar, launchers, blast
+doors, gate). Motion is integrated at a fixed 60\,Hz tick; between ticks the drawn pose is interpolated, so motion is
+smooth at any frame rate. Almost every follow behaviour (character speed, cameras, doors) uses one tool: a
+critically damped spring, which reaches its target as fast as possible without overshoot and has an exact step for any $\Delta t$.
+\begin{equation}
+\ddot x=-\omega^2(x-x^\ast)-2\omega\dot x\ \Rightarrow\
+x(t)=x^\ast+\big((x_0-x^\ast)+(\dot x_0+\omega(x_0-x^\ast))\,t\big)e^{-\omega t}
+\label{eq:spring}
+\end{equation}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Object & Motion model (measured or set in the code) & Test\\\midrule
+Soldier (player) & speed follows the input on a spring, $\omega=17$\,s$^{-1}$ accelerating, 30 braking; 90\,\% of walking speed in 0.23\,s; coyote time 0.12\,s; slope limit $40^\circ$ & T350--T359\\
+Soldier legs & gait phase advanced by distance / stride; two-link IK keeps stance feet on the ground (slip $\le$ 0.22\,cm) & T356\\
+Third-person camera & spring-arm follow, sphere cast against walls; shorter arm indoors & T354, T394\\
+UAV & duty state machine (docked, take-off, patrol, return, landing); chase camera springs $\omega=10$ (position), 5 (heading); bank $0.3^\circ$ per $^\circ$/s of turn & T360--T369\\
+Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% open in 1.13\,s; the swinging leaf is a moving collision box & T390--T395\\
+Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,EV indoor bias & T396--T397\\
+\bottomrule
+\end{tabularx}
+\caption{Dynamic objects and their motion models (\code{docs/v9\_notes/v9-notes.md}; every number is checked by the listed tests).}
+\label{tab:dyn}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.325\linewidth}\raw{play/play_door_closed}{\linewidth}\caption{Door closed, prompt.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{play/play_door_opening}{\linewidth}\caption{Opening (spring).}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{play/play_door_open}{\linewidth}\caption{Open.}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.325\linewidth}\raw{play/play_exposure_enter}{\linewidth}\caption{Just inside: eye not adapted.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{play/play_exposure_adapted}{\linewidth}\caption{Two seconds later: adapted.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{play/play_sprint_fov}{\linewidth}\caption{Sprint: FOV widens by up to $6^\circ$.}\end{subfigure}
+\caption{Controllable dynamics in the program. Notice in (d)--(e) that the room is the same frame of geometry; only
+the exposure changed, following the slower bright-to-dark time constant.}
+\label{fig:dyn}
+\end{figure}
+\where{src/scene/CharacterMotor.cpp, Gait.cpp, CameraRig.cpp, UavView.cpp, Door.cpp, EyeAdapt.cpp, ai/SquadDuty.cpp; src/scene/TickInterp.cpp (60\,Hz tick, interpolation)}
+\critique{The fixed tick makes motion deterministic (a recorded session replays bit for bit, T404) but adds up to one tick
+(16.7\,ms) of input latency; render interpolation hides the stepping, not the latency.}

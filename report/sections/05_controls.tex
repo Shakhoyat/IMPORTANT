@@ -1,0 +1,38 @@
+\section{Controls}
+\label{sec:controls}
+The full table (123+ bindings, contexts, and what each key did before v9) is exported by the program with
+\code{--export-keys}; a test checks it has no conflicts. Table~\ref{tab:keys} lists the keys used in this report.
+The brief suggested \key{N}/\key{D} for night/day, \key{G} for game mode, \key{H} for help and \key{F9} for a
+benchmark; those keys were already taken (v1 renderer, movement, explode, local axes, session clip), so the
+existing bindings stay and the equivalent functions are listed instead.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}lX|lX@{}}
+\toprule
+\multicolumn{2}{@{}l|}{\textbf{Cameras and units}} & \multicolumn{2}{l}{\textbf{Teaching views}}\\\midrule
+\key{C} & orbit, free, chase, UAV camera, walk & \key{F} & visible, primitive diagnostic, Z-buffer, thermal\\
+\key{Home} / \key{End} & free fly from here / back & \key{X} & solid, hidden-line, x-ray wireframe\\
+\key{Tab} / \key{Shift+Tab} & next / previous unit (soldiers, UAVs, vehicles) & \key{O} & shading: per object, flat, Gouraud, Phong\\
+\key{V} & first / third person; UAV chase, FPV, gimbal & \key{Ctrl+L} & light terms: all, ambient, diffuse, specular\\
+\key{F4} & list of every moving object's point of view & \key{Ctrl+P} & perspective, ortho top / front / side, isometric\\
+\key{K} & cinematic director (orbit / fixed shots) & \key{G} & explode objects into their primitives\\
+\key{E} & interact: doors, take control, ride along & \key{H} & local axes of the hierarchy\\
+\key{W A S D} & move / fly; \key{PgUp}/\key{PgDn} up / down & \key{Z} & depth test on / off\\
+\key{Mouse} & look; \key{LMB} fire; \key{RMB} aim & \key{I} & indexed / non-indexed drawing\\
+\key{Esc} / \key{P} & release, pause menu / pause & \key{M} & MicroMouse flood field and guide line\\\midrule
+\multicolumn{2}{@{}l|}{\textbf{Time of day}} & \key{;} & raster, hybrid RT, Whitted, path, light tracing\\\midrule
+\key{F2} & automatic clock on / off & \key{'} & ray debugger (click a pixel)\\
+\key{,} / \key{.} & scrub the clock back / forward (held) & \key{`} & Frame Explorer: 16 pipeline stages\\
+\key{/} & jump to the next phase (dawn, day, dusk, night) & \key{B} & PBR / classic Blinn-Phong\\
+\key{Esc}$\rightarrow$TIME & dawn, noon, dusk, midnight presets & \key{T} / \key{Y} & thermal palette / gimbal view\\
+\key{Shift+F2} & day ops (enemy waves by day) & \key{F3} & HUD: game, debug (fps, ms, draws, triangles), off\\\midrule
+\multicolumn{2}{@{}l|}{\textbf{Recording}} & \key{F5}--\key{F10} & quality preset, TAA, SSR, flare, DOF\\\midrule
+\key{F9} & session clip in / out (replayable) & \key{Shift+F9} & auto-exposure\\
+\key{F12} & screenshot & \key{L} / \key{R} & foliage / rain\\
+\bottomrule
+\end{tabularx}
+\caption{Controls used in this report (\code{src/scene/KeyMap.cpp}). Camera translation uses \key{W A S D}; time
+of day uses \key{F2}, \key{,} \key{.} \key{/} and the pause menu, so no key serves two purposes.}
+\label{tab:keys}
+\end{table}

@@ -1303,6 +1303,10 @@ int App::benchmarkMode() {
         double stepMs = 0, renderMs = 0, presentMs = 0, renderCpuMs = 0, visionMs = 0;  // v7 WP-Q: CPU wall time per frame (sum over frames)
         bool skip = false;                               // TS_BENCH_PHASES filter
         std::vector<GpuTimer::Entry> passes;
+        // v10 (TS_BENCH_V10=1): the report's configuration set
+        float hour = -1.0f;                              // >= 0: clock set to this hour (manual) before the phase
+        bool thermal = false;                            // thermal sensor view
+        std::vector<double> frameTimes;                  // every timed frame (ms): the 95th percentile
     };
     std::vector<Phase> phases(17);
     phases[0].name = "v1 look (no post), indexed";
@@ -1333,6 +1337,28 @@ int App::benchmarkMode() {
         phases[13 + i].quality = Quality::Epic;
         if (std::string(epicAblations[i][1]) == "rain") phases[13 + i].rain = true;
         else phases[13 + i].without = epicAblations[i][1];
+    }
+    // v10 report set: day vs night (night = rover waves, UAVs on duty, searchlights; day = no enemies, UAVs docked),
+    // thermal view, shadows off, indexed vs non-indexed, presets, the v1 look. Same orbit camera for every phase.
+    const bool v10 = std::getenv("TS_BENCH_V10") != nullptr;
+    if (v10) {
+        auto ph = [](const char* name, Quality q, float hour) {
+            Phase p;
+            p.name = name;
+            p.quality = q;
+            p.hour = hour;
+            return p;
+        };
+        phases = {ph("EPIC day 10:30", Quality::Epic, 10.5f), ph("EPIC night 23:00 (game: waves, UAVs)", Quality::Epic, 23.0f),
+                  ph("EPIC day, thermal view", Quality::Epic, 10.5f), ph("EPIC night, thermal view", Quality::Epic, 23.0f),
+                  ph("EPIC day, shadows off", Quality::Epic, 10.5f), ph("EPIC night, shadows off", Quality::Epic, 23.0f),
+                  ph("EPIC day, non-indexed", Quality::Epic, 10.5f), ph("ULTRA day", Quality::Ultra, 10.5f),
+                  ph("HIGH day", Quality::High, 10.5f), ph("LOW day", Quality::Low, 10.5f),
+                  ph("v1 look (no post) day", Quality::High, 10.5f)};
+        phases[2].thermal = phases[3].thermal = true;
+        phases[4].without = phases[5].without = "shadows";
+        phases[6].indexed = false;
+        phases[10].cinematic = false;
     }
     settings_.view = ViewMode::Visible;
     setSwapInterval(0);  // measure the real frame rate, not the monitor refresh
@@ -1370,6 +1396,7 @@ int App::benchmarkMode() {
         return 0.0;
 #endif
     };
+    double lastFrameMs = 0.0;
     auto timedFrame = [&]() {
         const double t0 = nowSeconds();
         stepSim(kStep);
@@ -1385,6 +1412,7 @@ int App::benchmarkMode() {
         const double t2 = nowSeconds();
         present();
         const double t3 = nowSeconds();
+        lastFrameMs = 1000.0 * (t3 - t0);
         tStep += t1 - t0;
         tRender += t2 - t1;
         tPresent += t3 - t2;
@@ -1422,13 +1450,20 @@ int App::benchmarkMode() {
             settings_.foliageOn = off != "foliage";
             settings_.rain = p.rain ? 1.0f : 0.0f;
             scene_->wetness = p.rain ? 1.0f : 0.0f;
-            for (int i = 0; i < 20; ++i) frame();  // settle: new targets, query latency
+            settings_.view = p.thermal ? ViewMode::Thermal : ViewMode::Visible;
+            if (p.hour >= 0.0f)
+                if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                    clock->setAuto(false);
+                    clock->setHour(p.hour);
+                }
+            for (int i = 0; i < (p.hour >= 0.0f ? 120 : 20); ++i) frame();  // settle (a clock change: 2 s of simulation)
             renderer_->timer().resetTotals();
             int frames = 0;
             tStep = tRender = tPresent = tRenderCpu = tVision = 0;
             const double start = nowSeconds();
             while (nowSeconds() - start < kSeconds && !closeRequested()) {
                 timedFrame();
+                p.frameTimes.push_back(lastFrameMs);
                 ++frames;
                 p.sumDraws += stats_.drawCalls;
                 p.sumShadowDraws += stats_.shadowDraws;
@@ -1467,6 +1502,21 @@ int App::benchmarkMode() {
     }
 
     const std::string path = opt_.outPath.empty() ? "build/benchmark.json" : opt_.outPath;
+    {   // v10: the report's CSV next to the JSON (config, avg_ms, p95_ms, avg_fps, draw_calls, triangles)
+        std::ofstream csv(path + ".csv");
+        csv << "config,avg_ms,p95_ms,avg_fps,draw_calls,triangles\n";
+        for (const Phase& p : phases) {
+            std::vector<double> t = p.frameTimes;
+            std::sort(t.begin(), t.end());
+            double sum = 0.0;
+            for (double v : t) sum += v;
+            const double avg = t.empty() ? 0.0 : sum / static_cast<double>(t.size());
+            const double p95 = t.empty() ? 0.0 : t[std::min(t.size() - 1, static_cast<size_t>(0.95 * static_cast<double>(t.size())))];
+            const double nf = std::max(p.frames, 1);
+            csv << "\"" << p.name << "\"," << avg << "," << p95 << "," << (avg > 0.0 ? 1000.0 / avg : 0.0) << ","
+                << (p.sumDraws + p.sumShadowDraws) / nf << "," << p.sumTris / nf << "\n";
+        }
+    }
     std::ofstream f(path);
     if (!f) return 1;
     f << "{\n  \"renderer\": \"" << reinterpret_cast<const char*>(glGetString(GL_RENDERER)) << "\",\n";

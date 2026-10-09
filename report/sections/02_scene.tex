@@ -1,0 +1,25 @@
+\section{The scene in pictures}
+\label{sec:pictures}
+Figure~\ref{fig:hero} shows the same camp across the day and the two ways to use it. All images are 1920$\times$1080
+captures from the program at the EPIC preset; the clock is set by the capture script, nothing is painted over.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.495\linewidth}\raw{scene/sky_noon}{\linewidth}\caption{Noon: short shadows, analytic sky with clouds.}\end{subfigure}\hfill
+\begin{subfigure}{0.495\linewidth}\raw{scene/sky_sunset}{\linewidth}\caption{Sunset: the key light turns orange (Section~\ref{sec:day}).}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.495\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, lamps, beacon.}\end{subfigure}\hfill
+\begin{subfigure}{0.495\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{Night: UAV searchlights (spot lights) with volumetric cones.}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.495\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Observation: a soldier in third person, game HUD.}\end{subfigure}\hfill
+\begin{subfigure}{0.495\linewidth}\raw{v5/thermal_fpv}{\linewidth}\caption{Game: a UAV gimbal camera in thermal, tracking an intruder.}\end{subfigure}
+\caption{The camp from noon to night. Notice that only the light changes between (a), (b) and (c): geometry,
+materials and camera are the same scene; the sky, sun colour, ambient level and fog colour all follow the sun's
+elevation. (e) and (f) are the two uses of the scene: inspecting it, and playing the night defence.}
+\label{fig:hero}
+\end{figure}
+
+\textbf{Observation and game.} The scene is always live. By day there are no enemies, the UAVs stay docked on
+their pads and the soldiers work (Figure~\ref{fig:hero}e); this is the observation setting used for most teaching
+views. At night intruder rovers attack in waves and the UAVs patrol, detect, lock and fire (Figure~\ref{fig:hero}f,
+Section~\ref{sec:game}). \key{Shift+F2} (``day ops'') allows waves by day. A separate key that switches enemies
+on and off at any hour, as the brief suggested for \key{G}, is not implemented (\key{G} explodes objects into
+primitives, Section~\ref{sec:decomp}).

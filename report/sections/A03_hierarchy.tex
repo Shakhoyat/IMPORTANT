@@ -1,0 +1,50 @@
+\section{Hierarchical modelling and the scene graph}
+\label{sec:hier}
+\here{2}
+\concept{Articulated objects are trees. Moving a node moves everything below it, because each world matrix is the
+parent's world matrix times the local one. Animation then only changes a few local angles.}
+\begin{equation}
+W_{\text{node}} = W_{\text{parent}}\,M_{\text{node}} = M_{\text{root}}\,M_1\,M_2\cdots M_{\text{node}}
+\label{eq:world}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize,level distance=11mm,
+  g/.style={draw,rounded corners=1.5pt,fill=orange!18,align=center,inner sep=2pt},
+  p/.style={draw,rounded corners=1.5pt,fill=black!4,align=center,inner sep=2pt},
+  edge from parent/.style={draw,black!45,-{Latex[length=1.2mm]}},
+  level 1/.style={sibling distance=22mm},level 2/.style={sibling distance=20mm}]
+\node[g] {UAV root (Group)\\$M$: position, attitude}
+  child {node[p] {Fuselage\\Cube} }
+  child {node[p] {Arm $\times4$\\Cube} }
+  child {node[g] {Motor mount $\times4$\\Group}
+     child {node[g] {Rotor (Group)\\$R_y(\omega t)$, 40 rev/s}
+        child {node[p] {Blades\\Cube $\times2$}} } }
+  child {node[g] {Gimbal yaw\\Group, $R_y$}
+     child {node[g] {Gimbal pitch\\Group, $R_x$}
+        child {node[p] {camera, lamp\\Cyl., Sphere}} } }
+  child {node[g] {Launcher rail $\times2$\\Group}
+     child {node[g] {Round $\times2$\\hidden at launch}} }
+  child {node[p] {Landing gear\\Cylinder $\times6$} };
+\end{tikzpicture}
+\caption{Scene graph of the UAV (192 nodes for the two UAVs in \code{--export-docs}; simplified). Orange nodes are
+groups (a transform, no mesh); grey nodes draw a primitive. Notice that the camera and the searchlight hang under
+two gimbal groups: the visual-servo controller only writes two angles, and Eq.~\eqref{eq:world} carries the lamp,
+its light direction and the camera frame along.}
+\label{fig:sg}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\linewidth}\raw{v5/iso_uav_assembled}{\linewidth}\caption{UAV assembled.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{v5/iso_uav_exploded}{\linewidth}\caption{UAV exploded along its hierarchy (\key{G}).}\end{subfigure}
+\caption{The same tree drawn assembled and exploded. Notice that the explode offset is applied per group, so sub-assemblies
+(motor mount with rotor, gimbal with camera) move out together.}
+\label{fig:uav-explode}
+\end{figure}
+
+\where{src/scene/SceneNode.h (world = parent.world * local.matrix()), src/scene/Scene.cpp updateWorld(), src/objects/Uav.cpp}
+\critique{The world matrices are recomputed for all \nLeaves{} parts every tick on the CPU, even for static
+buildings. This costs little here (the simulation step is a few milliseconds), but a larger scene would cache
+static subtrees or move the product to the GPU.}

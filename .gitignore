@@ -7,3 +7,7 @@ build-cmake/
 report/demo_v5.mp4
 *.pdb
 __pycache__/
+
+# v10: rendered showcase video (232 MB, over the GitHub file limit); regenerate with --record
+report/video/*.mp4
+report/figures/raw/

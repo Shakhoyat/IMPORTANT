@@ -97,7 +97,7 @@ torus / wedge / helix are absent rather than inventing them.
 |---|---|---|
 | 1.1 Observation mode default, `G` game mode | PARTIAL | Enemies follow the day rules (night waves; `Shift+F2` day ops). `F11` is the game HUD. `G` is taken (explode). No separate "no enemies" mode switch. |
 | 1.2 free-fly, third-person follow + Tab target, UAV FPV | YES | `Home`, `Tab`/`V`, UAV chase / FPV / gimbal |
-| 1.2 orthographic top / front / side, isometric | **NO** | to add (capture shots + a key) |
+| 1.2 orthographic top / front / side, isometric | YES (v10) | `Ctrl+P` cycles perspective, top, front, side, isometric; shots `v10_proj_*` |
 | 1.2 cinematic orbit | YES | orbit camera, `K` director |
 | 1.3 wireframe overlay | YES | `X` hidden-line / x-ray wireframe |
 | 1.3 vertex / face normals as lines | PARTIAL | Frame Explorer / lab normals buffer; no line overlay |
@@ -106,7 +106,7 @@ torus / wedge / helix are absent rather than inventing them.
 | 1.3 clipping window demo | **NO** | the report uses worked examples (workbook), stated as such |
 | 1.3 back-face culling toggle | PARTIAL | Frame Explorer back-face stage; no live toggle |
 | 1.3 flat / Gouraud / Phong | YES | `O` |
-| 1.3 ambient / diffuse / specular split | **NO** | to add (shader debug uniform) |
+| 1.3 ambient / diffuse / specular split | YES (v10) | `Ctrl+L` (scene objects and terrain; grass / foliage always show all terms); shots `v10_light_*` |
 | 1.3 local axes gizmo | YES | `H` |
 | 1.4 `N`/`D` animated day/night | PARTIAL | animated cycle and scrub exist (`F2`, `,` `.`, `/`, menu presets); `N` and `D` are taken (`N` v1 renderer, `D` movement) |
 | 1.4 sun arc + moon, derived lighting | YES (moon PARTIAL) | sun from the solar model; the moon is a fixed-direction night key light, not an orbiting body |
@@ -114,14 +114,14 @@ torus / wedge / helix are absent rather than inventing them.
 | 1.5 intruders spawn, UAVs patrol | YES | rovers from the perimeter, UAV squad patrol / track |
 | 1.5 UAV spotlight torch | YES | spot light, inner 9 / outer 14 deg, attenuation |
 | 1.5 UAV picture-in-picture normal/thermal | PARTIAL | `U` thermal feed (thermal only; the gimbal FPV shows normal or thermal) |
-| 1.5 UAV detect -> lock -> fire, soldier backup | PARTIAL | detect / track / lock 1.5 s / launch per UAV; soldiers fire at intruders independently (no explicit backup call) |
+| 1.5 UAV detect -> lock -> fire, soldier backup | PARTIAL | detect / track / lock 1.5 s / launch per UAV, combined strike; AI soldiers do not fire (ground fire only under player control) |
 | 1.5 soldier shifts every 6 h | PARTIAL | day / night shifts with staggered shift change (2 shifts, not 4) |
 | 1.5 hit detection | YES | projectile vs target spheres / boxes + blast radius (`scene/Combat`) |
 | 1.6 live thermal stage panel with sliders | PARTIAL | Frame Explorer image lab (gamma, kernels, histogram) + CV lab figures; no histogram equalisation, no single tile strip with sliders |
 | 1.6 noise restoration / DFT | **NO** | optional in the spec; not done |
-| 1.7 LFR / micromouse | YES | flood field + guide line (`M`), A* grid planner |
+| 1.7 LFR / micromouse | YES | rovers: MicroMouse flood fill (80x80 cells of 0.5 m) + 5-sensor line follower with a PD controller (Kp 3.2, Kd 0.25), `M` view; soldiers: A* grid planner |
 | 1.8 FPS / ms / draws / triangles | YES | `F3` |
-| 1.8 F9 benchmark CSV | PARTIAL | `--benchmark` / `--bench-shots` (JSON + MD); F9 is the session clip key |
+| 1.8 F9 benchmark CSV | PARTIAL | `TS_BENCH_V10=1 --benchmark FILE` writes FILE.csv (config, avg_ms, p95_ms, avg_fps, draw_calls, triangles), orbit camera not a flown path; F9 is the session clip key |
 | 1.9 capture harness | YES | `--capture` named shots |
 | Report: 11 primitives | PARTIAL | 7 exist (section 2) |
 

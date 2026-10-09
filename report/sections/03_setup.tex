@@ -1,0 +1,32 @@
+\section{Tools, hardware and test setup}
+\label{sec:setup}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Language, build & C++17; GNU Make (\code{Makefile}), CMake, and a zig/clang cross-build of \code{ThermalSense.exe} (\code{tools/build\_windows.sh})\\
+Graphics API & OpenGL 3.3 core profile, GLSL 330 (shaders embedded in \code{src/rendering/Shader*.cpp}); GLAD loader, GLFW window\\
+Own libraries & \code{math/Math3D} (vectors, column-major $4\times4$ matrices, \code{lookAt}, \code{perspective}, \code{ortho}); no GLM\\
+Third-party & GLFW, GLAD, cgltf, stb\_image, meshoptimizer (vegetation assets only); ffmpeg for video\\
+Assets & primitives are procedural; the EPIC vegetation uses CC0 Poly Haven models (\code{assets/LICENSES.md})\\
+GPU & NVIDIA GeForce RTX 4070. Captures, plots and the benchmark run headless under WSL2 (Mesa d3d12 driver on the
+same GPU); the interactive game runs natively on Windows\\
+CPU, memory & Intel Core i9-13900K (32 threads), 16 GB visible to WSL2\\
+Resolution, preset & 1920$\times$1080, EPIC preset (MSAA, TAA, GTAO, PCSS shadows, SSR, volumetric fog, bloom, AgX tone mapping), seed 1\\
+Verification & \nTests{} CPU unit tests (\code{tests/*.cpp}), all passing; each prints expected and observed values\\
+Evidence tools & \code{--capture} (named shots), \code{--benchmark}, \code{--export-docs} (every part and matrix as JSON),
+\code{--record} (2-minute director cut), F9 session recording with \code{--replay}\\
+\bottomrule
+\end{tabularx}
+\caption{Tools and test setup. Every figure in this report can be regenerated with \code{tools/v10/capture\_all.sh},
+\code{tools/v10/plots.py} and \code{tools/v10/build\_cg\_workbook.py}.}
+\label{tab:setup}
+\end{table}
+
+\textbf{Time scale.} In automatic mode one in-game day lasts \daySeconds{}\,s (\dayMinutes{} real minutes): 10\,s per
+in-game hour by day, 13.3\,s per hour by night, and 1.5 times slower while the sun is within $6^\circ$ of the horizon
+(\code{DayCycleConfig}). The clock can also be set or scrubbed by hand.
+
+\textbf{Determinism.} The simulation runs at a fixed 60\,Hz tick and every random stream derives from the seed. A
+recorded session replays bit for bit: test T404 records 60\,s with random input and variable frame times, replays it
+from text, and all 60 per-second world hashes match.
