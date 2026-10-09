@@ -5,6 +5,11 @@
 
 namespace ts {
 
+float rotorBlur(float rps) {
+    const float t = clampf((rps - kRotorBlurStartRps) / (kRotorBlurFullRps - kRotorBlurStartRps), 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
+}
+
 UavRig buildUav() {
     using P = PrimitiveType;
     Builder b("Autonomous UAV", "UAV", ShadingModel::Phong);
@@ -24,7 +29,7 @@ UavRig buildUav() {
     const Material lens = withPbr({{1.0f, 0.97f, 0.85f}, 0.75f, 1.0f, 1.0f, 128.0f}, Surface::Glass, 0.05f, 0.0f);
     const Material beam = withPbr({{1.0f, 0.95f, 0.80f}, 0.0f, 1.0f, 0.0f, 1.0f}, Surface::Plain, 1.0f, 0.0f);
     Material rotorBlur{{0.10f, 0.10f, 0.11f}, 0.30f, 0.0f, 0.2f, 16.0f};
-    rotorBlur.opacity = 0.32f;
+    rotorBlur.opacity = kRotorDiscOpacity;
     rotorBlur.roughness = 0.5f;
     Material strobe = asLight(Material{{1.0f, 1.0f, 1.0f}, 0.50f, 1.0f, 0.5f, 64.0f}, 2.0f, 3.5f);
     strobe.surface = Surface::Glass;
@@ -52,11 +57,13 @@ UavRig buildUav() {
         rig.rotors[i] = b.group(mount, "Rotor", {0, 0.045f, 0}, {0, 0, 0}, "Spinning rotor");
         rig.rotors[i]->animation = "Yaw spins at ~40 rev/s (alternating direction)";
         b.part(rig.rotors[i], "Prop hub", P::Sphere, {0.025f, 0.025f, 0.025f}, {0, 0, 0}, {0, 0, 0}, motor, "Spinner");
-        b.part(rig.rotors[i], "Prop blade", P::Cube, {0.20f, 0.004f, 0.018f}, {0, 0, 0}, {0, 0, 0}, prop, "Two-blade propeller");
+        rig.blades[i] = b.part(rig.rotors[i], "Prop blade", P::Cube, {0.20f, 0.004f, 0.018f}, {0, 0, 0}, {0, 0, 0}, prop,
+                               "Two-blade propeller");
         // Motion-blur disc swept by the spinning blades (translucent; what the eye sees at ~40 rev/s).
         SceneNode* disc = b.part(mount, "Rotor blur disc", P::Cylinder, {0.205f, 0.205f, 0.002f}, {90, 0, 0},
                                  {0, 0.045f, 0}, rotorBlur, "Translucent disc swept by the propeller");
         disc->explodable = false;
+        rig.blurDiscs[i] = disc;
         // Navigation light under each front arm: red on the left, green on the right.
         if (i < 2) {
             b.part(mount, "Nav LED", P::Sphere, {0.018f, 0.018f, 0.018f}, {0, 0, 0}, {0, -0.012f, 0},

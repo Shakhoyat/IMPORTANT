@@ -57,6 +57,7 @@ void usage() {
         "  --time T                      day | night | dusk | dawn | HH:MM (manual clock) | cycle (automatic)\n"
         "                                default: cycle from 16:30 (interactive), night 23:00 manual (offline modes)\n"
         "  --cycle-seconds N             length of one automatic day + night cycle\n"
+        "  --day-ops                     daytime enemies: rover waves by day too, the UAVs scramble (Shift+F2 in game)\n"
         "testing (v9):\n"
         "  --input-script FILE           interactive: play timed key / mouse events (scene/InputScript.h)\n"
         "  --frames DIR                  where the script's 'shot' frames go (default script_frames)\n"
@@ -194,6 +195,8 @@ int main(int argc, char** argv) {
             ++i;
         } else if (arg == "--no-garrison") {
             opt.garrison = false;
+        } else if (arg == "--day-ops") {   // v9 M5
+            opt.dayOps = true;
         } else if (arg == "--help" || arg == "-h") {
             usage();
             return 0;

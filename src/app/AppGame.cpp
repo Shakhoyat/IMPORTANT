@@ -50,6 +50,7 @@ void reworld(SceneNode* n, const Mat4& world) {
 // ------------------------------------------------------------------------------------------------ view composition
 
 RigPose App::targetPose(float aspect) {
+    if (uavGameView()) return uavGamePose();   // v9 M5: UAV chase / FPV (possessed or ridden along)
     if (camera_.mode == CameraMode::Pov) {
         if (povHold_ >= 0.0f) return povHoldPose_;
         RigPose p;
@@ -90,7 +91,8 @@ CameraView App::composeView(float aspect) {
     int soldier = -1;
     const bool custom = camera_.mode == CameraMode::Pov || (camera_.mode == CameraMode::Possess && possessAlt_) ||
                         (camera_.mode == CameraMode::Possess && camera_.possessSight && firstPersonSoldier(soldier)) ||
-                        (camera_.mode == CameraMode::Possess && !camera_.possessSight && tpPoseValid_ && possessedSoldierIndex() >= 0);
+                        (camera_.mode == CameraMode::Possess && !camera_.possessSight && tpPoseValid_ && possessedSoldierIndex() >= 0) ||
+                        uavGameView();   // v9 M5
     if (!custom && !rig_.active() && std::fabs(fovKick_) < 0.01f) {
         // v6 views pass through untouched (captures stay bit-identical).
         const CameraView v = camera_.compute(*scene_, aspect);
@@ -472,6 +474,7 @@ void App::updateGameCamera(float dt) {
     // play_* captures; the scripted v6 captures keep their v6 chase hints).
     if (opt_.mode == AppOptions::Mode::Interactive || playCapture_) updateOpenWorld(dt);
     else tpPoseValid_ = false;
+    updateUavView(dt);   // v9 M5: the UAV chase camera springs
     soldierWeapon(dt);
     if (pickerOpen_) refreshPicker();
 }

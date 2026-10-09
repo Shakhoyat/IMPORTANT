@@ -298,6 +298,7 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
     std::vector<GroundMeasurement> meas;
     for (int i = 0; i < kCount; ++i) {
         if (!frame.valid[i]) continue;
+        if (hasPads_ && !manual[i] && !visionActive(i)) continue;   // v9 M5: docked / taking off / landing: no picture
         camPos_[i] = transformPoint(frame.camera[i], {0, 0, 0});
         for (const Measurement2D& b : frame.blobs[i]) {
             Vec3 hit;
@@ -357,6 +358,10 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
     strike_.cooldown = std::max(0.0f, strike_.cooldown - dt);
 
     // ---- 3. Roles, locks and flight ----
+    // v9 M5: a UAV off duty (docked, taking off, returning, landing) is out of the squad like a hand-flown one.
+    dutyTransitions(time, manual);
+    bool away[kCount];
+    for (int i = 0; i < kCount; ++i) away[i] = manual[i] || duty_[i] != UavDuty::Patrol;
     int lead = -1, wing = -1;
     if (target) {
         for (int i = 0; i < kCount; ++i) {
@@ -367,26 +372,26 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
         }
         // Lead = the available UAV with the longer lock (ties: the closer one).
         for (int i = 0; i < kCount; ++i) {
-            if (manual[i]) continue;
+            if (away[i]) continue;
             if (lead < 0) { lead = i; continue; }
             const float di = length(drones[i].position - target->position()), dl = length(drones[lead].position - target->position());
             if (lock[i] > lock[lead] + 0.2f || (std::fabs(lock[i] - lock[lead]) <= 0.2f && di < dl)) lead = i;
         }
         for (int i = 0; i < kCount; ++i)
-            if (!manual[i] && i != lead) wing = i;
+            if (!away[i] && i != lead) wing = i;
         if (lead < 0) {  // both flown by the user: still track, no autonomous strike
-            for (int i = 0; i < kCount; ++i) roles[i] = SquadRole::Manual;
+            for (int i = 0; i < kCount; ++i) roles[i] = manual[i] ? SquadRole::Manual : SquadRole::Patrol;
         } else {
-            engage(dt, *target, lead, wing, manual);
+            engage(dt, *target, lead, wing, away);
             for (int i = 0; i < kCount; ++i)
-                roles[i] = manual[i] ? SquadRole::Manual : (i == lead ? SquadRole::Lead : SquadRole::Wing);
+                roles[i] = away[i] ? (manual[i] ? SquadRole::Manual : SquadRole::Patrol) : (i == lead ? SquadRole::Lead : SquadRole::Wing);
         }
     } else {
         lock[0] = lock[1] = 0.0f;
         const bool search = time - lastKnownTime_ < kSquadReacquireTime;
         for (int i = 0; i < kCount; ++i) {
-            roles[i] = manual[i] ? SquadRole::Manual : (search ? SquadRole::Search : SquadRole::Patrol);
-            if (manual[i]) continue;
+            roles[i] = away[i] ? (manual[i] ? SquadRole::Manual : SquadRole::Patrol) : (search ? SquadRole::Search : SquadRole::Patrol);
+            if (away[i]) continue;
             if (search) reacquire(dt, time, i);
             else patrol(dt, time, i);
         }
@@ -398,7 +403,7 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
 
     // ---- 4. Strike: plan (time on target), release, keep the laser spots on the predicted target ----
     if (target && lead >= 0 && strike_.phase == StrikePhase::Tracking && strike_.cooldown <= 0.0f)
-        planStrike(time, *target, lead, wing, manual, ready, events);
+        planStrike(time, *target, lead, wing, away, ready, events);
     if (strike_.phase == StrikePhase::Planned || strike_.phase == StrikePhase::Inbound) {
         bool allOut = true;
         for (int i = 0; i < kCount; ++i) {
@@ -432,6 +437,12 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
             strike_.cooldown = 2.0f;
             strike_.started = time;
         }
+    }
+
+    // ---- 5. v9 M5 duty: rotor spool, take-off, return, landing, docked on the pad ----
+    for (int i = 0; i < kCount; ++i) {
+        if (manual[i] || duty_[i] == UavDuty::Patrol) spool_[i] = std::min(1.0f, spool_[i] + dt / kRotorSpoolUp);
+        else dutyFlight(dt, i);
     }
 }
 

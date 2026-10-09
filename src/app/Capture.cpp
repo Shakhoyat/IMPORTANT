@@ -1092,6 +1092,11 @@ int App::traceMode() {
     // kill from a UAV round whose aim came from a vision track).
     std::ofstream ev(path + ".events.csv");
     ev << "t,hour,phase,waves_allowed,event,uav,track,value,combined,x,z,note\n";
+    // v9 M5: the UAV duty timeline (FILE.duty.csv): a row on every duty change and once a second.
+    std::ofstream duty(path + ".duty.csv");
+    duty << "t,hour,phase,day_ops,waves_allowed,alive,uav1_duty,uav1_height,uav1_spool,uav1_vision,uav2_duty,uav2_height,"
+            "uav2_spool,uav2_vision,change\n";
+    std::string dutyPrev[kUavCount];
     std::vector<int> lifePrev;
     for (const auto& in : scene_->intruders()) lifePrev.push_back(static_cast<int>(in->life));
     int spawns = 0, daySpawns = 0, badWithdraw = 0, kills = 0, killsNoRound = 0, launches = 0, launchesNoTrack = 0, otherFire = 0;
@@ -1104,7 +1109,7 @@ int App::traceMode() {
         const DayCycle* clk = sa::dayCycle(*scene_);
         const float hourNow = clk ? clk->hour() : 23.0f;
         const char* phaseNow = clk ? clk->phaseName() : "NIGHT";
-        const bool waves = clk ? clk->wavesAllowed() : true;
+        const bool waves = scene_->dayRules().wavesAllowed;   // the clock's rule (v9 M5: or day ops)
         int stepBlast = 0;  // strongest blast of this step (x100): UAV rounds are >= 90
         for (const GameEvent& e : scene_->events())
             if (e.type == GameEventType::Explosion) stepBlast = std::max(stepBlast, e.value);
@@ -1178,6 +1183,24 @@ int App::traceMode() {
             phases += (e.type == GameEventType::Dusk || e.type == GameEventType::NightFalls || e.type == GameEventType::Dawn ||
                        e.type == GameEventType::DayBreak) ? 1 : 0;
         }
+        {   // v9 M5 duty timeline
+            std::string change;
+            for (int u = 0; u < kUavCount; ++u) {
+                const std::string now = scene_->uavDutyState(u);
+                const std::string was = dutyPrev[u].empty() ? std::string("START") : dutyPrev[u];
+                if (now != was) change += (change.empty() ? "" : " ") + ("UAV-" + std::to_string(u + 1)) + ":" + was + "->" + now;
+                dutyPrev[u] = now;
+            }
+            if (!change.empty() || i % 60 == 0) {
+                char b[400];
+                const Squad& sq = scene_->squad();
+                std::snprintf(b, sizeof(b), "%.4f,%.4f,%s,%d,%d,%d,%s,%.3f,%.3f,%d,%s,%.3f,%.3f,%d,%s\n", i * kStep, hourNow, phaseNow,
+                              scene_->dayOps() ? 1 : 0, waves ? 1 : 0, scene_->aliveIntruders(), scene_->uavDutyState(0),
+                              sq.heightAbovePad(0), sq.rotorSpool(0), scene_->uavVisionActive(0) ? 1 : 0, scene_->uavDutyState(1),
+                              sq.heightAbovePad(1), sq.rotorSpool(1), scene_->uavVisionActive(1) ? 1 : 0, change.c_str());
+                duty << b;
+            }
+        }
         if (i % 15 != 0) continue;  // 4 samples per second
         const DroneState& d = scene_->drone;
         const Vec3 rpos = sa::primaryRover(*scene_);
@@ -1216,7 +1239,7 @@ int App::traceMode() {
                 "rounds %d (without a confirmed vision track %d), cannon / gatling fire %d -> %s\n",
                 spawns, daySpawns, badWithdraw, kills, killsNoRound, launches, launchesNoTrack, otherFire,
                 daySpawns + badWithdraw + killsNoRound + launchesNoTrack == 0 ? "OK" : "VIOLATIONS");
-    std::printf("events written to %s.events.csv\n", path.c_str());
+    std::printf("events written to %s.events.csv, UAV duty to %s.duty.csv\n", path.c_str(), path.c_str());
     return 0;
 }
 

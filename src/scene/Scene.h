@@ -92,6 +92,7 @@ struct SceneOptions {
     bool garrison = true;         // the 8 soldiers + sky clock (v6 controllables)
     bool randomRoutes = false;    // v6 rover via-point chains + personalities
     int residents = 0;            // v8: off-duty soldiers living in the barracks hall (sleep, PT, mess table); the app uses 6
+    bool dayOps = false;          // v9 M5: daytime enemies (rover waves by day too, the UAVs scramble)
     static SceneOptions v6(uint32_t seed, float startHour, bool autoCycle) {
         SceneOptions o;
         o.seed = seed;
@@ -205,11 +206,21 @@ public:
     void setPlayerIntruder(int slot, const ControlInput* in);
     int playerIntruder() const { return playerSlot_; }
 
-    // --- v7.1 (WP-D): UAV day/night duty (docked on the pads by day, patrol by night) ---
+    // --- v7.1 (WP-D) / v9 M5: UAV day/night duty (docked on the pads by day, patrol by night) ---
+    // The squad's duty state machine (Squad.h, ai/SquadDuty.cpp): DOCKED -> TAKE-OFF -> PATROL -> RETURN -> LANDING,
+    // wanted while the searchlights are allowed (dusk .. dawn), while intruders are still on the field, or with day ops.
     // uavAirborne(i): UAV i is off its pad (take-off, patrol, return, landing, or flown by the player).
     // uavDutyState(i): "DOCKED", "TAKE-OFF", "PATROL", "RETURN", "LANDING" or "MANUAL" (static strings).
     bool uavAirborne(int i) const;
     const char* uavDutyState(int i) const;
+    // The camera of UAV i delivers images to the tracker: on patrol, or flown by the player off the pad. Docked /
+    // taking off / landing UAVs see nothing (the app renders no image for them).
+    bool uavVisionActive(int i) const;
+    float uavRotorSpool(int i) const { return squad_.rotorSpool(i); }   // 0 still .. 1 full speed
+    // v9 M5 daytime enemies: rover waves by day too and the UAVs scramble (CLI --day-ops, Shift+F2 in the app).
+    // Switching it off by day ends the wave like a dawn (the rovers withdraw, the UAVs return and land).
+    void setDayOps(bool on);
+    bool dayOps() const { return dayOps_; }
 
 private:
     friend class DroneControl;
@@ -224,6 +235,12 @@ private:
     void applyDayRules();
 
     std::unique_ptr<SceneNode> terrain_, environment_, backdrop_, base_, hall_;   // hall_: v8 barracks hall
+    std::unique_ptr<SceneNode> uavPads_;     // v9 M5: the UAVs' landing pads
+    SceneNode* padLights_[kUavCount][4] = {};
+    float rotorLag_[kUavCount] = {0.0f, 0.0f};   // v9 M5: degrees the rotors fell behind full speed (spool < 1)
+    bool dayOps_ = false;
+    bool dutyWanted() const;
+    void applyRotorBlur();
     std::vector<SceneNode*> aviationLights_;  // blinking red obstruction lights (radio masts)
     BunkerRig bunker_;
     UavRig uavs_[kUavCount];

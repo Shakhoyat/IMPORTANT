@@ -498,6 +498,10 @@ void App::onKey(int key, int action, int) {
         case GLFW_KEY_9: possessSlot(Slot::Doors); break;
         case GLFW_KEY_0: possessSlot(Slot::Uav); break;
         case GLFW_KEY_F2:  // v6: automatic day / night cycle <-> manual clock
+            if (keyDown(GLFW_KEY_LEFT_SHIFT) || keyDown(GLFW_KEY_RIGHT_SHIFT)) {   // v9 M5: Shift+F2 = day ops
+                setDayOps(!dayOps());
+                break;
+            }
             if (DayCycle* clock = sa::dayCycle(*scene_)) {
                 clock->toggleAuto();
                 std::printf("Day cycle %s at %s\n", clock->autoRun() ? "AUTO" : "MANUAL", clock->clockText().c_str());
@@ -526,6 +530,10 @@ void App::onKey(int key, int action, int) {
             if (camera_.mode == CameraMode::Walk) interact();
             break;
         case GLFW_KEY_V:
+            if (int uav = -1; currentUav(uav)) {   // v9 M5: a UAV under control / ridden: chase -> FPV -> gimbal
+                cycleUavView();
+                break;
+            }
             if (camera_.mode == CameraMode::Possess && possessedSoldierIndex() >= 0) {   // v8: first <-> third person
                 setViewThirdPerson(camera_.possessSight);
                 break;

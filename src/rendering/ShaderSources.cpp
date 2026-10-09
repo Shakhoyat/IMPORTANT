@@ -319,6 +319,7 @@ uniform sampler2D uHeatTrail;                          // rover footprints (scen
 uniform float uTrailExtent; uniform float uTrailHeat;
 float trailHeat(vec3 P) { return uTrailHeat * texture(uHeatTrail, P.xz / (2.0 * uTrailExtent) + 0.5).r; }
 TS_PER_OBJECT float uOpacity;    // translucent parts (rotor blur discs)
+uniform float uBlurDisc;         // v9 M5: 1 = rotor blur disc profile (radial streaks), 0 = plain alpha (fading blade)
 // Surface buffer (second render target): world normal and reflectivity, read by the screen-space reflection
 // pass. Every shader that includes this block writes it (finalColor sets a neutral default).
 layout(location = 1) out vec4 FragSurface;
@@ -745,17 +746,25 @@ vec4 finalColor(vec3 lit, float heat, vec3 P) {
 
 float partAlpha(vec3 P) {
     if (uOpacity >= 1.0) return 1.0;
-    // Rotor blur: denser towards the blade tips (they sweep more area), faint radial streaks.
+    if (uBlurDisc < 0.5) return uOpacity;   // v9 M5: a propeller blade fading out as the rotor spins up
+    // Rotor blur: denser towards the blade tips (they sweep more area); v9 M5: two blade-shadow crescents sweeping
+    // round (the strobing a camera shutter catches) over fine radial streaks.
     float r = clamp(length(P - uPartCentre) / max(uPartRadius, 1e-4), 0.0, 1.0);
     vec3 d = P - uPartCentre;
-    float streak = 0.75 + 0.25 * sin(atan(d.z, d.x) * 2.0 + uTime * 40.0);
-    return uOpacity * smoothstep(1.0, 0.9, r) * mix(0.35, 1.0, r) * streak;
+    float a = atan(d.z, d.x);
+    float sweep = 0.62 + 0.38 * pow(abs(sin(a + uTime * 31.0)), 4.0);
+    float fine = 0.88 + 0.12 * sin(a * 22.0 + 7.0 * r);
+    return uOpacity * smoothstep(1.0, 0.9, r) * mix(0.35, 1.0, r) * sweep * fine * 1.15;
 }
 
 vec4 shadeFragment(Terms t, vec3 P, vec3 N) {
     float heat = surfaceHeat(P, t.irr) + solarLoad(P, N);
     if (uSurface == 2) heat += trailHeat(P);   // ground keeps the rover's warm tracks for a while
-    if (uViewMode == 0 || uViewMode >= 3) return finalColor(vec3(0.0), heat, P);
+    if (uViewMode == 0 || uViewMode >= 3) {   // v9 M5: the thermal view blends the rotor blur too
+        vec4 h = finalColor(vec3(0.0), heat, P);
+        h.a = partAlpha(P);
+        return h;
+    }
     // Shadow maps are only sampled where that light actually contributes (facing it / inside the cone).
     float sm = max(max(t.d0.r, t.d0.g), t.d0.b) + max(max(t.s0.r, t.s0.g), t.s0.b) > 1e-4 ? moonShadow(P, N) : 1.0;
     float ss = max(max(t.d2.r, t.d2.g), t.d2.b) + max(max(t.s2.r, t.s2.g), t.s2.b) > 1e-5 ? spotShadow(P, N) : 1.0;

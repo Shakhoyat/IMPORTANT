@@ -9,6 +9,7 @@
 #include "objects/BaseLayout.h"
 #include "objects/Environment.h"
 #include "objects/Terrain.h"
+#include "objects/UavPad.h"
 #include "scene/TickInterp.h"
 #if __has_include("objects/Base.h")
 #include "objects/Base.h"
@@ -118,8 +119,14 @@ public:
         if (!in) return;  // autonomous: the squad flies
         DroneState& d = scene_.drone;
         const float dt = w.dt;
+        // v9 M5: taken over on its pad: the rotors spool up first, the airframe stays put until they are at speed.
+        if (scene_.squad_.hasPads() && !scene_.squad_.airborne(0) && scene_.squad_.rotorSpool(0) < 1.0f) {
+            d.velocity = {0.0f, 0.0f, 0.0f};
+            return;
+        }
+        const float prevY = d.position.y;
         if (in->actionPressed) assist_ = !assist_;
-        d.yawDeg += in->turn * 70.0f * dt;
+        d.yawDeg -= in->turn * 70.0f * dt;   // v9 M5: D yaws right (yaw grows towards +x = the UAV's left)
         const float yaw = radians(d.yawDeg);
         const Vec3 fwd{std::sin(yaw), 0, std::cos(yaw)};
         const float top = in->boost ? 9.0f : 6.0f;
@@ -131,7 +138,12 @@ public:
         d.velocity = d.velocity + dv;
         d.position = d.position + d.velocity * dt;
         const float ground = terrainHeight(d.position.x, d.position.z);
-        d.position.y = clampf(d.position.y, ground + 1.0f, ground + 40.0f);
+        // At least 1 m above the ground; v9 M5: lifting off a pad it climbs there at kMaxClimb (no jump up).
+        if (d.position.y < ground + 1.0f) {
+            d.position.y = std::min(ground + 1.0f, std::max(d.position.y, prevY) + kMaxClimb * dt);
+            if (d.velocity.y < 0.0f) d.velocity.y = 0.0f;
+        }
+        d.position.y = std::min(d.position.y, ground + 40.0f);
         const Vec3 fl{d.position.x, 0, d.position.z};
         if (length(fl) > layout::kPerimeterRadius) {
             const Vec3 c = normalize(fl) * layout::kPerimeterRadius;
@@ -147,7 +159,7 @@ public:
         if (assist_ && t) {
             scene_.manualCtl_.aimGimbalAt(dt, t->position(), d);
         } else {
-            d.gimbalYawDeg += in->aimYaw * 60.0f * dt + in->aimYawDelta;
+            d.gimbalYawDeg -= in->aimYaw * 60.0f * dt + in->aimYawDelta;   // v9 M5: RIGHT / mouse right pan right
             d.gimbalPitchDeg = clampf(d.gimbalPitchDeg - in->aimPitch * 40.0f * dt - in->aimPitchDelta, 5.0f, 88.0f);
         }
         if (in->firePressed) scene_.launchRound();
@@ -272,6 +284,19 @@ Scene::Scene(const SceneOptions& options)
         for (const WalkFloor& f : hall.floors) bunker_.walk.addFloor(f);
         bunker_.walk.addIndoor(hall.indoor, IndoorLight{0.24f, 1.0f});
     }
+    // v9 M5: the UAVs' landing pads over the bunker (flush: no obstacle, no occluder).
+    {
+        UavPadRig padRig = buildUavPads();
+        uavPads_ = std::move(padRig.root);
+        UavPad pads[kUavCount];
+        for (int i = 0; i < kUavCount && i < kUavPadCount; ++i) {
+            pads[i].touchdown = padRig.touchdown[i];
+            pads[i].yawDeg = kUavPadYawDeg;
+            for (int k = 0; k < 4; ++k) padLights_[i][k] = padRig.lights[i][k];
+        }
+        squad_.setPads(pads);
+    }
+    dayOps_ = options.dayOps;
     // v6: the soldiers and the sky clock come after every v5 object (the v5 key order / indices stay).
     const size_t garrisonStart = controllables_.size();
     if (options.garrison) {
@@ -288,6 +313,11 @@ Scene::Scene(const SceneOptions& options)
     dayCycle_.applyTo(lights);
     refreshDayRules();
     nightRules_ = rules_.wavesAllowed;
+    // v9 M5 duty at the start: by day on the pads (rotors still); at dusk, or by day with day ops, on the pads with the
+    // engines starting; at night on patrol where the v5 squad starts (the legacy scenes stay exactly as they were).
+    squad_.setDutyWanted(dutyWanted());
+    if (!squad_.dutyWanted()) squad_.dockAll(false);
+    else if (!rules_.wavesAllowed || !rules_.beamsOn) squad_.dockAll(true);
 
     WorldContext w;
     w.dt = 0.0f;
@@ -374,6 +404,7 @@ std::vector<SceneNode*> Scene::roots() const {
     for (const UavRig& u : uavs_) r.push_back(u.root.get());
     if (base_) r.push_back(base_.get());
     if (hall_) r.push_back(hall_.get());
+    if (uavPads_) r.push_back(uavPads_.get());
     for (const auto& in : intruders_) r.push_back(in->rig.root.get());
     for (const auto& c : controllables_) {
         SceneNode* n = c->root();
@@ -394,9 +425,25 @@ int Scene::aliveIntruders() const {
     return n;
 }
 
-// v7.1 (WP-D) UAV duty (provisional: always on patrol until the duty state machine lands).
-bool Scene::uavAirborne(int i) const { return i >= 0 && i < kUavCount; }
-const char* Scene::uavDutyState(int i) const { return (i >= 0 && i < kUavCount) ? "PATROL" : "DOCKED"; }
+// v9 M5: UAV duty from the squad's state machine (ai/SquadDuty.cpp); a hand-flown UAV reports MANUAL.
+bool Scene::uavAirborne(int i) const { return i >= 0 && i < kUavCount && squad_.airborne(i); }
+
+const char* Scene::uavDutyState(int i) const {
+    if (i < 0 || i >= kUavCount) return "DOCKED";
+    return squad_.drones[i].manual ? "MANUAL" : uavDutyName(squad_.duty(i));
+}
+
+bool Scene::uavVisionActive(int i) const {
+    if (i < 0 || i >= kUavCount) return false;
+    return squad_.drones[i].manual ? squad_.airborne(i) : squad_.visionActive(i);
+}
+
+bool Scene::dutyWanted() const { return rules_.beamsOn || dayOps_ || aliveIntruders() > 0; }
+
+void Scene::setDayOps(bool on) {
+    dayOps_ = on;
+    refreshDayRules();
+}
 
 void Scene::updateWorld() {
     for (SceneNode* r : roots()) {
@@ -462,6 +509,7 @@ void Scene::update(float dt, const Detection& det, const ControlInput* input, in
         withdrawIntruders();
     }
     nightRules_ = rules_.wavesAllowed;
+    squad_.setDutyWanted(dutyWanted());   // v9 M5: the UAVs launch at dusk / with day ops and land once the day is clear
 
     // Vision: frames submitted by the app (both UAVs' thermal images); unit tests feed UAV 0's v4 detection.
     if (!vision_.valid[0] && !vision_.valid[1] && det.found) {
@@ -542,7 +590,7 @@ void Scene::update(float dt, const Detection& det, const ControlInput* input, in
     }
     combat_.setTargets(targets);
     // UAV 1's searchlight is a dynamic spot light (UAV 0's is the shadowed light L2); off by day.
-    if (!rules_.beamsOn) {
+    if (!rules_.beamsOn || !squad_.airborne(1)) {
         combat_.setExtraLights({});
     } else {
         const Mat4& lamp = uavs_[1].gimbalPitch->world;
@@ -558,6 +606,8 @@ void Scene::update(float dt, const Detection& det, const ControlInput* input, in
     applyBlasts();
 
     updateHeatTrail(dt);
+    for (int u = 0; u < kUavCount; ++u)   // v9 M5: spooled-down rotors fall behind the full-speed angle
+        rotorLag_[u] = std::fmod(rotorLag_[u] + kRotorFullRps * 360.0f * (1.0f - squad_.rotorSpool(u)) * dt, 360.0f);
     applyAgentStates();
     updateWorld();
     updateLightsAndBeam();
@@ -701,23 +751,25 @@ int Scene::withdrawIntruders() {
 void Scene::refreshDayRules() {
     if (pinned_) {
         rules_ = pinnedRules_;
-        return;
+    } else {
+        rules_.wavesAllowed = dayCycle_.wavesAllowed();
+        rules_.beamsOn = dayCycle_.beamsOn();
+        rules_.practicalScale = lights.atmo.practicalScale;
+        rules_.daylight = dayCycle_.daylight();
     }
-    rules_.wavesAllowed = dayCycle_.wavesAllowed();
-    rules_.beamsOn = dayCycle_.beamsOn();
-    rules_.practicalScale = lights.atmo.practicalScale;
-    rules_.daylight = dayCycle_.daylight();
+    if (dayOps_) rules_.wavesAllowed = true;   // v9 M5: daytime enemies
 }
 
 void Scene::applyDayRules() {
     // Searchlights (L2 + UAV 1's dynamic light + both visible cones) only at night; the beacon goes out by day.
     lights.atmo.beamsOn = rules_.beamsOn;
     lights.atmo.practicalScale = rules_.practicalScale;
-    lights.spot.enabled = rules_.beamsOn;
+    lights.spot.enabled = rules_.beamsOn && squad_.airborne(0);   // v9 M5: a docked UAV's searchlight is off
     lights.beacon.enabled = rules_.practicalScale >= 0.5f;
     for (int u = 0; u < kUavCount; ++u) {
-        setVisible(*uavs_[u].beam, rules_.beamsOn);
-        if (uavs_[u].lens) uavs_[u].lens->material.emissive = rules_.beamsOn ? 1.0f : 0.0f;   // v8: no lit lens by day
+        const bool beam = rules_.beamsOn && squad_.airborne(u);
+        setVisible(*uavs_[u].beam, beam);
+        if (uavs_[u].lens) uavs_[u].lens->material.emissive = beam ? 1.0f : 0.0f;   // v8: no lit lens by day
     }
 }
 
@@ -961,15 +1013,19 @@ void Scene::applyAgentStates() {
     for (int u = 0; u < kUavCount; ++u) {
         const DroneState& d = squad_.drones[u];
         SceneNode& body = *uavs_[u].root;
-        body.local.translation = d.position + Vec3{0.0f, d.manual ? 0.0f : 0.03f * std::sin(1.7f * time_ + 2.0f * u), 0.0f};
+        // Hover bob (v9 M5: none on the pad, growing over the first half metre of the climb).
+        const float bob = d.manual ? 0.0f : 0.03f * (squad_.hasPads() ? clampf(squad_.heightAbovePad(u) / 0.5f, 0.0f, 1.0f) : 1.0f);
+        body.local.translation = d.position + Vec3{0.0f, bob * std::sin(1.7f * time_ + 2.0f * u), 0.0f};
         body.local.rotationDeg = {d.pitchDeg, d.yawDeg, d.rollDeg};
         for (int i = 0; i < 4; ++i) {
             const float dir = (i == 0 || i == 3) ? 1.0f : -1.0f;  // diagonal pairs counter-rotate
-            uavs_[u].rotors[i]->local.rotationDeg.y = std::fmod(dir * 2400.0f * time_ + 37.0f * i + 11.0f * u, 360.0f);
+            uavs_[u].rotors[i]->local.rotationDeg.y = std::fmod(dir * (2400.0f * time_ - rotorLag_[u]) + 37.0f * i + 11.0f * u, 360.0f);
         }
         uavs_[u].gimbalYaw->local.rotationDeg.y = d.gimbalYawDeg;
         uavs_[u].gimbalPitch->local.rotationDeg.x = d.gimbalPitchDeg;
     }
+
+    applyRotorBlur();
 
     // Rovers: body follows the terrain slope under its wheels (wrecks stay where they died).
     for (auto& ptr : intruders_) {
@@ -1012,6 +1068,33 @@ void Scene::applyAgentStates() {
             const float ph = std::fmod(time_ + (p->id.find("UAV2") == 0 ? 0.5f : 0.0f), 1.0f);
             p->material.emissive = (ph < 0.06f || (ph > 0.18f && ph < 0.24f)) ? 1.5f : 0.05f;
         }
+    }
+}
+
+// v9 M5: spinning-propeller look. Above kRotorBlurStartRps the blade fades out and the translucent blur disc (radial
+// streaks in the object shader, Renderer::drawTranslucent) fades in; at full speed only the disc is left. The pad
+// lights blink while a UAV takes off from / lands on its pad, glow steadily under a docked one and dim when it is away.
+void Scene::applyRotorBlur() {
+    for (int u = 0; u < kUavCount; ++u) {
+        const float blur = rotorBlur(kRotorFullRps * squad_.rotorSpool(u));
+        for (int i = 0; i < 4; ++i) {
+            if (SceneNode* disc = uavs_[u].blurDiscs[i]) {
+                disc->material.opacity = kRotorDiscOpacity * blur;
+                disc->visible = blur > 0.01f;
+            }
+            if (SceneNode* blade = uavs_[u].blades[i]) {
+                blade->material.opacity = blur > 1e-3f ? 1.0f - blur : 1.0f;
+                blade->visible = blur < 0.995f;
+            }
+        }
+        if (!squad_.hasPads()) continue;
+        const UavDuty duty = squad_.duty(u);
+        const bool busy = duty == UavDuty::TakeOff || duty == UavDuty::Landing || duty == UavDuty::Return;
+        const float glow = squad_.drones[u].manual ? 0.3f
+                           : duty == UavDuty::Docked ? 1.2f
+                           : busy ? (std::fmod(time_ + 0.25f * static_cast<float>(u), 0.5f) < 0.25f ? 1.6f : 0.15f) : 0.3f;
+        for (SceneNode* l : padLights_[u])
+            if (l) l->material.emissive = glow;
     }
 }
 

@@ -1,0 +1,12 @@
+uav capture: 1920x1080, quality EPIC
+wrote build/m5cap/play_uav_docked_day.png (t = 3.3 s, hour 10.50, UAV-1 DOCKED at -2.00 0.19 -2.20 spool 0.00, UAV-2 DOCKED, view CHASE, drone ndc front -0.32 0.23, arm -1.00/0.00, rovers 0, tracks 0, lock 0.0/0.0)
+wrote build/m5cap/play_uav_rotor_still.png (t = 3.5 s, hour 10.50, UAV-1 DOCKED at -2.00 0.19 -2.20 spool 0.00, UAV-2 DOCKED, view CHASE, drone ndc front -0.00 0.00, arm -1.00/0.00, rovers 0, tracks 0, lock 0.0/0.0)
+wrote build/m5cap/play_uav_rotor_spinup.png (t = 4.4 s, hour 10.50, UAV-1 TAKE-OFF at -2.00 0.19 -2.20 spool 0.43, UAV-2 TAKE-OFF, view CHASE, drone ndc front -0.00 0.00, arm -1.00/0.00, rovers 1, tracks 0, lock 0.0/0.0)
+wrote build/m5cap/play_uav_rotor_blur.png (t = 5.8 s, hour 10.50, UAV-1 TAKE-OFF at -2.00 0.27 -2.20 spool 1.00, UAV-2 TAKE-OFF, view CHASE, drone ndc front 0.00 0.02, arm -1.00/0.00, rovers 1, tracks 0, lock 0.0/0.0)
+wrote build/m5cap/play_uav_dayops_chase.png (t = 10.9 s, hour 10.50, UAV-1 MANUAL at -3.31 6.85 12.51 spool 1.00, UAV-2 TAKE-OFF, view CHASE, drone ndc front 0.06 -0.42, arm 3.75/3.75, rovers 3, tracks 1, lock 1.8/0.0)
+wrote build/m5cap/play_uav_chase.png (t = 7.2 s, hour 23.00, UAV-1 MANUAL at -2.89 7.66 14.03 spool 1.00, UAV-2 PATROL, view CHASE, drone ndc front 0.06 -0.42, arm 3.74/3.74, rovers 3, tracks 1, lock 0.5/0.0)
+wrote build/m5cap/play_uav_chase_steady.png (t = 8.3 s, hour 23.00, UAV-1 MANUAL at -8.57 7.66 12.75 spool 1.00, UAV-2 PATROL, view CHASE, drone ndc front 0.00 -0.38, arm 3.75/3.79, rovers 3, tracks 1, lock 1.4/0.0)
+wrote build/m5cap/play_uav_fpv.png (t = 9.1 s, hour 23.00, UAV-1 MANUAL at -11.84 7.66 11.40 spool 1.00, UAV-2 PATROL, view FPV, drone ndc behind 0.00 0.00, arm 3.75/3.79, rovers 3, tracks 1, lock 1.2/0.0)
+wrote build/m5cap/play_uav_gimbal.png (t = 9.7 s, hour 23.00, UAV-1 MANUAL at -12.68 7.66 11.06 spool 1.00, UAV-2 PATROL, view GIMBAL, drone ndc behind 0.00 0.00, arm 3.75/3.79, rovers 3, tracks 1, lock 0.9/0.5)
+wrote build/m5cap/play_uav_hud.png (t = 13.4 s, hour 23.00, UAV-1 MANUAL at -15.14 7.66 19.28 spool 1.00, UAV-2 PATROL, view CHASE, drone ndc front 0.00 -0.42, arm 2.28/2.28, rovers 3, tracks 1, lock 1.9/4.2)
+uav capture: 10 written, 0 failed
