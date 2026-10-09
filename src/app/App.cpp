@@ -190,6 +190,15 @@ bool App::closeRequested() const {
 }
 
 int App::run() {
+    // v9 M2: the player's settings (ThermalSense.ini) for the interactive game; the command line wins for this run.
+    if (opt_.mode == AppOptions::Mode::Interactive) {
+        loadSettings();
+        cliVsync_ = opt_.vsync >= 0;
+        cliFpsLimit_ = opt_.fpsLimit >= 0.0f;
+        if (opt_.quality < 0 && gs_.quality >= 0) opt_.quality = gs_.quality;
+    } else {
+        opt_.iniPath.clear();   // offline modes never read or write the player's settings
+    }
     const bool visible = opt_.mode == AppOptions::Mode::Interactive || opt_.mode == AppOptions::Mode::Benchmark ||
                          opt_.mode == AppOptions::Mode::BenchShots;
     if (!initWindow(visible)) return 1;
@@ -661,6 +670,13 @@ void App::renderFrame(int w, int h, bool withHud) {
     }
     if (camera_.mode == CameraMode::Cinematic) drawCinematicCaption(w, h);
     else if (withHud && showHud_) drawHud(cam, w, h);
+    // v9 M2: the pause menu / help also over the cinematic and with the HUD off (F3).
+    if (withHud && (menuOpen_ || showHelp_) && (camera_.mode == CameraMode::Cinematic || !showHud_)) {
+        renderer_->hud().begin(w, h);
+        if (menuOpen_) drawPauseMenu(w, h);
+        else drawHelp(w, h);
+        renderer_->hud().end();
+    }
 }
 
 void App::applyCinematic() {

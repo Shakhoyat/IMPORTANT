@@ -166,7 +166,10 @@ installs everything on a fresh Ubuntu box, builds and runs a smoke test.
 | `--benchmark FILE` | FPS per preset + per-feature ablation |
 | `--bench-shots FILE [--only a,b]` | v9: 5 fixed gameplay shots (overview, uav_chase, soldier_1p, soldier_3p, hall_inside) x day / night at 1080p: FPS, CPU phases, GPU passes, draws, triangles (JSON + `FILE.md`) |
 | `--input-script FILE [--frames DIR]` | v9: play timed key / mouse events into the interactive game (`shot` / `log` lines save frames and state; format in `src/scene/InputScript.h`) |
-| `--vsync 0\|1` | swap interval (default: 1 interactive, 0 benchmarks) |
+| `--vsync 0\|1` | swap interval (default 0: the frame limiter paces the interactive loop; the Settings menu / `ThermalSense.ini` otherwise) |
+| `--fps-limit N` | interactive frame limiter (default: display refresh; 0 = uncapped) |
+| `--ini FILE\|none` | v9 M2: the settings file (default `ThermalSense.ini` next to the exe) |
+| `--export-keys FILE` | v9 M2: the key / mouse binding table as JSON (contexts, old binding, conflict check) |
 | `--trace FILE [SECONDS]` | log UAV / rover behaviour (also writes `FILE.events.csv` and a `rules:` check line) |
 | `--export-docs FILE` | GPU-free export of every part, matrix and mesh (JSON for the workbook) |
 | `--seed N` | v6 run seed: rover routes, patrols, sensor noise (default: random and printed when interactive, 1 for offline modes; 0 = the fixed v5 run with an ideal sensor) |
@@ -208,30 +211,65 @@ python tools/verify_workbook.py                     recalculate every formula an
 
 `mingw32-make docs` runs the export, the tests and the workbook script in one go.
 
-## Controls (F1 in the window shows the list; v6 and v7 keys are in their own sections below)
+## Controls (F1 in the window shows the list; the table is `keyMapV9()` in `src/scene/KeyMap.cpp`, `--export-keys FILE`)
+
+v9 M2 unified the scheme the way action games do it: **E** uses whatever the on-screen prompt names, **Tab** switches
+unit, **V** switches the view of what you control, **Esc** lets go and then opens the pause menu, **P** pauses.
 
 | Key | Action |
 |-----|--------|
-| Mouse drag / wheel | orbit and zoom (look around in free / walk camera: left or right button) |
-| `C` / `K` | camera: orbit, free, chase, UAV camera, **walk (first person, 1.7 m eye height)** / cinematic director (restarts the world, ~2 min; `K` again stops it) |
+| `E` | interact: the prompt on screen says what (`[E] Open blast doors`, `[E] Enter Barracks`, `[E] Take control of UAV-1 DRONE`, `[E] Ride UAV-2`, `[E] Release`); nearest thing in reach (doors 2.5 m, the barrier 3 m, soldiers 2.5 m, vehicles a step from the hull) inside the view cone and not behind a wall; from an overview camera: the selection, else the unit the view centres on |
+| `Tab` / `Shift+Tab` | take control of the next / previous unit: soldiers, then UAVs, then vehicles and installations |
+| `V` | soldier: first ↔ third person; vehicle / UAV: chase → sight → alt camera; riding along: first → chase → alt |
+| `Esc` | release control / leave the ride → clear the selection → **pause menu** (Quit is a menu entry); closes F1 help |
+| `P` or `Pause` | pause / resume |
+| `F3` | HUD: game (decluttered) → game + debug blocks (switches, UAV / rover status, frame time, triangles) → off |
+| left click / double-click / `Enter` | select the object under the pointer / take control / take control of the selection |
+| `C` | camera (nothing controlled): orbit, free, chase, UAV camera, **walk (first person, 1.7 m eye height)** |
+| mouse drag / wheel | orbit and zoom (look around in free / walk camera: left or right button) |
 | `W A S D` (+`Shift`), `PgUp PgDn` | walk (Shift = run) or move the free camera |
-| `V` | view: visible, primitive diagnostic, Z-buffer, thermal |
+| `F` | view: visible, primitive diagnostic, Z-buffer, thermal |
+| `O` | shading: per-object → all flat → all Gouraud → all Phong |
+| `G` | explode composite objects into their primitives |
 | `Y` / `T` / wheel / `Q` | thermal: first-person or external view / palette (ironbow, white-hot, rainbow, black-hot) / zoom 40-20-8 deg / force a NUC |
 | `X` | edges: solid, hidden-line wireframe, x-ray wireframe |
 | `Z` | depth test on/off (shows why the Z-buffer is needed) |
-| `O` `F` `G` `P` | shading: per-object, all flat, all Gouraud, all Phong |
 | `1` `2` `3` `4` | toggle moonlight, beacon, searchlight, practical lights |
 | `F5` | quality preset LOW / HIGH / ULTRA / EPIC |
 | `F6` `F7` `F8` `F9` `F10` | TAA, screen-space reflections, lens flare, auto-exposure, depth of field |
 | `L` / `J` / `R` | foliage cards / fireflies / rain |
 | `B` / `N` | PBR vs classic Blinn-Phong / v1 renderer (no post-processing) |
 | `+` `-` | exposure |
-| `E` | explode composite objects into their primitives |
 | `H` | local axes of the hierarchy (UAV, gimbal yaw, gimbal pitch, rover) |
 | `M` | MicroMouse flood field and the line-follower guide line |
 | `I` | indexed / non-indexed drawing |
-| `U`, `Tab`, `Space`, `F12`, `Esc` | UAV feed, HUD, pause, screenshot, quit |
+| `U`, `F12` | UAV feed, screenshot |
 | `F1` | help overlay (all keys) |
+
+**Pause menu** (`Esc` with nothing under control; the world holds, the mouse is free): tabs RESUME / TRAVEL / TIME /
+VIEW / SETTINGS / QUIT (`Tab` / `Shift+Tab` switch pages, `Esc` or `G` resumes). TRAVEL / TIME / VIEW are the v7.1
+field guide, drawn and wired: ride UAV-1 / UAV-2, a random soldier in first / third person, the POV list, the free
+camera, the tank, the helicopter, an intruder rover (keys `1`-`9`); dawn / noon / dusk / midnight (`Q W E R`), a
+time-of-day slider (drag, or `←` `→` 15 min), automatic cycle on / off (`T`), cycle speed x1 / x2 / x4 / x8 / x0.5
+(`Y`); person view, render mode, Frame Explorer, thermal, HUD level, UAV feed (`A S D F H U`). SETTINGS (`↑` `↓`
+select, `←` `→` or click `-` / `+`): mouse sensitivity (0.1-3.0, every look path), invert Y, field of view on foot
+(50-95°), vsync, frame limit (display / 30-240 / uncapped), head bob, quality preset. They apply at once and are
+saved to `ThermalSense.ini` next to the exe (`key = value`; `--ini FILE` picks another file, `--ini none` none;
+`--vsync` / `--fps-limit` / `--quality` on the command line win for that run until changed in the menu).
+
+| v9 M2 change | Before | Now |
+|-----|--------|-----|
+| `E` | explode | interact (prompt) |
+| `G` | Gouraud shading | explode |
+| `F` | flat shading | view mode (was `V`) |
+| `O` | per-object shading | cycles per-object / flat / Gouraud / Phong |
+| `P` | Phong shading | pause |
+| `V` | view mode; soldier 1st / 3rd | the only view key: soldier 1st / 3rd, vehicle chase / sight / alt, ride-along view |
+| `C` | camera cycle, and soldier 1st / 3rd, POV view, vehicle sight | camera cycle only (nothing controlled) |
+| `Tab` | HUD on / off | next unit (`Shift+Tab` previous) |
+| `F3` | possess the next soldier | HUD level game / debug / off (`Tab` reaches every soldier) |
+| `Space` | jump (soldier), else pause | jump only |
+| `Esc` | release → clear selection → **quit** | release → clear selection → **pause menu** |
 
 ### Controlling objects (v4)
 
@@ -239,13 +277,13 @@ python tools/verify_workbook.py                     recalculate every formula an
 |-----|--------|
 | `5` `6` `7` `8` `9` `0` | take control of: tank, helicopter, AA gun, radar, blast doors, UAV (`F3`: next soldier, v6) |
 | `[` / `]` | cycle through every controllable object (incl. SAM launcher, MLRS truck, gate barrier, soldiers, SKY clock): 18 possessable |
-| `Backspace` | release control |
+| `Backspace` | release control (`Esc` and `E` too) |
 | `W` `S` / `A` `D` / `PgUp` `PgDn` | drive / steer / climb (tank, helicopter, UAV) |
 | arrows, mouse drag | aim (turret and gun, AA mount, searchlight, radar sector, UAV gimbal) |
 | `Enter` or `Left Ctrl` | fire / transmit (tank gun, AA burst, UAV round); in walk mode: open/close the nearest door or barrier |
 | `\` | action: helicopter start-up / land, radar mode, door toggle, UAV gimbal assist |
 | `Shift` | boost |
-| `C` (while controlling) | chase camera / gun sight / cockpit |
+| `V` (while controlling; `C` before v9 M2) | chase camera / gun sight / cockpit |
 
 ### Game rules (v5 "Night Watch")
 
@@ -278,7 +316,7 @@ withdrawals only at dawn, every kill from a vision-designated round (`docs/v7_no
 | `F2` | day / night cycle: automatic <-> manual clock |
 | `,` `.` (held) | manual clock: scrub the time of day back / forward (2 h/s; a press stops the automatic cycle) |
 | `/` | jump to the next phase (dawn, day, dusk, night) |
-| `F3` | possess the next soldier (third person; `C` = first person) |
+| `Tab` | take control of the next unit, soldiers first (v6 used `F3` = next soldier; since v9 M2 `F3` is the HUD level) |
 | `W A S D`, `Shift` | possessed soldier: walk / turn, run |
 | `\` | possessed soldier: stand / crouch / wave; possessed SKY clock: auto / manual |
 | `W` `S`, `Enter` | possessed SKY clock (via `[` `]`): scrub the time, jump to the next phase |
@@ -311,11 +349,11 @@ Checked against `keyBindingsV7()` / `helpLines()` in `src/scene/HudMath.cpp` and
 | middle mouse | jump into the object under the cursor (ray pick; the crosshair in game mode) |
 | `Home` | free fly camera from the current view: `W A S D`, `PgUp` `PgDn`, drag (left or right button) = look, wheel = speed, `Shift` ×3 |
 | `End` | back to the previous view (`End` again swaps back) |
-| `C` (riding along) | first person -> chase -> alt camera (tank commander hatch, UAV belly camera, rover mast camera) |
+| `V` (riding along; `C` before v9 M2) | first person -> chase -> alt camera (tank commander hatch, UAV belly camera, rover mast camera) |
 | mouse drag (riding along) | free look (left or right button; no button needed in game mode) |
-| `W A S D` / arrows / `PgUp` `PgDn` (riding along) | take control: possess the object, or take an intruder rover's wheel (its planner pauses, the UAVs keep hunting it) |
+| `E`, `W A S D` / arrows / `PgUp` `PgDn` (riding along) | take control: possess the object, or take an intruder rover's wheel (its planner pauses, the UAVs keep hunting it) |
 | `Backspace` | driving a rover: give it back to its planner and keep riding along; otherwise release control |
-| `Left Ctrl` (or `Enter`), soldier | possessed soldier in first person (`C`): fire the rifle (hold = automatic; tracers, damages intruder rovers) |
+| `Left Ctrl` (or `Enter`), soldier | possessed soldier (first or third person): fire the rifle (hold = automatic; tracers, damages intruder rovers) |
 | `Left Alt`, soldier | crouch <-> stand (`Left Ctrl` stays fire, so crouch is on `Left Alt`) |
 | `F11` | game mode: game HUD only, crosshair, hit marker, compass strip, alert vignette, FOV kick on sprint / boost, stronger blast shake, letterbox on jumps, mouse look without a button |
 | `;` | render mode: raster -> hybrid RT -> Whitted RT -> path tracing -> light tracing (reverse) -> raster |
@@ -383,7 +421,7 @@ ray-tracing figures; any `game_*` name (e.g. `--only game_soldier_fp,game_picker
 | Haze and grade | `DayCycle.cpp`: clear-day fog 0.0075 → 0.0042, volumetric haze 0.0032 → 0.0013 (it was a grey veil past ~40 m). `ShadersPostFx.cpp`: daylight contrast around mid-grey plus a little more saturation (`uDayGrade`). Lamp halos in the mist fade by day (`uHaloScale`). |
 | Sun glints | The "white blobs" by day came from the sun mirrored in thin galvanized wires, posts and rails: a GGX peak of about 100× mid-grey, then blown up by bloom and lens-flare ghosts. Fixed with geometric specular AA in the Phong path (`gSpecAA`, normal variance from `dFdx`/`dFdy`), a specular LOD per curved part thinner than ~4 px (`Renderer::specularLod`), and weathered zinc (roughness 0.40 → 0.52). The UAV lens and the helicopter's beam cone are off by day. |
 | Colours | Spruce cards deep green instead of teal; grass mostly green/olive with dry tufts; sunlit translucency is a rim, not a glow. |
-| Click to control | `app/AppPlay.cpp`. Hovering shows a name tag and a ring. A **left click** (no drag) selects any moving object; **Enter** or a **double-click** takes control. Soldiers start in **first person** (A/D strafe, the mouse turns); **V** or **C** toggles **third person**. **Esc** releases control, then clears the selection, then quits. Everything works on `PovSource`, so any new `Controllable` becomes selectable automatically. |
+| Click to control | `app/AppPlay.cpp`. Hovering shows a name tag and a ring. A **left click** (no drag) selects any moving object; **Enter** or a **double-click** takes control. Soldiers start in **first person** (A/D strafe, the mouse turns); **V** (v8: or **C**) toggles **third person**. **Esc** releases control, then clears the selection, then quit (v9 M2: `V` only, and `Esc` then opens the pause menu). Everything works on `PovSource`, so any new `Controllable` becomes selectable automatically. |
 | Third person | v7.1 `ThirdPersonCam` + `thirdPersonSoldierInput` are now wired in. Camera-relative W A S D (the body turns into the walk), right mouse aims (shoulder zoom, the body faces the camera), the left mouse fires from the rifle muzzle toward the crosshair hit. The spring arm is probed against the oriented boxes of nearby parts, WalkSpace walls, floors and ceilings: it pulls in at once and eases out; a shorter arm indoors; when squeezed under head size the character is hidden for that frame. Mouse is captured while you control a soldier. Space jumps, Shift sprints, Alt crouches; landing shake. |
 | Barracks hall | `objects/BarracksHall.cpp`, `BaseLayout.h::hall`: an axis-aligned prefab on the east apron (x 18.6–27.6, z −15…−8.6). It has real door and window openings, a gable roof over a 2.7 m ceiling, 3 bunk beds, lockers, a rifle rack, a notice board, a mess table with benches, a gym corner (pull-up bar, mats, dumbbell rack, punching bag), fluorescent lights and a PT area outside. WalkSpace floors now count on the apron too; indoor volumes carry `IndoorLight` (the bunker: no sky or sun; the hall: 24 % sky light, and the sun through the windows decided by the shadow map). No grass grows through the floor. |
 | Barracks life | `Garrison` takes any number of soldiers (`SceneOptions::residents`, 6 in the app). Residents are `Soldier`s with duty BARRACKS and new activities: **Sleep** (in their own bunk, also by day for the night watch), **PushUps**, **SitUps**, **PullUps**, **Talk** (seated at the table or standing outside), plus sitting on a bunk and the lockers. Poses are new `Gait` functions with a whole-body `bodyPitch`. They get the duty soldiers' A* routes, door handling, separation, shift change (all asleep at night) and possession (first/third person) for free. |
@@ -397,11 +435,11 @@ Scripted figures of the new paths (off-screen, like the other captures):
 |-----|--------|
 | left click / hover | select the object under the pointer (soldiers, UAVs, vehicles, rovers) / show its name |
 | `Enter` or double-click | take control of the selection (soldier: first person) |
-| `V` or `C` (soldier) | first person ↔ third person (smooth blend) |
+| `V` (soldier; `C` too before v9 M2) | first person ↔ third person (smooth blend) |
 | `W A S D`, `Shift`, `Space`, `Left Alt` (soldier) | move (third person: relative to the camera), sprint, jump, crouch |
 | mouse, left / right button (soldier) | look / fire / aim (first person: iron-sight zoom; third person: over-the-shoulder zoom) |
-| `Esc` | release control → clear selection → quit |
-| `Pause` | pause (`Space` still pauses when you are not a soldier) |
+| `Esc` | release control → clear selection → pause menu (v8: quit) |
+| `P`, `Pause` | pause (v8: `Space` paused when you were not a soldier; since v9 M2 `Space` only jumps) |
 
 ## Quality presets
 

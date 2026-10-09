@@ -1,0 +1,43 @@
+Run seed 1 (repeat with --seed 1)
+Settings: \\wsl.localhost\Ubuntu\home\vscode\IMPORTANT\.claude\worktrees\agent-abfa89ea93809e53d\ThermalSense.ini not found, defaults
+OpenGL 4.6.0 NVIDIA 591.86 | NVIDIA Corporation | NVIDIA GeForce RTX 4070/PCIe/SSE2
+Quality preset: EPIC
+Frame pacing: 100 fps limiter, simulation 60 Hz fixed tick with render interpolation
+Input script C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls.txt: 60 events, frames to C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames
+script log start | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 16.05 16.24 25.69 prompt "" menu - sens 1.00 invertY 0 hud GAME | 7.9 fps, ms/frame: sim 15.55 render 109.42 vision 0.67 swap 0.07 wait 1.07 (12 frames, 17 ticks, 1824 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/00_start.png | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 16.05 16.24 25.69 prompt "" menu - sens 1.00 invertY 0 hud GAME
+Control: SOLDIER 1 SENTRY (first person)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/01_tab_soldier1.png | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -30 speed 0.00 stance 0 GROUND eye -3.68 1.40 25.35 prompt "" menu - sens 1.00 invertY 0 hud GAME
+script log tab1 | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -30 speed 0.00 stance 0 GROUND eye -3.68 1.40 25.35 prompt "" menu - sens 1.00 invertY 0 hud GAME | 85.8 fps, ms/frame: sim 4.22 render 3.75 vision 0.31 swap 0.42 wait 2.89 (222 frames, 155 ticks, 1824 parts blended)
+script log look_before_sens100 | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -30 speed 0.00 stance 0 GROUND eye -3.68 1.40 25.35 prompt "" menu - sens 1.00 invertY 0 hud GAME | 105.0 fps, ms/frame: sim 2.19 render 2.30 vision 0.06 swap 0.36 wait 4.56 (20 frames, 12 ticks, 1824 parts blended)
+script log look_after_sens100 | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -60 speed 0.00 stance 0 GROUND eye -3.78 1.40 25.34 prompt "" menu - sens 1.00 invertY 0 hud GAME | 99.7 fps, ms/frame: sim 2.25 render 2.61 vision 0.06 swap 0.39 wait 4.65 (100 frames, 60 ticks, 1824 parts blended)
+Control: SOLDIER 2 WATCH (first person)
+Control: SOLDIER 3 GUNNER (first person)
+Control: SOLDIER 4 MECHANIC (first person)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/02_tab_mechanic_prompt.png | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 4 MECHANIC pos 19.60 -0.08 18.60 yaw 156 speed 0.00 stance 0 GROUND eye 19.66 1.62 18.46 prompt "[E] Take control of MH-6 HELICOPTER" menu - sens 1.00 invertY 0 hud GAME
+script log tab4 | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 4 MECHANIC pos 19.60 -0.08 18.60 yaw 156 speed 0.00 stance 0 GROUND eye 19.66 1.62 18.46 prompt "[E] Take control of MH-6 HELICOPTER" menu - sens 1.00 invertY 0 hud GAME | 95.4 fps, ms/frame: sim 2.89 render 3.56 vision 0.16 swap 0.43 wait 3.38 (268 frames, 168 ticks, 1888 parts blended)
+Interact: [E] Take control of MH-6 HELICOPTER
+Control: MH-6 HELICOPTER (third person)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/03_after_E.png | 10:30 DAY MANUAL cam CONTROL ctl MH-6 HELICOPTER sel 16777218 eye 31.03 5.32 25.99 prompt "[E] Release" menu - sens 1.00 invertY 0 hud GAME
+script log after_E | 10:30 DAY MANUAL cam CONTROL ctl MH-6 HELICOPTER sel 16777218 eye 31.03 5.32 25.99 prompt "[E] Release" menu - sens 1.00 invertY 0 hud GAME | 87.4 fps, ms/frame: sim 4.66 render 4.49 vision 0.33 swap 0.62 wait 1.28 (219 frames, 149 ticks, 1845 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/04_after_V.png | 10:30 DAY MANUAL cam CONTROL ctl MH-6 HELICOPTER sel 16777218 eye 19.42 1.37 16.26 prompt "[E] Release" menu - sens 1.00 invertY 0 hud GAME
+script log after_V | 10:30 DAY MANUAL cam CONTROL ctl MH-6 HELICOPTER sel 16777218 eye 19.42 1.37 16.26 prompt "[E] Release" menu - sens 1.00 invertY 0 hud GAME | 87.6 fps, ms/frame: sim 4.57 render 4.40 vision 0.52 swap 0.60 wait 1.28 (175 frames, 119 ticks, 1845 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/05_released.png | 10:30 DAY MANUAL cam ORBIT ctl - sel 16777218 eye 27.85 9.38 29.09 prompt "[E] Take control of MH-6 HELICOPTER" menu - sens 1.00 invertY 0 hud GAME
+script log released | 10:30 DAY MANUAL cam ORBIT ctl - sel 16777218 eye 27.85 9.38 29.09 prompt "[E] Take control of MH-6 HELICOPTER" menu - sens 1.00 invertY 0 hud GAME | 71.7 fps, ms/frame: sim 7.04 render 4.74 vision 0.45 swap 0.59 wait 1.05 (109 frames, 90 ticks, 1845 parts blended)
+script log selection_cleared | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "[E] Take control of SOLDIER 4 MECHANIC" menu - sens 1.00 invertY 0 hud GAME | 77.4 fps, ms/frame: sim 6.89 render 4.11 vision 0.49 swap 0.66 wait 0.65 (60 frames, 47 ticks, 1845 parts blended)
+Pause menu
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/06_menu.png | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "" menu TRAVEL sens 1.00 invertY 0 hud GAME
+script log menu | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "" menu TRAVEL sens 1.00 invertY 0 hud GAME | 71.2 fps, ms/frame: sim 6.81 render 5.09 vision 0.85 swap 1.12 wait 0.14 (85 frames, 71 ticks, 0 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/07_settings.png | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "" menu SETTINGS sens 1.00 invertY 0 hud GAME
+script log settings | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "" menu SETTINGS sens 1.00 invertY 0 hud GAME | 72.2 fps, ms/frame: sim 6.67 render 4.87 vision 0.71 swap 1.22 wait 0.31 (109 frames, 89 ticks, 0 parts blended)
+Setting MOUSE SENSITIVITY = 1.10x
+Setting MOUSE SENSITIVITY = 1.20x
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/08_sens_changed.png | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "" menu SETTINGS sens 1.20 invertY 0 hud GAME
+script log sens_changed | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "" menu SETTINGS sens 1.20 invertY 0 hud GAME | 72.6 fps, ms/frame: sim 6.87 render 4.58 vision 0.89 swap 1.27 wait 0.07 (145 frames, 118 ticks, 0 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/09_resumed.png | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "[E] Take control of SOLDIER 4 MECHANIC" menu - sens 1.20 invertY 0 hud GAME
+script log resumed | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 27.85 9.38 29.09 prompt "[E] Take control of SOLDIER 4 MECHANIC" menu - sens 1.20 invertY 0 hud GAME | 69.4 fps, ms/frame: sim 7.66 render 4.87 vision 0.67 swap 0.80 wait 0.37 (106 frames, 90 ticks, 1823 parts blended)
+Control: SOLDIER 1 SENTRY (first person)
+script log look_before_sens120 | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -30 speed 0.00 stance 0 GROUND eye -3.88 1.39 25.24 prompt "" menu - sens 1.20 invertY 0 hud GAME | 93.2 fps, ms/frame: sim 3.52 render 3.06 vision 0.25 swap 0.55 wait 3.29 (174 frames, 113 ticks, 1805 parts blended)
+script log look_after_sens120 | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -66 speed 0.00 stance 0 GROUND eye -3.86 1.39 25.13 prompt "" menu - sens 1.20 invertY 0 hud GAME | 100.3 fps, ms/frame: sim 2.52 render 3.18 vision 0.06 swap 0.39 wait 3.75 (100 frames, 60 ticks, 1805 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m2\m2_controls_frames/10_look_sens120.png | 10:30 DAY MANUAL cam CONTROL FIRST ctl SOLDIER 1 SENTRY pos -3.70 -0.30 25.20 yaw -66 speed 0.00 stance 0 GROUND eye -3.86 1.39 25.13 prompt "" menu - sens 1.20 invertY 0 hud GAME
+script: quit at 25.01 s

@@ -16,6 +16,7 @@
 
 #include "app/App.h"
 #include "app/HeadlessGL.h"
+#include "objects/BaseLayout.h"
 #include "rendering/ImageWriter.h"
 #include "rendering/RenderTarget.h"
 
@@ -325,6 +326,7 @@ RigPose App::thirdPersonTarget(float dt) {
         tpKey_ = key;
     }
     ThirdPersonParams params = ThirdPersonParams::soldier();
+    params.fovDeg = gs_.fovDeg - 3.0f;   // v9 M2: the player's field of view (default 65 -> the arm's own 62)
     if (const WalkSpace* ws = sa::walkSpace(*scene_); ws && ws->ceilingHeight(p.x, p.z, p.y) < 1e8f) {
         params.arm = 1.9f;            // indoors (bunker rooms, the barracks): a shorter arm, closer shoulder
         params.shoulder = 0.45f;
@@ -452,15 +454,9 @@ void App::drawPlayHud(const CameraView& cam, int w, int h) {
             if (i >= 0) mark(list[i], false);
         }
         if (hasSel) {
-            mark(sel, true);
-            const char* what = sel.kind == PovKind::Soldier ? "TAKE CONTROL (FIRST PERSON)" : sel.canControl ? "TAKE CONTROL" : "RIDE ALONG";
-            char prompt[200];
-            std::snprintf(prompt, sizeof(prompt), "%s  -  ENTER or DOUBLE-CLICK: %s   ESC: clear", sel.name.c_str(), what);
-            const float pw = hud.textWidth(prompt, 15 * s) + 28 * s;
-            hud.roundRect(W * 0.5f - pw * 0.5f, H - 132 * s, pw, 32 * s, 6 * s, Rgba{0.0f, 0.0f, 0.0f, 0.6f});
-            hud.text(W * 0.5f - pw * 0.5f + 14 * s, H - 124 * s, prompt, 15 * s, kSel);
-        } else if (!gameMode_ && !pickerOpen_) {
-            const char* tip = "CLICK a soldier or UAV to select it   DOUBLE-CLICK / ENTER to take control   F4 list";
+            mark(sel, true);   // v9 M2: the "[E] Take control of ..." prompt (drawInteractPrompt) replaces the v8 line
+        } else if (!gameMode_ && !pickerOpen_ && !menuOpen_ && !updateInteraction()) {
+            const char* tip = "CLICK select   E / DOUBLE-CLICK take control   TAB next unit   ESC menu";
             hud.text(W * 0.5f - hud.textWidth(tip, 12 * s) * 0.5f, H - 120 * s, tip, 12 * s, kTip);
         }
         return;
@@ -481,8 +477,8 @@ void App::drawPlayHud(const CameraView& cam, int w, int h) {
         }
         if (!gameMode_) return;   // the possession panel lists the keys (F11 game mode hides it: show them here)
         const char* keys = camera_.possessSight
-                               ? "W A S D move   SHIFT sprint   SPACE jump   ALT crouch   MOUSE look   LMB fire   RMB aim   V third person   ESC release"
-                               : "W A S D move   SHIFT sprint   SPACE jump   ALT crouch   MOUSE camera   LMB fire   RMB aim   V first person   ESC release";
+                               ? "W A S D move   SHIFT sprint   SPACE jump   ALT crouch   LMB fire   RMB aim   E use   V third person   ESC release"
+                               : "W A S D move   SHIFT sprint   SPACE jump   ALT crouch   LMB fire   RMB aim   E use   V first person   ESC release";
         const float kw = hud.textWidth(keys, 12 * s) + 24 * s;
         hud.roundRect(W * 0.5f - kw * 0.5f, H - 40 * s, kw, 26 * s, 5 * s, Rgba{0.0f, 0.0f, 0.0f, 0.45f});
         hud.text(W * 0.5f - kw * 0.5f + 12 * s, H - 33 * s, keys, 12 * s, kHint);
@@ -504,6 +500,7 @@ int App::capturePlay() {
     showHud_ = true;
     showFeed_ = false;
     playCapture_ = true;
+    debugHud_ = false;   // v9 M2: the decluttered game HUD (F3 debug blocks off), as the interactive game starts
     RenderTarget target;
     if (!target.create(width, height, 0, false)) return 1;
     int written = 0, failed = 0;
@@ -542,6 +539,47 @@ int App::capturePlay() {
         clock->setHour(10.5f);
     }
     run(3.0f);
+    // v9 M2: the "use" prompt on a UAV seen from an orbit view (nothing selected), then the pause menu over it.
+    if (wanted("play_prompt_uav") || wanted("play_pause_menu") || wanted("play_pause_time") || wanted("play_settings")) {
+        for (const PovSource& p : listPovSources(*scene_, {0.0f, 2.0f, 0.0f}))
+            if (p.kind == PovKind::Uav && p.uav == 0) {
+                camera_ = Camera{};
+                camera_.mode = CameraMode::Orbit;
+                camera_.target = p.centre;
+                camera_.distance = 7.0f;
+                camera_.pitchDeg = 18.0f;
+                camera_.yawDeg = 210.0f;
+            }
+        selKey_ = hoverKey_ = 0;
+        run(0.3f);
+        updateInteraction();
+        std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
+        shot("play_prompt_uav");
+        openMenu();
+        menuTab_ = MenuTab::Travel;
+        const PauseMenuLayout ml = pauseMenuLayout(width, height);
+        menuMouseX_ = ml.guide.buttons[0].r.x + 20.0f;   // hover on UAV-1 CAMERA
+        menuMouseY_ = ml.guide.buttons[0].r.y + 20.0f;
+        run(0.1f);
+        shot("play_pause_menu");
+        menuTab_ = MenuTab::Time;
+        menuMouseX_ = menuMouseY_ = -1.0f;
+        run(0.1f);
+        shot("play_pause_time");
+        menuTab_ = MenuTab::Settings;
+        menuRow_ = 0;
+        const GameSettings keep = gs_;
+        changeSetting(SettingId::Sensitivity, +1);   // 1.00 -> 1.10 (no ini in capture mode)
+        changeSetting(SettingId::Sensitivity, +1);
+        menuMouseX_ = ml.rows[0].plus.x + 10.0f;
+        menuMouseY_ = ml.rows[0].plus.y + 10.0f;
+        run(0.1f);
+        shot("play_settings");
+        gs_ = keep;
+        menuMouseX_ = menuMouseY_ = -1.0f;
+        closeMenu();
+        run(0.1f);
+    }
     // An outdoor soldier near the middle of the camp, seen from an orbit view.
     uint32_t key = 0;
     PovSource target0;
@@ -594,6 +632,23 @@ int App::capturePlay() {
     shot("play_third_person_aim");
     held_.fire = false;
     aiming_ = false;
+    // v9 M2: in front of the barracks hall doorway (third person, facing it): "[E] Enter Barracks", then E.
+    if (wanted("play_prompt_door") || wanted("play_hall_entered")) {
+        if (Garrison* g = scene_->garrison()) {
+            const int si = possessedSoldierIndex();
+            for (int u = 0; u < g->count(); ++u)
+                if (sa::soldierIndex(*scene_, u) == si) g->unit(u)->place(layout::hall::kDoorX + 0.2f, layout::hall::kZ1 + 1.7f, 180.0f, layout::kApronLevel);
+            tp_.invalidate();
+            tpPoseValid_ = false;
+            run(0.8f);
+            updateInteraction();
+            std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
+            shot("play_prompt_door");
+            performInteract();
+            run(CameraRig::kBlendTime + 0.4f);
+            shot("play_hall_entered");
+        }
+    }
     // Indoors with the back to a wall: the command room of the bunker (2.6 m ceiling); the arm pulls in short of the
     // west wall instead of looking through it.
     if (Garrison* g = scene_->garrison()) {

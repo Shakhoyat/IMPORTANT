@@ -12,7 +12,9 @@
 #include "audio/AudioEngine.h"
 #include "scene/Control.h"
 #include "scene/Director.h"
+#include "scene/GameMenu.h"
 #include "scene/HudMath.h"
+#include "scene/Interact.h"
 #include "scene/InputScript.h"
 #include "scene/SceneApi.h"
 #include "scene/TickInterp.h"
@@ -52,6 +54,8 @@ struct AppOptions {
     std::string framesDir = "script_frames";   // --frames DIR: where the script's 'shot' frames go
     int vsync = -1;           // --vsync 0|1 (-1 = the mode's default: 0 = off, paced by the frame limiter)
     float fpsLimit = -1.0f;   // --fps-limit N: interactive frame limiter (-1 = display refresh, 0 = uncapped)
+    // v9 M2
+    std::string iniPath;      // player settings file (interactive; main.cpp: ThermalSense.ini next to the exe, --ini FILE)
 };
 
 class App {
@@ -356,6 +360,51 @@ private:
     const RigPose* viewOverride_ = nullptr;     // set while drawing an interpolated frame: composeView shows this pose
     int blendedParts_ = 0;
     void captureTickPose(float aspect);
+    // --- v9 M2: unified controls (AppInteract.cpp; scene/Interact.h, scene/GameMenu.h, scene/KeyMap.h). E = context
+    // interaction, Tab = next unit, V = person / camera view, F3 = HUD level, Esc = release, else the pause menu
+    // (Travel / Time / View = the v7.1 field guide, Settings persisted in ThermalSense.ini).
+    std::vector<Interactable> gatherInteractables(InteractView& view) const;   // what E could use from here
+    bool updateInteraction();                   // pick it (interact_, interactPrompt_); false = nothing
+    void performInteract();                     // E
+    void cycleUnits(int dir);                   // Tab / Shift+Tab: soldiers, UAVs, vehicles (scene/Interact.h order)
+    void cyclePersonView();                     // V: soldier 1st / 3rd, vehicle chase / sight / alt, ride-along view
+    void cycleHudLevel();                       // F3: GAME -> DEBUG -> OFF
+    void loadSettings();                        // ThermalSense.ini (interactive only)
+    void saveSettings();
+    void changeSetting(SettingId id, int dir);  // menu: adjust, apply, save
+    bool effectiveVsync() const;                // the command line wins until the setting is changed in the menu
+    float effectiveFpsLimit() const;
+    void applyDisplaySettings();                // Interactive.cpp: swap interval + frame limiter from the settings
+    void openMenu();
+    void closeMenu();
+    void menuAction(GuideAction a);             // a field-guide button / key
+    void menuSelectTab(int tab);                // MenuTab index
+    bool menuKey(int key, bool shift);
+    void menuPointer(float x, float y, int button, bool press);   // framebuffer pixels; button -1 = move
+    void setClockHour(float hour);              // manual clock + immediate light update (also while paused)
+    void drawInteractPrompt(int w, int h);
+    void drawSoldierHud(int w, int h);
+    void drawPauseMenu(int w, int h);
+    GameSettings gs_;
+    bool cliVsync_ = false, cliFpsLimit_ = false;   // --vsync / --fps-limit given (until changed in the menu)
+    bool displayDirty_ = true;
+    float displayHz_ = 60.0f, limitHz_ = 0.0f;
+    bool debugHud_ = true;                      // F3 debug blocks (offline captures keep the v8 HUD; interactive: off)
+    Interactable interact_;
+    bool interactValid_ = false;
+    std::string interactPrompt_;
+    bool menuOpen_ = false, menuWasPaused_ = false, menuDrag_ = false;
+    MenuTab menuTab_ = MenuTab::Travel;
+    int menuRow_ = 0;
+    float menuMouseX_ = -1.0f, menuMouseY_ = -1.0f;
+    std::string menuNote_;
+    const DayCycle* cycleClock_ = nullptr;      // clock whose base rates cycleBase_ holds (TIME -> SPEED)
+    float cycleBase_[2] = {10.0f, 13.3f};
+    int guideSpeed_ = 0;
+    bool quitRequest_ = false, explorerRequest_ = false;   // menu -> interactive loop (window-only actions)
+public:
+    bool headBobEnabled() const { return gs_.headBob; }   // v9 M2 setting (read by the soldier camera, M3)
+    const GameSettings& gameSettings() const { return gs_; }
 public:
     // Fixed-shot benchmark: shot names and their setup (also used by the tests through the headless app).
     static const std::vector<std::string>& benchShotNames();

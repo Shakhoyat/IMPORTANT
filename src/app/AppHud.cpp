@@ -176,8 +176,8 @@ void App::drawPossessHud(const CameraView& cam, int w, int h) {
     hud.text(px + pw - hud.textWidth(view, 13 * s) - 12 * s, py + 12 * s, view, 13 * s, kDim);
     hud.text(px + 12 * s, py + 38 * s, status, 15 * s, kWhite);
     hud.text(px + 12 * s, py + 62 * s, c.controls(), 13 * s, kDim);
-    hud.text(px + 12 * s, py + 80 * s, controllingSoldier() ? "ESC / BACKSPACE release   C or V first / third person   [ ] next"
-                                                             : "BACKSPACE release   C chase / sight   [ ] next", 12 * s, kDim);
+    hud.text(px + 12 * s, py + 80 * s, controllingSoldier() ? "E use   ESC release   V first / third person   TAB next unit"
+                                                             : "E / ESC release   V chase / sight / alt   TAB next unit", 12 * s, kDim);
 
     // Ammo / reload bars parsed from the status line ("AMMO 18", "RELOAD 40%").
     const float ammo = parseAfter(status, "AMMO "), reload = parseAfter(status, "RELOAD ");
@@ -1089,18 +1089,22 @@ void App::drawHud(const CameraView& cam, int w, int h) {
         drawThermalFpvHud(cam, w, h);
         drawGameHud(cam, w, h, true);
         drawCombatFeed(w, h);
-        if (paused_) hud.text(w * 0.5f - 40 * h / 900.0f, 110.0f * h / 900.0f, "PAUSED", 20 * h / 900.0f, kAmber);
+        drawInteractPrompt(w, h);   // v9 M2
+        if (paused_ && !menuOpen_) hud.text(w * 0.5f - 40 * h / 900.0f, 110.0f * h / 900.0f, "PAUSED", 20 * h / 900.0f, kAmber);
         if (pickerOpen_) drawPicker(w, h);
         if (showHelp_) drawHelp(w, h);
+        if (menuOpen_) drawPauseMenu(w, h);   // v9 M2
         hud.end();
         return;
     }
     if (gameMode_) {  // v7 F11: game HUD only (no diagnostics)
         drawGameModeHud(cam, w, h);
         drawPlayHud(cam, w, h);   // v8: selection / control prompts, third-person crosshair
-        if (paused_) hud.text(w * 0.5f - 40 * h / 900.0f, 160.0f * h / 900.0f, "PAUSED", 20 * h / 900.0f, kAmber);
+        drawInteractPrompt(w, h);   // v9 M2
+        if (paused_ && !menuOpen_) hud.text(w * 0.5f - 40 * h / 900.0f, 160.0f * h / 900.0f, "PAUSED", 20 * h / 900.0f, kAmber);
         if (pickerOpen_) drawPicker(w, h);
         if (showHelp_) drawHelp(w, h);
+        if (menuOpen_) drawPauseMenu(w, h);   // v9 M2
         hud.end();
         return;
     }
@@ -1136,13 +1140,15 @@ void App::drawHud(const CameraView& cam, int w, int h) {
     // (after drawGameHud: its world markers are flushed first, so this corner block paints over them)
     // v7 WP-P: soft backing behind the corner text blocks so the dim lines stay readable over a bright day sky.
     // (Two steps at the top: the title rows end left of the centred wave / score panel, the settings rows below it.)
+    // v9 M2: the corner blocks (switches, UAV / rover status, frame rate / triangles) are the F3 debug HUD.
+    if (debugHud_) {
     hud.rect(10 * s, 10 * s, 425 * s, 56 * s, Rgba{0.0f, 0.0f, 0.0f, 0.30f});
     hud.rect(10 * s, 66 * s, 485 * s, 48 * s, Rgba{0.0f, 0.0f, 0.0f, 0.30f});
     hud.rect(10 * s, H - 76 * s, 520 * s, 70 * s, Rgba{0.0f, 0.0f, 0.0f, 0.30f});
     hud.text(22 * s, 18 * s, "THERMALSENSE", 26 * s, kWhite);
     // v7 WP-P: the key hint stays left of the centred wave / score panel (it starts at ~450 s on a 16:9 screen).
     hud.text(30 * s + hud.textWidth("THERMALSENSE", 26 * s), 30 * s, "MILITARY BASE", 13 * s, kDim);
-    hud.text(22 * s, 48 * s, "F1 HELP  5-0 CONTROL  F2 TIME  F3 SOLDIER  F4 POV", 13 * s, kDim);
+    hud.text(22 * s, 48 * s, "F1 HELP  ESC MENU  TAB UNIT  E USE  F3 HUD  F4 POV", 13 * s, kDim);
     std::snprintf(line, sizeof(line), "VIEW %-10s EDGES %-11s SHADING %s", viewModeName(settings_.view),
                   edgeModeName(settings_.edges), overrideName(settings_.shading));
     hud.text(22 * s, 74 * s, line, 14 * s, kWhite);
@@ -1150,8 +1156,11 @@ void App::drawHud(const CameraView& cam, int w, int h) {
                   settings_.depthTest ? "ON" : "OFF", settings_.indexed ? "INDEXED" : "NON-INDEXED",
                   settings_.moonOn ? "ON" : "--", settings_.beaconOn ? "ON" : "--", settings_.spotOn ? "ON" : "--");
     hud.text(22 * s, 94 * s, line, 14 * s, kDim);
-    if (showFeed_ && camera_.mode != CameraMode::UavCamera) drawUavFeed(w, h);
+    }   // debugHud_ (top)
+    // The UAV feed: always with the debug HUD; in the game HUD not while a soldier / vehicle is under control.
+    if (showFeed_ && camera_.mode != CameraMode::UavCamera && (debugHud_ || camera_.mode != CameraMode::Possess)) drawUavFeed(w, h);
 
+    if (debugHud_) {
     const DroneState& d = scene_->drone;
     std::snprintf(line, sizeof(line), "UAV   %-9s alt %.1f m  gimbal %+4.0f/%3.0f deg  est (%.1f, %.1f)",
                   droneModeName(d.mode), d.position.y, d.gimbalYawDeg, d.gimbalPitchDeg, d.targetEstimate.x,
@@ -1192,14 +1201,21 @@ void App::drawHud(const CameraView& cam, int w, int h) {
             hud.line(gx, gy + gh - gh * ref / 50.0f, gx + kFrameHistory * bw, gy + gh - gh * ref / 50.0f,
                      Rgba{1.0f, 1.0f, 1.0f, 0.3f});
     }
-    if (camera_.mode == CameraMode::Possess) drawPossessHud(cam, w, h);
+    } else if (!controllingSoldier()) {   // v9 M2 game HUD: one dim hint where the debug block was
+        hud.text(22 * s, H - 26 * s, "ESC MENU   F1 HELP   F3 DEBUG HUD   TAB NEXT UNIT   E USE", 12 * s, kDim);
+    }
+    // v9 M2: a soldier under control gets the game HUD (crosshair, stance / rifle); the possession panel is debug.
+    if (camera_.mode == CameraMode::Possess && controllingSoldier() && !debugHud_) drawSoldierHud(w, h);
+    else if (camera_.mode == CameraMode::Possess) drawPossessHud(cam, w, h);
     else drawPovPanel(w, h, H - 196 * s);   // v7: riding along / driving a rover / free fly camera
     if (alert_ > 0.02f) drawAlertVignette(w, h, alert_);
     drawCombatFeed(w, h);
     drawPlayHud(cam, w, h);   // v8: selection / control prompts, third-person crosshair
-    if (paused_) hud.text(W / 2 - 40 * s, 20 * s, "PAUSED", 20 * s, kAmber);
+    drawInteractPrompt(w, h);   // v9 M2: "[E] ..." for what E would do now
+    if (paused_ && !menuOpen_) hud.text(W / 2 - 40 * s, debugHud_ ? 20 * s : 92 * s, "PAUSED", 20 * s, kAmber);
     if (pickerOpen_) drawPicker(w, h);
     if (showHelp_) drawHelp(w, h);
+    if (menuOpen_) drawPauseMenu(w, h);   // v9 M2
     hud.end();
 }
 
@@ -1295,7 +1311,7 @@ void App::drawPovPanel(int w, int h, float y) {
         std::snprintf(l2, sizeof(l2), "W A S D  PGUP PGDN fly   SHIFT x3   WHEEL speed   DRAG look   END back   F4 objects");
     } else if (possessedRover_ >= 0 && has) {
         std::snprintf(l1, sizeof(l1), "DRIVING %s   %.1f M/S", src.name.c_str(), src.speed);
-        std::snprintf(l2, sizeof(l2), "W S throttle   A D steer   SHIFT boost   C view   BACKSPACE let it drive itself   (the UAVs hunt you)");
+        std::snprintf(l2, sizeof(l2), "W S throttle   A D steer   SHIFT boost   V view   BACKSPACE let it drive itself   ESC leave   (the UAVs hunt you)");
         head = kEnemy;
     } else if (camera_.mode == CameraMode::Pov && has) {
         if (povHold_ >= 0.0f) {
@@ -1303,8 +1319,8 @@ void App::drawPovPanel(int w, int h, float y) {
             std::snprintf(l2, sizeof(l2), "END back   F4 objects   INS DEL next");
         } else {
             std::snprintf(l1, sizeof(l1), "POV  %s   %s   %.1f M/S", src.name.c_str(), povViewName(povView_), src.speed);
-            std::snprintf(l2, sizeof(l2), "%s   C view   INS DEL next   F4 objects   HOME free cam   END back",
-                          src.canControl ? "W A S D / ARROWS take control" : "SPECTATING (autonomous)");
+            std::snprintf(l2, sizeof(l2), "%s   V view   INS DEL next   F4 objects   HOME free cam   ESC leave",
+                          src.canControl ? "E / W A S D take control" : "SPECTATING (autonomous)");
         }
     } else {
         return;

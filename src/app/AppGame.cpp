@@ -60,6 +60,7 @@ RigPose App::targetPose(float aspect) {
         int soldier = -1;
         if (camera_.possessSight && firstPersonSoldier(soldier)) {
             RigPose eye = soldierEyePose(*scene_, soldier);
+            eye.fovDeg = gs_.fovDeg;   // v9 M2: the player's field of view (Settings; default 65 = the soldier's own)
             eye.fovDeg = lerpf(eye.fovDeg, 44.0f, aimBlend_);   // v8: right mouse = iron-sight zoom
             return eye;
         }

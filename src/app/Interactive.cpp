@@ -78,23 +78,23 @@ void App::updateTitle(double fps) {
 void App::interactiveLoop() {
     // v9 M1: no blocking vsync by default (under the desktop compositor the swap waited ~88 ms a frame on the test
     // machine); the frame limiter paces the loop to the display refresh instead (--fps-limit, --vsync 1 to opt in).
-    const int swapInterval = opt_.vsync >= 0 ? opt_.vsync : 0;
-    glfwSwapInterval(swapInterval);
-    float limitHz = opt_.fpsLimit;
-    if (limitHz < 0.0f) {   // auto: the refresh rate of the monitor the window is on (primary)
-        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        limitHz = mode && mode->refreshRate > 0 ? static_cast<float>(mode->refreshRate) : 60.0f;
-    }
-    if (swapInterval > 0) limitHz = 0.0f;
-    std::printf("Frame pacing: %s, simulation %d Hz fixed tick with render interpolation\n",
-                swapInterval > 0 ? "vsync" : limitHz > 0.0f ? (std::to_string(static_cast<int>(limitHz + 0.5f)) + " fps limiter").c_str() : "uncapped",
-                static_cast<int>(1.0f / FixedStepClock::kTick + 0.5f));
-    std::fflush(stdout);
+    // v9 M2: vsync / frame limit come from the settings (pause menu, ThermalSense.ini) unless the command line set them.
+    applyDisplaySettings();
+    debugHud_ = false;   // v9 M2: the decluttered game HUD; F3 adds the debug blocks
     if (!opt_.inputScript.empty() && !loadInputScript()) return;
     double last = glfwGetTime(), titleTimer = 0.0;
     int frames = 0;
     FramePacer pacer;
     while (!glfwWindowShouldClose(window_)) {
+        if (displayDirty_) applyDisplaySettings();   // v9 M2: vsync / frame limit changed in the settings
+        if (quitRequest_) {                           // v9 M2: QUIT in the pause menu
+            glfwSetWindowShouldClose(window_, 1);
+            break;
+        }
+        if (explorerRequest_) {                       // v9 M2: FRAME EXPLORER button of the menu's VIEW page
+            explorerRequest_ = false;
+            onKey(GLFW_KEY_GRAVE_ACCENT, GLFW_PRESS, 0);
+        }
         const double now = glfwGetTime();
         const double frameSeconds = now - last;
         if (script_.active()) {   // v9 M0: scripted input (the clock starts at the first frame)
@@ -122,7 +122,7 @@ void App::interactiveLoop() {
         // v7 WP-G: game mode captures the cursor for mouse look in first-person / free views (shown again for the picker).
         {
             // v8: controlling a soldier always captures the mouse (look / aim / fire like a shooter; Esc lets go).
-            const bool look = !pickerOpen_ && !showHelp_ &&
+            const bool look = !pickerOpen_ && !showHelp_ && !menuOpen_ &&
                               ((gameMode_ && (camera_.mode == CameraMode::Free || camera_.mode == CameraMode::Walk ||
                                               camera_.mode == CameraMode::Pov || camera_.mode == CameraMode::Possess)) ||
                                controllingSoldier());
@@ -175,7 +175,7 @@ void App::interactiveLoop() {
             aiming_ = false;
         }
         // v8: what is under the mouse pointer (name tag; a click selects it).
-        if (!cursorCaptured_ && !pickerOpen_ && camera_.mode != CameraMode::Possess && camera_.mode != CameraMode::Cinematic) {
+        if (!cursorCaptured_ && !pickerOpen_ && !menuOpen_ && camera_.mode != CameraMode::Possess && camera_.mode != CameraMode::Cinematic) {
             double cx = 0.0, cy = 0.0;
             int ww = 1, wh = 1;
             cursorPos(cx, cy);
@@ -275,7 +275,7 @@ void App::interactiveLoop() {
         glfwSwapBuffers(window_);
         loopT_.swap += glfwGetTime() - tSwap;
         const double tWait = glfwGetTime();
-        pacer.wait(limitHz);   // v9 M1: frame limiter (sleeps; never spins for more than half a millisecond)
+        pacer.wait(limitHz_);   // v9 M1: frame limiter (sleeps; never spins for more than half a millisecond)
         loopT_.wait += glfwGetTime() - tWait;
         glfwPollEvents();
         ++loopT_.frames;
@@ -294,6 +294,21 @@ void App::captureTickPose(float aspect) {
     tickPose_[1] = RigPose::fromView(v.view, v.position, fovFromProjection(v.proj), v.nearZ);
     tickFar_ = v.farZ;
     tickPoseValid_[1] = true;
+}
+
+// v9 M2: swap interval and frame limiter from the settings (the command line's --vsync / --fps-limit until changed).
+void App::applyDisplaySettings() {
+    displayDirty_ = false;
+    if (const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor()))   // the monitor the window is on (primary)
+        if (mode->refreshRate > 0) displayHz_ = static_cast<float>(mode->refreshRate);
+    const bool vsync = effectiveVsync();
+    glfwSwapInterval(vsync ? 1 : 0);
+    const float limit = effectiveFpsLimit();
+    limitHz_ = vsync ? 0.0f : limit < 0.0f ? displayHz_ : limit;
+    std::printf("Frame pacing: %s, simulation %d Hz fixed tick with render interpolation\n",
+                vsync ? "vsync" : limitHz_ > 0.0f ? (std::to_string(static_cast<int>(limitHz_ + 0.5f)) + " fps limiter").c_str() : "uncapped",
+                static_cast<int>(1.0f / FixedStepClock::kTick + 0.5f));
+    std::fflush(stdout);
 }
 
 // ------------------------------------------------------------------------------------------- v9 M0: input script
@@ -366,6 +381,11 @@ void App::runScript(double t) {
 }
 
 void App::scriptAfterRender(int w, int h) {
+    // v9 M2: what E would do, the pause menu page and the look settings, after the state line
+    char m2[256];
+    std::snprintf(m2, sizeof(m2), " prompt \"%s\" menu %s sens %.2f invertY %d hud %s", interactPrompt_.c_str(),
+                  menuOpen_ ? menuTabLabel(menuTab_) : "-", gs_.mouseSensitivity, gs_.invertY ? 1 : 0,
+                  !showHud_ ? "OFF" : debugHud_ ? "DEBUG" : "GAME");
     for (const std::string& name : scriptShots_) {
         std::vector<uint8_t> bottomUp(static_cast<size_t>(w) * h * 3), rgb(bottomUp.size());
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -376,14 +396,14 @@ void App::scriptAfterRender(int w, int h) {
             std::copy(bottomUp.begin() + (h - 1 - y) * row, bottomUp.begin() + (h - y) * row, rgb.begin() + y * row);
         const std::string path = opt_.framesDir + "/" + name + ".png";
         const bool ok = writePng(path, w, h, rgb);
-        std::printf("script shot %s %s | %s\n", ok ? "wrote" : "FAILED", path.c_str(), stateLine().c_str());
+        std::printf("script shot %s %s | %s%s\n", ok ? "wrote" : "FAILED", path.c_str(), stateLine().c_str(), m2);
     }
     for (const std::string& label : scriptLogs_) {
         const double span = glfwGetTime() - loopT_.start;
         const int n = std::max(loopT_.frames, 1);
         std::printf("script log %s | %s | %.1f fps, ms/frame: sim %.2f render %.2f vision %.2f swap %.2f wait %.2f (%d frames, "
                     "%lld ticks, %d parts blended)\n",
-                    label.c_str(), stateLine().c_str(), loopT_.frames / std::max(span, 1e-6), 1000.0 * loopT_.sim / n,
+                    label.c_str(), (stateLine() + m2).c_str(), loopT_.frames / std::max(span, 1e-6), 1000.0 * loopT_.sim / n,
                     1000.0 * loopT_.render / n, 1000.0 * loopT_.vision / n, 1000.0 * loopT_.swap / n, 1000.0 * loopT_.wait / n,
                     loopT_.frames, simClock_.ticks() - loopT_.tick0, blendedParts_);
         loopT_ = LoopTiming{};
@@ -395,7 +415,7 @@ void App::scriptAfterRender(int w, int h) {
     scriptLogs_.clear();
 }
 
-void App::onKey(int key, int action, int) {
+void App::onKey(int key, int action, int mods) {
     if (opt_.mode != AppOptions::Mode::Interactive) return;  // benchmarks ignore input
     // v7 WP-I: ` freezes the frame into the Frame Explorer; while it is open it gets every key (` / Esc close it).
     if (wpiExplorer().isOpen()) {
@@ -429,6 +449,12 @@ void App::onKey(int key, int action, int) {
         return;
     }
     // v7 WP-I end
+    // v9 M2: the pause menu takes every key while it is open (F12 still saves a screenshot).
+    if (menuOpen_ && key != GLFW_KEY_F12) {
+        if (action == GLFW_PRESS || action == GLFW_REPEAT)
+            menuKey(key, (mods & GLFW_MOD_SHIFT) != 0 || keyDown(GLFW_KEY_LEFT_SHIFT) || keyDown(GLFW_KEY_RIGHT_SHIFT));
+        return;
+    }
     // v7 WP-G: the POV picker owns the arrows, Enter and Esc while it is open (held keys repeat).
     if (pickerOpen_ && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
         switch (key) {
@@ -455,20 +481,16 @@ void App::onKey(int key, int action, int) {
     const RigPose from = shownPose_;
     const int wasPossessed = possessed_;
     switch (key) {
-        case GLFW_KEY_ESCAPE:   // v8: leave control / riding along / the selection first; quit when there is nothing left
-            if (!releaseControl()) glfwSetWindowShouldClose(window_, 1);
+        case GLFW_KEY_ESCAPE:   // v9 M2: close help / leave control / the ride / the selection; else the pause menu (Quit is in it)
+            if (showHelp_) showHelp_ = false;
+            else if (!releaseControl()) openMenu();
             break;
-        case GLFW_KEY_C:
-            if (controllingSoldier()) {   // v8: first <-> third person (same as V)
-                setViewThirdPerson(camera_.possessSight);
+        case GLFW_KEY_C:   // v9 M2: the camera mode only (orbit, free, chase, UAV camera, walk); V switches person views
+            if (camera_.mode == CameraMode::Possess || camera_.mode == CameraMode::Pov || possessedRover_ >= 0) {
+                std::printf("C cycles the camera when nothing is controlled; V switches this view\n");
                 break;
             }
-            if (camera_.mode == CameraMode::Pov) {
-                cycleView();  // v7: first person -> chase -> alt camera
-                break;
-            }
-            if (camera_.mode == CameraMode::Possess) toggleSight();
-            else camera_.cycle();
+            camera_.cycle();
             flyCam_ = false;
             beginJump(from);
             break;
@@ -510,7 +532,7 @@ void App::onKey(int key, int action, int) {
         case GLFW_KEY_SLASH:
             if (DayCycle* clock = sa::dayCycle(*scene_)) clock->jumpToNextPhase();
             break;
-        case GLFW_KEY_F3: possessNextSoldier(); break;
+        case GLFW_KEY_F3: cycleHudLevel(); break;   // v9 M2 (was: next soldier; Tab cycles every unit now)
         case GLFW_KEY_LEFT_BRACKET: cyclePossession(-1); break;
         case GLFW_KEY_RIGHT_BRACKET: cyclePossession(+1); break;
         case GLFW_KEY_BACKSPACE:
@@ -525,24 +547,26 @@ void App::onKey(int key, int action, int) {
             firePressedEdge_ = true;
             if (camera_.mode == CameraMode::Walk) interact();
             break;
-        case GLFW_KEY_V:
-            if (camera_.mode == CameraMode::Possess && possessedSoldierIndex() >= 0) {   // v8: first <-> third person
-                setViewThirdPerson(camera_.possessSight);
-                break;
-            }
+        case GLFW_KEY_V: cyclePersonView(); break;   // v9 M2: soldier 1st / 3rd, vehicle chase / sight / alt, ride-along view
+        case GLFW_KEY_F:   // v9 M2: view mode (was V; F was flat shading, now in the O cycle)
             settings_.view = static_cast<ViewMode>((static_cast<int>(settings_.view) + 1) % 4);
             break;
         case GLFW_KEY_X: settings_.edges = static_cast<EdgeMode>((static_cast<int>(settings_.edges) + 1) % 3); break;
         case GLFW_KEY_Z: settings_.depthTest = !settings_.depthTest; break;
-        case GLFW_KEY_O: settings_.shading = ShadingOverride::PerObject; break;
-        case GLFW_KEY_F: settings_.shading = ShadingOverride::Flat; break;
-        case GLFW_KEY_G: settings_.shading = ShadingOverride::Gouraud; break;
-        case GLFW_KEY_P: settings_.shading = ShadingOverride::Phong; break;
+        case GLFW_KEY_O:   // v9 M2: one key cycles the shading (F G P are taken by view, explode, pause)
+            settings_.shading = settings_.shading == ShadingOverride::PerObject ? ShadingOverride::Flat
+                                : settings_.shading == ShadingOverride::Flat    ? ShadingOverride::Gouraud
+                                : settings_.shading == ShadingOverride::Gouraud ? ShadingOverride::Phong
+                                                                                : ShadingOverride::PerObject;
+            std::printf("Shading: %s\n", overrideName(settings_.shading));
+            break;
+        case GLFW_KEY_P: paused_ = !paused_; break;   // v9 M2: pause (Space is jump only)
         case GLFW_KEY_1: settings_.moonOn = !settings_.moonOn; break;
         case GLFW_KEY_2: settings_.beaconOn = !settings_.beaconOn; break;
         case GLFW_KEY_3: settings_.spotOn = !settings_.spotOn; break;
         case GLFW_KEY_4: settings_.practicalsOn = !settings_.practicalsOn; break;
-        case GLFW_KEY_E: exploded_ = !exploded_; break;
+        case GLFW_KEY_E: performInteract(); break;    // v9 M2: interact (prompt on screen)
+        case GLFW_KEY_G: exploded_ = !exploded_; break;   // v9 M2: explode (was E)
         case GLFW_KEY_H: settings_.showAxes = !settings_.showAxes; break;
         case GLFW_KEY_M: settings_.showPlan = !settings_.showPlan; break;
         case GLFW_KEY_I: settings_.indexed = !settings_.indexed; break;
@@ -566,11 +590,12 @@ void App::onKey(int key, int action, int) {
         case GLFW_KEY_N: settings_.cinematic = !settings_.cinematic; break;
         case GLFW_KEY_EQUAL: settings_.exposure *= 1.15f; break;
         case GLFW_KEY_MINUS: settings_.exposure /= 1.15f; break;
-        case GLFW_KEY_TAB: showHud_ = !showHud_; break;
+        case GLFW_KEY_TAB:   // v9 M2: next / previous unit (was HUD on / off: F3 cycles the HUD now)
+            cycleUnits((mods & GLFW_MOD_SHIFT) != 0 || keyDown(GLFW_KEY_LEFT_SHIFT) || keyDown(GLFW_KEY_RIGHT_SHIFT) ? -1 : 1);
+            break;
         case GLFW_KEY_F1: showHelp_ = !showHelp_; break;
-        case GLFW_KEY_SPACE:   // v8: a soldier under control jumps; otherwise Space pauses
+        case GLFW_KEY_SPACE:   // v9 M2: jump only (pause is P / Pause)
             if (controllingSoldier()) jumpEdge_ = true;
-            else paused_ = !paused_;
             break;
         case GLFW_KEY_PAUSE: paused_ = !paused_; break;
         case GLFW_KEY_F12: {
@@ -608,7 +633,7 @@ void App::onKey(int key, int action, int) {
         default: break;
     }
     const bool possessKey = (key >= GLFW_KEY_5 && key <= GLFW_KEY_9) || key == GLFW_KEY_0 || key == GLFW_KEY_LEFT_BRACKET ||
-                            key == GLFW_KEY_RIGHT_BRACKET || key == GLFW_KEY_F3 || key == GLFW_KEY_BACKSPACE;
+                            key == GLFW_KEY_RIGHT_BRACKET || key == GLFW_KEY_BACKSPACE;
     if (possessKey && possessed_ != wasPossessed) {
         noteJump(before, from);
         if (possessed_ >= 0) audio_.uiCue(audio::UiCue::Possess);
@@ -623,6 +648,18 @@ void App::onMouseButton(int button, int action) {
         return;
     }
     // v7 WP-I end
+    // v9 M2: the pause menu takes the mouse (tabs, buttons, the time slider, settings).
+    if (menuOpen_) {
+        double cx = 0.0, cy = 0.0;
+        int ww = 1, wh = 1;
+        cursorPos(cx, cy);
+        glfwGetWindowSize(window_, &ww, &wh);
+        menuPointer(static_cast<float>(cx * lastW_ / std::max(ww, 1)), static_cast<float>(cy * lastH_ / std::max(wh, 1)),
+                    button == GLFW_MOUSE_BUTTON_LEFT ? 0 : button, action == GLFW_PRESS);
+        dragging_ = false;
+        pressValid_ = false;
+        return;
+    }
     // v7 WP-H: ray debugger: a left click traces that pixel (CPU) and shows its ray tree; it does not start a drag.
     if (renderer_->rayDebug() && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double cx = 0.0, cy = 0.0;
@@ -687,18 +724,29 @@ void App::onCursor(double x, double y) {
         return;
     }
     // v7 WP-I end
+    if (menuOpen_) {   // v9 M2: menu hover / slider drag (framebuffer pixels)
+        int ww = 1, wh = 1;
+        glfwGetWindowSize(window_, &ww, &wh);
+        menuPointer(static_cast<float>(x * lastW_ / std::max(ww, 1)), static_cast<float>(y * lastH_ / std::max(wh, 1)), -1, false);
+        lastX_ = x;
+        lastY_ = y;
+        return;
+    }
     const bool look = dragging_ || cursorCaptured_;  // v7: game mode looks without a button held
+    // v9 M2: the player's mouse sensitivity and invert Y apply to every look path below.
+    float mdx = static_cast<float>(x - lastX_), mdy = static_cast<float>(y - lastY_);
+    applyLookSettings(gs_, mdx, mdy);
     if (look && controllingSoldier() && !camera_.possessSight) {   // v8: third person: the mouse swings the camera arm
-        tpLookYaw_ += static_cast<float>(x - lastX_) * 0.15f;
-        tpLookPitch_ -= static_cast<float>(y - lastY_) * 0.15f;
+        tpLookYaw_ += mdx * 0.15f;
+        tpLookPitch_ -= mdy * 0.15f;
     } else if (look && camera_.mode == CameraMode::Possess) {  // mouse drag = aim delta of the possessed object
-        aimYawAcc_ += static_cast<float>(x - lastX_) * 0.15f;
-        aimPitchAcc_ -= static_cast<float>(y - lastY_) * 0.15f;
+        aimYawAcc_ += mdx * 0.15f;
+        aimPitchAcc_ -= mdy * 0.15f;
     } else if (look && camera_.mode == CameraMode::Pov) {  // v7: free look while riding along
-        povLookYaw_ = std::fmod(povLookYaw_ + static_cast<float>(x - lastX_) * 0.15f, 360.0f);
-        povLookPitch_ = clampf(povLookPitch_ - static_cast<float>(y - lastY_) * 0.15f, -75.0f, 75.0f);
+        povLookYaw_ = std::fmod(povLookYaw_ + mdx * 0.15f, 360.0f);
+        povLookPitch_ = clampf(povLookPitch_ - mdy * 0.15f, -75.0f, 75.0f);
     } else if (look) {
-        camera_.drag(static_cast<float>(x - lastX_), static_cast<float>(y - lastY_));
+        camera_.drag(mdx, mdy);
     }
     lastX_ = x;
     lastY_ = y;
@@ -731,6 +779,7 @@ void App::onScroll(double dy) {
 
 namespace ts {
 void App::interactiveLoop() {}
+void App::applyDisplaySettings() {}
 bool App::keyDown(int key) const { return script_.keyHeld(key); }
 bool App::mouseDown(int button) const { return script_.buttonHeld(button); }
 void App::cursorPos(double& x, double& y) const { x = y = 0.0; }

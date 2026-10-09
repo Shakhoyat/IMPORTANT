@@ -12,6 +12,7 @@
 // v6 world options: --seed N, --time day|night|dusk|dawn|cycle|HH:MM, --cycle-seconds N, --no-garrison
 #include <chrono>
 #include <cstdio>
+#include <fstream>
 #include <cstdlib>
 #include <cstring>
 #include <random>
@@ -20,6 +21,19 @@
 #include "app/App.h"
 #include "app/DocExport.h"
 #include "scene/HudMath.h"
+#include "scene/KeyMap.h"
+
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 #if defined(_WIN32)
 // Laptops with hybrid graphics: ask the NVIDIA / AMD driver to run this program on the discrete GPU.
@@ -30,6 +44,23 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #endif
 
 namespace {
+
+// v9 M2: ThermalSense.ini lives next to the executable (not in the working directory).
+std::string defaultIniPath(const char* argv0) {
+    std::string exe;
+#if defined(_WIN32)
+    char buf[4096];
+    const DWORD n = GetModuleFileNameA(nullptr, buf, sizeof(buf));
+    if (n > 0 && n < sizeof(buf)) exe.assign(buf, n);
+#else
+    char buf[4096];
+    const ssize_t n = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (n > 0) exe.assign(buf, static_cast<size_t>(n));
+#endif
+    if (exe.empty() && argv0) exe = argv0;
+    const size_t slash = exe.find_last_of("/\\");
+    return (slash == std::string::npos ? std::string() : exe.substr(0, slash + 1)) + "ThermalSense.ini";
+}
 
 void usage() {
     std::printf(
@@ -42,6 +73,7 @@ void usage() {
         "  --bench-shots FILE           fixed shots x day / night: FPS, CPU phases, GPU passes, draws (+ FILE.md)\n"
         "  --trace FILE SECONDS         UAV / rover behaviour log (4 Hz CSV)\n"
         "  --export-docs FILE           GPU-free export of every part, matrix and mesh\n"
+        "  --export-keys FILE           v9: the key / mouse binding table as JSON (contexts, old bindings, conflicts)\n"
         "options:\n"
         "  --quality low|high|ultra|epic   rendering preset (default: auto; EPIC on RTX / discrete GPUs)\n"
         "  --size WxH                    window / output resolution (e.g. 2560x1440, 3840x2160)\n"
@@ -62,7 +94,8 @@ void usage() {
         "  --frames DIR                  where the script's 'shot' frames go (default script_frames)\n"
         "  --vsync 0|1                   swap interval (default 0: the frame limiter paces the interactive loop)\n"
         "  --fps-limit N                 interactive frame limiter (default: the display refresh; 0 = uncapped)\n"
-        "  --no-garrison                 no soldiers\n");
+        "  --no-garrison                 no soldiers\n"
+        "  --ini FILE                    settings file (default: ThermalSense.ini next to the exe; 'none' = defaults, no file)\n");
 }
 
 int parseQuality(const std::string& v) {
@@ -77,11 +110,21 @@ int parseQuality(const std::string& v) {
 
 int main(int argc, char** argv) {
     ts::AppOptions opt;
+    opt.iniPath = defaultIniPath(argc > 0 ? argv[0] : nullptr);
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         const std::string value = (i + 1 < argc) ? argv[i + 1] : "";
         if (arg == "--export-docs") {
             return ts::exportSceneDocs(value.empty() ? "build/scene_export.json" : value) ? 0 : 1;
+        } else if (arg == "--export-keys") {   // v9 M2
+            std::ofstream f(value.empty() ? "keys.json" : value, std::ios::binary);
+            f << ts::keyMapJson(ts::keyMapV9());
+            std::printf("wrote %s (%zu bindings, %zu conflicts)\n", value.empty() ? "keys.json" : value.c_str(), ts::keyMapV9().size(),
+                        ts::keyMapConflicts(ts::keyMapV9()).size());
+            return f ? 0 : 1;
+        } else if (arg == "--ini") {   // v9 M2
+            opt.iniPath = value == "none" ? std::string() : value;
+            ++i;
         } else if (arg == "--capture") {
             opt.mode = ts::AppOptions::Mode::Capture;
             opt.outPath = value;
