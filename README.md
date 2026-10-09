@@ -164,6 +164,9 @@ installs everything on a fresh Ubuntu box, builds and runs a smoke test.
 | `--capture DIR [--only a,b]` | render the report figures |
 | `--record FILE [SECONDS]` | cinematic video |
 | `--benchmark FILE` | FPS per preset + per-feature ablation |
+| `--bench-shots FILE [--only a,b]` | v9: 5 fixed gameplay shots (overview, uav_chase, soldier_1p, soldier_3p, hall_inside) x day / night at 1080p: FPS, CPU phases, GPU passes, draws, triangles (JSON + `FILE.md`) |
+| `--input-script FILE [--frames DIR]` | v9: play timed key / mouse events into the interactive game (`shot` / `log` lines save frames and state; format in `src/scene/InputScript.h`) |
+| `--vsync 0\|1` | swap interval (default: 1 interactive, 0 benchmarks) |
 | `--trace FILE [SECONDS]` | log UAV / rover behaviour (also writes `FILE.events.csv` and a `rules:` check line) |
 | `--export-docs FILE` | GPU-free export of every part, matrix and mesh (JSON for the workbook) |
 | `--seed N` | v6 run seed: rover routes, patrols, sensor noise (default: random and printed when interactive, 1 for offline modes; 0 = the fixed v5 run with an ideal sensor) |

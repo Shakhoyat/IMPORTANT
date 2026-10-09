@@ -190,13 +190,15 @@ bool App::closeRequested() const {
 }
 
 int App::run() {
-    const bool visible = opt_.mode == AppOptions::Mode::Interactive || opt_.mode == AppOptions::Mode::Benchmark;
+    const bool visible = opt_.mode == AppOptions::Mode::Interactive || opt_.mode == AppOptions::Mode::Benchmark ||
+                         opt_.mode == AppOptions::Mode::BenchShots;
     if (!initWindow(visible)) return 1;
     // v7 (WP-G): an --only list of game_* shots renders the POV / game-mode figures (AppGame.cpp).
     if (opt_.mode == AppOptions::Mode::Capture && opt_.only.find(",game_") != std::string::npos) return captureGame();
     if (opt_.mode == AppOptions::Mode::Capture && opt_.only.find(",play_") != std::string::npos) return capturePlay();
     if (opt_.mode == AppOptions::Mode::Capture) return captureMode();
     if (opt_.mode == AppOptions::Mode::Benchmark) return benchmarkMode();
+    if (opt_.mode == AppOptions::Mode::BenchShots) return benchShotsMode();
     if (opt_.mode == AppOptions::Mode::Trace) return traceMode();
     if (opt_.mode == AppOptions::Mode::Record) return recordMode();
     audioLive_ = !headless_ && audio_.startDevice();  // silent when there is no sound device

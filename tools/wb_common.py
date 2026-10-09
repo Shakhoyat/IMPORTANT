@@ -47,6 +47,7 @@ S_V7T = "27 v7 Tests"
 SHEET_ORDER = [S_COVER, S_INV, S_VERT, S_OBJ, S_MAT, S_HIER, S_GEOM, S_LIGHT, S_SHADE, S_PIPE, S_TEST, S_PERF,
                S_BEHAV, S_TRACE, S_CTRL, S_BASE, S_COMBAT, S_AUDIT, S_CV, S_SQUAD, S_AUDIO, S_DAY, S_SOLD, S_CVN,
                S_RT, S_FX, S_GAME, S_V7T]
+# v8 / v9 sheets (tools/wb_v9.py) are appended to SHEET_ORDER there, one per milestone.
 
 AUTHOR = "Md. Shakhoyat Rahman Shujon"
 ROLL = "2107104"

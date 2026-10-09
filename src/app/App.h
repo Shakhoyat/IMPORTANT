@@ -13,6 +13,7 @@
 #include "scene/Control.h"
 #include "scene/Director.h"
 #include "scene/HudMath.h"
+#include "scene/InputScript.h"
 #include "scene/SceneApi.h"
 #include "scene/Scene.h"
 #include "vision/SensorModel.h"
@@ -23,7 +24,7 @@ struct GLFWwindow;
 namespace ts {
 
 struct AppOptions {
-    enum class Mode { Interactive, Capture, Benchmark, Trace, Record } mode = Mode::Interactive;
+    enum class Mode { Interactive, Capture, Benchmark, Trace, Record, BenchShots } mode = Mode::Interactive;
     std::string outPath;  // capture directory or benchmark JSON
     int width = 1600, height = 900;
     bool sizeGiven = false;  // --size WxH overrides the per-mode / per-shot resolution
@@ -44,6 +45,10 @@ struct AppOptions {
     bool timeGiven = false;
     float cycleSeconds = 0.0f;  // --cycle-seconds: one full day + night in auto mode (0 = DayCycleConfig default)
     bool garrison = true;    // --no-garrison
+    // v9 M0
+    std::string inputScript;  // --input-script FILE: timed key / mouse events fed to the interactive loop
+    std::string framesDir = "script_frames";   // --frames DIR: where the script's 'shot' frames go
+    int vsync = -1;           // --vsync 0|1 (-1 = the mode's default: interactive 1, benchmarks 0)
 };
 
 class App {
@@ -319,6 +324,30 @@ private:
     double pressX_ = 0.0, pressY_ = 0.0;        // left button press position (a click selects, a drag orbits)
     bool pressValid_ = false;
     bool playCapture_ = false;                  // a play_* capture drives the v8 player camera (captures only)
+
+    // --- v9 M0: scripted input (scene/InputScript.h) and the fixed-shot benchmark (BenchShots.cpp) ---
+    bool keyDown(int key) const;                // GLFW key held, or held by the input script
+    bool mouseDown(int button) const;           // GLFW mouse button held, or by the script
+    void cursorPos(double& x, double& y) const; // window pixels: the script's pointer once it set one, else GLFW's
+    bool loadInputScript();                     // --input-script: parse into script_ (false = syntax error)
+    void runScript(double t);                   // dispatch the events due at t (seconds since the loop started)
+    void scriptAfterRender(int w, int h);       // 'shot' frames from the back buffer, 'log' lines
+    std::string stateLine() const;              // camera / control / soldier state for logs
+    ScriptPlayer script_;
+    double scriptT0_ = -1.0;
+    bool scriptPointer_ = false;
+    double scriptPx_ = 0.5, scriptPy_ = 0.5;
+    std::vector<std::string> scriptShots_, scriptLogs_;
+    struct LoopTiming {                         // interactive loop phases since the last log (CPU wall time, s)
+        double sim = 0, render = 0, vision = 0, swap = 0, start = -1;
+        int frames = 0;
+    } loopT_;
+public:
+    // Fixed-shot benchmark: shot names and their setup (also used by the tests through the headless app).
+    static const std::vector<std::string>& benchShotNames();
+    bool setupBenchShot(const std::string& name);   // camera / control for one shot (after the world is warm)
+private:
+    int benchShotsMode();
 };
 
 }  // namespace ts

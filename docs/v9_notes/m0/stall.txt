@@ -1,0 +1,5 @@
+# M0: interactive-loop timing in the real exe (no input: orbit view at noon)
+6   log warmup
+12  log orbit_noon
+12  shot orbit_noon
+13  quit

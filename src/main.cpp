@@ -39,6 +39,7 @@ void usage() {
         "  --capture DIR [--only a,b]   render the report figures\n"
         "  --record FILE [SECONDS]      cinematic video, default 120 s (needs ffmpeg)\n"
         "  --benchmark FILE             FPS per preset + per-feature ablation + GPU pass times\n"
+        "  --bench-shots FILE           fixed shots x day / night: FPS, CPU phases, GPU passes, draws (+ FILE.md)\n"
         "  --trace FILE SECONDS         UAV / rover behaviour log (4 Hz CSV)\n"
         "  --export-docs FILE           GPU-free export of every part, matrix and mesh\n"
         "options:\n"
@@ -56,6 +57,10 @@ void usage() {
         "  --time T                      day | night | dusk | dawn | HH:MM (manual clock) | cycle (automatic)\n"
         "                                default: cycle from 16:30 (interactive), night 23:00 manual (offline modes)\n"
         "  --cycle-seconds N             length of one automatic day + night cycle\n"
+        "testing (v9):\n"
+        "  --input-script FILE           interactive: play timed key / mouse events (scene/InputScript.h)\n"
+        "  --frames DIR                  where the script's 'shot' frames go (default script_frames)\n"
+        "  --vsync 0|1                   swap interval (default: 1 interactive, 0 benchmarks)\n"
         "  --no-garrison                 no soldiers\n");
 }
 
@@ -112,6 +117,23 @@ int main(int argc, char** argv) {
                 opt.width = 1280;
                 opt.height = 720;
             }
+            ++i;
+        } else if (arg == "--bench-shots") {   // v9 M0: fixed camera shots x day / night, per-pass timings
+            opt.mode = ts::AppOptions::Mode::BenchShots;
+            opt.outPath = value;
+            if (!opt.sizeGiven) {
+                opt.width = 1920;
+                opt.height = 1080;
+            }
+            ++i;
+        } else if (arg == "--input-script") {
+            opt.inputScript = value;
+            ++i;
+        } else if (arg == "--frames") {
+            opt.framesDir = value;
+            ++i;
+        } else if (arg == "--vsync") {
+            opt.vsync = std::atoi(value.c_str()) != 0 ? 1 : 0;
             ++i;
         } else if (arg == "--trace") {
             opt.mode = ts::AppOptions::Mode::Trace;

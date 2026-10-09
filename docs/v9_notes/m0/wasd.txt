@@ -1,0 +1,23 @@
+# M0: drive a soldier with W A S D in the real exe (F3 = control the next soldier, first person)
+5     key F3 tap
+6.5   log start
+6.5   shot wasd_0_start
+6.6   key W down
+8.6   key W up
+8.7   log after_W_2s
+8.7   shot wasd_1_after_w
+8.8   key D down
+9.8   key D up
+9.9   log after_D_1s
+10.0  look 600 0 1.0
+11.2  log after_look_right
+11.2  key W down
+12.7  key W up
+12.8  log after_W_turned
+12.8  shot wasd_2_after_turn
+13.0  key V tap
+14.0  key W down
+15.5  key W up
+15.6  log third_person_W
+15.6  shot wasd_3_third_person
+16.0  quit

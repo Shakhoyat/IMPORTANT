@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 #include <string>
 
 #include "rendering/FrameExplorer.h"  // v7 WP-I
@@ -73,11 +74,17 @@ void App::updateTitle(double fps) {
 }
 
 void App::interactiveLoop() {
-    glfwSwapInterval(1);
+    glfwSwapInterval(opt_.vsync >= 0 ? opt_.vsync : 1);
+    if (!opt_.inputScript.empty() && !loadInputScript()) return;
     double last = glfwGetTime(), titleTimer = 0.0;
     int frames = 0;
     while (!glfwWindowShouldClose(window_)) {
         const double now = glfwGetTime();
+        if (script_.active()) {   // v9 M0: scripted input (the clock starts at the first frame)
+            if (scriptT0_ < 0.0) scriptT0_ = now;
+            runScript(now - scriptT0_);
+        }
+        if (loopT_.start < 0.0) loopT_.start = now;
         const float dt = static_cast<float>(std::min(now - last, 0.05));
         frameMs_[frameHead_] = static_cast<float>(1000.0 * (now - last));   // v7 WP-Q: HUD frame-time graph
         frameHead_ = (frameHead_ + 1) % kFrameHistory;
@@ -104,13 +111,13 @@ void App::interactiveLoop() {
                                controllingSoldier());
             if (look != cursorCaptured_) {
                 glfwSetInputMode(window_, GLFW_CURSOR, look ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-                glfwGetCursorPos(window_, &lastX_, &lastY_);
+                cursorPos(lastX_, lastY_);
                 cursorCaptured_ = look;
             }
         }
         // Free-fly movement (continuous keys). v7: Home's fly camera glides (smoothed velocity, wheel = speed, Shift x3).
         if (camera_.mode == CameraMode::Free && flyCam_) {
-            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const auto down = [this](int k) { return keyDown(k) ? 1.0f : 0.0f; };
             const bool boost = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
             held_.boost = boost;
             camera_.freePos = camera_.freePos + fly_.step(camera_.freeYawDeg, camera_.freePitchDeg, down(GLFW_KEY_W) - down(GLFW_KEY_S),
@@ -118,7 +125,7 @@ void App::interactiveLoop() {
                                                           down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN), boost, dt);
         } else if (camera_.mode == CameraMode::Free) {
             const float speed = 6.0f * dt;
-            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const auto down = [this](int k) { return keyDown(k) ? 1.0f : 0.0f; };
             camera_.moveFree((down(GLFW_KEY_W) - down(GLFW_KEY_S)) * speed, (down(GLFW_KEY_D) - down(GLFW_KEY_A)) * speed,
                              (down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN)) * speed);
         }
@@ -127,14 +134,14 @@ void App::interactiveLoop() {
             const int keys[] = {GLFW_KEY_W, GLFW_KEY_A, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_UP, GLFW_KEY_DOWN, GLFW_KEY_LEFT,
                                 GLFW_KEY_RIGHT, GLFW_KEY_PAGE_UP, GLFW_KEY_PAGE_DOWN};
             for (int k : keys)
-                if (glfwGetKey(window_, k) == GLFW_PRESS) {
+                if (keyDown(k)) {
                     takeControl();
                     break;
                 }
         }
         // Possessed object: sample the held keys (edges and mouse look come from the callbacks).
         if (camera_.mode == CameraMode::Possess || possessedRover_ >= 0) {
-            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const auto down = [this](int k) { return keyDown(k) ? 1.0f : 0.0f; };
             held_.forward = down(GLFW_KEY_W) - down(GLFW_KEY_S);
             held_.turn = down(GLFW_KEY_D) - down(GLFW_KEY_A);
             held_.lift = down(GLFW_KEY_PAGE_UP) - down(GLFW_KEY_PAGE_DOWN);
@@ -144,8 +151,8 @@ void App::interactiveLoop() {
             held_.boost = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
             // v8: a soldier under control: left mouse fires, right mouse aims (zoom / over the shoulder).
             const bool soldierMouse = cursorCaptured_ && controllingSoldier();
-            if (soldierMouse && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) held_.fire = true;
-            aiming_ = soldierMouse && glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+            if (soldierMouse && mouseDown(GLFW_MOUSE_BUTTON_LEFT)) held_.fire = true;
+            aiming_ = soldierMouse && mouseDown(GLFW_MOUSE_BUTTON_RIGHT);
             if (pickerOpen_) held_.aimYaw = held_.aimPitch = held_.forward = held_.turn = 0.0f, held_.fire = false;  // keys drive the list
         } else {
             aiming_ = false;
@@ -154,7 +161,7 @@ void App::interactiveLoop() {
         if (!cursorCaptured_ && !pickerOpen_ && camera_.mode != CameraMode::Possess && camera_.mode != CameraMode::Cinematic) {
             double cx = 0.0, cy = 0.0;
             int ww = 1, wh = 1;
-            glfwGetCursorPos(window_, &cx, &cy);
+            cursorPos(cx, cy);
             glfwGetWindowSize(window_, &ww, &wh);
             if (cx >= 0.0 && cy >= 0.0 && cx < ww && cy < wh) updateHover(cx / std::max(ww, 1), cy / std::max(wh, 1));
             else hoverKey_ = 0;
@@ -164,13 +171,13 @@ void App::interactiveLoop() {
         // Walk: WASD, Shift = run.
         syncWalkWorld();
         if (camera_.mode == CameraMode::Walk) {
-            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const auto down = [this](int k) { return keyDown(k) ? 1.0f : 0.0f; };
             const bool run = down(GLFW_KEY_LEFT_SHIFT) > 0.0f || down(GLFW_KEY_RIGHT_SHIFT) > 0.0f;
             camera_.moveWalk(down(GLFW_KEY_W) - down(GLFW_KEY_S), down(GLFW_KEY_D) - down(GLFW_KEY_A), dt, run);
         }
         // v6 manual clock: ',' / '.' held scrub the time of day (a press in auto mode switched the clock to manual).
         if (DayCycle* clock = sa::dayCycle(*scene_)) {
-            const auto down = [this](int k) { return glfwGetKey(window_, k) == GLFW_PRESS ? 1.0f : 0.0f; };
+            const auto down = [this](int k) { return keyDown(k) ? 1.0f : 0.0f; };
             const float dir = down(GLFW_KEY_PERIOD) - down(GLFW_KEY_COMMA);
             if (dir != 0.0f && !clock->autoRun() && !paused_) clock->scrub(dir * clock->config().scrubHoursPerSec * dt);
         }
@@ -195,8 +202,10 @@ void App::interactiveLoop() {
             g_nucClosed = -1.0f;
             settings_.nucShutter = 0.0f;
         }
+        const double tSim = glfwGetTime();
         stepSim(dt);           // v7 WP-Q: the UAV images are collected after the main frame (stepVision below)
         updateGameCamera(dt);  // v7 WP-G: POV follow, blends, game feel, soldier rifle
+        loopT_.sim += glfwGetTime() - tSim;
         if (camera_.mode == CameraMode::Cinematic && !paused_) camera_.directorTime += dt;
         // Weather: rain eases in/out over ~3 s; the ground soaks in ~20 s and dries in ~90 s.
         settings_.rain = lerpf(settings_.rain, rainTarget_, std::min(1.0f, dt / 3.0f));
@@ -207,11 +216,16 @@ void App::interactiveLoop() {
         applyCinematic();
         int w, h;
         glfwGetFramebufferSize(window_, &w, &h);
+        const double tRender = glfwGetTime();
         if (w > 0 && h > 0) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             renderFrame(w, h, true);
+            if (!scriptShots_.empty() || !scriptLogs_.empty()) scriptAfterRender(w, h);
         }
+        const double tVision = glfwGetTime();
+        loopT_.render += tVision - tRender;
         stepVision();          // v7 WP-Q: CV + tracker on the CPU while the GPU draws the frame
+        loopT_.vision += glfwGetTime() - tVision;
         ++frames;
         titleTimer += dt;
         if (titleTimer >= 0.25) {
@@ -220,9 +234,108 @@ void App::interactiveLoop() {
             frames = 0;
             titleTimer = 0.0;
         }
+        const double tSwap = glfwGetTime();
         glfwSwapBuffers(window_);
         glfwPollEvents();
+        loopT_.swap += glfwGetTime() - tSwap;
+        ++loopT_.frames;
     }
+}
+
+// ------------------------------------------------------------------------------------------- v9 M0: input script
+bool App::keyDown(int key) const { return (window_ && glfwGetKey(window_, key) == GLFW_PRESS) || script_.keyHeld(key); }
+
+bool App::mouseDown(int button) const {
+    return (window_ && glfwGetMouseButton(window_, button) == GLFW_PRESS) || script_.buttonHeld(button);
+}
+
+void App::cursorPos(double& x, double& y) const {
+    if (scriptPointer_ && window_) {
+        int ww = 1, wh = 1;
+        glfwGetWindowSize(window_, &ww, &wh);
+        x = scriptPx_ * ww;
+        y = scriptPy_ * wh;
+        return;
+    }
+    x = y = 0.0;
+    if (window_) glfwGetCursorPos(window_, &x, &y);
+}
+
+bool App::loadInputScript() {
+    std::FILE* f = std::fopen(opt_.inputScript.c_str(), "rb");
+    if (!f) {
+        std::fprintf(stderr, "--input-script: cannot open %s\n", opt_.inputScript.c_str());
+        return false;
+    }
+    std::string text;
+    char buf[4096];
+    for (size_t n; (n = std::fread(buf, 1, sizeof(buf), f)) > 0;) text.append(buf, n);
+    std::fclose(f);
+    std::vector<ScriptEvent> events;
+    std::string error;
+    if (!parseInputScript(text, events, error)) {
+        std::fprintf(stderr, "--input-script %s: %s\n", opt_.inputScript.c_str(), error.c_str());
+        return false;
+    }
+    std::printf("Input script %s: %zu events, frames to %s\n", opt_.inputScript.c_str(), events.size(), opt_.framesDir.c_str());
+    std::fflush(stdout);
+    std::error_code ec;
+    std::filesystem::create_directories(opt_.framesDir, ec);
+    script_.load(std::move(events));
+    return true;
+}
+
+void App::runScript(double t) {
+    for (const ScriptEvent& e : script_.due(t)) {
+        switch (e.kind) {
+            case ScriptEvent::Kind::Key: onKey(e.code, e.action ? GLFW_PRESS : GLFW_RELEASE, 0); break;
+            case ScriptEvent::Kind::Button: onMouseButton(e.code, e.action ? GLFW_PRESS : GLFW_RELEASE); break;
+            case ScriptEvent::Kind::Look: onCursor(lastX_ + e.x, lastY_ + e.y); break;
+            case ScriptEvent::Kind::Pointer: {
+                scriptPointer_ = true;
+                scriptPx_ = e.x;
+                scriptPy_ = e.y;
+                double x = 0.0, y = 0.0;
+                cursorPos(x, y);
+                onCursor(x, y);
+                break;
+            }
+            case ScriptEvent::Kind::Shot: scriptShots_.push_back(e.text); break;
+            case ScriptEvent::Kind::Log: scriptLogs_.push_back(e.text); break;
+            case ScriptEvent::Kind::Quit:
+                std::printf("script: quit at %.2f s\n", t);
+                std::fflush(stdout);
+                glfwSetWindowShouldClose(window_, 1);
+                break;
+        }
+    }
+}
+
+void App::scriptAfterRender(int w, int h) {
+    for (const std::string& name : scriptShots_) {
+        std::vector<uint8_t> bottomUp(static_cast<size_t>(w) * h * 3), rgb(bottomUp.size());
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadBuffer(GL_BACK);
+        glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, bottomUp.data());
+        const size_t row = static_cast<size_t>(w) * 3;
+        for (int y = 0; y < h; ++y)
+            std::copy(bottomUp.begin() + (h - 1 - y) * row, bottomUp.begin() + (h - y) * row, rgb.begin() + y * row);
+        const std::string path = opt_.framesDir + "/" + name + ".png";
+        const bool ok = writePng(path, w, h, rgb);
+        std::printf("script shot %s %s | %s\n", ok ? "wrote" : "FAILED", path.c_str(), stateLine().c_str());
+    }
+    for (const std::string& label : scriptLogs_) {
+        const double span = glfwGetTime() - loopT_.start;
+        const int n = std::max(loopT_.frames, 1);
+        std::printf("script log %s | %s | %.1f fps, ms/frame: sim %.2f render %.2f vision %.2f swap %.2f (%d frames)\n",
+                    label.c_str(), stateLine().c_str(), loopT_.frames / std::max(span, 1e-6), 1000.0 * loopT_.sim / n,
+                    1000.0 * loopT_.render / n, 1000.0 * loopT_.vision / n, 1000.0 * loopT_.swap / n, loopT_.frames);
+        loopT_ = LoopTiming{};
+        loopT_.start = glfwGetTime();
+    }
+    if (!scriptShots_.empty() || !scriptLogs_.empty()) std::fflush(stdout);
+    scriptShots_.clear();
+    scriptLogs_.clear();
 }
 
 void App::onKey(int key, int action, int) {
@@ -457,7 +570,7 @@ void App::onMouseButton(int button, int action) {
     if (renderer_->rayDebug() && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double cx = 0.0, cy = 0.0;
         int ww = 1, wh = 1;
-        glfwGetCursorPos(window_, &cx, &cy);
+        cursorPos(cx, cy);
         glfwGetWindowSize(window_, &ww, &wh);
         if (renderer_->rayDebugPick(*scene_, static_cast<float>(cx / std::max(ww, 1)), static_cast<float>(cy / std::max(wh, 1))))
             std::printf("Ray tree: %zu rays\n", renderer_->rayTree()->nodes.size());
@@ -468,7 +581,7 @@ void App::onMouseButton(int button, int action) {
     if (action == GLFW_PRESS && (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_MIDDLE)) {
         double cx = 0.0, cy = 0.0;
         int ww = 1, wh = 1;
-        glfwGetCursorPos(window_, &cx, &cy);
+        cursorPos(cx, cy);
         glfwGetWindowSize(window_, &ww, &wh);
         const double nx = cx / std::max(ww, 1), ny = cy / std::max(wh, 1);
         if (button == GLFW_MOUSE_BUTTON_LEFT && pickerOpen_ && pickerClick(nx, ny)) return;
@@ -481,7 +594,7 @@ void App::onMouseButton(int button, int action) {
     // v8: a left click (press and release without dragging) selects the object under the pointer.
     if (button == GLFW_MOUSE_BUTTON_LEFT && !cursorCaptured_) {
         double cx = 0.0, cy = 0.0;
-        glfwGetCursorPos(window_, &cx, &cy);
+        cursorPos(cx, cy);
         if (action == GLFW_PRESS) {
             pressX_ = cx;
             pressY_ = cy;
@@ -498,10 +611,10 @@ void App::onMouseButton(int button, int action) {
     if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) {
         const bool wasDragging = dragging_;
         // Left or right button held = look around (right only counts in Walk / Free).
-        dragging_ = glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS ||
-                    (glfwGetMouseButton(window_, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS &&
+        dragging_ = mouseDown(GLFW_MOUSE_BUTTON_LEFT) ||
+                    (mouseDown(GLFW_MOUSE_BUTTON_RIGHT) &&
                      (camera_.mode == CameraMode::Walk || camera_.mode == CameraMode::Free || camera_.mode == CameraMode::Pov));
-        if (dragging_ && !wasDragging) glfwGetCursorPos(window_, &lastX_, &lastY_);
+        if (dragging_ && !wasDragging) cursorPos(lastX_, lastY_);
     }
 }
 
@@ -561,6 +674,12 @@ void App::onScroll(double dy) {
 
 namespace ts {
 void App::interactiveLoop() {}
+bool App::keyDown(int key) const { return script_.keyHeld(key); }
+bool App::mouseDown(int button) const { return script_.buttonHeld(button); }
+void App::cursorPos(double& x, double& y) const { x = y = 0.0; }
+bool App::loadInputScript() { return false; }
+void App::runScript(double) {}
+void App::scriptAfterRender(int, int) {}
 void App::onKey(int, int, int) {}
 void App::onMouseButton(int, int) {}
 void App::onCursor(double, double) {}

@@ -1,4 +1,4 @@
-"""Builds ThermalSense_Graphics_Documentation.xlsx (28 sheets: 14 from v3, 14-17 from v4, 18 Computer Vision, 19 Squad & Mission, 20 Audio & HUD, 21-23 v6, 24-27 v7) from files produced by the program itself.
+"""Builds ThermalSense_Graphics_Documentation.xlsx (14 from v3, 14-17 from v4, 18 Computer Vision, 19 Squad & Mission, 20 Audio & HUD, 21-23 v6, 24-27 v7, 28 v8, 29+ v9) from files produced by the program itself.
 
 Inputs (regenerate them first with `mingw32-make docs`):
   build/scene_export.json   build/export_docs.exe (or ThermalSense.exe --export-docs): primitives, components,
@@ -34,6 +34,7 @@ from wb_v4 import build_bunker_base, build_combat, build_controllables  # noqa: 
 from wb_audit import build_audit  # noqa: E402
 from wb_v6 import build_v6  # noqa: E402
 from wb_v7 import build_v7  # noqa: E402
+from wb_v9 import V9_INFO, V9_SHEETS, build_v9  # noqa: E402
 from wb_v5 import build_audio_hud, build_cv, build_squad  # noqa: E402
 from wb_transforms import build_hierarchy, build_matrices  # noqa: E402
 
@@ -69,6 +70,8 @@ SHEET_INFO = {
     S_GAME: "v7 game camera: key bindings, every POV source (possessable / ride-along), spring blend recomputed",
     S_V7T: "v7 tests T240-T309 by work package (status from sheet 10)",
 }
+SHEET_INFO.update(V9_INFO)
+SHEET_ORDER = SHEET_ORDER + [s for s in V9_SHEETS if s not in SHEET_ORDER]
 
 
 def build_cover(wb, ctx):
@@ -265,6 +268,7 @@ def main():
     build_audio_hud(wb, ctx)
     build_v6(wb, ctx)
     build_v7(wb, ctx)
+    build_v9(wb, ctx)
     build_audit(wb, ctx)
     build_traceability(wb, ctx)
     build_cover(wb, ctx)
