@@ -87,7 +87,8 @@ const char* qualityName(Quality q);
 const char* viewModeName(ViewMode m);
 const char* edgeModeName(EdgeMode m);
 const char* overrideName(ShadingOverride s);
-Vec3 primitiveColor(PrimitiveType p);  // diagnostic colour coding
+Vec3 primitiveColor(PrimitiveType p);  // diagnostic colour coding (the report key, src/report/PrimitiveColors.h)
+Vec3 primitiveColor(const SceneNode& n);   // same, cube parts with a non-uniform S as cuboids
 
 struct RenderSettings {
     ViewMode view = ViewMode::Visible;

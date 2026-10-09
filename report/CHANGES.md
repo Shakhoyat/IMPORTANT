@@ -1,4 +1,24 @@
-# Report changes (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
+# Report changes: final-submission pass (M0-M5)
+
+Build note: this machine has no latexmk / pdftoppm, so the PDF is built with `tectonic` and pages are rasterised at
+110 dpi with PyMuPDF (same output as `pdftoppm -r 110`).
+
+Page count before this pass: 106 (body 1-78, workbook appendix 79-106).
+
+## M0: one primitive colour key
+
+- New `src/report/PrimitiveColors.h`: the only definition of the 16 primitive colours (sRGB + CIE L*), grouped by
+  family, each family in its own L* band so families stay apart in greyscale:
+  box (cube, cuboid, wedge, tapered box, pyramid) blues / cyan L* 30-45; ring (torus, annulus, helix) pinks / purple
+  L* 50-57; special (grass blade, terrain disc) grey / brown L* 60-61; cylinder (cylinder, frustum, cone) greens
+  L* 64-69; round (sphere, hemisphere, capsule) oranges / yellow L* 74-88.
+- New `tools/report/gen_prim_colors.py` writes `report/prim_colors.tex` (`\definecolor{prim-<key>}`, `\primsq`,
+  `\primchip`, `\primchipn`, `\primkeyline`) and fails if two families overlap in L*; `tools/report/primkey.py` gives
+  the same table to the other report scripts.
+- The program's diagnostic view (F) and its HUD legend now use the key (cube parts with a non-uniform S drawn as
+  cuboids), replacing the cyan / magenta / amber colours.
+
+# Earlier round (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
 
 Figure and table numbers refer to the report before this round unless marked "new".
 

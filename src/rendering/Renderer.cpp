@@ -16,6 +16,8 @@
 #include "rendering/RayTracerGL.h"
 #include "rendering/SceneAccess.h"
 #include "rendering/ShaderSources.h"
+#include "report/PrimitiveColors.h"
+#include "scene/PartOrder.h"
 
 namespace ts {
 
@@ -49,26 +51,10 @@ const char* overrideName(ShadingOverride s) {
     return "?";
 }
 
-Vec3 primitiveColor(PrimitiveType p) {
-    switch (p) {
-        case PrimitiveType::Cube: return {0.10f, 0.78f, 1.00f};      // cyan
-        case PrimitiveType::Sphere: return {1.00f, 0.28f, 0.72f};    // magenta
-        case PrimitiveType::Cylinder: return {1.00f, 0.74f, 0.12f};  // amber
-        case PrimitiveType::BeamCone: return {1.00f, 0.55f, 0.10f};
-        case PrimitiveType::TerrainDisc: return {0.30f, 0.42f, 0.33f};
-        case PrimitiveType::Cone: return {0.45f, 1.00f, 0.35f};      // green
-        // v10 M3 library primitives
-        case PrimitiveType::Hemisphere: return {0.85f, 0.45f, 1.00f};   // violet
-        case PrimitiveType::Torus: return {1.00f, 0.42f, 0.30f};        // coral
-        case PrimitiveType::Wedge: return {0.25f, 0.55f, 1.00f};        // blue
-        case PrimitiveType::TaperedBox: return {0.30f, 1.00f, 0.80f};   // aquamarine
-        case PrimitiveType::Pyramid: return {1.00f, 0.92f, 0.30f};      // yellow
-        case PrimitiveType::Capsule: return {0.95f, 0.65f, 0.45f};      // tan
-        case PrimitiveType::Annulus: return {0.75f, 0.90f, 0.25f};      // lime
-        case PrimitiveType::Helix: return {0.80f, 0.80f, 0.85f};        // steel
-        case PrimitiveType::GrassBlade: return {0.40f, 0.75f, 0.30f};
-        default: return {1, 1, 1};
-    }
+// The report's primitive colour key (report/PrimitiveColors.h); a cube part with a non-uniform S is a cuboid.
+Vec3 primitiveColor(PrimitiveType p) { return primkey::linear(primkey::colorOf(p, false)); }
+Vec3 primitiveColor(const SceneNode& n) {
+    return primkey::linear(primkey::colorOf(n.primitive, n.primitive == PrimitiveType::Cube && isCuboidScale(restScaleOf(n))));
 }
 
 bool Renderer::init() {
@@ -290,7 +276,7 @@ Renderer::ObjectParams Renderer::objectParams(const SceneNode& n, const Mat4& wo
     ObjectParams p;
     p.model = world;
     p.normal = normalMatrix(world);
-    p.baseColor = diag ? primitiveColor(n.primitive) : m.baseColor;
+    p.baseColor = diag ? primitiveColor(n) : m.baseColor;
     p.heat = m.heat;
     // Clouds hide the moon / sun in rain; the moon glows by night, the sun by day; outdoor lamps go off by day.
     float emissive = m.emissive;
@@ -606,7 +592,7 @@ void Renderer::drawWire(const Scene& scene, const CameraView& cam, const RenderS
         if (!inFrustum(*n, frustum)) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
         const bool terrain = n->primitive == PrimitiveType::TerrainDisc;
-        Vec3 c = primitiveColor(n->primitive);
+        Vec3 c = primitiveColor(*n);
         if (!xray) c = diag ? c * 0.35f : Vec3{0.85f, 0.95f, 1.0f};
         line_->set("uColor", c);
         line_->set("uAlpha", xray ? (terrain ? 0.10f : 0.55f) : (diag ? 0.9f : (terrain ? 0.18f : 0.45f)));
