@@ -39,3 +39,37 @@ a workbook sheet, a commit.
 - Live loop (orbit noon): 10.4 fps (vsync 1) -> 85.7 fps (100 Hz limiter).
 - Open: the night forest is SSIM 0.969 vs v8 (the strip blades read slightly darker than the cube blades); M6 redoes
   grass with a night-parity check. uav_chase night 86 fps (< 90): M9 performance pass.
+
+## M6: vegetation from CC0 assets (done, budgets not met; see open items)
+- Assets (`assets/`, 171 MB, all CC0, table in `assets/LICENSES.md`): Poly Haven fir_tree_01, pine_tree_01,
+  fir_sapling_medium, pine_sapling_small, tree_small_02, shrub_01..04, fern_02, grass_medium_01/02, boulder_01,
+  rock_moss_set_01/02 (+ 5 ambientCG terrain sets vendored for M7, unused). Fetched by `tools/fetch_assets.py`, reduced
+  offline by `tools/bake_assets.cpp` (`make bake-assets`): 28.6 M -> 3.1 M triangles, wind weights in `COLOR_0`.
+- Code: cgltf / stb_image loaders (`src/assets/Model, Image`), coverage-preserving alpha mips, LOD chains
+  (`assets/FoliageLod`: meshoptimizer for solid parts, card thinning for foliage), octahedral impostors baked at start-up
+  (`assets/Impostor`, 8x8 views), `rendering/VegetationRenderer` (instancing per variant / LOD / material, 16 m culling
+  cells, dithered LOD cross-fade, alpha-to-coverage on the MSAA target, two-sided foliage light with transmission,
+  hierarchical wind trunk -> branch -> flutter, per-instance tint), shadow casters (near cascade LOD+1 with wind, cached
+  world cascade LOD 2). Textured grass blades from the CC0 atlas with A2C. `objects/VegetationLayout` maps the v8
+  primitive trees / bushes / boulders / treeline to asset instances; the scene graph keeps the primitives for gameplay
+  (occluders, walker collision, `treelinePines()` unchanged), the renderer only skips drawing them at ULTRA / EPIC.
+- Fallback: without `assets/` (looked up next to the exe and up to 3 parents, then the cwd) the v8 procedural trees and
+  untextured grass are drawn (`m6/fallback_no_assets.jpg`, a copy of the binary run outside the worktree). LOW / HIGH
+  always use the v8 trees.
+- Fix in this pass: impostors looked transparent (the bake stored the soft alpha of the front-most needle only) and used
+  a loose bounding sphere; now binary coverage at 2x super-sampling, a tight vertex sphere, and anisotropic instance scale.
+- Night parity (`m6/night_compare.json`, mean 8-bit luma at 1280x720 vs the v8 renders): walk_forest whole 35.78 vs
+  35.67, grass 45.75 vs 45.04 (not darker); walk_meadow grass 34.59 vs 34.74 (99.6 %), whole frame 39.35 vs 41.45
+  (the asset trees against the night sky are darker silhouettes than the v8 moonlit cones). Grass night lift 1.0.
+- GPU (`m6/bench_shots_m6_wsl.json`, WSL D3D12 on the shared RTX 4070, 1080p EPIC, 3 s per shot): vegetation colour
+  pass 1.7-2.7 ms in the gameplay views (uav_chase, soldier 1p / 3p), 6.6 ms on the high overview (4.3 M vegetation
+  triangles: 5 trees at LOD 0); vegetation depth (pre-pass + shadows) 0.7-1.8 ms; grass 0.4-1.5 ms.
+- Tests T370-T375 (glTF loader round trip, card thinning, LOD chain error bound, coverage-preserving mips + grass atlas,
+  octahedral impostor taps, vegetation layout). 309 tests pass.
+- Open: (1) vegetation budget <= 3 ms is not met on the overview: LOD 0 of the tall conifers is 470 k triangles and the
+  thinned LOD 1 / 2 grow twig cards about their trunk anchor (stems poke out); planned fix = per-archetype
+  triangle-density LOD thresholds + earlier impostors + outer-card-first thinning. (2) Shimmer metric 2.6-6.6 / 255 on
+  vegetation pixels (target 1.5); the non-vegetation pixels already flicker ~2.4 / 255 under the TAA jitter, so the
+  TAA resolve (M8 territory) has to be part of the fix. (3) boulder_01 does not simplify (55 k triangles at every LOD).
+  (4) The real-exe run was not repeated for this pass (exe rebuilt). (5) M7 (heightfield hills, splatting) not built: a
+  draft exists only in `build/m7_snap/m7.tar` (uncommitted, unverified).

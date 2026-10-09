@@ -134,8 +134,12 @@ int App::benchShotsMode() {
         int frames = 0;
         double frameMs = 0, sim = 0, render = 0, vision = 0, present = 0;
         double draws = 0, shadowDraws = 0, tris = 0, blades = 0;
+        double vegTris = 0, vegLod[4] = {0, 0, 0, 0};   // v9 M6: asset vegetation (colour pass)
         std::vector<GpuTimer::Entry> passes;
+        ShimmerResult shimmer;   // v9 M6
+        bool shimmerMeasured = false;
     };
+    const bool measureShimmerOn = envNumber("TS_BENCH_SHIMMER", 1.0) != 0.0;
     std::vector<Result> results;
     auto frame = [&](Result* r) {
         const double t0 = nowSeconds();
@@ -159,6 +163,8 @@ int App::benchShotsMode() {
         r->shadowDraws += stats_.shadowDraws;
         r->tris += static_cast<double>(stats_.triangles);
         r->blades += stats_.grassBlades;
+        r->vegTris += static_cast<double>(stats_.vegTriangles);
+        for (int l = 0; l < 4; ++l) r->vegLod[l] += stats_.vegLod[l];
         ++r->frames;
     };
     const struct {
@@ -200,6 +206,8 @@ int App::benchShotsMode() {
             r.shadowDraws /= n;
             r.tris /= n;
             r.blades /= n;
+            r.vegTris /= n;
+            for (double& c : r.vegLod) c /= n;
             for (const GpuTimer::Entry& e : renderer_->timer().entries())
                 if (e.samples > 0) r.passes.push_back(e);
             std::printf("  %-12s %-5s %6.1f FPS %6.2f ms | cpu sim %.2f render %.2f vision %.2f present %.2f | %4.0f draws %5.2f M tris\n",
@@ -207,6 +215,17 @@ int App::benchShotsMode() {
                         r.tris / 1e6);
             for (const GpuTimer::Entry& e : r.passes)
                 std::printf("        %-18s %6.2f ms\n", e.name.c_str(), e.sumMs / e.samples);
+            if (r.vegTris > 0)
+                std::printf("        vegetation: %.2f M triangles, instances LOD0 %.0f LOD1 %.0f LOD2 %.0f impostor %.0f\n", r.vegTris / 1e6,
+                            r.vegLod[0], r.vegLod[1], r.vegLod[2], r.vegLod[3]);
+            if (measureShimmerOn) {   // v9 M6: temporal stability (frozen scene, TAA jitter running)
+                if (headless_) offscreen.bind();
+                else glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                r.shimmer = measureShimmer(w, h);
+                r.shimmerMeasured = true;
+                std::printf("        shimmer: vegetation %.3f / 255 (%.1f %% of the frame), whole frame %.3f / 255\n", r.shimmer.vegetation,
+                            100.0 * r.shimmer.maskFraction, r.shimmer.all);
+            }
             std::fflush(stdout);
             results.push_back(r);
         }
@@ -226,8 +245,8 @@ int App::benchShotsMode() {
       << ",\n  \"seconds_per_shot\": " << seconds << ",\n  \"shots\": [\n";
     md << "Renderer: " << (gl ? gl : "?") << ", " << qualityName(settings_.quality) << ", " << w << "x" << h << ", vsync "
        << (opt_.vsync >= 0 ? opt_.vsync : 0) << "\n\n"
-       << "| shot | time | FPS | frame ms | CPU sim | CPU render | CPU vision | present | GPU passes ms | draws | shadow draws | triangles |\n"
-       << "|---|---|---|---|---|---|---|---|---|---|---|---|\n";
+       << "| shot | time | FPS | frame ms | CPU sim | CPU render | CPU vision | present | GPU passes ms | draws | shadow draws | triangles | shimmer veg / all (/255) |\n"
+       << "|---|---|---|---|---|---|---|---|---|---|---|---|---|\n";
     bool allOk = true;
     for (size_t i = 0; i < results.size(); ++i) {
         const Result& r = results[i];
@@ -239,14 +258,19 @@ int App::benchShotsMode() {
           << ", \"frame_ms\": " << r.frameMs << ", \"cpu_sim_ms\": " << r.sim << ", \"cpu_render_ms\": " << r.render
           << ", \"cpu_vision_ms\": " << r.vision << ", \"present_ms\": " << r.present << ", \"gpu_sum_ms\": " << gpu
           << ", \"draws\": " << r.draws << ", \"shadow_draws\": " << r.shadowDraws << ", \"triangles\": " << r.tris
-          << ", \"grass_blades\": " << r.blades << ", \"passes\": {";
+          << ", \"grass_blades\": " << r.blades << ", \"vegetation_triangles\": " << r.vegTris << ", \"vegetation_lod_instances\": ["
+          << r.vegLod[0] << ", " << r.vegLod[1] << ", " << r.vegLod[2] << ", " << r.vegLod[3] << "]";
+        if (r.shimmerMeasured)
+            j << ", \"shimmer_vegetation\": " << r.shimmer.vegetation << ", \"shimmer_all\": " << r.shimmer.all
+              << ", \"vegetation_fraction\": " << r.shimmer.maskFraction;
+        j << ", \"passes\": {";
         for (size_t k = 0; k < r.passes.size(); ++k)
             j << (k ? ", " : "") << "\"" << r.passes[k].name << "\": " << r.passes[k].sumMs / r.passes[k].samples;
         j << "}}" << (i + 1 < results.size() ? "," : "") << "\n";
-        char row[400];
-        std::snprintf(row, sizeof(row), "| %s | %s | %.1f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.0f | %.0f | %.2f M |\n",
+        char row[480];
+        std::snprintf(row, sizeof(row), "| %s | %s | %.1f | %.2f | %.2f | %.2f | %.2f | %.2f | %.2f | %.0f | %.0f | %.2f M | %.2f / %.2f |\n",
                       r.shot.c_str(), r.time.c_str(), r.frameMs > 0 ? 1000.0 / r.frameMs : 0.0, r.frameMs, r.sim, r.render,
-                      r.vision, r.present, gpu, r.draws, r.shadowDraws, r.tris / 1e6);
+                      r.vision, r.present, gpu, r.draws, r.shadowDraws, r.tris / 1e6, r.shimmer.vegetation, r.shimmer.all);
         md << row;
     }
     j << "  ]\n}\n";

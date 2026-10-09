@@ -311,15 +311,18 @@ bool FoliageField::init() {
     return true;
 }
 
-void FoliageField::build(const Scene& scene, float density) {
-    if (std::fabs(density - density_) < 1e-4f && leafCount_ == scene.leaves().size()) return;
+void FoliageField::build(const Scene& scene, float density, const std::unordered_set<const SceneNode*>* skip) {
+    const size_t skipCount = skip ? skip->size() : 0;
+    if (std::fabs(density - density_) < 1e-4f && leafCount_ == scene.leaves().size() && skipCount_ == skipCount) return;
     density_ = density;
     leafCount_ = scene.leaves().size();
+    skipCount_ = skipCount;
     std::vector<Card> cards;
     Rng rng{kSeed};
     const Vec3 up{0, 1, 0};
     for (const SceneNode* n : scene.leaves()) {
         if (n->material.surface != Surface::Foliage) continue;
+        if (skip && skip->count(n)) continue;
         const Mat4& M = n->world;
         if (n->primitive == PrimitiveType::Cone) {
             // Pine whorl: branch sprays leave the lateral surface, droop outward and down, rolled a little about

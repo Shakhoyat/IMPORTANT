@@ -34,8 +34,14 @@ public:
     template <typename Prepare>
     int draw(const Mat4& viewProj, const Vec3& camPos, Prepare prepare, const Pusher& a, const Pusher& b, float time);
     Shader& shader() { return *shader_; }
+    bool textured() const { return tex_ != 0; }
 
 private:
+    void loadAtlas();
+    GLuint tex_ = 0;            // v9 M6: CC0 blade atlas (0 = untextured blades)
+    int bladeCount_ = 0;
+    float bladeRects_[64] = {};
+    float texLuma_ = 0.1f;
     int drawCells(const Mat4& viewProj, const Vec3& camPos);
 
     struct Cell {
@@ -63,6 +69,13 @@ int GrassField::draw(const Mat4& viewProj, const Vec3& camPos, Prepare prepare, 
     shader_->set("uPusherAParams", a.radius, a.strength);
     shader_->set("uPusherB", b.position);
     shader_->set("uPusherBParams", b.radius, b.strength);
+    shader_->set("uTextured", tex_ ? 1 : 0);
+    shader_->set("uBladeCount", bladeCount_);
+    if (bladeCount_ > 0) shader_->setVec4Array("uBladeRects", bladeRects_, bladeCount_);
+    shader_->set("uTexLuma", texLuma_);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, tex_);
+    glActiveTexture(GL_TEXTURE0);
     return drawCells(viewProj, camPos);
 }
 

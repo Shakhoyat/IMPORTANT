@@ -1,0 +1,33 @@
+{
+ "note": "mean 8-bit luma at 1280x720; v8 = audit JPG (commit 138163d render), M6 = this build, EPIC 1920x1080 seed 1",
+ "rows": [
+  {
+   "shot": "walk_forest",
+   "region": "whole frame",
+   "v8": 35.67,
+   "m6": 35.78,
+   "ssim": 0.911
+  },
+  {
+   "shot": "walk_forest",
+   "region": "grass (lower half)",
+   "v8": 45.04,
+   "m6": 45.75,
+   "ssim": 0.911
+  },
+  {
+   "shot": "walk_meadow",
+   "region": "whole frame",
+   "v8": 41.45,
+   "m6": 39.35,
+   "ssim": 0.619
+  },
+  {
+   "shot": "walk_meadow",
+   "region": "grass (lower half)",
+   "v8": 34.74,
+   "m6": 34.59,
+   "ssim": 0.619
+  }
+ ]
+}

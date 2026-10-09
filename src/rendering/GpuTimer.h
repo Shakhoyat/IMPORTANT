@@ -12,7 +12,9 @@ namespace ts {
 class GpuTimer {
 public:
     ~GpuTimer();
-    void begin(const char* pass);  // passes must not nest
+    // v9 M6: passes may nest; an inner pass's time is excluded from the outer one (the outer pass is suspended and
+    // resumed as another query segment), so the per-pass times still add up to the frame.
+    void begin(const char* pass);
     void end();
     void endFrame();               // collect finished queries
     struct Entry {
@@ -31,11 +33,16 @@ private:
     bool syncTiming_ = false, syncChecked_ = false;
     double syncStart_ = 0.0;
     struct Pass {
-        GLuint query[kLatency] = {0, 0, 0};
-        bool issued[kLatency] = {false, false, false};
+        std::vector<GLuint> query[kLatency];   // query segments of this pass in frame slot k
+        int used[kLatency] = {0, 0, 0};
+        int frameOf[kLatency] = {-1, -1, -1};
+        double syncMs = 0.0;                   // TS_GPU_SYNC_TIMING: segments of the current frame
     };
+    void startSegment(int index);
+    void stopSegment();
     std::vector<Pass> passes_;
     std::vector<Entry> entries_;
+    std::vector<int> stack_;                    // suspended outer passes
     int current_ = -1;
     int frame_ = 0;
 };

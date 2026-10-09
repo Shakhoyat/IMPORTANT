@@ -7,6 +7,8 @@
 #include "objects/Terrain.h"
 #include "primitives/Cube.h"
 #include "rendering/ShaderSources.h"
+#include "assets/AssetPaths.h"
+#include "assets/Image.h"
 
 namespace ts {
 
@@ -87,6 +89,15 @@ out vec3 vLocalD; // beacon irradiance
 out vec3 vSpotD;  // searchlight irradiance (shadowed per fragment)
 uniform float uTime;
 uniform float uCellCount;   // v9 M1: blades in the cell this draw call submits from (distance LOD rank)
+// v9 M6: textured blade cards (CC0 grass_medium_02 atlas): each blade shows one blade of the atlas (rectangles found
+// from its alpha), drawn with alpha-to-coverage; the width is clamped to ~1 pixel (the alpha scales down instead), so
+// distant blades never fall between the samples and flicker.
+uniform int uTextured;
+uniform vec4 uBladeRects[16];
+uniform int uBladeCount;
+uniform float uPixelScale;   // pixels per metre at 1 m (screen height / (2 tan(fov / 2)))
+out vec2 vUV;
+out float vCover;
 
 // Share of a cell's blades drawn at distance d: all within 26 m, 40 % at 75 m (the v3-v8 thinning curve), 24 % past
 // 120 m; the kept blades widen to cover.
@@ -119,8 +130,22 @@ void main() {
     if (rank > keep) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
     float lod = smoothstep(26.0, 75.0, dist);
     float widen = min(1.0 / keep, 3.0);
-    // Width tapers to a point; the blade is a flat strip that faces its lean direction.
-    vec3 p = vec3(aPos.x * iShape.y * widen * (1.0 - 0.96 * t), t * iShape.x, aPos.z * iShape.y * 0.3);
+    // Width tapers to a point; the blade is a flat strip that faces its lean direction. v9 M6: a textured card is wider
+    // (the atlas blade fills about 45 % of its rectangle) and tapers less (the texture draws the tip).
+    float cardW = uTextured == 1 ? 2.2 : 1.0;
+    float taper = uTextured == 1 ? 1.0 - 0.4 * t : 1.0 - 0.96 * t;
+    vCover = 1.0;
+    if (uTextured == 1) {
+        float px = iShape.y * widen * cardW * 1.25 * uPixelScale / max(dist, 0.1);
+        if (px < 2.0) { widen *= 2.0 / max(px, 1e-3); vCover = max(px / 2.0, 0.15); }
+    }
+    vec3 p = vec3(aPos.x * iShape.y * widen * cardW * taper, t * iShape.x, aPos.z * iShape.y * 0.3);
+    if (uTextured == 1 && uBladeCount > 0) {
+        vec4 r = uBladeRects[int(iShape.w * 997.0) % uBladeCount];
+        vUV = vec2(r.x + (aPos.x / 1.25 + 0.5) * r.z, r.y + (1.0 - t) * r.w);
+    } else {
+        vUV = vec2(0.5, 0.5);
+    }
     float c = cos(iRoot.w + 1.5708), s = sin(iRoot.w + 1.5708);
     p = vec3(c * p.x + s * p.z, p.y, -s * p.x + c * p.z);
 
@@ -190,7 +215,14 @@ in vec3 vMoonD;
 in vec3 vSheen;
 in vec3 vLocalD;
 in vec3 vSpotD;
+in vec2 vUV;
+in float vCover;
 layout(location = 0) out vec4 FragColor;
+uniform int uTextured;
+uniform int uA2C;
+uniform sampler2D uGrassTex;
+uniform float uTexLuma;     // mean linear luminance of the atlas blades (the texture modulates the calibrated tint)
+uniform float uNightLift;   // v9 M6: night-parity gain of the moon / sky terms (see Renderer::drawGrass)
 
 float oneTap(sampler2DArrayShadow m, mat4 vp, float layer, vec3 P) {
     vec4 lp = vp * vec4(P, 1.0);
@@ -200,15 +232,25 @@ float oneTap(sampler2DArrayShadow m, mat4 vp, float layer, vec3 P) {
 }
 
 void main() {
+    float alpha = 1.0;
+    vec3 texMod = vec3(1.0);
+    if (uTextured == 1) {
+        vec4 tx = texture(uGrassTex, vUV, 0.75);   // mip bias: stable under the TAA jitter
+        alpha = uA2C == 1 ? clamp((tx.a - 0.12) * 2.2, 0.0, 1.0) * vCover : (tx.a >= 0.4 ? 1.0 : 0.0);
+        if (alpha <= 0.0) discard;
+        vec3 lin = pow(tx.rgb, vec3(2.2));
+        texMod = clamp(lin / max(uTexLuma, 1e-3), vec3(0.55), vec3(1.6));
+        texMod = mix(vec3(luma(texMod)), texMod, 0.35);   // keep the calibrated hue, take the texture's detail
+    }
     float heat = 0.13 + 0.03 * vT + 0.02 * (vSeed - 0.5) + 0.7 * trailHeat(vWorld);  // crushed, warmed blades   // blades are slightly cooler than soil
-    if (uViewMode == 0 || uViewMode >= 3) { FragColor = finalColor(vec3(0.0), heat, vWorld); return; }
+    if (uViewMode == 0 || uViewMode >= 3) { FragColor = finalColor(vec3(0.0), heat, vWorld); FragColor.a = alpha; return; }
     // Linear albedo: dark root, then per-tuft green / olive / straw towards the tip (vSeed = dryness of the tuft)
     vec3 base = vec3(0.010, 0.014, 0.005);
     vec3 green = vec3(0.040, 0.082, 0.018), olive = vec3(0.074, 0.088, 0.026), straw = vec3(0.150, 0.122, 0.060);
     // v8: mostly green / olive tufts with dry ones scattered (the field used to read as straw in daylight)
     vec3 tip = mix(mix(green, olive, smoothstep(0.0, 0.6, vSeed)), straw, smoothstep(0.62, 1.0, vSeed));
     tip *= 0.82 + 0.36 * vHue;
-    vec3 albedo = uViewMode == 2 ? uBaseColor : mix(base, tip, pow(clamp(vT, 0.0, 1.0), 0.6));
+    vec3 albedo = uViewMode == 2 ? uBaseColor : mix(base, tip, pow(clamp(vT, 0.0, 1.0), 0.6)) * texMod;
     float sm = 1.0, ss = 1.0;
     if (uShadows > 0) {
         bool nearC = length(vWorld - uCamPos) < uCascadeSplit;
@@ -221,14 +263,53 @@ void main() {
             ss = texture(uSpotShadow, vec3(p.xy, p.z - 0.0003));
     }
     float ao = mix(0.30, 1.0, vT);                            // self-shadowing towards the root
-    vec3 lit = albedo * (vAmbD * ao + vMoonD * sm + vLocalD + vSpotD * ss) + vSheen * sm;
+    vec3 lit = albedo * ((vAmbD * ao + vMoonD * sm) * uNightLift + vLocalD + vSpotD * ss) + vSheen * sm;
     FragColor = finalColor(lit, heat, vWorld);
+    FragColor.a = alpha;
 }
 )";
 
 }  // namespace
 
+void GrassField::loadAtlas() {
+    // v9 M6: the CC0 blade atlas (assets/vegetation/grass_medium_02, baked RGBA). Without it the blades stay untextured.
+    const std::string root = asset::findAssetRoot("vegetation/grass_medium_02/textures/grass_medium_02_diff_1k.png");
+    if (root.empty()) return;
+    asset::Image img;
+    if (!asset::loadImage(root + "/vegetation/grass_medium_02/textures/grass_medium_02_diff_1k.png", img)) return;
+    const std::vector<asset::BladeRect> rects = asset::findBladeRects(img);
+    if (rects.empty()) return;
+    bladeCount_ = std::min(static_cast<int>(rects.size()), 16);
+    double sum = 0.0;
+    size_t n = 0;
+    for (size_t i = 0; i < img.rgba.size(); i += 4)
+        if (img.rgba[i + 3] > 128) {
+            const double r = std::pow(img.rgba[i] / 255.0, 2.2), g = std::pow(img.rgba[i + 1] / 255.0, 2.2), b = std::pow(img.rgba[i + 2] / 255.0, 2.2);
+            sum += 0.299 * r + 0.587 * g + 0.114 * b;
+            ++n;
+        }
+    texLuma_ = n ? static_cast<float>(sum / n) : 0.1f;
+    for (int i = 0; i < bladeCount_; ++i) {
+        bladeRects_[4 * i] = rects[i].u;
+        bladeRects_[4 * i + 1] = rects[i].v;
+        bladeRects_[4 * i + 2] = rects[i].w;
+        bladeRects_[4 * i + 3] = rects[i].h;
+    }
+    // Coverage-preserving mips (the blades keep their coverage at a distance: no thinning, no shimmer).
+    const std::vector<asset::Image> mips = asset::buildMips(img, 0.4f);
+    glGenTextures(1, &tex_);
+    glBindTexture(GL_TEXTURE_2D, tex_);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    for (size_t l = 0; l < mips.size(); ++l)
+        glTexImage2D(GL_TEXTURE_2D, static_cast<GLint>(l), GL_RGBA8, mips[l].w, mips[l].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, mips[l].rgba.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+}
+
 GrassField::~GrassField() {
+    if (tex_) glDeleteTextures(1, &tex_);
     if (instanceVbo_) glDeleteBuffers(1, &instanceVbo_);
     if (ebo_) glDeleteBuffers(1, &ebo_);
     if (vbo_) glDeleteBuffers(1, &vbo_);
@@ -267,7 +348,9 @@ bool GrassField::init() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cube.indices.size() * sizeof(uint32_t), cube.indices.data(), GL_STATIC_DRAW);
     glBindVertexArray(0);
+    loadAtlas();
     shader_->use();
+    shader_->set("uGrassTex", 3);
     shader_->set("uMoonShadow", 5);
     shader_->set("uSpotShadow", 6);
     shader_->set("uAO", 7);

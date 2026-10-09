@@ -1,0 +1,78 @@
+{
+  "asset": {"version": "2.0", "generator": "ThermalSense bake_assets (v9 M6)"},
+  "scene": 0,
+  "extensionsUsed": ["KHR_mesh_quantization"],
+  "extensionsRequired": ["KHR_mesh_quantization"],
+  "scenes": [{"nodes": [0, 1, 2, 3]}],
+  "nodes": [
+    {"name": "fern_02_b", "mesh": 0},
+    {"name": "fern_02_c", "mesh": 1},
+    {"name": "fern_02_a", "mesh": 2},
+    {"name": "fern_02_d", "mesh": 3}
+  ],
+  "meshes": [
+    {"name": "fern_02_b", "primitives": [{"attributes": {"POSITION": 0, "NORMAL": 1, "TEXCOORD_0": 2, "COLOR_0": 3}, "indices": 4, "material": 0}]},
+    {"name": "fern_02_c", "primitives": [{"attributes": {"POSITION": 5, "NORMAL": 6, "TEXCOORD_0": 7, "COLOR_0": 8}, "indices": 9, "material": 0}]},
+    {"name": "fern_02_a", "primitives": [{"attributes": {"POSITION": 10, "NORMAL": 11, "TEXCOORD_0": 12, "COLOR_0": 13}, "indices": 14, "material": 0}]},
+    {"name": "fern_02_d", "primitives": [{"attributes": {"POSITION": 15, "NORMAL": 16, "TEXCOORD_0": 17, "COLOR_0": 18}, "indices": 19, "material": 0}]}
+  ],
+  "materials": [
+    {"name": "fern_02", "doubleSided": true, "alphaMode": "MASK", "alphaCutoff": 0.5, "pbrMetallicRoughness": {"metallicFactor": 0, "baseColorTexture": {"index": 0}, "metallicRoughnessTexture": {"index": 1}}, "normalTexture": {"index": 2}}
+  ],
+  "samplers": [{"magFilter": 9729, "minFilter": 9987}],
+  "images": [
+    {"uri": "textures/fern_02_diff_1k.png"},
+    {"uri": "textures/fern_02_arm_1k.jpg"},
+    {"uri": "textures/fern_02_nor_gl_1k.jpg"}
+  ],
+  "textures": [
+    {"sampler": 0, "source": 0},
+    {"sampler": 0, "source": 1},
+    {"sampler": 0, "source": 2}
+  ],
+  "accessors": [
+    {"bufferView": 0, "componentType": 5126, "count": 1589, "type": "VEC3", "min": [-0.5281426, -0.03051028, -0.4218745], "max": [0.4616048, 0.3971844, 0.4718153]},
+    {"bufferView": 1, "componentType": 5120, "count": 1589, "type": "VEC3", "normalized": true},
+    {"bufferView": 2, "componentType": 5123, "count": 1589, "type": "VEC2", "normalized": true},
+    {"bufferView": 3, "componentType": 5121, "count": 1589, "type": "VEC4", "normalized": true},
+    {"bufferView": 4, "componentType": 5125, "count": 6870, "type": "SCALAR"},
+    {"bufferView": 5, "componentType": 5126, "count": 1500, "type": "VEC3", "min": [-0.4299396, -0.02877367, -0.4172818], "max": [0.4443862, 0.3202467, 0.3479439]},
+    {"bufferView": 6, "componentType": 5120, "count": 1500, "type": "VEC3", "normalized": true},
+    {"bufferView": 7, "componentType": 5123, "count": 1500, "type": "VEC2", "normalized": true},
+    {"bufferView": 8, "componentType": 5121, "count": 1500, "type": "VEC4", "normalized": true},
+    {"bufferView": 9, "componentType": 5125, "count": 6480, "type": "SCALAR"},
+    {"bufferView": 10, "componentType": 5126, "count": 530, "type": "VEC3", "min": [-0.2976571, -0.02877352, -0.3112681], "max": [0.2542835, 0.25803, 0.302153]},
+    {"bufferView": 11, "componentType": 5120, "count": 530, "type": "VEC3", "normalized": true},
+    {"bufferView": 12, "componentType": 5123, "count": 530, "type": "VEC2", "normalized": true},
+    {"bufferView": 13, "componentType": 5121, "count": 530, "type": "VEC4", "normalized": true},
+    {"bufferView": 14, "componentType": 5125, "count": 2301, "type": "SCALAR"},
+    {"bufferView": 15, "componentType": 5126, "count": 547, "type": "VEC3", "min": [-0.2907802, -0.01357894, -0.3521367], "max": [0.282002, 0.1995086, 0.2411416]},
+    {"bufferView": 16, "componentType": 5120, "count": 547, "type": "VEC3", "normalized": true},
+    {"bufferView": 17, "componentType": 5123, "count": 547, "type": "VEC2", "normalized": true},
+    {"bufferView": 18, "componentType": 5121, "count": 547, "type": "VEC4", "normalized": true},
+    {"bufferView": 19, "componentType": 5125, "count": 2379, "type": "SCALAR"}
+  ],
+  "bufferViews": [
+    {"buffer": 0, "byteOffset": 0, "byteLength": 19068, "target": 34962},
+    {"buffer": 0, "byteOffset": 19068, "byteLength": 6356, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 25424, "byteLength": 6356, "target": 34962},
+    {"buffer": 0, "byteOffset": 31780, "byteLength": 6356, "target": 34962},
+    {"buffer": 0, "byteOffset": 38136, "byteLength": 27480, "target": 34963},
+    {"buffer": 0, "byteOffset": 65616, "byteLength": 18000, "target": 34962},
+    {"buffer": 0, "byteOffset": 83616, "byteLength": 6000, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 89616, "byteLength": 6000, "target": 34962},
+    {"buffer": 0, "byteOffset": 95616, "byteLength": 6000, "target": 34962},
+    {"buffer": 0, "byteOffset": 101616, "byteLength": 25920, "target": 34963},
+    {"buffer": 0, "byteOffset": 127536, "byteLength": 6360, "target": 34962},
+    {"buffer": 0, "byteOffset": 133896, "byteLength": 2120, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 136016, "byteLength": 2120, "target": 34962},
+    {"buffer": 0, "byteOffset": 138136, "byteLength": 2120, "target": 34962},
+    {"buffer": 0, "byteOffset": 140256, "byteLength": 9204, "target": 34963},
+    {"buffer": 0, "byteOffset": 149460, "byteLength": 6564, "target": 34962},
+    {"buffer": 0, "byteOffset": 156024, "byteLength": 2188, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 158212, "byteLength": 2188, "target": 34962},
+    {"buffer": 0, "byteOffset": 160400, "byteLength": 2188, "target": 34962},
+    {"buffer": 0, "byteOffset": 162588, "byteLength": 9516, "target": 34963}
+  ],
+  "buffers": [{"uri": "fern_02.bin", "byteLength": 172104}]
+}
