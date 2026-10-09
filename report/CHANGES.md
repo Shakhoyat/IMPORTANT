@@ -108,9 +108,9 @@ modes `prims`, `parts:<object>`, `build:<object>` (capture group `m3`).
 
 ### Regenerated after the M3 merge
 
-- Workbook: new sheet `Vertex_Groups` (groups A, C, D as live formulas; leg forward kinematics reproduces the exported ankle path) shown in Section 7.1 and Appendix A.4; 15 sheets, 2 355 formula cells, 0 errors. Primitives sheet now prints on two pages (page break before the parametric block).
+- Workbook: new sheet `Vertex_Groups` (groups A, C, D as live formulas; leg forward kinematics reproduces the exported ankle path) shown in Section 7.1 and in the appendix; 15 sheets, 2 355 formula cells, 0 errors. Primitives sheet now prints on two pages (page break before the parametric block).
 - All captures re-rendered (scene, v5, play, lab, rt, game, m3 groups); Frame Explorer insets, plots and workbook recomputed.
-- Benchmark re-run (`TS_BENCH_V10=1`, 3 rounds x 10 s, RTX 4070): Table 30.x and the analysis paragraph are generated from the new CSV. Fewer triangles after the helix replaced 312 wire cylinders.
+- Benchmark re-run (`TS_BENCH_V10=1`, 3 rounds x 10 s, RTX 4070): the benchmark table (Section 30) and the analysis paragraph are generated from the new CSV. Fewer triangles after the helix replaced 312 wire cylinders.
 
 | Configuration | mean ms old -> new | fps old -> new | triangles old -> new |
 |---|---|---|---|
