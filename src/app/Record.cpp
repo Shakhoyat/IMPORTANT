@@ -448,4 +448,156 @@ int App::recordMode() {
     return status == 0 ? 0 : 1;
 }
 
+// ------------------------------------------------------------------------- v9 M9: the replay video (--replay --record)
+// One video frame per simulation tick inside the clip (exactly 60 fps of simulated time), drawn by a second renderer
+// (its own TAA / exposure history and buffers; the replayed live frames keep theirs) at --ss times the output size and
+// box-filtered down (CINEMATIC: EPIC + 2x2 supersampling), with the HUD of the session, and the procedural sound.
+
+struct App::ReplayVideo {
+    std::FILE* pipe = nullptr;
+    std::string out, videoTarget, wavPath, silentPath, pngDir;
+    int w = 0, h = 0, ss = 1;
+    RenderTarget hi, lo;
+    std::vector<uint8_t> rgb;
+    audio::AudioEngine audio;
+    audio::WavWriter wav;
+    bool audioOn = false;
+    std::vector<float> block;
+    long long clipIn = 0, clipOut = 0, written = 0;
+    double start = 0.0;
+    bool failed = false;
+};
+
+bool App::replayVideoOpen() {
+    auto v = std::make_unique<ReplayVideo>();
+    v->out = opt_.outPath;
+    v->w = std::max(16, videoW_);
+    v->h = std::max(16, videoH_);
+    v->ss = std::max(1, std::min(2, opt_.supersample));   // 2x2: one bilinear tap per output pixel = an exact box filter
+    v->clipIn = std::max(0LL, replayHeader_.clipIn);
+    v->clipOut = replayHeader_.clipOut >= 0 ? replayHeader_.clipOut : (1LL << 60);
+    if (!safeForShell(v->out) || !safeForShell(opt_.ffmpeg) || !safeForShell(opt_.encoder)) {
+        std::fprintf(stderr, "--record: output path, --ffmpeg and --encoder must not contain \" & | ^ < > %% ! $ ` ;\n");
+        return false;
+    }
+    videoRenderer_ = std::make_unique<Renderer>();
+    if (!videoRenderer_->init()) {
+        std::fprintf(stderr, "replay video: renderer initialisation failed\n");
+        return false;
+    }
+    if (!v->hi.create(v->w * v->ss, v->h * v->ss, 0, false) || !v->lo.create(v->w, v->h, 0, false)) return false;
+    const std::string stem = v->out.size() > 4 && v->out.compare(v->out.size() - 4, 4, ".mp4") == 0 ? v->out.substr(0, v->out.size() - 4) : v->out;
+    v->wavPath = stem + "_audio.wav";
+    v->silentPath = stem + "_noaudio.mp4";
+    v->audioOn = std::getenv("TS_NO_AUDIO") == nullptr && v->wav.open(v->wavPath);
+    v->videoTarget = v->audioOn ? v->silentPath : v->out;
+    const bool nvenc = opt_.encoder.find("nvenc") != std::string::npos;
+    const std::string codec = nvenc ? "-c:v " + opt_.encoder + " -preset p7 -tune hq -rc vbr -cq 18 -b:v 0 "
+                                    : "-c:v " + opt_.encoder + " -preset slow -crf 17 ";
+    const std::string cmd = "\"" + opt_.ffmpeg + "\" -y -loglevel error -f rawvideo -pix_fmt rgb24 -s " + std::to_string(v->w) + "x" +
+                            std::to_string(v->h) + " -r 60 -i - " + codec + "-pix_fmt yuv420p -movflags +faststart \"" +
+                            v->videoTarget + "\"";
+    v->pipe = openPipe(cmd);
+    if (!v->pipe) {
+        v->pngDir = v->out + "_frames";
+        std::filesystem::create_directories(v->pngDir);
+        std::fprintf(stderr, "ffmpeg not available, writing PNG frames to %s\n", v->pngDir.c_str());
+    }
+    std::printf("Replay video: %dx%d at 60 fps (rendered %dx%d, %s), clip ticks %lld..%lld -> %s\n", v->w, v->h, v->w * v->ss,
+                v->h * v->ss, qualityName(settings_.quality), v->clipIn, replayHeader_.clipOut, v->out.c_str());
+    std::fflush(stdout);
+    v->start = nowSeconds();
+    video_ = v.release();
+    return true;
+}
+
+bool App::replayVideoDone() const { return video_ && (video_->failed || simClock_.ticks() >= video_->clipOut); }
+
+void App::replayVideoFrame(float aspect, long long tick) {
+    ReplayVideo* v = video_;
+    if (!v || v->failed) return;
+    if (tick > v->clipOut || tick <= v->clipIn - 30) return;   // 30 ticks of pre-roll settle TAA and exposure
+    const bool write = tick > v->clipIn;
+    if (v->audioOn) v->audio.pollEvents(*scene_);
+    // Everything renderFrame leaves behind for the live frames (the shown pose drives interaction picks) is put back.
+    const RigPose savedPose = shownPose_;
+    const bool savedValid = shownValid_;
+    const float savedAspect = lastAspect_;
+    const int savedW = lastW_, savedH = lastH_;
+    const FrameStats savedStats = stats_;
+    const Interactable savedInteract = interact_;
+    const bool savedInteractValid = interactValid_;
+    const std::string savedPrompt = interactPrompt_;
+    const RigPose* savedOverride = viewOverride_;
+    viewOverride_ = tickPoseValid_[1] && !thermalFirstPerson() ? &tickPose_[1] : nullptr;   // the tick itself (no blend)
+    std::swap(renderer_, videoRenderer_);
+    v->hi.bind();
+    renderFrame(v->w * v->ss, v->h * v->ss, true);
+    std::swap(renderer_, videoRenderer_);
+    const RigPose videoPose = shownPose_;
+    shownPose_ = savedPose;
+    shownValid_ = savedValid;
+    lastAspect_ = savedAspect;
+    lastW_ = savedW;
+    lastH_ = savedH;
+    stats_ = savedStats;
+    interact_ = savedInteract;
+    interactValid_ = savedInteractValid;
+    interactPrompt_ = savedPrompt;
+    viewOverride_ = savedOverride;
+    (void)aspect;
+    if (!write) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return;
+    }
+    if (v->audioOn) {
+        v->audio.update(*scene_, videoPose.eye, videoPose.forward(), videoPose.up(), 1.0f / 60.0f);
+        v->audio.renderOffline(1.0f / 60.0f, v->block);
+        v->wav.write(v->block.data(), v->block.size());
+    }
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, v->hi.fbo());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, v->lo.fbo());
+    glBlitFramebuffer(0, 0, v->w * v->ss, v->h * v->ss, 0, 0, v->w, v->h, GL_COLOR_BUFFER_BIT, v->ss > 1 ? GL_LINEAR : GL_NEAREST);
+    v->lo.read(v->rgb);
+    if (v->pipe) {
+        if (std::fwrite(v->rgb.data(), 1, v->rgb.size(), v->pipe) != v->rgb.size()) {
+            std::fprintf(stderr, "ffmpeg pipe closed early\n");
+            v->failed = true;
+        }
+    } else {
+        char name[64];
+        std::snprintf(name, sizeof(name), "/frame_%05lld.png", v->written);
+        writePng(v->pngDir + name, v->w, v->h, v->rgb);
+    }
+    ++v->written;
+    if (v->written % 60 == 0) {
+        const double el = nowSeconds() - v->start;
+        std::printf("video frame %lld (%.1f s of video, %.1f s elapsed)\n", v->written, v->written / 60.0, el);
+        std::fflush(stdout);
+    }
+    (void)aspect;
+}
+
+void App::replayVideoClose() {
+    ReplayVideo* v = video_;
+    if (!v) return;
+    video_ = nullptr;
+    const int status = v->pipe ? closePipe(v->pipe) : 0;
+    const bool wavOk = v->audioOn && v->wav.close();
+    if (v->pipe && v->audioOn && status == 0 && wavOk) {
+        const std::string mux = "\"" + opt_.ffmpeg + "\" -y -loglevel error -i \"" + v->silentPath + "\" -i \"" + v->wavPath +
+                                "\" -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart \"" + v->out + "\"";
+        if (runCommand(mux) == 0) {
+            std::remove(v->silentPath.c_str());
+            std::remove(v->wavPath.c_str());
+        } else {
+            std::fprintf(stderr, "audio mux failed; keeping %s and %s\n", v->silentPath.c_str(), v->wavPath.c_str());
+        }
+    }
+    std::printf("Replay video: %lld frames (%.2f s at 60 fps) -> %s (encoder status %d, %.1f s)\n", v->written, v->written / 60.0,
+                v->pipe ? v->out.c_str() : v->pngDir.c_str(), status, nowSeconds() - v->start);
+    std::fflush(stdout);
+    delete v;
+}
+
 }  // namespace ts

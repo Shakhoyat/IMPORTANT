@@ -1100,6 +1100,7 @@ void App::drawHud(const CameraView& cam, int w, int h) {
         if (pickerOpen_) drawPicker(w, h);
         if (showHelp_) drawHelp(w, h);
         if (menuOpen_) drawPauseMenu(w, h);   // v9 M2
+        drawSessionIndicator(w, h);   // v9 M9: REC timer while an F9 clip runs, "clip saved" toast
         hud.end();
         return;
     }
@@ -1112,6 +1113,7 @@ void App::drawHud(const CameraView& cam, int w, int h) {
         if (pickerOpen_) drawPicker(w, h);
         if (showHelp_) drawHelp(w, h);
         if (menuOpen_) drawPauseMenu(w, h);   // v9 M2
+        drawSessionIndicator(w, h);   // v9 M9: REC timer while an F9 clip runs, "clip saved" toast
         hud.end();
         return;
     }
@@ -1224,6 +1226,7 @@ void App::drawHud(const CameraView& cam, int w, int h) {
     if (pickerOpen_) drawPicker(w, h);
     if (showHelp_) drawHelp(w, h);
     if (menuOpen_) drawPauseMenu(w, h);   // v9 M2
+    drawSessionIndicator(w, h);   // v9 M9: REC timer while an F9 clip runs, "clip saved" toast
     hud.end();
 }
 

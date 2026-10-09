@@ -24,6 +24,7 @@ public:
     // v9 M1: true when the copy started by readAsync(slot) has finished on the GPU (collect would not wait).
     bool readReady(int slot);
     GLuint texture() const { return resolveTex_; }
+    GLuint fbo() const { return fbo_; }   // v9 M9: draw framebuffer (blit source / target)
     int width() const { return width_; }
     int height() const { return height_; }
 

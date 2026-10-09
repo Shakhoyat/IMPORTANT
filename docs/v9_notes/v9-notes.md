@@ -175,3 +175,19 @@ of post mode (HDR / thermal sensor / plain) is treated as a camera cut, so the h
 image (`after_exe_uav_gimbal_mode_switch.jpg`). The same exe re-run (`exe_merge_rerun_log.txt`, NVIDIA 591.86, EPIC, 1080p)
 shows UAV FPV 90.2 fps and gimbal 95.6 fps with no other jobs running; the 29-47 fps seen earlier was CPU contention from
 parallel builds.
+
+## M9: session recording and deterministic replay (done; the performance pass is folded into the final merge benchmark)
+- `scene/SessionLog.{h,cpp}` (pure, tested) + `app/Replay.cpp` + `app/Record.cpp`: every interactive run logs its frames
+  (frame time as a hex float, window / framebuffer size, inputs at the point of the frame where they arrived: script at the
+  top, window callbacks at the poll; pointer reads by index, only when changed; a world hash every 60 ticks).
+  `F9` starts / ends a clip and saves `recordings/session_*.tsrec` next to the exe (REC timer and "CLIP SAVED" toast on the
+  HUD); auto-exposure moved to `Shift+F9`. `--session-out FILE` saves the whole run (scripted sessions).
+- `--replay FILE` re-runs it in the window (same seed, world arguments, settings, window size; the window's own input is
+  ignored, Esc stops) and compares every checkpoint (`replay check: N / N checkpoints identical`).
+  `--replay FILE --record OUT.mp4 [--size WxH] [--ss 1|2]` renders the clip offline: one frame per simulation tick
+  (exactly 60 fps), a second renderer with its own TAA / exposure history at 2x2 supersampling, NVENC / x264, 30 ticks of
+  pre-roll, the procedural sound track muxed in.
+- Tests T400-T405 (`tests/test_v9_m9.cpp`): exact text round trip, frame splitting, pointer-read replay, parse errors, and a
+  60 s night session (variable frame times with hitches, 217 random key events on a possessed unit) written to text,
+  parsed and re-run: 60 / 60 checkpoints bit-identical; one tampered key mid-session diverges only after its tick.
+  339 tests, 0 failed.

@@ -27,6 +27,8 @@ App* appFrom(GLFWwindow* w) { return static_cast<App*>(glfwGetWindowUserPointer(
 #endif
 
 App::~App() {
+    replayVideoClose();   // v9 M9: an unfinished replay video (closes ffmpeg, frees its targets)
+    videoRenderer_.reset();
     renderer_.reset();  // GL objects must go before the context
     if (headless_) {
         destroyHeadlessContext();
@@ -109,10 +111,10 @@ bool App::initWindow(bool visible) {
             return false;
         }
         glfwSetWindowUserPointer(window_, this);
-        glfwSetKeyCallback(window_, [](GLFWwindow* w, int k, int, int a, int m) { appFrom(w)->onKey(k, a, m); });
-        glfwSetMouseButtonCallback(window_, [](GLFWwindow* w, int b, int a, int) { appFrom(w)->onMouseButton(b, a); });
-        glfwSetCursorPosCallback(window_, [](GLFWwindow* w, double x, double y) { appFrom(w)->onCursor(x, y); });
-        glfwSetScrollCallback(window_, [](GLFWwindow* w, double, double dy) { appFrom(w)->onScroll(dy); });
+        glfwSetKeyCallback(window_, [](GLFWwindow* w, int k, int, int a, int m) { appFrom(w)->inputKey(k, a, m); });
+        glfwSetMouseButtonCallback(window_, [](GLFWwindow* w, int b, int a, int) { appFrom(w)->inputButton(b, a); });
+        glfwSetCursorPosCallback(window_, [](GLFWwindow* w, double x, double y) { appFrom(w)->inputCursor(x, y); });
+        glfwSetScrollCallback(window_, [](GLFWwindow* w, double, double dy) { appFrom(w)->inputScroll(dy); });
 #endif
     }
     std::printf("OpenGL %s | %s | %s\n", glGetString(GL_VERSION), glGetString(GL_VENDOR), glGetString(GL_RENDERER));
@@ -192,7 +194,11 @@ bool App::closeRequested() const {
 int App::run() {
     // v9 M2: the player's settings (ThermalSense.ini) for the interactive game; the command line wins for this run.
     if (opt_.mode == AppOptions::Mode::Interactive) {
-        loadSettings();
+        if (!opt_.replayPath.empty()) {   // v9 M9: the recorded run's settings, window and quality
+            if (!loadReplay()) return 1;
+        } else {
+            loadSettings();
+        }
         cliVsync_ = opt_.vsync >= 0;
         cliFpsLimit_ = opt_.fpsLimit >= 0.0f;
         if (opt_.quality < 0 && gs_.quality >= 0) opt_.quality = gs_.quality;

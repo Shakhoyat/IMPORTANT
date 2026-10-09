@@ -17,6 +17,7 @@
 #include "rendering/ThermalPalette.h"
 #include "app/FramePacer.h"
 #include "scene/Director.h"
+#include "scene/GameMenu.h"
 #include "scene/TickInterp.h"
 
 namespace ts {
@@ -82,6 +83,17 @@ void App::interactiveLoop() {
     applyDisplaySettings();
     debugHud_ = false;   // v9 M2: the decluttered game HUD; F3 adds the debug blocks
     if (!opt_.inputScript.empty() && !loadInputScript()) return;
+    // v9 M9: log the session (F9 saves a clip), or re-run a recorded one (--replay; with --record: the video)
+    if (replaying_) {
+        if (!opt_.outPath.empty() && !replayVideoOpen()) return;
+        glfwSwapInterval(0);
+        qualityAuto_ = false;
+    } else {
+        recordSession_ = true;
+        sessionSettings_ = serializeSettings(gs_);
+        sessionQuality_ = static_cast<int>(settings_.quality);
+    }
+    double replayWall0 = glfwGetTime(), replayT = 0.0;
     double last = glfwGetTime(), titleTimer = 0.0;
     int frames = 0;
     FramePacer pacer;
@@ -96,22 +108,31 @@ void App::interactiveLoop() {
             onKey(GLFW_KEY_GRAVE_ACCENT, GLFW_PRESS, 0);
         }
         const double now = glfwGetTime();
-        const double frameSeconds = now - last;
+        double frameSeconds = now - last;
+        if (replaying_) {   // v9 M9: the recorded frame time and the inputs of the frame's top
+            if (!replayBeginFrame(frameSeconds)) break;
+        } else if (recordSession_) {
+            int ww = 1, wh = 1, sfw = 0, sfh = 0;
+            windowSize(ww, wh);
+            framebufferSize(sfw, sfh);
+            session_.frame(frameSeconds, ww, wh, sfw, sfh);
+        }
         if (script_.active()) {   // v9 M0: scripted input (the clock starts at the first frame)
             if (scriptT0_ < 0.0) scriptT0_ = now;
             runScript(now - scriptT0_);
         }
+        if (recordSession_) session_.topDone();
         if (loopT_.start < 0.0) loopT_.start = now;
         const float dt = static_cast<float>(std::min(frameSeconds, 0.05));   // camera / UI easing (not the simulation)
         frameMs_[frameHead_] = static_cast<float>(1000.0 * (now - last));   // v7 WP-Q: HUD frame-time graph
         frameHead_ = (frameHead_ + 1) % kFrameHistory;
-        governQuality(now);                                                  // v7 WP-Q: auto preset
+        if (!replaying_) governQuality(now);                                 // v7 WP-Q: auto preset
         last = now;
 
         // v7 WP-I: while the Frame Explorer is open the world stays frozen and the explorer owns the screen.
         if (wpiExplorer().isOpen()) {
             int ew = 0, eh = 0;
-            glfwGetFramebufferSize(window_, &ew, &eh);
+            framebufferSize(ew, eh);
             if (ew > 0 && eh > 0) wpiExplorer().frame(*renderer_, 0, ew, eh, dt);
             glfwSwapBuffers(window_);
             glfwPollEvents();
@@ -179,7 +200,7 @@ void App::interactiveLoop() {
             double cx = 0.0, cy = 0.0;
             int ww = 1, wh = 1;
             cursorPos(cx, cy);
-            glfwGetWindowSize(window_, &ww, &wh);
+            windowSize(ww, wh);
             if (cx >= 0.0 && cy >= 0.0 && cx < ww && cy < wh) updateHover(cx / std::max(ww, 1), cy / std::max(wh, 1));
             else hoverKey_ = 0;
         } else {
@@ -223,7 +244,7 @@ void App::interactiveLoop() {
         // one-shot edges (jump, fire, clicks) are consumed by the first. After each tick the drawn parts and the camera
         // pose are captured; the frame below shows the world between the last two ticks.
         int fw = 0, fh = 0;
-        glfwGetFramebufferSize(window_, &fw, &fh);
+        framebufferSize(fw, fh);
         const float aspect = fh > 0 ? static_cast<float>(fw) / static_cast<float>(fh) : lastAspect_;
         const int ticks = simClock_.advance(frameSeconds);
         const double tSim = glfwGetTime();
@@ -233,6 +254,14 @@ void App::interactiveLoop() {
             if (camera_.mode == CameraMode::Cinematic && !paused_) camera_.directorTime += FixedStepClock::kTick;
             scene_->captureTick();
             captureTickPose(aspect);
+            // v9 M9: a world checkpoint every second of simulation (logged, or compared while replaying), and the
+            // replay video's frame of this tick.
+            const long long tickNo = simClock_.ticks() - ticks + t + 1;
+            if (tickNo % 60 == 0) {
+                if (recordSession_) session_.check(tickNo, worldHash());
+                else if (replaying_) replayCheck(tickNo);
+            }
+            if (video_) replayVideoFrame(aspect, tickNo);
         }
         loopT_.sim += glfwGetTime() - tSim;
         // Weather: rain eases in/out over ~3 s; the ground soaks in ~20 s and dries in ~90 s.
@@ -275,10 +304,27 @@ void App::interactiveLoop() {
         glfwSwapBuffers(window_);
         loopT_.swap += glfwGetTime() - tSwap;
         const double tWait = glfwGetTime();
-        pacer.wait(limitHz_);   // v9 M1: frame limiter (sleeps; never spins for more than half a millisecond)
+        if (replaying_) {   // v9 M9: real time when watching a replay; as fast as possible when it renders the video
+            replayT += frameSeconds;
+            if (!video_)
+                while (glfwGetTime() < replayWall0 + replayT && !glfwWindowShouldClose(window_)) pacer.wait(1000.0f);
+        } else {
+            pacer.wait(limitHz_);   // v9 M1: frame limiter (sleeps; never spins for more than half a millisecond)
+        }
         loopT_.wait += glfwGetTime() - tWait;
         glfwPollEvents();
+        if (replaying_) {
+            replayDeliverPoll();   // v9 M9: what arrived in the recorded frame's poll
+            if (video_ && replayVideoDone()) break;
+        }
         ++loopT_.frames;
+    }
+    // v9 M9: end of the session
+    if (replaying_) {
+        replayFinish();
+    } else if (recordSession_) {
+        if (clipIn_ >= 0) toggleSessionClip();   // a clip still running when the game closes is saved too
+        if (!opt_.sessionOut.empty()) saveSession(opt_.sessionOut, 0, simClock_.ticks());
     }
 }
 
@@ -312,22 +358,31 @@ void App::applyDisplaySettings() {
 }
 
 // ------------------------------------------------------------------------------------------- v9 M0: input script
-bool App::keyDown(int key) const { return (window_ && glfwGetKey(window_, key) == GLFW_PRESS) || script_.keyHeld(key); }
+bool App::keyDown(int key) const {
+    if (replaying_) return std::find(replayKeys_.begin(), replayKeys_.end(), key) != replayKeys_.end();   // v9 M9
+    return (window_ && glfwGetKey(window_, key) == GLFW_PRESS) || script_.keyHeld(key);
+}
 
 bool App::mouseDown(int button) const {
+    if (replaying_) return button >= 0 && button < 8 && replayButtons_[button];   // v9 M9
     return (window_ && glfwGetMouseButton(window_, button) == GLFW_PRESS) || script_.buttonHeld(button);
 }
 
 void App::cursorPos(double& x, double& y) const {
-    if (scriptPointer_ && window_) {
-        int ww = 1, wh = 1;
-        glfwGetWindowSize(window_, &ww, &wh);
-        x = scriptPx_ * ww;
-        y = scriptPy_ * wh;
+    if (replaying_) {   // v9 M9: what the same read of the recorded frame returned
+        replayPointer_.read(x, y);
         return;
     }
     x = y = 0.0;
-    if (window_) glfwGetCursorPos(window_, &x, &y);
+    if (scriptPointer_ && window_) {
+        int ww = 1, wh = 1;
+        windowSize(ww, wh);
+        x = scriptPx_ * ww;
+        y = scriptPy_ * wh;
+    } else if (window_) {
+        glfwGetCursorPos(window_, &x, &y);
+    }
+    if (recordSession_) session_.pointerRead(x, y);
 }
 
 bool App::loadInputScript() {
@@ -357,16 +412,17 @@ bool App::loadInputScript() {
 void App::runScript(double t) {
     for (const ScriptEvent& e : script_.due(t)) {
         switch (e.kind) {
-            case ScriptEvent::Kind::Key: onKey(e.code, e.action ? GLFW_PRESS : GLFW_RELEASE, 0); break;
-            case ScriptEvent::Kind::Button: onMouseButton(e.code, e.action ? GLFW_PRESS : GLFW_RELEASE); break;
-            case ScriptEvent::Kind::Look: onCursor(lastX_ + e.x, lastY_ + e.y); break;
+            // v9 M9: the script is an input source like the window: its events go into the session log.
+            case ScriptEvent::Kind::Key: inputKey(e.code, e.action ? GLFW_PRESS : GLFW_RELEASE, 0); break;
+            case ScriptEvent::Kind::Button: inputButton(e.code, e.action ? GLFW_PRESS : GLFW_RELEASE); break;
+            case ScriptEvent::Kind::Look: inputCursor(lastX_ + e.x, lastY_ + e.y); break;
             case ScriptEvent::Kind::Pointer: {
                 scriptPointer_ = true;
                 scriptPx_ = e.x;
                 scriptPy_ = e.y;
-                double x = 0.0, y = 0.0;
-                cursorPos(x, y);
-                onCursor(x, y);
+                int ww = 1, wh = 1;   // not a pointer read: the replay has no script
+                windowSize(ww, wh);
+                inputCursor(scriptPx_ * ww, scriptPy_ * wh);
                 break;
             }
             case ScriptEvent::Kind::Shot: scriptShots_.push_back(e.text); break;
@@ -424,7 +480,7 @@ void App::onKey(int key, int action, int mods) {
     }
     if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS) {
         int ew = 0, eh = 0;
-        glfwGetFramebufferSize(window_, &ew, &eh);
+        framebufferSize(ew, eh);
         if (ew <= 0 || eh <= 0) return;
         const float aspect = static_cast<float>(ew) / static_cast<float>(eh);
         const bool fpv = thermalFirstPerson();
@@ -587,7 +643,10 @@ void App::onKey(int key, int action, int mods) {
         case GLFW_KEY_F6: settings_.taaOn = !settings_.taaOn; break;
         case GLFW_KEY_F7: settings_.ssrOn = !settings_.ssrOn; break;
         case GLFW_KEY_F8: settings_.flareOn = !settings_.flareOn; break;
-        case GLFW_KEY_F9: settings_.autoExposureOn = !settings_.autoExposureOn; break;
+        case GLFW_KEY_F9:   // v9 M9: F9 = session clip in / out (saved for --replay); Shift+F9 = auto-exposure (was F9)
+            if (mods & GLFW_MOD_SHIFT) settings_.autoExposureOn = !settings_.autoExposureOn;
+            else toggleSessionClip();
+            break;
         case GLFW_KEY_F10: settings_.dof = settings_.dof > 0.0f ? 0.0f : 1.0f; break;
         case GLFW_KEY_L: settings_.foliageOn = !settings_.foliageOn; break;
         case GLFW_KEY_J: settings_.particlesOn = !settings_.particlesOn; break;
@@ -604,7 +663,7 @@ void App::onKey(int key, int action, int mods) {
         case GLFW_KEY_PAUSE: paused_ = !paused_; break;
         case GLFW_KEY_F12: {
             int w, h;
-            glfwGetFramebufferSize(window_, &w, &h);
+            framebufferSize(w, h);
             renderFrame(w, h, true);
             saveScreenshot(w, h);
             break;
@@ -657,7 +716,7 @@ void App::onMouseButton(int button, int action) {
         double cx = 0.0, cy = 0.0;
         int ww = 1, wh = 1;
         cursorPos(cx, cy);
-        glfwGetWindowSize(window_, &ww, &wh);
+        windowSize(ww, wh);
         menuPointer(static_cast<float>(cx * lastW_ / std::max(ww, 1)), static_cast<float>(cy * lastH_ / std::max(wh, 1)),
                     button == GLFW_MOUSE_BUTTON_LEFT ? 0 : button, action == GLFW_PRESS);
         dragging_ = false;
@@ -669,7 +728,7 @@ void App::onMouseButton(int button, int action) {
         double cx = 0.0, cy = 0.0;
         int ww = 1, wh = 1;
         cursorPos(cx, cy);
-        glfwGetWindowSize(window_, &ww, &wh);
+        windowSize(ww, wh);
         if (renderer_->rayDebugPick(*scene_, static_cast<float>(cx / std::max(ww, 1)), static_cast<float>(cy / std::max(wh, 1))))
             std::printf("Ray tree: %zu rays\n", renderer_->rayTree()->nodes.size());
         return;
@@ -680,7 +739,7 @@ void App::onMouseButton(int button, int action) {
         double cx = 0.0, cy = 0.0;
         int ww = 1, wh = 1;
         cursorPos(cx, cy);
-        glfwGetWindowSize(window_, &ww, &wh);
+        windowSize(ww, wh);
         const double nx = cx / std::max(ww, 1), ny = cy / std::max(wh, 1);
         if (button == GLFW_MOUSE_BUTTON_LEFT && pickerOpen_ && pickerClick(nx, ny)) return;
         if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
@@ -701,7 +760,7 @@ void App::onMouseButton(int button, int action) {
             pressValid_ = false;
             if (std::hypot(cx - pressX_, cy - pressY_) < 5.0) {
                 int ww = 1, wh = 1;
-                glfwGetWindowSize(window_, &ww, &wh);
+                windowSize(ww, wh);
                 selectAt(cx / std::max(ww, 1), cy / std::max(wh, 1));
             }
         }
@@ -720,8 +779,8 @@ void App::onCursor(double x, double y) {
     // v7 WP-I: Frame Explorer cursor in framebuffer pixels (window coordinates differ on high-DPI screens).
     if (wpiExplorer().isOpen()) {
         int ww = 1, wh = 1, fw = 1, fh = 1;
-        glfwGetWindowSize(window_, &ww, &wh);
-        glfwGetFramebufferSize(window_, &fw, &fh);
+        windowSize(ww, wh);
+        framebufferSize(fw, fh);
         wpiExplorer().onCursor(static_cast<float>(x * fw / std::max(ww, 1)), static_cast<float>(y * fh / std::max(wh, 1)));
         lastX_ = x;
         lastY_ = y;
@@ -730,7 +789,7 @@ void App::onCursor(double x, double y) {
     // v7 WP-I end
     if (menuOpen_) {   // v9 M2: menu hover / slider drag (framebuffer pixels)
         int ww = 1, wh = 1;
-        glfwGetWindowSize(window_, &ww, &wh);
+        windowSize(ww, wh);
         menuPointer(static_cast<float>(x * lastW_ / std::max(ww, 1)), static_cast<float>(y * lastH_ / std::max(wh, 1)), -1, false);
         lastX_ = x;
         lastY_ = y;

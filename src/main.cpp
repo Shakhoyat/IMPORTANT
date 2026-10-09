@@ -22,6 +22,9 @@
 #include "app/DocExport.h"
 #include "scene/HudMath.h"
 #include "scene/KeyMap.h"
+#include "scene/SessionLog.h"
+#include <sstream>
+#include <vector>
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -96,6 +99,12 @@ void usage() {
         "  --vsync 0|1                   swap interval (default 0: the frame limiter paces the interactive loop)\n"
         "  --fps-limit N                 interactive frame limiter (default: the display refresh; 0 = uncapped)\n"
         "  --no-garrison                 no soldiers\n"
+        "session recording (v9 M9):\n"
+        "  F9 in the game                clip in / clip out: saves recordings/session_*.tsrec next to the exe\n"
+        "  --replay FILE                 re-run a recorded session in the window (same seed, settings, inputs; Esc stops)\n"
+        "  --replay FILE --record OUT.mp4  render the clip offline: 60 fps, one frame per simulation tick, EPIC with\n"
+        "                                2x2 supersampling (--ss 1|2), --size WxH (default 1920x1080), sound track\n"
+        "  --session-out FILE            also save the whole session at exit (scripted runs)\n"
         "  --ini FILE                    settings file (default: ThermalSense.ini next to the exe; 'none' = defaults, no file)\n");
 }
 
@@ -112,6 +121,34 @@ int parseQuality(const std::string& v) {
 int main(int argc, char** argv) {
     ts::AppOptions opt;
     opt.iniPath = defaultIniPath(argc > 0 ? argv[0] : nullptr);
+    // v9 M9: F9 clips go to recordings/ next to the exe (like ThermalSense.ini).
+    opt.sessionDir = opt.iniPath.substr(0, opt.iniPath.size() - std::string("ThermalSense.ini").size()) + "recordings";
+    // v9 M9: --replay FILE: the recorded run's seed and world arguments come first (the command line can add to them).
+    std::vector<std::string> merged(argv, argv + argc);
+    for (int i = 1; i + 1 < argc; ++i)
+        if (std::string(argv[i]) == "--replay") {
+            std::ifstream f(argv[i + 1], std::ios::binary);
+            std::stringstream ss;
+            ss << f.rdbuf();
+            ts::SessionHeader h;
+            std::vector<ts::SessionEntry> entries;
+            std::string error;
+            if (!f || !ts::parseSession(ss.str(), h, entries, error)) {
+                std::fprintf(stderr, "--replay %s: %s\n", argv[i + 1], f ? error.c_str() : "cannot open");
+                return 1;
+            }
+            std::vector<std::string> pre{"--seed", std::to_string(h.seed)};
+            for (const std::string& a : h.worldArgs) {
+                std::istringstream words(a);
+                for (std::string w; words >> w;) pre.push_back(w);
+            }
+            merged.insert(merged.begin() + 1, pre.begin(), pre.end());
+            break;
+        }
+    std::vector<char*> mergedArgv;
+    for (std::string& a : merged) mergedArgv.push_back(&a[0]);
+    argc = static_cast<int>(mergedArgv.size());
+    argv = mergedArgv.data();
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         const std::string value = (i + 1 < argc) ? argv[i + 1] : "";
@@ -228,6 +265,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
             opt.timeGiven = true;
+            opt.worldArgs.push_back("--time " + value);   // v9 M9: session files rebuild the same world
             ++i;
         } else if (arg == "--cycle-seconds") {
             opt.cycleSeconds = static_cast<float>(std::atof(value.c_str()));
@@ -235,11 +273,23 @@ int main(int argc, char** argv) {
                 std::fprintf(stderr, "--cycle-seconds expects a length of at least 10 s\n");
                 return 1;
             }
+            opt.worldArgs.push_back("--cycle-seconds " + value);
             ++i;
         } else if (arg == "--no-garrison") {
             opt.garrison = false;
+            opt.worldArgs.push_back(arg);
         } else if (arg == "--day-ops") {   // v9 M5
             opt.dayOps = true;
+            opt.worldArgs.push_back(arg);
+        } else if (arg == "--replay") {   // v9 M9
+            opt.replayPath = value;
+            ++i;
+        } else if (arg == "--session-out") {   // v9 M9
+            opt.sessionOut = value;
+            ++i;
+        } else if (arg == "--ss") {   // v9 M9
+            opt.supersample = std::atoi(value.c_str());
+            ++i;
         } else if (arg == "--help" || arg == "-h") {
             usage();
             return 0;
@@ -247,6 +297,10 @@ int main(int argc, char** argv) {
             std::fprintf(stderr, "unknown option '%s' (see --help)\n", arg.c_str());
             return 1;
         }
+    }
+    if (!opt.replayPath.empty()) {   // v9 M9: a replay runs the interactive loop; --record names its video
+        if (opt.mode != ts::AppOptions::Mode::Record) opt.outPath.clear();
+        opt.mode = ts::AppOptions::Mode::Interactive;
     }
     if (!opt.seedGiven) {
         // Offline modes are reproducible by default; the interactive game differs on every start.

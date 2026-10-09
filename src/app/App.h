@@ -16,6 +16,7 @@
 #include "scene/HudMath.h"
 #include "scene/Interact.h"
 #include "scene/InputScript.h"
+#include "scene/SessionLog.h"
 #include "scene/SceneApi.h"
 #include "scene/TickInterp.h"
 #include "scene/Scene.h"
@@ -58,6 +59,12 @@ struct AppOptions {
     // v9 M2
     std::string iniPath;      // player settings file (interactive; main.cpp: ThermalSense.ini next to the exe, --ini FILE)
     bool dayOps = false;      // v9 M5 --day-ops: rover waves by day too, the UAVs scramble
+    // v9 M9: session recording (F9) and the deterministic replay
+    std::vector<std::string> worldArgs;   // the arguments that shape the world (main.cpp), written into session files
+    std::string sessionDir = "recordings";   // F9 clips go here (main.cpp: next to the exe)
+    std::string sessionOut;   // --session-out FILE: also save the whole session at exit
+    std::string replayPath;   // --replay FILE: re-run a recorded session (with --record OUT.mp4: offline 60 fps video)
+    int supersample = 2;      // --ss N: replay video rendered at N x the output size, box-filtered down
 };
 
 class App {
@@ -385,6 +392,51 @@ private:
     const RigPose* viewOverride_ = nullptr;     // set while drawing an interpolated frame: composeView shows this pose
     int blendedParts_ = 0;
     void captureTickPose(float aspect);
+    // --- v9 M9: session recording and replay (scene/SessionLog.h, Replay.cpp). Every interactive run logs its frames
+    // (frame time, inputs, pointer reads, world checkpoints); F9 marks a clip and saves it; --replay re-runs it.
+    void inputKey(int key, int action, int mods);   // external input (window callbacks, input script): logged, then handled
+    void inputButton(int button, int action);
+    void inputCursor(double x, double y);
+    void inputScroll(double dy);
+    uint64_t worldHash() const;                     // checkpoint over the tick state (parts, clock, mission, control)
+    void toggleSessionClip();                       // F9: clip in / clip out (saves the file)
+    bool saveSession(const std::string& path, long long clipIn, long long clipOut);
+    std::string sessionFilePath() const;            // recordings/session_YYYYMMDD_HHMMSS.tsrec
+    bool loadReplay();                              // --replay: parse, apply the header (seed / settings / window)
+    bool replayBeginFrame(double& frameSeconds);    // next recorded frame (false = the session is over)
+    void replayCheck(long long tick);               // compare the checkpoint of this tick with the recording
+    void replayFinish();                            // summary line, close the video
+    void replayDeliverPoll();                       // the inputs that arrived during this frame's glfwPollEvents
+    void replayDeliver(const SessionEntry& e);      // give one recorded input to its handler (held state first)
+    bool replayVideoOpen();                         // Record.cpp: ffmpeg pipe, the supersampled target, the second renderer
+    void replayVideoFrame(float aspect, long long tick);   // the 60 fps video frame of the tick just run (inside the clip)
+    bool replayVideoDone() const;                   // the clip has been rendered
+    void replayVideoClose();
+    void drawSessionIndicator(int w, int h);        // HUD: REC timer during an F9 clip, the save toast
+    void windowSize(int& w, int& h) const;          // the recorded sizes while replaying, else GLFW's
+    void framebufferSize(int& w, int& h) const;
+    mutable SessionRecorder session_;
+    bool recordSession_ = false;                    // interactive (not replaying): log the session
+    std::string sessionSettings_;                   // settings / quality at the first frame (session file header)
+    int sessionQuality_ = -1;
+    int videoW_ = 1920, videoH_ = 1080;             // replay video size (--size); the window is the recorded one
+    long long clipIn_ = -1;                         // F9 clip start tick (-1 = no clip running)
+    double clipWall_ = 0.0;                         // wall time of the clip start (REC timer)
+    std::string sessionToast_;                      // "SAVED ..." for a few seconds after F9
+    double sessionToastUntil_ = 0.0;
+    bool replaying_ = false;
+    bool replayDispatch_ = false;                   // the replay is delivering a recorded input (F9 does nothing then)
+    SessionHeader replayHeader_;
+    std::vector<SessionFrame> replayFrames_;
+    size_t replayFrame_ = 0;
+    mutable SessionPointer replayPointer_;
+    std::vector<int> replayKeys_;                   // held keys / buttons from the delivered events
+    bool replayButtons_[8] = {};
+    long long replayChecksOk_ = 0, replayChecksBad_ = 0, replayFirstBad_ = -1;
+    bool replayFinished_ = false;
+    struct ReplayVideo;
+    ReplayVideo* video_ = nullptr;                  // owned; freed by replayVideoClose (Record.cpp)
+    std::unique_ptr<Renderer> videoRenderer_;
     // --- v9 M2: unified controls (AppInteract.cpp; scene/Interact.h, scene/GameMenu.h, scene/KeyMap.h). E = context
     // interaction, Tab = next unit, V = person / camera view, F3 = HUD level, Esc = release, else the pause menu
     // (Travel / Time / View = the v7.1 field guide, Settings persisted in ThermalSense.ini).
