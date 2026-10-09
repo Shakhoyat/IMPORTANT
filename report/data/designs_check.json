@@ -1,0 +1,1182 @@
+{
+ "Soldier": {
+  "legend": {
+   "Cuboid": 16,
+   "Cylinder": 20,
+   "Hemisphere": 1,
+   "Sphere": 37,
+   "Tapered box": 1
+  },
+  "table": {
+   "Sphere": 37,
+   "Cylinder": 20,
+   "Tapered box": 1,
+   "Cuboid": 16,
+   "Hemisphere": 1
+  },
+  "export": {
+   "Cuboid": 16,
+   "Cylinder": 20,
+   "Hemisphere": 1,
+   "Sphere": 37,
+   "Tapered box": 1
+  },
+  "parts": 75,
+  "instances": 8,
+  "total": 600
+ },
+ "Main battle tank": {
+  "legend": {
+   "Cuboid": 168,
+   "Cylinder": 61,
+   "Sphere": 5,
+   "Tapered box": 1,
+   "Torus": 19,
+   "Wedge": 1
+  },
+  "table": {
+   "Cuboid": 168,
+   "Wedge": 1,
+   "Cylinder": 61,
+   "Sphere": 5,
+   "Torus": 19,
+   "Tapered box": 1
+  },
+  "export": {
+   "Cuboid": 168,
+   "Cylinder": 61,
+   "Sphere": 5,
+   "Tapered box": 1,
+   "Torus": 19,
+   "Wedge": 1
+  },
+  "parts": 255,
+  "instances": 3,
+  "total": 765
+ },
+ "MLRS rocket truck": {
+  "legend": {
+   "Cube": 1,
+   "Cuboid": 32,
+   "Cylinder": 46,
+   "Sphere": 3,
+   "Torus": 24
+  },
+  "table": {
+   "Cuboid": 32,
+   "Sphere": 3,
+   "Cylinder": 46,
+   "Torus": 24,
+   "Cube": 1
+  },
+  "export": {
+   "Cube": 1,
+   "Cuboid": 32,
+   "Cylinder": 46,
+   "Sphere": 3,
+   "Torus": 24
+  },
+  "parts": 106,
+  "instances": 1,
+  "total": 106
+ },
+ "Scout helicopter": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 40,
+   "Cylinder": 28,
+   "Cylinder (frustum)": 1,
+   "Sphere": 21
+  },
+  "table": {
+   "Sphere": 21,
+   "Cuboid": 40,
+   "Cylinder": 28,
+   "Cone": 1,
+   "Cylinder (frustum)": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 40,
+   "Cylinder": 28,
+   "Cylinder (frustum)": 1,
+   "Sphere": 21
+  },
+  "parts": 91,
+  "instances": 1,
+  "total": 91
+ },
+ "Autonomous UAV": {
+  "legend": {
+   "Cuboid": 18,
+   "Cylinder": 19,
+   "Cylinder (frustum)": 1,
+   "Sphere": 13,
+   "Torus": 4
+  },
+  "table": {
+   "Cuboid": 18,
+   "Sphere": 13,
+   "Cylinder": 19,
+   "Torus": 4,
+   "Cylinder (frustum)": 1
+  },
+  "export": {
+   "Cuboid": 18,
+   "Cylinder": 19,
+   "Cylinder (frustum)": 1,
+   "Sphere": 13,
+   "Torus": 4
+  },
+  "parts": 55,
+  "instances": 2,
+  "total": 110
+ },
+ "Cargo truck": {
+  "legend": {
+   "Cuboid": 15,
+   "Cylinder": 14,
+   "Sphere": 2
+  },
+  "table": {
+   "Cuboid": 15,
+   "Cylinder": 14,
+   "Sphere": 2
+  },
+  "export": {
+   "Cuboid": 15,
+   "Cylinder": 14,
+   "Sphere": 2
+  },
+  "parts": 31,
+  "instances": 2,
+  "total": 62
+ },
+ "Target rover": {
+  "legend": {
+   "Cuboid": 6,
+   "Cylinder": 8,
+   "Sphere": 12
+  },
+  "table": {
+   "Cuboid": 6,
+   "Cylinder": 8,
+   "Sphere": 12
+  },
+  "export": {
+   "Cuboid": 6,
+   "Cylinder": 8,
+   "Sphere": 12
+  },
+  "parts": 26,
+  "instances": 6,
+  "total": 156
+ },
+ "SAM launcher": {
+  "legend": {
+   "Cube": 1,
+   "Cuboid": 71,
+   "Cylinder": 23,
+   "Sphere": 4,
+   "Torus": 8
+  },
+  "table": {
+   "Cuboid": 71,
+   "Cylinder": 23,
+   "Sphere": 4,
+   "Torus": 8,
+   "Cube": 1
+  },
+  "export": {
+   "Cube": 1,
+   "Cuboid": 71,
+   "Cylinder": 23,
+   "Sphere": 4,
+   "Torus": 8
+  },
+  "parts": 107,
+  "instances": 1,
+  "total": 107
+ },
+ "AA Gatling gun": {
+  "legend": {
+   "Cuboid": 19,
+   "Cylinder": 34,
+   "Hemisphere": 1,
+   "Sphere": 4
+  },
+  "table": {
+   "Cylinder": 34,
+   "Cuboid": 19,
+   "Hemisphere": 1,
+   "Sphere": 4
+  },
+  "export": {
+   "Cuboid": 19,
+   "Cylinder": 34,
+   "Hemisphere": 1,
+   "Sphere": 4
+  },
+  "parts": 58,
+  "instances": 1,
+  "total": 58
+ },
+ "SAM missile": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 1,
+   "Cuboid": 2,
+   "Sphere": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "parts": 5,
+  "instances": 1,
+  "total": 5
+ },
+ "MLRS rocket": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 1,
+   "Cuboid": 2,
+   "Sphere": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "parts": 5,
+  "instances": 6,
+  "total": 30
+ },
+ "UAV round": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 4,
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 1,
+   "Cuboid": 4
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 4,
+   "Cylinder": 1
+  },
+  "parts": 6,
+  "instances": 8,
+  "total": 48
+ },
+ "AA shell casing": {
+  "legend": {
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1
+  },
+  "export": {
+   "Cylinder": 1
+  },
+  "parts": 1,
+  "instances": 20,
+  "total": 20
+ },
+ "Command bunker": {
+  "legend": {
+   "Capsule": 9,
+   "Cuboid": 281,
+   "Cylinder": 80,
+   "Hemisphere": 1,
+   "Sphere": 18,
+   "Wedge": 1
+  },
+  "table": {
+   "Wedge": 1,
+   "Cuboid": 281,
+   "Cylinder": 80,
+   "Sphere": 18,
+   "Hemisphere": 1,
+   "Capsule": 9
+  },
+  "export": {
+   "Capsule": 9,
+   "Cuboid": 281,
+   "Cylinder": 80,
+   "Hemisphere": 1,
+   "Sphere": 18,
+   "Wedge": 1
+  },
+  "parts": 390,
+  "instances": 1,
+  "total": 390
+ },
+ "Barracks hall": {
+  "legend": {
+   "Cuboid": 225,
+   "Cylinder": 50,
+   "Sphere": 2
+  },
+  "table": {
+   "Cuboid": 225,
+   "Sphere": 2,
+   "Cylinder": 50
+  },
+  "export": {
+   "Cuboid": 225,
+   "Cylinder": 50,
+   "Sphere": 2
+  },
+  "parts": 277,
+  "instances": 1,
+  "total": 277
+ },
+ "Air-defence radar": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 62,
+   "Cylinder": 42,
+   "Sphere": 3
+  },
+  "table": {
+   "Cuboid": 62,
+   "Cylinder": 42,
+   "Sphere": 3,
+   "Cone": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 62,
+   "Cylinder": 42,
+   "Sphere": 3
+  },
+  "parts": 108,
+  "instances": 1,
+  "total": 108
+ },
+ "Motor pool": {
+  "legend": {
+   "Cuboid": 1,
+   "Cylinder": 2,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 2,
+   "Cuboid": 1,
+   "Sphere": 1
+  },
+  "export": {
+   "Cuboid": 1,
+   "Cylinder": 2,
+   "Sphere": 1
+  },
+  "parts": 4,
+  "instances": 1,
+  "total": 4
+ },
+ "Helipad": {
+  "legend": {
+   "Cuboid": 31,
+   "Cylinder": 3,
+   "Sphere": 17
+  },
+  "table": {
+   "Cylinder": 3,
+   "Cuboid": 31,
+   "Sphere": 17
+  },
+  "export": {
+   "Cuboid": 31,
+   "Cylinder": 3,
+   "Sphere": 17
+  },
+  "parts": 51,
+  "instances": 1,
+  "total": 51
+ },
+ "Ammunition bunker": {
+  "legend": {
+   "Capsule": 8,
+   "Cuboid": 12,
+   "Cylinder": 4,
+   "Sphere": 10,
+   "Wedge": 2
+  },
+  "table": {
+   "Cuboid": 12,
+   "Sphere": 10,
+   "Wedge": 2,
+   "Capsule": 8,
+   "Cylinder": 4
+  },
+  "export": {
+   "Capsule": 8,
+   "Cuboid": 12,
+   "Cylinder": 4,
+   "Sphere": 10,
+   "Wedge": 2
+  },
+  "parts": 36,
+  "instances": 1,
+  "total": 36
+ },
+ "Guard tower": {
+  "legend": {
+   "Cuboid": 11,
+   "Cylinder": 24,
+   "Sphere": 2
+  },
+  "table": {
+   "Cylinder": 24,
+   "Cuboid": 11,
+   "Sphere": 2
+  },
+  "export": {
+   "Cuboid": 11,
+   "Cylinder": 24,
+   "Sphere": 2
+  },
+  "parts": 37,
+  "instances": 4,
+  "total": 148
+ },
+ "Watchtower": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 5,
+   "Cylinder": 19,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 19,
+   "Cuboid": 5,
+   "Cone": 1,
+   "Sphere": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 5,
+   "Cylinder": 19,
+   "Sphere": 1
+  },
+  "parts": 26,
+  "instances": 1,
+  "total": 26
+ },
+ "Fuel depot": {
+  "legend": {
+   "Cuboid": 8,
+   "Cylinder": 10,
+   "Sphere": 2
+  },
+  "table": {
+   "Cuboid": 8,
+   "Sphere": 2,
+   "Cylinder": 10
+  },
+  "export": {
+   "Cuboid": 8,
+   "Cylinder": 10,
+   "Sphere": 2
+  },
+  "parts": 20,
+  "instances": 1,
+  "total": 20
+ },
+ "Quonset hut": {
+  "legend": {
+   "Cuboid": 14,
+   "Cylinder": 3,
+   "Sphere": 2
+  },
+  "table": {
+   "Cylinder": 3,
+   "Cuboid": 14,
+   "Sphere": 2
+  },
+  "export": {
+   "Cuboid": 14,
+   "Cylinder": 3,
+   "Sphere": 2
+  },
+  "parts": 19,
+  "instances": 3,
+  "total": 57
+ },
+ "Radio mast": {
+  "legend": {
+   "Cuboid": 5,
+   "Cylinder": 13,
+   "Sphere": 2
+  },
+  "table": {
+   "Cuboid": 5,
+   "Cylinder": 13,
+   "Sphere": 2
+  },
+  "export": {
+   "Cuboid": 5,
+   "Cylinder": 13,
+   "Sphere": 2
+  },
+  "parts": 20,
+  "instances": 1,
+  "total": 20
+ },
+ "Camouflaged tent": {
+  "legend": {
+   "Cuboid": 3,
+   "Cylinder": 7,
+   "Sphere": 4
+  },
+  "table": {
+   "Cylinder": 7,
+   "Cuboid": 3,
+   "Sphere": 4
+  },
+  "export": {
+   "Cuboid": 3,
+   "Cylinder": 7,
+   "Sphere": 4
+  },
+  "parts": 14,
+  "instances": 1,
+  "total": 14
+ },
+ "Container": {
+  "legend": {
+   "Cube": 6,
+   "Cuboid": 3,
+   "Cylinder": 2
+  },
+  "table": {
+   "Cuboid": 3,
+   "Cylinder": 2,
+   "Cube": 6
+  },
+  "export": {
+   "Cube": 6,
+   "Cuboid": 3,
+   "Cylinder": 2
+  },
+  "parts": 11,
+  "instances": 2,
+  "total": 22
+ },
+ "Guard booth": {
+  "legend": {
+   "Cuboid": 8,
+   "Cylinder": 3
+  },
+  "table": {
+   "Cuboid": 8,
+   "Cylinder": 3
+  },
+  "export": {
+   "Cuboid": 8,
+   "Cylinder": 3
+  },
+  "parts": 11,
+  "instances": 1,
+  "total": 11
+ },
+ "UAV pad": {
+  "legend": {
+   "Annulus": 1,
+   "Cuboid": 2,
+   "Cylinder": 2,
+   "Sphere": 4
+  },
+  "table": {
+   "Cylinder": 2,
+   "Annulus": 1,
+   "Cuboid": 2,
+   "Sphere": 4
+  },
+  "export": {
+   "Annulus": 1,
+   "Cuboid": 2,
+   "Cylinder": 2,
+   "Sphere": 4
+  },
+  "parts": 9,
+  "instances": 2,
+  "total": 18
+ },
+ "HESCO perimeter": {
+  "legend": {
+   "Cuboid": 244
+  },
+  "table": {
+   "Cuboid": 244
+  },
+  "export": {
+   "Cuboid": 244
+  },
+  "parts": 244,
+  "instances": 1,
+  "total": 244
+ },
+ "Concertina wire": {
+  "legend": {
+   "Cylinder": 50,
+   "Helix": 52
+  },
+  "table": {
+   "Helix": 52,
+   "Cylinder": 50
+  },
+  "export": {
+   "Cylinder": 50,
+   "Helix": 52
+  },
+  "parts": 102,
+  "instances": 1,
+  "total": 102
+ },
+ "Perimeter fence": {
+  "legend": {
+   "Cuboid": 1,
+   "Cylinder": 85
+  },
+  "table": {
+   "Cylinder": 85,
+   "Cuboid": 1
+  },
+  "export": {
+   "Cuboid": 1,
+   "Cylinder": 85
+  },
+  "parts": 86,
+  "instances": 1,
+  "total": 86
+ },
+ "Outer gate": {
+  "legend": {
+   "Capsule": 34,
+   "Cuboid": 7,
+   "Cylinder": 4,
+   "Pyramid": 2,
+   "Sphere": 3
+  },
+  "table": {
+   "Cuboid": 7,
+   "Pyramid": 2,
+   "Capsule": 34,
+   "Cylinder": 4,
+   "Sphere": 3
+  },
+  "export": {
+   "Capsule": 34,
+   "Cuboid": 7,
+   "Cylinder": 4,
+   "Pyramid": 2,
+   "Sphere": 3
+  },
+  "parts": 50,
+  "instances": 1,
+  "total": 50
+ },
+ "Camouflage net": {
+  "legend": {
+   "Cuboid": 27,
+   "Cylinder": 10
+  },
+  "table": {
+   "Cuboid": 27,
+   "Cylinder": 10
+  },
+  "export": {
+   "Cuboid": 27,
+   "Cylinder": 10
+  },
+  "parts": 37,
+  "instances": 7,
+  "total": 379
+ },
+ "Earth revetment": {
+  "legend": {
+   "Capsule": 43,
+   "Cuboid": 9
+  },
+  "table": {
+   "Cuboid": 9,
+   "Capsule": 43
+  },
+  "export": {
+   "Capsule": 43,
+   "Cuboid": 9
+  },
+  "parts": 52,
+  "instances": 5,
+  "total": 264
+ },
+ "Radar surround": {
+  "legend": {
+   "Cuboid": 2,
+   "Cylinder": 49
+  },
+  "table": {
+   "Cuboid": 2,
+   "Cylinder": 49
+  },
+  "export": {
+   "Cuboid": 2,
+   "Cylinder": 49
+  },
+  "parts": 51,
+  "instances": 1,
+  "total": 51
+ },
+ "AA gun surround": {
+  "legend": {
+   "Capsule": 37,
+   "Cuboid": 3,
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Capsule": 37,
+   "Cuboid": 3
+  },
+  "export": {
+   "Capsule": 37,
+   "Cuboid": 3,
+   "Cylinder": 1
+  },
+  "parts": 41,
+  "instances": 1,
+  "total": 41
+ },
+ "Sandbag wall": {
+  "legend": {
+   "Capsule": 18
+  },
+  "table": {
+   "Capsule": 18
+  },
+  "export": {
+   "Capsule": 18
+  },
+  "parts": 18,
+  "instances": 3,
+  "total": 57
+ },
+ "Boom barrier": {
+  "legend": {
+   "Cuboid": 17,
+   "Cylinder": 1,
+   "Sphere": 2
+  },
+  "table": {
+   "Cuboid": 17,
+   "Sphere": 2,
+   "Cylinder": 1
+  },
+  "export": {
+   "Cuboid": 17,
+   "Cylinder": 1,
+   "Sphere": 2
+  },
+  "parts": 20,
+  "instances": 1,
+  "total": 20
+ },
+ "HESCO blocks": {
+  "legend": {
+   "Cuboid": 6
+  },
+  "table": {
+   "Cuboid": 6
+  },
+  "export": {
+   "Cuboid": 6
+  },
+  "parts": 6,
+  "instances": 2,
+  "total": 8
+ },
+ "Tank trap": {
+  "legend": {
+   "Cuboid": 3
+  },
+  "table": {
+   "Cuboid": 3
+  },
+  "export": {
+   "Cuboid": 3
+  },
+  "parts": 3,
+  "instances": 2,
+  "total": 6
+ },
+ "Jersey barrier": {
+  "legend": {
+   "Cuboid": 2
+  },
+  "table": {
+   "Cuboid": 2
+  },
+  "export": {
+   "Cuboid": 2
+  },
+  "parts": 2,
+  "instances": 6,
+  "total": 12
+ },
+ "Broadleaf tree": {
+  "legend": {
+   "Cylinder": 4,
+   "Sphere": 14
+  },
+  "table": {
+   "Cylinder": 4,
+   "Sphere": 14
+  },
+  "export": {
+   "Cylinder": 4,
+   "Sphere": 14
+  },
+  "parts": 18,
+  "instances": 4,
+  "total": 72
+ },
+ "Pine": {
+  "legend": {
+   "Cone": 6,
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 6
+  },
+  "export": {
+   "Cone": 6,
+   "Cylinder": 1
+  },
+  "parts": 7,
+  "instances": 26,
+  "total": 193
+ },
+ "Cut branches": {
+  "legend": {
+   "Cone": 3,
+   "Cylinder": 3,
+   "Sphere": 6
+  },
+  "table": {
+   "Cylinder": 3,
+   "Sphere": 6,
+   "Cone": 3
+  },
+  "export": {
+   "Cone": 3,
+   "Cylinder": 3,
+   "Sphere": 6
+  },
+  "parts": 12,
+  "instances": 8,
+  "total": 96
+ },
+ "Bush": {
+  "legend": {
+   "Sphere": 6
+  },
+  "table": {
+   "Sphere": 6
+  },
+  "export": {
+   "Sphere": 6
+  },
+  "parts": 6,
+  "instances": 14,
+  "total": 88
+ },
+ "Treeline pine": {
+  "legend": {
+   "Cone": 2
+  },
+  "table": {
+   "Cone": 2
+  },
+  "export": {
+   "Cone": 2
+  },
+  "parts": 2,
+  "instances": 43,
+  "total": 86
+ },
+ "Flag": {
+  "legend": {
+   "Cuboid": 40,
+   "Cylinder": 5,
+   "Sphere": 2
+  },
+  "table": {
+   "Cuboid": 40,
+   "Cylinder": 5,
+   "Sphere": 2
+  },
+  "export": {
+   "Cuboid": 40,
+   "Cylinder": 5,
+   "Sphere": 2
+  },
+  "parts": 47,
+  "instances": 1,
+  "total": 47
+ },
+ "Windsock": {
+  "legend": {
+   "Cuboid": 1,
+   "Cylinder": 14
+  },
+  "table": {
+   "Cuboid": 1,
+   "Cylinder": 14
+  },
+  "export": {
+   "Cuboid": 1,
+   "Cylinder": 14
+  },
+  "parts": 15,
+  "instances": 1,
+  "total": 15
+ },
+ "Supply cache": {
+  "legend": {
+   "Cube": 2,
+   "Cuboid": 2,
+   "Cylinder": 2
+  },
+  "table": {
+   "Cube": 2,
+   "Cuboid": 2,
+   "Cylinder": 2
+  },
+  "export": {
+   "Cube": 2,
+   "Cuboid": 2,
+   "Cylinder": 2
+  },
+  "parts": 6,
+  "instances": 7,
+  "total": 41
+ },
+ "Boulder": {
+  "legend": {
+   "Sphere": 4
+  },
+  "table": {
+   "Sphere": 4
+  },
+  "export": {
+   "Sphere": 4
+  },
+  "parts": 4,
+  "instances": 13,
+  "total": 46
+ },
+ "Lamp post": {
+  "legend": {
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cuboid": 2,
+   "Sphere": 1
+  },
+  "export": {
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "parts": 4,
+  "instances": 2,
+  "total": 8
+ },
+ "Track sign": {
+  "legend": {
+   "Cuboid": 3,
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cuboid": 3
+  },
+  "export": {
+   "Cuboid": 3,
+   "Cylinder": 1
+  },
+  "parts": 4,
+  "instances": 1,
+  "total": 4
+ },
+ "Fire barrel": {
+  "legend": {
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "export": {
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "parts": 2,
+  "instances": 1,
+  "total": 2
+ },
+ "Sky clock (sun)": {
+  "legend": {
+   "Sphere": 1
+  },
+  "table": {
+   "Sphere": 1
+  },
+  "export": {
+   "Sphere": 1
+  },
+  "parts": 1,
+  "instances": 1,
+  "total": 1
+ },
+ "Moon": {
+  "legend": {
+   "Sphere": 1
+  },
+  "table": {
+   "Sphere": 1
+  },
+  "export": {
+   "Sphere": 1
+  },
+  "parts": 1,
+  "instances": 1,
+  "total": 1
+ },
+ "Terrain disc": {
+  "legend": {
+   "Terrain disc": 1
+  },
+  "table": {
+   "Terrain disc": 1
+  },
+  "export": {
+   "Terrain disc": 1
+  },
+  "parts": 1,
+  "instances": 1,
+  "total": 1
+ },
+ "Far ground": {
+  "legend": {
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1
+  },
+  "export": {
+   "Cylinder": 1
+  },
+  "parts": 1,
+  "instances": 1,
+  "total": 1
+ },
+ "Distant hills": {
+  "legend": {
+   "Sphere": 21
+  },
+  "table": {
+   "Sphere": 21
+  },
+  "export": {
+   "Sphere": 21
+  },
+  "parts": 21,
+  "instances": 1,
+  "total": 21
+ },
+ "Far radio tower": {
+  "legend": {
+   "Cylinder": 9,
+   "Sphere": 3
+  },
+  "table": {
+   "Cylinder": 9,
+   "Sphere": 3
+  },
+  "export": {
+   "Cylinder": 9,
+   "Sphere": 3
+  },
+  "parts": 12,
+  "instances": 1,
+  "total": 12
+ },
+ "Road": {
+  "legend": {
+   "Cuboid": 7
+  },
+  "table": {
+   "Cuboid": 7
+  },
+  "export": {
+   "Cuboid": 7
+  },
+  "parts": 7,
+  "instances": 1,
+  "total": 7
+ },
+ "Tyre tracks": {
+  "legend": {
+   "Cuboid": 50
+  },
+  "table": {
+   "Cuboid": 50
+  },
+  "export": {
+   "Cuboid": 50
+  },
+  "parts": 50,
+  "instances": 1,
+  "total": 50
+ },
+ "Tank spot marking": {
+  "legend": {
+   "Cuboid": 4
+  },
+  "table": {
+   "Cuboid": 4
+  },
+  "export": {
+   "Cuboid": 4
+  },
+  "parts": 4,
+  "instances": 1,
+  "total": 4
+ }
+}

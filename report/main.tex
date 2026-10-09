@@ -11,6 +11,7 @@
 \usepackage{float}
 \usepackage{placeins}
 \usepackage{longtable}
+\usepackage{needspace}
 \usepackage{tikz}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
@@ -43,6 +44,7 @@
 \newcommand{\missing}[2]{\fbox{\parbox[c][0.45\dimexpr#2\relax][c]{\dimexpr#2-2\fboxsep-2\fboxrule\relax}{\centering
   \footnotesize\ttfamily TODO: missing figure\\\detokenize{#1}}}}
 \newcommand{\img}[2]{\IfFileExists{#1}{\includegraphics[width=#2]{#1}}{\missing{#1}{#2}}}
+\newcommand{\imgbox}[3]{\IfFileExists{#1}{\includegraphics[width=#2,height=#3,keepaspectratio]{#1}}{\missing{#1}{#2}}}
 \newcommand{\raw}[2]{\img{figures/img/#1.jpg}{#2}}
 \newcommand{\plot}[2]{\img{figures/plots/#1.pdf}{#2}}
 \newcommand{\wb}[2]{\img{figures/workbook/#1.png}{#2}}

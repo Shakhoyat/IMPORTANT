@@ -111,6 +111,50 @@ boulder_01 56 558 and rock_moss_set 2 754-6 618 (boulders), fir_tree_01 76 080-4
   tessellation plot and refers to Fig. 16.1 for the flat / Gouraud / Phong spheres.
 - The ray tracer's approximations of the new primitives stay as Section 6's one "Limitation".
 
+## M3: Section 19 - every design broken into primitives
+
+New `tools/report/gen_designs.py` -> `report/sections/gen_designs.tex` (+ `report/data/designs_check.json`), from the
+export's `designs` list and the shape-view captures. The script stops unless, for every design, the capture's legend,
+the parts table and the export's row agree primitive by primitive; the designs sum to the scene's 5 476 parts.
+
+Added / redone:
+- Fig. 19.1 (new): object atlas, a thumbnail of each of the 62 designs by family, labelled "parts x instances".
+- Table 19.1 (redone): one row per design (was one row per scene object, with the aggregates Base 993, Environment
+  652, Camp camouflage 658, Backdrop 120), grouped by family, columns x n, parts per instance, total, one column per
+  primitive headed with its key chip (totals over all instances, blank instead of 0), totals row = 5 476 parts and the
+  per-primitive scene counts of Table 6.1.
+- 62 design cards (new, Figs. 19.2-19.6x): framed "Full model | Made of primitives (pulled apart)" pair with a legend
+  strip generated from the capture (own parts by primitive, total; pale nested designs with their part counts;
+  dagger count; parts parked below ground), one sentence (purpose of the root node from the export, instance count,
+  distance and direction from the bunker, placement T(x,y,z) Ry(heading) S(s) of the first instance) and a parts table:
+  Part (x n) | Shape (chip + name) | Size (cm) | Position T (cm, design frame) | Rotation R (deg) | Parent, rows grouped
+  under sub-assembly headers, repeats collapsed with patterns (+-a, a+di, {a,b}, a..b), every part kind listed (no
+  "+N more"), nested designs as one row pointing to their card. Large designs (soldier, tank, MLRS, helicopter, UAV, SAM,
+  AA gun, command bunker, barracks hall, radar) get a larger figure with sub-assemblies named by leader lines (projected
+  group centres from the capture). Generation rules as formulas for the HESCO perimeter, concertina wire, perimeter
+  fence, tyre tracks, distant hills, treeline pine, pine, broadleaf tree, bush, boulder, camouflage net, earth
+  revetment, sandbag wall, cut branches, AA gun and radar surrounds (counts and radii computed from the export).
+- Cutaways: command bunker (roof slabs, surface installations, camouflage net: 78 parts), barracks hall (roof sheets,
+  ridge cap, ceiling, gables: 14), ammunition bunker (earth mound and lobes, turf clumps: 8); named in the captions.
+- Vegetation: the five primitive tree / shrub designs and the boulder each say which CC0 mesh replaces them at ULTRA /
+  EPIC and its LOD 0 triangle count; those meshes appear in no table.
+- Fig. 19.x munitions (new): SAM missile, MLRS rocket, UAV round and AA shell casing at one scale with a 10 cm bar,
+  plus the two small ones enlarged with their own bar.
+- Kept and restyled with the key: UAV and soldier part-tile catalogues (recaptured without vignette; key chip and size
+  in cm under every tile), soldier scene graph (key chips per node; animated joints by a thick border instead of the
+  orange fill, which is the sphere's key colour), gait figure, soldier and tank variant tables, UAV and tank build
+  stages (now drawn in the key colours, `stage=` captures). Added build stages for the helicopter and the command bunker.
+- Sky bodies (sun, moon) show only the primitives panel (the renderer draws them in the sky pass, not as lit parts).
+
+Removed: Fig. 19.17 (workbook block repeating the parts tables), the assembled-only figures of the tank, helicopter,
+AA gun, SAM launcher and MLRS (now cards), Fig. 19.16 (six parts tables without pictures), the "largest parts" tables
+19.2-19.5 (every part kind is now in the cards), the per-(primitive, material) tables with k_s / n columns, the old
+exploded F/G captures of the UAV, rover, bunker and soldier, and the critique sentence about static scenery being listed
+only in Table 19.1. `tools/v10/gen_decomp.py` / `gen_decomp.tex` are no longer used.
+
+Layout: cards are non-floating blocks (`\needspace` before each, `\captionof`), parts tables are 7 pt longtables that
+break across pages; family subsections end with `\FloatBarrier`. Section 19 is pages 45-91 (was 40-53).
+
 # Earlier round (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
 
 Figure and table numbers refer to the report before this round unless marked "new".

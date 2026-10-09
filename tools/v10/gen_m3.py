@@ -379,7 +379,14 @@ for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 10)
     ij = os.path.join(RAW, f"parts_{slug(obj)}", "index.json")
     if per and os.path.exists(ij):
         es = jlist(ij)
-        items = [(f"m3/parts_{slug(obj)}/{e['file'][:-4]}", f"{tex(e['part'])}{(' $\\times$' + str(e['count'])) if e['count'] > 1 else ''}")
+        def keyof(e):   # report colour key of a tile (cube parts with a non-uniform S are cuboids)
+            k = e["primitive"]
+            if k == "Cube" and max(e["S_cm"]) - min(e["S_cm"]) > 1e-3 * max(e["S_cm"]):
+                k = "Cuboid"
+            return {"Cylinder (frustum)": "frustum"}.get(k, k.lower().replace(" ", ""))
+        items = [(f"m3/parts_{slug(obj)}/{e['file'][:-4]}",
+                  f"{tex(e['part'])}{(' $\\times$' + str(e['count'])) if e['count'] > 1 else ''}\\\\\\primsq{{{keyof(e)}}}\\,"
+                  + "$\\times$".join((f"{v:.0f}" if v >= 9.5 else f"{v:.1f}".rstrip("0").rstrip(".")) for v in e["S_cm"]))
                  for e in es]
         w = f"{(17.2 / per) - 0.12:.2f}cm"
         out.append(f"\\newcommand{{\\partsgrid{tag}}}{{" + grid(items, per, w) + "}")
@@ -425,10 +432,12 @@ tk = ["\\begin{tikzpicture}[x=2.12cm,y=-0.84cm,n/.style={draw=black!50,rounded c
       "font=\\fontsize{7}{7.6}\\selectfont,inner sep=1.5pt,anchor=west,text width=4.0cm}]"]
 for i, (c, dep, nl) in enumerate(nodes):
     anim = bool(c["animation"])
-    col = "orange!20" if anim else "black!5"
+    col = "black!5"
+    own = collections.Counter(pname(k) for k in kids[c["id"]] if k["primitive"] != "Group")
+    chips = "\\ ".join(f"\\primsq{{{k.replace(' ', '')}}}{n}" for k, n in sorted(own.items()))
     Tt = "(" + ", ".join(f(x, 2) for x in c["T"]) + ")"
     Rr = "(" + ", ".join(f(x, 0) for x in c["R_deg"]) + ")"
-    tk.append(f"\\node[n={col}] (n{i}) at ({dep},{i}) {{\\textbf{{{tex(c['name'])}}} ({nl}\\,p)\\\\$T$ {Tt} \\ $R$ {Rr}}};")
+    tk.append(f"\\node[n={col}{',line width=1.1pt,draw=black' if anim else ''}] (n{i}) at ({dep},{i}) {{\\textbf{{{tex(c['name'])}}} {chips}\\\\$T$ {Tt} \\ $R$ {Rr}}};")
 for a, b in edges:
     tk.append(f"\\draw[black!55] ([xshift=3mm]n{a}.south west) |- (n{b}.west);")
 tk.append("\\end{tikzpicture}")
