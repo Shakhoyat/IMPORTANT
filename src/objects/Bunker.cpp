@@ -7,6 +7,7 @@
 
 #include "objects/BaseLayout.h"
 #include "objects/Builder.h"
+#include "objects/HingedDoor.h"
 #include "objects/PropKit.h"
 #include "objects/Terrain.h"
 
@@ -129,6 +130,25 @@ private:
 };
 
 }  // namespace
+
+HingeParams generatorDoorHinge() {
+    HingeParams p;
+    p.hinge = {1.79f, kF, 0.61f};   // room-side face of the wall, south jamb
+    p.closedYawDeg = 0.0f;           // closed: hinge -> latch edge along +z across the opening (z 0.6 .. 1.8)
+    p.swing = 1;                     // opens towards +x, into the room
+    p.openDeg = 90.0f;               // against its holder, along the south side of the doorway
+    p.u0 = 0.01f;
+    p.width = 1.17f;
+    p.bottom = 0.02f;
+    p.height = 2.06f;                // under the lintel (kF + 2.1)
+    p.n0 = -0.05f;
+    p.n1 = 0.0f;
+    p.omega = 5.0f;                  // heavier steel leaf, shorter swing: 95 % after 0.95 s
+    p.autoRadius = 4.0f;
+    p.closeDelay = 2.5f;
+    p.segments = 4;
+    return p;
+}
 
 BunkerRig buildBunker() {
     Builder b("Command Bunker", "BNK", ShadingModel::Flat);
@@ -587,7 +607,8 @@ BunkerRig buildBunker() {
         walk.addWall(Box{{2.3f, kF, -1.5f}, {4.5f, kF + 1.35f, -0.5f}});
         cube(plant, "Tank saddle", {2.6f, kF, -1.4f}, {2.9f, kF + 0.45f, -0.6f}, darkMetal, "Saddle");
         cube(plant, "Tank saddle", {3.9f, kF, -1.4f}, {4.2f, kF + 0.45f, -0.6f}, darkMetal, "Saddle");
-        pipe(plant, "Fuel line", {2.3f, kF + 0.9f, -1.0f}, {2.3f, kF + 0.9f, 2.2f}, 0.05f, paintYellow, "Fuel line to the engine");
+        // v9 M4: the fuel line runs at x 3.9 (was 2.3): the generator room door now swings through x 1.8 .. 3.0.
+        pipe(plant, "Fuel line", {3.9f, kF + 0.9f, -1.0f}, {3.9f, kF + 0.9f, 2.2f}, 0.05f, paintYellow, "Fuel line to the engine");
         // Ventilation fan unit and its riser to the intake stack.
         cube(plant, "Ventilation unit", {4.2f, kC - 0.55f, -0.7f}, {5.0f, kC - 0.15f, 0.0f}, galv, "Ventilation fan housing");
         vcyl(plant, "Ventilation riser", {4.6f, 0.5f * (kC - 0.15f + kRoofTop + 0.6f), -0.4f}, 0.45f, (kRoofTop + 0.6f) - (kC - 0.15f), galv,
@@ -597,6 +618,14 @@ BunkerRig buildBunker() {
         cube(plant, "Floor drain", {3.0f, kF, 0.6f}, {3.5f, kF + 0.014f, 1.0f}, darkMetal, "Floor drain grate");
         cube(plant, "Hazard marking", {2.3f, kF, 1.5f}, {5.0f, kF + 0.012f, 1.9f}, hazard, "Hazard strip in front of the generator");
         cube(plant, "Room sign", {1.74f, kF + 2.15f, 0.6f}, {1.78f, kF + 2.4f, 1.8f}, paintYellow, "Sign: GENERATOR");
+        // v9 M4: hinged steel door in the doorway from the tunnel
+        HingedDoorLook look;
+        look.leaf = makeMaterial({0.26f, 0.28f, 0.27f}, 0.32f, S::SteelPlate, 0.45f, 0.7f);
+        look.trim = makeMaterial({0.20f, 0.22f, 0.21f}, 0.32f, S::Paint, 0.50f, 0.5f);
+        look.metal = galv;
+        look.plate = makeMaterial({0.55f, 0.47f, 0.08f}, 0.30f, S::Hazard, 0.60f, 0.0f);   // hazard-striped kick plate
+        rig.generatorDoor = std::make_unique<HingedDoor>(b, plant, "GENERATOR ROOM DOOR", generatorDoorHinge(), look,
+                                                         Vec3{-0.6f, kF + 1.7f, 2.9f}, Vec3{1.7f, kF + 1.1f, 1.2f});
         vcyl(plant, "Fire extinguisher", {2.1f, kF + 0.40f, 3.4f}, 0.16f, 0.45f, paintRed, "Extinguisher");
         pipe(plant, "Ceiling pipe", {1.9f, kC - 0.12f, 3.2f}, {5.0f, kC - 0.12f, 3.2f}, 0.09f, paintBlue, "Water pipe");
     }

@@ -629,6 +629,7 @@ void App::renderFrame(int w, int h, bool withHud) {
         audio_.update(*scene_, ls, frameDt);
     }
     RenderSettings s = settings_;
+    s.exposureBiasEv = eyeBias_.ev();   // v9 M4: local exposure bias (per tick, scene/EyeAdapt.h)
     s.hideUav = fpv || (camera_.mode == CameraMode::UavCamera);
     bool uavView = fpv || camera_.mode == CameraMode::UavCamera;
     // v7: riding a UAV's gimbal / belly camera hides the airframes (they sit on the lens); jump letterbox.

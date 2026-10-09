@@ -263,6 +263,20 @@ void FlyCam::wheel(float steps) { speed = clampf(speed * std::pow(1.25f, steps),
 
 // ------------------------------------------------------------------------------------------------ third person (v7.1 WP-T)
 
+void IndoorArmBlend::step(bool indoor, float dt) {
+    if (!valid) reset(indoor);
+    critDampStep(blend, vel, indoor ? 1.0f : 0.0f, 2.0f / std::max(tau, 1e-4f), dt);
+    blend = clampf(blend, 0.0f, 1.0f);
+}
+
+ThirdPersonParams indoorArmParams(ThirdPersonParams p, float blend) {
+    const float b = clampf(blend, 0.0f, 1.0f);
+    p.arm = lerpf(p.arm, 1.9f, b);
+    p.shoulder = lerpf(p.shoulder, 0.45f, b);
+    p.maxPitch = lerpf(p.maxPitch, 30.0f, b);
+    return p;
+}
+
 ThirdPersonParams ThirdPersonParams::vehicle(float arm, float lift, float fovDeg, float pitchMin) {
     ThirdPersonParams p;
     p.arm = p.aimArm = arm;

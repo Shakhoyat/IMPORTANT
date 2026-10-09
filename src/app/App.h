@@ -12,6 +12,7 @@
 #include "audio/AudioEngine.h"
 #include "scene/Control.h"
 #include "scene/Director.h"
+#include "scene/EyeAdapt.h"
 #include "scene/GameMenu.h"
 #include "scene/HudMath.h"
 #include "scene/Interact.h"
@@ -471,6 +472,19 @@ private:
     Interactable interact_;
     bool interactValid_ = false;
     std::string interactPrompt_;
+    // --- v9 M4: hinged doors (scene/Door.h), the barracks entry through the hall door, the indoor arm blend, eye
+    // adaptation (scene/EyeAdapt.h). AppInteract.cpp / AppPlay.cpp.
+    struct HallMove {                           // Enter / Exit Barracks pressed while the door was not open yet
+        bool active = false, enter = true;
+        float t = 0.0f;                         // s waited for the leaf
+    };
+    HallMove hallMove_;
+    void moveThroughHall(bool enter);           // the M2 move through the doorway (soldier or walker) + camera blend
+    void stepHallMove(float dt);                // per tick: the pending move goes once the leaf is open far enough
+    IndoorArmBlend tpIndoor_;                   // smoothed indoor / outdoor arm (scene/CameraRig.h)
+    LocalExposureBias eyeBias_;                 // local exposure bias of the indoor light volumes, per tick
+    void stepEyeAdaptation(float dt);           // per tick, from the camera pose of the last tick
+    bool keepAdaptation_ = false;               // play_exposure_* shots: keep the eye's adaptation across the shot
     bool menuOpen_ = false, menuWasPaused_ = false, menuDrag_ = false;
     MenuTab menuTab_ = MenuTab::Travel;
     int menuRow_ = 0;

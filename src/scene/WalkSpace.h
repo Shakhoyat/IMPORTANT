@@ -22,6 +22,7 @@ struct WalkFloor {
 struct IndoorLight {
     float sky = 0.012f;   // fraction of the sky's ambient / specular ambient
     float key = 0.0f;     // 1: the sun / moon still reach in (shadowed by the walls and roof)
+    float exposureBiasEv = 0.0f;   // v9 M4: local exposure bias (scene/EyeAdapt.h): how much further the eye opens inside
 };
 
 class WalkSpace {

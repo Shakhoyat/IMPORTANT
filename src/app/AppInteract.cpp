@@ -29,7 +29,9 @@ const Rgba kDim{0.62f, 0.68f, 0.75f, 0.85f};
 const Rgba kGreen{0.35f, 1.0f, 0.55f, 1.0f};
 const Rgba kRed{1.0f, 0.32f, 0.25f, 1.0f};
 
-constexpr float kDoorReach = 2.5f, kBarrierReach = 3.0f, kSoldierReach = 2.5f, kHallReach = 2.5f;
+constexpr float kDoorReach = 2.5f, kBarrierReach = 3.0f, kSoldierReach = 2.5f, kHallReach = 3.0f;
+constexpr float kHallPassOpen = 0.6f;    // v9 M4: Enter / Exit Barracks goes through once the leaf is this far open
+constexpr float kHallWaitMax = 2.5f;     // s: ... or after this long (the leaf may stand against the player)
 constexpr float kFarReach = 90.0f, kFarConeDeg = 9.0f, kFootConeDeg = 50.0f;
 
 const Soldier* soldierAt(const Scene& scene, int index) {
@@ -143,16 +145,26 @@ std::vector<Interactable> App::gatherInteractables(InteractView& view) const {
         it.reach = barrier ? kBarrierReach : kDoorReach;
         it.ref = static_cast<int>(i);
         it.action = isOpenStatus(ctl[i]->status()) ? InteractAction::CloseDoor : InteractAction::OpenDoor;
+        // v9 M4: a hinged door is used at its handle on the player's side ("[E] Open door" / "[E] Close door"); where the
+        // leaf is going decides the verb (a swinging door can be reversed).
+        if (const auto* portal = dynamic_cast<const DoorPortal*>(ctl[i])) {
+            const DoorKinematics& d = portal->door();
+            it.name = "door";
+            it.point = d.handlePoint(feet);
+            it.action = d.targetOpen() ? InteractAction::CloseDoor : InteractAction::OpenDoor;
+        }
         items.push_back(it);
     }
-    // The barracks hall: its doorway in the north wall (x = 23.5); outside = enter, inside = exit.
+    // The barracks hall: its doorway in the north wall (x = 23.5); outside = enter, inside = exit. v9 M4: the point lies
+    // on the far side of the door, so the door's own handle (on the near side) is the nearer pick while the door is shut
+    // ("[E] Open door"); once it is open, looking through the doorway offers the move through it.
     {
         namespace hl = layout::hall;
         Interactable it;
         it.name = "Barracks";
         const bool inside = insideHall(feet);
         it.action = inside ? InteractAction::ExitBuilding : InteractAction::EnterBuilding;
-        it.point = {hl::kDoorX, hl::kFloorY + 1.1f, inside ? hl::kZ1 - 0.6f : hl::kZ1 + 0.35f};
+        it.point = {hl::kDoorX, hl::kFloorY + 1.1f, inside ? hl::kZ1 + 0.3f : hl::kIZ1 - 0.3f};
         it.reach = kHallReach;
         items.push_back(it);
     }
@@ -195,32 +207,29 @@ void App::performInteract() {
     std::printf("Interact: %s\n", interactPrompt_.c_str());
     switch (it.action) {
         case InteractAction::OpenDoor:
-        case InteractAction::CloseDoor:
+        case InteractAction::CloseDoor: {
+            // v9 M4: a hinged door turns at once (the player keeps control: no tick of door possession)
+            const std::vector<Controllable*> ctl = sa::controllables(*scene_);
+            if (it.ref >= 0 && it.ref < static_cast<int>(ctl.size()))
+                if (auto* portal = dynamic_cast<DoorPortal*>(ctl[static_cast<size_t>(it.ref)])) {
+                    portal->door().toggle();
+                    break;
+                }
             interactIdx_ = it.ref;   // one tick of possession with actionPressed (gatherControl), as the v4 walker
             break;
+        }
         case InteractAction::EnterBuilding:
         case InteractAction::ExitBuilding: {
-            namespace hl = layout::hall;
             const bool enter = it.action == InteractAction::EnterBuilding;
-            const float z = enter ? hl::kZ1 - 1.1f : hl::kZ1 + 1.0f, yaw = enter ? 180.0f : 0.0f;
-            const float feetY = enter ? hl::kFloorY : layout::kApronLevel;
-            const RigPose from = shownPose_;
-            const int si = possessedSoldierIndex();
-            if (si >= 0) {
-                if (Garrison* g = scene_->garrison())
-                    for (int u = 0; u < g->count(); ++u)
-                        if (sa::soldierIndex(*scene_, u) == si) g->unit(u)->place(hl::kDoorX, z, yaw, feetY);
-                tp_.invalidate();
-                tpPoseValid_ = false;
-                alignYaw_ = 0.0f;
-            } else {
-                camera_.walkX = hl::kDoorX;
-                camera_.walkZ = z;
-                camera_.walkYawDeg = yaw;
-                camera_.walkFeetY = feetY;
+            // v9 M4: through a door that is not open yet: open it first, the move follows once the leaf is out of the way
+            DoorPortal* door = scene_->hallDoor();
+            if (door && door->door().openFraction() < kHallPassOpen) {
+                if (!door->door().targetOpen()) door->door().setTarget(true, true);
+                hallMove_ = HallMove{true, enter, 0.0f};
+                std::printf("Interact: the door opens first (%s)\n", door->door().stateName());
+                break;
             }
-            beginJump(from);
-            audio_.uiCue(audio::UiCue::PovJump);
+            moveThroughHall(enter);
             break;
         }
         case InteractAction::TakeControl:
@@ -243,6 +252,53 @@ void App::performInteract() {
         case InteractAction::Release: releaseControl(); break;
         case InteractAction::None: break;
     }
+}
+
+// The M2 Enter / Exit Barracks move: the controlled soldier (or the v4 walker) to the far side of the doorway, facing
+// on, with a camera blend from where the view was.
+void App::moveThroughHall(bool enter) {
+    namespace hl = layout::hall;
+    const float z = enter ? hl::kZ1 - 1.1f : hl::kZ1 + 1.0f, yaw = enter ? 180.0f : 0.0f;
+    const float feetY = enter ? hl::kFloorY : layout::kApronLevel;
+    const RigPose from = shownPose_;
+    const int si = possessedSoldierIndex();
+    if (si >= 0) {
+        if (Garrison* g = scene_->garrison())
+            for (int u = 0; u < g->count(); ++u)
+                if (sa::soldierIndex(*scene_, u) == si) g->unit(u)->place(hl::kDoorX, z, yaw, feetY);
+        tp_.invalidate();
+        tpPoseValid_ = false;
+        alignYaw_ = 0.0f;
+    } else {
+        camera_.walkX = hl::kDoorX;
+        camera_.walkZ = z;
+        camera_.walkYawDeg = yaw;
+        camera_.walkFeetY = feetY;
+    }
+    beginJump(from);
+    audio_.uiCue(audio::UiCue::PovJump);
+    std::printf("Barracks: %s\n", enter ? "entered" : "left");
+}
+
+void App::stepHallMove(float dt) {
+    if (!hallMove_.active) return;
+    hallMove_.t += dt;
+    const DoorPortal* door = scene_->hallDoor();
+    const bool ready = !door || door->door().openFraction() >= kHallPassOpen || hallMove_.t > kHallWaitMax ||
+                       (door->door().blocked() && hallMove_.t > 0.4f);
+    if (!ready) return;
+    hallMove_.active = false;
+    moveThroughHall(hallMove_.enter);
+}
+
+// Eye adaptation, CPU side (scene/EyeAdapt.h): the local exposure bias follows the indoor light volume around the camera
+// of the last simulation tick (interactive: the tick pose; offline modes: one frame per tick, the shown pose), so it is
+// a function of the tick sequence. The renderer adapts the metered luminance itself (asymmetric rates, kAdaptFrag).
+void App::stepEyeAdaptation(float dt) {
+    if (!scene_) return;
+    const Vec3 eye = tickPoseValid_[1] ? tickPose_[1].eye : shownPose_.eye;
+    if (!shownValid_ && !tickPoseValid_[1]) return;
+    eyeBias_.step(localExposureBiasTarget(sa::walkSpace(*scene_), eye), dt);
 }
 
 // ------------------------------------------------------------------------------------------------ Tab, V, F3

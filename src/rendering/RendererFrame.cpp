@@ -8,6 +8,7 @@
 #include "objects/Terrain.h"
 #include "rendering/Renderer.h"
 #include "rendering/SceneAccess.h"
+#include "scene/EyeAdapt.h"
 
 namespace ts {
 
@@ -899,8 +900,13 @@ void Renderer::renderStatistics(GLuint image) {
     bindTex(1, fb_.adapt[adaptIndex_].tex);
     adapt_->set("uCurrent", 0);
     adapt_->set("uPrevious", 1);
-    const float speed = frame_.thermalPost ? 2.0f : 0.7f;
-    adapt_->set("uRate", adaptValid_ ? 1.0f - std::exp(-frame_.dt * speed) : 1.0f);
+    // v9 M4 (scene/EyeAdapt.h): asymmetric eye adaptation -- brighter view: tauUp 0.35 s (light adaptation, fast),
+    // darker view: tauDown 1.1 s (dark adaptation, slow); the thermal AGC stays symmetric (2 1/s).
+    const EyeAdaptParams eye;
+    const float upRate = frame_.thermalPost ? 1.0f - std::exp(-frame_.dt * eye.thermalRate) : adaptBlend(frame_.dt, eye.tauUp);
+    const float downRate = frame_.thermalPost ? upRate : adaptBlend(frame_.dt, eye.tauDown);
+    adapt_->set("uRateUp", adaptValid_ ? upRate : 1.0f);
+    adapt_->set("uRateDown", adaptValid_ ? downRate : 1.0f);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     adaptIndex_ = out;
     adaptValid_ = true;
@@ -1028,6 +1034,7 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     composite_->set("uPurkinje", atmo_.purkinje);
     composite_->set("uDayGrade", atmo_.day);
     composite_->set("uEvRange", 1.5f);
+    composite_->set("uEvBias", std::max(s.exposureBiasEv, 0.0f));   // v9 M4: local exposure bias (indoor light volume)
     composite_->set("uTime", time);
     composite_->set("uGrain", 0.03f);
     composite_->set("uVignette", 0.55f);

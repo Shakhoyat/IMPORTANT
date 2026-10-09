@@ -222,3 +222,56 @@ parallel builds.
 - Exe run (native NVIDIA, 10:30, input script): `m8/exe_m8_*.jpg`. Workbook: `tools/wb_v9_m8.py`, sheet
   "37 v9 Lighting & Shadows". Tests T380-T389.
 - Open: the v8 night-forest / searchlights deltas from M1 (above) belong to M6's grass night-parity check.
+
+## M4 -- enterable buildings: hinged doors, indoor camera, eye adaptation
+
+- Hinged doors (`scene/Door.{h,cpp}` kinematics, `objects/HingedDoor.{h,cpp}` scene object): a leaf (panel, stiles and
+  rails on both faces, kick plate, lever handles with roses and key cylinders, three butt hinges) on one group node
+  that turns about the hinge axis. The hinge angle follows a critically damped spring (zeta = 1, `critDampStep`):
+  no overshoot, 95 % of the swing after 4.74 / omega. State machine CLOSED -> OPENING -> OPEN (latched on the holder)
+  -> CLOSING -> CLOSED, reversible mid-swing (the spring carries the angular velocity). The leaf is a set of dynamic
+  collision boxes (`dynamicObstacles`, 4 segments: the possessed soldier's motor, the spring-arm camera uses the exact
+  oriented leaf parts), and it stops against any soldier's body cylinder instead of swinging through it.
+  - Barracks hall door: east jamb, opens outwards through 180 deg onto the wall where the v8 leaf stood;
+    omega 4.2 1/s -> 95 % open 1.13 s after E, latched open 1.90 s after E (capture log), auto radius 4.5 m, close delay 2.5 s.
+  - Bunker: the entrance keeps its sliding blast doors (a 0.35 m armoured leaf in wall pockets has no room for a
+    hinged one); the generator room doorway off the tunnel got a hinged steel door (90 deg into the room, omega 5).
+    The fuel line moved from x 2.3 to 3.9 out of its swing.
+  - E: "[E] Open door" / "[E] Close door" at the handle on the player's side; Enter / Exit Barracks through a door that
+    is not open yet opens it first and goes through once it is 60 % open (`App::hallMove_`); both views, a soldier or
+    the v4 walker.
+  - AI walkers (`Garrison.cpp stepRoute`): a route that crosses the doorway within the trigger radius requests the door
+    (trigger volume); while a leaf swings, walkers outside its sweep wait; a walker never steps into a leaf (exact slab
+    test, 0.2 m clearance); one that holds up a leaf steps back if his way leads into it. An auto-opened door does not
+    start while a passer-by stands in its sweep, closes closeDelay after the last request once the sweep is clear, and
+    does a safety reverse after 1 s held up by a body (stays shut until that body has left the sweep). The garrison
+    steps the doors itself (idempotent per tick), so garrison-only test worlds move them too.
+- Indoor camera (`IndoorArmBlend`, `indoorArmParams`): the arm (3.1 -> 1.9 m), shoulder and pitch limit blend on a
+  critically damped spring (tau 0.3 s) across the doorway instead of switching in one frame; the probe still pulls the
+  arm in at once on contact, so the eye never enters a wall or leaf box (T394).
+- Eye adaptation (`scene/EyeAdapt.{h,cpp}`, `RendererFrame.cpp renderStatistics`, `ShadersPostFx.cpp kAdaptFrag` +
+  composite): the adapted mean log2 luminance follows the metered one asymmetrically, tau 0.35 s when the view gets
+  brighter (light adaptation: pupil + cone bleaching, fast) and 1.1 s when it gets darker (dark adaptation: slow);
+  ratio 3.1 (Unreal's defaults: 3 vs 1 EV/s). EV = clamp(key - Lbar, -1.5, 1.5 + B): B is the local exposure bias of
+  the indoor light volume around the camera (`IndoorLight::exposureBiasEv`, hall +1.25 EV, feathered over 0.8 m), stepped
+  per simulation tick with the same asymmetric constants (deterministic under --seed, T398). Outdoors and in the bunker
+  B = 0, so the existing shots keep their exposure (play_hall_outside mean luma 113.72 -> 113.72, play_hall_night 58.61 ->
+  58.56). The thermal AGC stays symmetric (2 1/s). `Renderer::resetTaaHistory()` keeps the adaptation across the
+  play_exposure_* shots. Merge note: main's later fix (a post-mode change resets TAA history + adaptation in
+  `beginFrame`) is compatible: it clears `adaptValid_`, which sets uRateUp = uRateDown = 1 (reset) in the asymmetric adapt pass.
+  - Walking into the hall at 10:30 (capture trace): just inside EV +0.70 (bias 0.02), after 1 s +1.45, 2 s +1.75,
+    3 s +1.85 (bias 1.16 of 1.25).
+- Tests T390-T399 (`tests/test_v9_m4.cpp`): state machine, spring vs the exact response (95 % at 1.133 s vs 1.129 s),
+  leaves never in a wall through the swing, bodies stop the leaf, player in/out in first and third person without
+  clipping, 6 residents through the initially closed door for 300 s (11 crossings, 9 opens / 9 closes, no overlap,
+  longest wait for the door 1.9 s), adaptation constants and asymmetry, local bias, determinism, prompts. 333 tests
+  pass (323 before).
+- Evidence (`docs/v9_notes/m4/`): `shots_after/play_door_closed|opening|open`, `play_exposure_outside|enter|adapted`
+  (1920x1080 EPIC seed 1, RTX 4070 d3d12, after every earlier play shot), `capture_after.log` (door timing, exposure
+  trace); `shots_before/` (43b4839) vs `shots_after/` for the v8 hall shots, `capture_before.log`,
+  `capture_after_v8shots.log`. play_prompt_door now shows "[E] Open door" on the shut door; play_hall_entered presses E
+  twice (open, then enter), so the later v8 shots run 1.4 s later (people moved; exposure unchanged).
+- Not done / open: the real-exe input-script run and the workbook sheet `tools/wb_v9_m4.py` were skipped (wrap-up
+  request); a door the player opened stops against a walker whose route starts inside its sweep until the player closes
+  it (no safety reverse for manual doors); residents can still queue at the PT bar for > 20 s (pre-existing v8
+  behaviour, also at 43b4839).
