@@ -691,6 +691,7 @@ int App::captureMode() {
             pc.dir = dir;
             pc.quality = opt_.quality >= 0 ? static_cast<Quality>(opt_.quality) : Quality::Ultra;
             pc.log = &plog;
+            pc.cutaway = opt_.cutaway;
             if (const DayCycle* clock = sa::dayCycle(*scene_)) pc.sun = DayCycle::sunDirection(clock->hour(), clock->config());
             return partscap::run(pc, names) ? 0 : 1;
         }

@@ -18,6 +18,75 @@ Page count before this pass: 106 (body 1-78, workbook appendix 79-106).
 - The program's diagnostic view (F) and its HUD legend now use the key (cube parts with a non-uniform S drawn as
   cuboids), replacing the cyan / magenta / amber colours.
 
+## M1: capture / export modes (program side)
+
+Scene geometry is unchanged: a fresh `--export-docs` differs from the previous export only by the new fields (checked
+field by field: 6 071 components identical, the 5 476 parts unchanged).
+
+- **Designs** (`src/report/Designs.{h,cpp}`, CPU only): a rule table maps builder output to 62 report designs in 8
+  families. The aggregates Base (993 parts), Environment (652), Camp camouflage (658), Backdrop (120) and UAV pads are
+  split into the designs they place (HESCO perimeter, concertina wire, guard tower x4, outer gate, helipad, motor pool,
+  fuel depot, Quonset hut x3, perimeter fence, watchtower, sandbag wall x3, camouflaged tent, supply cache x7, radio
+  mast, lamp post x2, fire barrel, track sign, HESCO blocks x2, jersey barrier x6, tank trap x2, pine x26, broadleaf
+  tree x4, bush x14, boulder x13, earth revetment x5, camouflage net x7, cut branches x8, distant hills, treeline pine
+  x43, far radio tower, far ground, road, tyre tracks, tank spot marking, moon ...). A design built inside another is a
+  nested design (the camouflage net over the bunker ramp, the cargo trucks and containers in the motor pool, the rounds
+  on the UAV rails, the SAM missile, the six MLRS rockets, the 20 AA shell casings, the supply cache in the ammunition
+  bunker); every leaf belongs to exactly one design instance.
+- **Export schema 9**: every component has `design` and `design_root`; new `designs` list (family, source builder,
+  instances, parts per instance, parts total, primitives of the first instance and over all instances, nested designs,
+  per-instance root id / position / heading / scale / hidden) and `designs_unassigned` (0).
+- **`ts --export-prims-lowres FILE`** (GPU-free): the real generators at small parameters (sphere 8x4, hemisphere 8x2,
+  cylinder / frustum / cone 8, torus 8x6, capsule 8x2, annulus 8, helix 2 turns 16x6, terrain disc 3x8, flat ones and
+  the grass blade as they are) with positions, normals and indices -> `report/data/prims_lowres.json`. The generators
+  produce no texture coordinates (MeshData is position + normal), so none are exported.
+- **`--capture DIR --only shapeview:<design>[|az|el|ksub|kpart|inst|cut|w|h|fill|stage]`** (`src/app/CaptureShapes.cpp`,
+  CPU half in `src/report/ShapeView.{h,cpp}`): the design alone in the export's t = 0 pose (a freshly built Scene, so
+  identical to the export), camera from a 3/4 view relative to the design's front (az 35, el 25), fitted so the
+  projection fills 80 % of the frame; `<slug>_model.png` through the real renderer (no HUD, sky, fog, bloom, grain,
+  flare, vignette or aerial perspective; anti-aliasing kept; per-object fog off), `<slug>_prims.png` rasterised on
+  the CPU: every part Lambert-shaded in its key colour, triangle edges (faded when shorter than a few pixels), a dark
+  outline per part, pulled apart (sub-assemblies by k_sub (centre - parent centre), then parts by k_part inside their
+  group; groups with one child do not count as a level), nested designs pale; JSON with the legend (own parts by
+  primitive), drawn parts with dagger / parked / cut flags and projected centres, groups with projected centres (for
+  leader lines) and crop boxes. Parts hidden at t = 0 are drawn in the primitives panel at their rest scale and flagged;
+  a hidden part of a nested design parked below the ground (the AA casings, y = -50 m) is listed but not drawn; a design
+  whose own parts are all hidden (SAM missile, MLRS rocket, AA casing) is drawn in both panels.
+- **`--cutaway`** with `cut=` names: the command bunker (roof slabs A/B, surface installations, the camouflage net),
+  the ammunition bunker (earth mound, mound lobes, turf clumps) and the barracks hall (roof sheets, ridge cap,
+  ceiling, gables) are captured with those parts left out.
+- **`shapeview:@camp`**: the whole camp from the air in the colour key, each design instance moved as a block
+  (far backdrop, sky bodies and the terrain disc left out) - replaces the exploded HUD capture of Fig. 6.1b.
+- **`lineup:<a>+<b>+...`**: designs side by side at one scale, orthographic, each in its root frame, px per metre in
+  the JSON (munitions: SAM missile, MLRS rocket, UAV round, AA shell casing; the exhaust flame is left out).
+- **`tile:<object>|<part>`**: one part tile as in `parts:` (the "used for" thumbnails of the primitive cards).
+- **`stage=<pct>`**: a build stage in the colour key (first ceil(pct N / 100) parts in hierarchy order).
+- `tools/report/capture_shapes.py` runs all of them (per-design view overrides and the cutaway list are a small table
+  in the script) into `report/figures/raw/shapes/`.
+- Renderer: `RenderSettings::vignetteOn` (default on; the game is unchanged) and the composite grain follows
+  `RenderSettings::grain`, so the shape views can switch both off.
+- Tests T440-T447 (396 tests, 0 failed): designs add up to the scene (sum over designs of instances x parts = 5 476,
+  every leaf once, 0 unassigned), aggregates split / nested designs found, per-primitive totals over designs = the
+  scene's primitive counts, shape-view request syntax + cutaway, pull-apart offsets, the software rasteriser (key
+  colour, background, 80 % fit), the colour key's L* bands, the low-resolution generator counts.
+
+### Vegetation: primitive-built vs CC0 meshes
+Built from primitives (scene graph, always): Pine (cylinder trunk + 5-7 cone whorls), Broadleaf tree (cylinder trunk,
+3 cylinder limbs, 14 sphere clumps), Bush (5-7 spheres), Boulder (3-4 spheres), Treeline pine (2 cones), Cut branches
+(cylinder stems, sphere foliage, cone tips, sphere brush). At ULTRA / EPIC the renderer draws CC0 Poly Haven meshes in
+place of Pine, Broadleaf tree, Bush, Boulder and Treeline pine (the primitive parts stay the gameplay model and are
+drawn at LOW / HIGH); cut branches are never replaced; ferns, low shrubs and grass tufts are extra ground cover with no
+primitive design. LOD 0 triangles (`report/data/vegetation_assets.json`, written by the renderer): fir_sapling_medium
+101 424-166 538 (camp pines), tree_small_02 319 454 (broadleaf), shrub_01 5 936-23 007 and shrub_02 3 111-5 537 (bushes),
+boulder_01 56 558 and rock_moss_set 2 754-6 618 (boulders), fir_tree_01 76 080-473 624 and pine_tree_01 308 150-472 573
+(treeline), ground cover 290-6 494. The shape views use the primitive trees (the isolated render path never swaps them).
+
+### Not captured as designs (and why)
+- Tank shell and AA tracers: `Combat::fireShell` / `fireTracer` projectiles drawn by the effects pass (a glowing slug),
+  not scene parts, so there is nothing to decompose.
+- "Light tower" (`Base.cpp`): the builder exists but is not placed in the scene.
+- Grass blades: the GPU-instanced grass field (not scene parts); the blade is primitive 16 in Section 6.
+
 # Earlier round (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
 
 Figure and table numbers refer to the report before this round unless marked "new".

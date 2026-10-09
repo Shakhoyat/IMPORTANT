@@ -1,6 +1,7 @@
 // v10 M3 capture modes (see CaptureParts.h): part tiles, build stages and the primitive library, rendered through the
 // real Renderer (the same 10:30 daylight, exposure and TAA accumulation as the iso_* hero shots).
 #include "app/CaptureParts.h"
+#include "app/CapturePartsDetail.h"
 
 #include <glad/gl.h>
 
@@ -14,6 +15,7 @@
 
 #include "objects/Terrain.h"
 #include "primitives/Library.h"
+#include "report/PrimitiveColors.h"
 #include "rendering/ImageWriter.h"
 #include "rendering/LabStage.h"
 #include "rendering/RenderTarget.h"
@@ -22,7 +24,7 @@
 
 namespace ts::partscap {
 
-namespace {
+namespace detail {
 
 constexpr int kTile = 512;                 // part tiles
 constexpr int kBuildW = 1600, kBuildH = 1200;
@@ -32,11 +34,6 @@ constexpr float kHeroYaw = 35.0f, kHeroPitch = 16.0f, kHeroFov = 50.0f;   // the
 constexpr float kTileYaw = 35.0f, kTilePitch = 25.0f, kTileFov = 30.0f;   // part / primitive tiles (look down: the
                                                                           // background is the even haze below the horizon)
 constexpr int kFrames = 8;                 // TAA accumulation of the frozen frame (as the hero shots)
-
-struct Image {
-    int w = 0, h = 0;
-    std::vector<uint8_t> px;   // RGB, rows top to bottom
-};
 
 std::string num(float v) {
     char b[32];
@@ -248,12 +245,16 @@ void meshSphere(const MeshData& mesh, const Mat4& m, Vec3& centre, float& radius
     for (const Vec3& p : pts) radius = std::max(radius, length(p - centre));
 }
 
-}  // namespace
+}  // namespace detail
+
+using namespace detail;
 
 bool handles(const std::vector<std::string>& names) {
     if (names.empty()) return false;
     for (const std::string& n : names)
-        if (n != "prims" && n.rfind("parts:", 0) != 0 && n.rfind("build:", 0) != 0) return false;
+        if (n != "prims" && n.rfind("parts:", 0) != 0 && n.rfind("build:", 0) != 0 && n.rfind("shapeview:", 0) != 0 &&
+            n.rfind("lineup:", 0) != 0 && n.rfind("tile:", 0) != 0)
+            return false;
     return true;
 }
 
@@ -264,6 +265,9 @@ bool run(Ctx& c, const std::vector<std::string>& names) {
         if (n == "prims") ok = prims(c) && ok;
         else if (n.rfind("parts:", 0) == 0) ok = parts(c, n.substr(6)) && ok;
         else if (n.rfind("build:", 0) == 0) ok = build(c, n.substr(6)) && ok;
+        else if (n.rfind("shapeview:", 0) == 0) ok = shapeview(c, n.substr(10)) && ok;
+        else if (n.rfind("lineup:", 0) == 0) ok = lineup(c, n.substr(7)) && ok;
+        else if (n.rfind("tile:", 0) == 0) ok = tile(c, n.substr(5)) && ok;
     }
     return ok;
 }
@@ -469,8 +473,8 @@ bool prims(Ctx& c) {
         if (standIn) c.renderer->labOverrideMesh(PrimitiveType::Cylinder, e.mesh);
         meshSphere(e.mesh, scale(S), centre, radius);
         Material m;
-        const Vec3 col = primitiveColor(e.type);
-        m.baseColor = col * 0.65f + Vec3{0.62f, 0.62f, 0.62f} * 0.35f;
+        // The report's colour key (src/report/PrimitiveColors.h), the cuboid in its own colour.
+        m.baseColor = primkey::linear(primkey::colorOf(e.type, e.cuboid));
         m.roughness = 0.55f;
         m.metalness = 0.0f;
         m.heat = 0.2f;

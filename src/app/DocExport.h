@@ -11,4 +11,8 @@ namespace ts {
 // Needs no OpenGL context (see tools/export_docs_main.cpp / `mingw32-make docs`).
 bool exportSceneDocs(const std::string& path);
 
+// The report's primitive cards: every library generator called with small parameters (sphere 8 x 4, torus 8 x 6, ...),
+// positions / normals / indices as JSON. GPU-free.
+bool exportPrimsLowres(const std::string& path);
+
 }  // namespace ts

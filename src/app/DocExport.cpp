@@ -32,6 +32,15 @@
 #include "primitives/FlatFaces.h"
 #include "primitives/GrassBlade.h"
 #include "primitives/Library.h"
+#include "primitives/Annulus.h"
+#include "primitives/Capsule.h"
+#include "primitives/Helix.h"
+#include "primitives/Hemisphere.h"
+#include "primitives/Pyramid.h"
+#include "primitives/TaperedBox.h"
+#include "primitives/Torus.h"
+#include "primitives/Wedge.h"
+#include "report/Designs.h"
 #include "scene/PartOrder.h"
 #include "scene/DayCycle.h"
 #include "scene/Gait.h"
@@ -125,6 +134,8 @@ std::string exportId(const SceneNode& n) {
 // whether the part is hidden in the exported t = 0 state.
 int g_dfs = 0;
 std::map<const SceneNode*, int> g_rigLeafOrder;
+// Report designs (src/report/Designs.h): the design and instance root of every node.
+designs::Catalogue g_designs;
 
 void indexRigLeaves(const SceneNode& n) {
     if (rigRoot(n) == &n) {
@@ -162,7 +173,16 @@ void writeNode(std::ostream& o, const SceneNode& n, int depth, bool& first, std:
       << ", \"hidden_at_export\": " << (hiddenAtRest(n) ? "true" : "false") << ", \"dfs_index\": " << g_dfs++
       << ", \"rig_root_id\": \"" << esc(exportId(*rigRoot(n))) << "\", \"rig_leaf_order\": "
       << (order != g_rigLeafOrder.end() ? order->second : -1) << ", \"part_kind\": \""
-      << esc(n.isLeaf() ? partKindName(n.name) : std::string()) << "\"}";
+      << esc(n.isLeaf() ? partKindName(n.name) : std::string()) << "\"";
+    const int inst = g_designs.instanceAt(n);
+    if (inst >= 0) {
+        const designs::Instance& in = g_designs.instances[static_cast<size_t>(inst)];
+        o << ", \"design\": \"" << esc(g_designs.designs[static_cast<size_t>(in.design)].name) << "\", \"design_root\": \""
+          << esc(exportId(*in.root)) << "\"";
+    } else {
+        o << ", \"design\": \"\", \"design_root\": \"\"";
+    }
+    o << "}";
     for (const auto& c : n.children) writeNode(o, *c, depth + 1, first, uses);
 }
 
@@ -1151,6 +1171,66 @@ void writeObjects(std::ostream& o, Scene& scene) {
     o << "  ],\n";
 }
 
+// v10 final pass: every object design (one builder / prefab) with its instances, parts per instance, primitives and
+// nested designs (src/report/Designs.h). Instances: root id, placement of the root (world translation, heading = yaw of
+// the root's +Z axis, uniform scale of the root frame) and the parts the instance owns.
+void writeDesigns(std::ostream& o) {
+    const designs::Catalogue& c = g_designs;
+    o << "  \"designs\": [\n";
+    for (size_t d = 0; d < c.designs.size(); ++d) {
+        const designs::Design& ds = c.designs[d];
+        std::map<std::string, int> total, first;
+        std::map<std::string, int> nested;
+        int parts = 0, hidden = 0;
+        std::string per;
+        for (size_t k = 0; k < ds.instances.size(); ++k) {
+            const designs::Instance& in = c.instances[static_cast<size_t>(ds.instances[k])];
+            for (const SceneNode* l : in.own) {
+                ++total[primKey(*l)];
+                if (k == 0) {
+                    ++first[primKey(*l)];
+                    hidden += hiddenAtRest(*l);
+                }
+            }
+            parts += static_cast<int>(in.own.size());
+            per += (k ? ", " : "") + std::to_string(in.own.size());
+            if (k == 0)
+                for (int nid : in.nested) ++nested[c.designs[static_cast<size_t>(c.instances[static_cast<size_t>(nid)].design)].name];
+        }
+        auto prims = [](const std::map<std::string, int>& m) {
+            std::string s = "{";
+            bool f = true;
+            for (const auto& kv : m) {
+                s += (f ? "\"" : ", \"") + esc(kv.first) + "\": " + std::to_string(kv.second);
+                f = false;
+            }
+            return s + "}";
+        };
+        const designs::Instance& in0 = c.instances[static_cast<size_t>(ds.instances.front())];
+        std::string parent;
+        if (in0.parent >= 0) parent = c.designs[static_cast<size_t>(c.instances[static_cast<size_t>(in0.parent)].design)].name;
+        o << "    {\"name\": \"" << esc(ds.name) << "\", \"family\": \"" << esc(ds.family) << "\", \"source\": \""
+          << esc(ds.source) << "\", \"instances\": " << ds.instances.size() << ", \"parts_per_instance\": [" << per
+          << "], \"parts_total\": " << parts << ", \"parts_first\": " << in0.own.size() << ", \"hidden_first\": " << hidden
+          << ", \"nested_in\": \"" << esc(parent) << "\", \"primitives_first\": " << prims(first)
+          << ", \"primitives_total\": " << prims(total) << ", \"nested_first\": " << prims(nested) << ", \"instance_list\": [";
+        for (size_t k = 0; k < ds.instances.size(); ++k) {
+            const designs::Instance& in = c.instances[static_cast<size_t>(ds.instances[k])];
+            const Mat4& w = in.root->world;
+            const Vec3 zAxis{w.at(0, 2), w.at(1, 2), w.at(2, 2)};
+            const float s = length(Vec3{w.at(0, 0), w.at(1, 0), w.at(2, 0)});
+            const float heading = degrees(std::atan2(zAxis.x, zAxis.z));
+            o << (k ? ", " : "") << "{\"root_id\": \"" << esc(exportId(*in.root)) << "\", \"root_name\": \"" << esc(in.root->name)
+              << "\", \"object\": \"" << esc(in.root->object) << "\", \"parts\": " << in.own.size() << ", \"position\": "
+              << vecFull({w.at(0, 3), w.at(1, 3), w.at(2, 3)}) << ", \"heading_deg\": " << num(heading)
+              << ", \"scale\": " << num(in.root->isLeaf() ? 1.0f : s) << ", \"hidden\": " << (hiddenAtRest(*in.root) ? "true" : "false")
+              << "}";
+        }
+        o << "]}" << (d + 1 < c.designs.size() ? ",\n" : "\n");
+    }
+    o << "  ],\n  \"designs_unassigned\": " << c.unassigned.size() << ",\n";
+}
+
 void writePracticals(std::ostream& o, const Scene& scene) {
     const auto& pl = scene.practicalLights();
     o << "  \"practical_lights\": [\n";
@@ -1177,10 +1257,11 @@ bool exportSceneDocs(const std::string& path) {
     scene.updateWorld();
     const std::vector<LibraryEntry> prims = primitiveLibrary();
     for (SceneNode* r : scene.roots()) indexRigLeaves(*r);
+    g_designs = designs::collect(scene.roots());
 
     std::ostringstream o;
     std::map<std::string, PrimUse> uses;
-    o << "{\n  \"schema_version\": 8,\n"  // 6: + "v7" (keys); 7: + v7 raytrace / explorer / pov (WP-W); 8: v10 M3 library
+    o << "{\n  \"schema_version\": 9,\n"  // 6: + "v7" (keys); 7: + v7 raytrace / explorer / pov (WP-W); 8: v10 M3 library; 9: designs
       << "  \"matrix_convention\": \"local_matrix and world_matrix are 16 floats ROW-MAJOR (row 0 first); "
          "M = T * Ry * Rx * Rz * S (R_deg = pitch X, yaw Y, roll Z); world = parent_world * M; the code stores "
          "Mat4 column-major (m[col*4+row]); world matrices are at t = 0\",\n";
@@ -1194,6 +1275,7 @@ bool exportSceneDocs(const std::string& path) {
     writePrimitives(o, prims, uses);
     writeLights(o, scene.lights);
     writeObjects(o, scene);
+    writeDesigns(o);
     writeControllables(o, scene);
     writeWalkSpace(o, scene);
     writeLayout(o);
@@ -1220,6 +1302,64 @@ bool exportSceneDocs(const std::string& path) {
     }
     f << o.str();
     std::printf("Scene documentation written to %s (%zu primitive instances)\n", path.c_str(), scene.leaves().size());
+    return true;
+}
+
+// Low-resolution copies of every library primitive for the report's primitive cards: the REAL generators called with
+// small parameters (so every vertex can be numbered in a drawing), with their positions, normals and indices. The
+// generators write no texture coordinates (MeshData has position + normal only), so none are exported.
+bool exportPrimsLowres(const std::string& path) {
+    struct Low {
+        const char* name;
+        const char* call;
+        std::string params;
+        MeshData mesh;
+    };
+    const std::vector<Low> low = {
+        {"cube", "createCube()", "{}", createCube()},
+        {"wedge", "createWedge()", "{}", createWedge()},
+        {"tapered box", "createTaperedBox(0.8, 0.8)", "{\"topX\": 0.8, \"topZ\": 0.8}", createTaperedBox(0.8f, 0.8f)},
+        {"pyramid", "createPyramid()", "{}", createPyramid()},
+        {"sphere", "createSphere(8, 4)", "{\"s\": 8, \"k\": 4}", createSphere(8, 4)},
+        {"hemisphere", "createHemisphere(8, 2)", "{\"s\": 8, \"k\": 2}", createHemisphere(8, 2)},
+        {"capsule", "createCapsule(8, 2, 0.25)", "{\"s\": 8, \"c\": 2, \"h\": 0.25}", createCapsule(8, 2, 0.25f)},
+        {"cylinder", "createCylinder(8, 0.5, 0.5, true)", "{\"s\": 8, \"rb\": 0.5, \"rt\": 0.5, \"capped\": true}", createCylinder(8, 0.5f, 0.5f, true)},
+        {"frustum", "createCylinder(8, 0.03, 0.5, false)", "{\"s\": 8, \"rb\": 0.03, \"rt\": 0.5, \"capped\": false}",
+         createCylinder(8, lib::kBeamTop, lib::kBeamBottom, false)},
+        {"cone", "createCylinder(8, 0.5, 0, true)", "{\"s\": 8, \"rb\": 0.5, \"rt\": 0, \"capped\": true}", createCylinder(8, 0.5f, 0.0f, true)},
+        {"torus", "createTorus(0.35, 0.15, 8, 6)", "{\"R\": 0.35, \"r\": 0.15, \"u\": 8, \"v\": 6}", createTorus(0.35f, 0.15f, 8, 6)},
+        {"annulus", "createAnnulus(0.43, 8)", "{\"inner\": 0.43, \"n\": 8}", createAnnulus(0.43f, 8)},
+        {"helix", "createHelix(0.475, 0.025, 2, 16, 6)", "{\"R\": 0.475, \"r\": 0.025, \"turns\": 2, \"segments\": 16, \"m\": 6}",
+         createHelix(0.475f, 0.025f, 2.0f, 16, 6)},
+        {"terrain disc", "createTerrainDisc(3, 8)", "{\"k\": 3, \"s\": 8, \"radius\": " + num(layout::kBaseRadius) + "}", createTerrainDisc(3, 8)},
+        {"grass blade", "createGrassBlade()", "{}", createGrassBlade()},
+    };
+    std::ostringstream o;
+    o << "{\n  \"note\": \"real generators at low resolution; positions / normals in the unit cube (terrain disc in metres)\",\n"
+      << "  \"scene\": {\"sphere\": [" << lib::kSphereSlices << ", " << lib::kSphereStacks << "], \"hemisphere\": [" << lib::kHemiSlices
+      << ", " << lib::kHemiStacks << "], \"cylinder\": " << lib::kCylinderSlices << ", \"torus\": [" << lib::kTorusU << ", "
+      << lib::kTorusV << "], \"capsule\": [" << lib::kCapsuleSlices << ", " << lib::kCapsuleCapStacks << "], \"annulus\": "
+      << lib::kAnnulusSegments << ", \"helix\": [" << lib::kHelixSegments << ", " << lib::kHelixSides << ", " << num(lib::kHelixTurns)
+      << "], \"terrain\": [" << kTerrainRings << ", " << kTerrainSlices << "]},\n  \"primitives\": [\n";
+    for (size_t i = 0; i < low.size(); ++i) {
+        const MeshData& m = low[i].mesh;
+        o << "    {\"name\": \"" << low[i].name << "\", \"call\": \"" << low[i].call << "\", \"params\": " << low[i].params
+          << ", \"V\": " << m.vertexCount() << ", \"T\": " << m.triangleCount() << ",\n     \"positions\": [";
+        for (size_t v = 0; v < m.vertices.size(); ++v) o << (v ? ", " : "") << vecFull(m.vertices[v].position);
+        o << "],\n     \"normals\": [";
+        for (size_t v = 0; v < m.vertices.size(); ++v) o << (v ? ", " : "") << vecFull(m.vertices[v].normal);
+        o << "],\n     \"indices\": [";
+        for (size_t k = 0; k < m.indices.size(); ++k) o << (k ? ", " : "") << m.indices[k];
+        o << "]}" << (i + 1 < low.size() ? ",\n" : "\n");
+    }
+    o << "  ]\n}\n";
+    std::ofstream f(path);
+    if (!f) {
+        std::fprintf(stderr, "Cannot write %s\n", path.c_str());
+        return false;
+    }
+    f << o.str();
+    std::printf("Low-resolution primitives written to %s (%zu)\n", path.c_str(), low.size());
     return true;
 }
 

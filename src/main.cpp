@@ -76,12 +76,14 @@ void usage() {
         "  --bench-shots FILE           fixed shots x day / night: FPS, CPU phases, GPU passes, draws (+ FILE.md)\n"
         "  --trace FILE SECONDS         UAV / rover behaviour log (4 Hz CSV)\n"
         "  --export-docs FILE           GPU-free export of every part, matrix and mesh\n"
+        "  --export-prims-lowres FILE   GPU-free: every primitive generator at low resolution (report cards)\n"
         "  --export-keys FILE           v9: the key / mouse binding table as JSON (contexts, old bindings, conflicts)\n"
         "options:\n"
         "  --quality low|high|ultra|epic   rendering preset (default: auto; EPIC on RTX / discrete GPUs)\n"
         "  --size WxH                    window / output resolution (e.g. 2560x1440, 3840x2160)\n"
         "  --fullscreen                  interactive: full screen on the primary monitor\n"
         "  --headless                    no window: EGL off-screen context (Linux GPU server over SSH)\n"
+        "  --cutaway                     capture shapeview: leave out the parts named by cut= (roof, earth cover)\n"
         "  --gpu N                       headless: EGL device index (or env TS_EGL_DEVICE)\n"
         "  --fps 30|60                   record: video frame rate\n"
         "  --encoder NAME                record: ffmpeg codec (libx264, h264_nvenc, hevc_nvenc)\n"
@@ -154,6 +156,10 @@ int main(int argc, char** argv) {
         const std::string value = (i + 1 < argc) ? argv[i + 1] : "";
         if (arg == "--export-docs") {
             return ts::exportSceneDocs(value.empty() ? "build/scene_export.json" : value) ? 0 : 1;
+        } else if (arg == "--export-prims-lowres") {   // report: primitive cards
+            return ts::exportPrimsLowres(value.empty() ? "build/prims_lowres.json" : value) ? 0 : 1;
+        } else if (arg == "--cutaway") {   // report: shapeview of enclosed designs leaves out its cut= parts
+            opt.cutaway = true;
         } else if (arg == "--export-keys") {   // v9 M2
             std::ofstream f(value.empty() ? "keys.json" : value, std::ios::binary);
             f << ts::keyMapJson(ts::keyMapV9());

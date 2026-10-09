@@ -102,6 +102,7 @@ struct RenderSettings {
     bool showLegend = true;
     std::string isolate;  // if set, only this composite object is drawn (construction figures)
     float grain = 0.035f;
+    bool vignetteOn = true;  // composite vignette (off for the report shape views)
     // v2 pipeline
     Quality quality = Quality::High;
     bool cinematic = true;   // HDR + shadows + SSAO + fog + bloom + tone mapping (N toggles the v1 look)

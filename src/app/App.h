@@ -41,6 +41,7 @@ struct AppOptions {
     std::string encoder = "libx264";  // record: ffmpeg video codec (h264_nvenc on an NVIDIA GPU)
     int fps = 30;                     // record: video frame rate (30 or 60)
     int quality = -1;        // --quality low|high|ultra|epic (-1 = auto-detect from the GPU)
+    bool cutaway = false;    // --cutaway: report shapeview captures leave out their cut= parts
     bool headless = false;   // --headless: EGL context without a window (Linux, remote GPU over SSH)
     int device = -1;         // --gpu N: EGL device index for headless rendering
     bool fullscreen = false; // --fullscreen (interactive)

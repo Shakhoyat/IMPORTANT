@@ -1074,8 +1074,8 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     composite_->set("uEvRange", 1.5f);
     composite_->set("uEvBias", std::max(s.exposureBiasEv, 0.0f));   // v9 M4: local exposure bias (indoor light volume)
     composite_->set("uTime", time);
-    composite_->set("uGrain", 0.03f);
-    composite_->set("uVignette", 0.55f);
+    composite_->set("uGrain", s.grain > 0.0f ? 0.03f : 0.0f);
+    composite_->set("uVignette", s.vignetteOn ? 0.55f : 0.0f);
     composite_->set("uFade", s.fade);
     composite_->set("uLetterbox", s.letterbox);
     const bool blur = frame_.hdr && s.motionBlur > 0.0f && qualityProfile(s.quality).motionBlur && historyValid_;
