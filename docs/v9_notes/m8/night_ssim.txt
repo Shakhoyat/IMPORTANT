@@ -1,0 +1,8 @@
+# shot  SSIM(M8 vs v8 138163d)  SSIM(M8 vs M1 96782ee)  SSIM(M1 vs v8); ffmpeg ssim (All), 1920x1080 EPIC, seed 1, WSL d3d12 RTX 4070
+walk_forest 0.968258 1.000000 0.968258
+cine_chase 0.999936 1.000000 0.999936
+base_overview 0.992622 1.000000 0.992622
+night_searchlights 0.945943 1.000000 0.945943
+cine_establishing 0.992009 1.000000 0.992009
+base_gate 0.998801 1.000000 0.998801
+helipad 0.986551 1.000000 0.986551

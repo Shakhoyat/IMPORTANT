@@ -1,6 +1,7 @@
 #include "rendering/Shader.h"
 
 #include <cstdio>
+#include <utility>
 #include <vector>
 
 namespace ts {
@@ -56,6 +57,17 @@ bool Shader::build(const std::string& name, const std::string& vs, const std::st
         std::fprintf(stderr, "[shader %s] link error:\n%s\n", name.c_str(), log);
         return false;
     }
+    // v9 M8: the shared lighting samplers sit on fixed texture units (Renderer::kUnit*). A sampler left at its default
+    // unit 0 would share it with a sampler of another type in programs that never set it (grass, foliage, effects...),
+    // which GL rejects at draw time; so every program that declares them gets the units here.
+    const std::pair<const char*, int> units[] = {{"uMoonShadow", 5}, {"uSpotShadow", 6}, {"uAO", 7}, {"uMoonDepth", 12},
+                                                 {"uContactShadow", 13}};
+    glUseProgram(program_);
+    for (const auto& [sampler, unit] : units) {
+        const GLint loc = glGetUniformLocation(program_, sampler);
+        if (loc >= 0) glUniform1i(loc, unit);
+    }
+    glUseProgram(0);
     return true;
 }
 

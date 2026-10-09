@@ -8,6 +8,7 @@
 #include "objects/Builder.h"
 #include "objects/Environment.h"
 #include "objects/PropKit.h"
+#include "math/SkyModel.h"
 #include "scene/Controllable.h"
 
 namespace ts {
@@ -34,13 +35,10 @@ Vec3 mixLog(const Vec3& a, const Vec3& b, float w) {
     return {f(a.x, b.x), f(a.y, b.y), f(a.z, b.z)};
 }
 
-// Day preset (linear HDR units: the sun's irradiance is 3.2, a white sunlit wall reflects 3.2).
-const Vec3 kDaySkyZenith{0.40f, 0.50f, 0.68f};     // hemisphere irradiance from the blue sky
-const Vec3 kDayGroundBounce{0.20f, 0.19f, 0.16f};  // sunlit ground seen from below
-const Vec3 kDayFogColor{0.60f, 0.68f, 0.80f};      // distance haze = horizon sky
-const Vec3 kDayFogAmbient{0.30f, 0.36f, 0.46f};    // sky light scattered by the volumetric haze
+// Day preset (linear HDR units: the sun's irradiance is 3.2, a white sunlit wall reflects 3.2). v9 M8: the sky zenith /
+// horizon, ground bounce and haze colours of the day come from the analytic sky (applyTo; the v8 literals were
+// zenith 0.40 0.50 0.68, ground 0.20 0.19 0.16, horizon 0.60 0.66 0.74, fog 0.60 0.68 0.80, fog ambient 0.30 0.36 0.46).
 const Vec3 kDayAmbient{0.34f, 0.36f, 0.40f};       // display-referred (v1) views
-const Vec3 kDaySkyHorizon{0.60f, 0.66f, 0.74f};    // v8: whiter, brighter sky band near the horizon (side ambient)
 const Vec3 kTwilightWarm{1.0f, 0.62f, 0.40f};      // haze tint at sunrise / sunset
 // v8: clear-day aerial perspective (was 0.0075 / 0.0032: a grey veil over everything beyond ~40 m)
 constexpr float kDayFogDensity = 0.0042f, kDayVolFogDensity = 0.0013f;
@@ -306,11 +304,22 @@ void DayCycle::applyTo(LightRig& L) const {
     a.sunColor = tr * (kSunIntensity * smoothstepf(-3.0f, 2.0f, e));
     a.twilight = smoothstepf(-8.0f, -2.0f, e) * (1.0f - smoothstepf(3.0f, 14.0f, e));
     if (a.day > 0.0f) {
-        a.skyZenith = mixLog(night.skyZenith, kDaySkyZenith, a.day);
-        a.groundBounce = mixLog(night.groundBounce, kDayGroundBounce, a.day);
-        a.skyHorizon = mixLog(night.skyHorizon, kDaySkyHorizon, a.day);
-        a.fogColor = mixLog(night.fogColor, kDayFogColor, a.day);
-        a.fogAmbient = mixLog(night.fogAmbient, kDayFogAmbient, a.day);
+        // v9 M8: the day sky, its ambient and the haze colours all come from one analytic sky (Preetham, turbidity
+        // kSkyTurbidity) for the current sun: the ambient a face receives is the SH-projected irradiance of the sky that
+        // is drawn plus the sunlit ground below the horizon (math/SkyModel.h).
+        const SkyModel sky = preethamSky(towardSun());
+        const float sunIrr = kSunIntensity * smoothstepf(kSunKeyAboveDeg, 10.0f, e) * std::max(std::sin(radians(e)), 0.0f);
+        const Vec3 skyUp = evalAmbient(ambientSH(sky, Vec3{0, 0, 0}, 12, 24), {0, 1, 0});
+        const AmbientSH sh = ambientSH(sky, mul(kSkyGroundAlbedo, tr * sunIrr + skyUp), 12, 24);
+        for (int i = 0; i < 9; ++i) a.skySH[i] = sh.c[i];
+        const Vec3 up = evalAmbient(sh, {0, 1, 0}), down = evalAmbient(sh, {0, -1, 0});
+        const Vec3 side = (evalAmbient(sh, {1, 0, 0}) + evalAmbient(sh, {-1, 0, 0}) + evalAmbient(sh, {0, 0, 1}) + evalAmbient(sh, {0, 0, -1})) * 0.25f;
+        const Vec3 horizon = horizonRadiance(sky);
+        a.skyZenith = mixLog(night.skyZenith, up, a.day);
+        a.groundBounce = mixLog(night.groundBounce, down, a.day);
+        a.skyHorizon = mixLog(night.skyHorizon, horizon, a.day);
+        a.fogColor = mixLog(night.fogColor, horizon, a.day);
+        a.fogAmbient = mixLog(night.fogAmbient, side * 0.9f, a.day);
         a.fogDensity = lerpf(night.fogDensity, kDayFogDensity, a.day);
         a.volFogDensity = lerpf(night.volFogDensity, kDayVolFogDensity, a.day);
         // Exposure key: reaches the day value once the sun is 10 deg up (twilight frames are shown a little brighter
@@ -320,8 +329,7 @@ void DayCycle::applyTo(LightRig& L) const {
     if (a.twilight > 0.0f) {
         const Vec3 tint = lerp(Vec3{1, 1, 1}, kTwilightWarm, a.twilight);
         a.fogColor = mul(a.fogColor, tint);
-        a.fogAmbient = mul(a.fogAmbient, lerp(Vec3{1, 1, 1}, tint, 0.6f));
-        a.skyHorizon = mul(a.skyHorizon, lerp(Vec3{1, 1, 1}, tint, 0.7f));
+        a.fogAmbient = mul(a.fogAmbient, lerp(Vec3{1, 1, 1}, tint, 0.6f));   // (the sky model's horizon is already warm)
     }
     a.purkinje = a.night;
     L.atmo = a;

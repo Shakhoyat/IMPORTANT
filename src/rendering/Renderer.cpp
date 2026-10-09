@@ -94,6 +94,10 @@ bool Renderer::init() {
     ok = ok && streak_->build("streak", kFullscreenVert, kStreakFrag);
     ok = ok && dof_->build("dof", kFullscreenVert, withPalette(kDofFrag));
     ok = ok && dofCombine_->build("dof-combine", kFullscreenVert, withPalette(kDofCombineFrag));
+    gtao_ = std::make_unique<Shader>();      // v9 M8
+    contact_ = std::make_unique<Shader>();
+    ok = ok && gtao_->build("gtao", kFullscreenVert, withPalette(kGtaoFrag));
+    ok = ok && contact_->build("contact-shadows", kFullscreenVert, withPalette(kContactFrag));
     ok = ok && hud_.init();
     ok = ok && grass_.init();
     ok = ok && rain_.init();
@@ -147,6 +151,13 @@ bool Renderer::init() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     shadows_.ensure(1024, 1);
+    // v9 M8: a sampler object reads the same cascade texture as raw depth (no comparison) for the PCSS blocker search.
+    glGenSamplers(1, &moonDepthSampler_);
+    glSamplerParameteri(moonDepthSampler_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glSamplerParameteri(moonDepthSampler_, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glSamplerParameteri(moonDepthSampler_, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(moonDepthSampler_, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(moonDepthSampler_, GL_TEXTURE_COMPARE_MODE, GL_NONE);
     GLint samples = 4;
     glGetIntegerv(GL_MAX_SAMPLES, &samples);
     maxSamples_ = samples;
@@ -247,6 +258,7 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uSkyZenith", A.skyZenith);
     sh.set("uGroundBounce", A.groundBounce);
     sh.set("uSkyHorizon", A.skyHorizon);
+    setSkyUniforms(sh);
     sh.set("uFogColor", A.fogColor);
     sh.set("uEmissiveScale", hdr ? 8.0f : 1.0f);
     sh.set("uWorldRadius", layout::kBaseRadius);
@@ -407,10 +419,27 @@ void groupByMesh(std::vector<const SceneNode*>& nodes) {
 
 }  // namespace
 
+void Renderer::setSkyUniforms(Shader& sh) const {
+    const SkyModel& m = skyModel_;
+    const char* perez[5] = {"uSkyPerez[0]", "uSkyPerez[1]", "uSkyPerez[2]", "uSkyPerez[3]", "uSkyPerez[4]"};
+    for (int i = 0; i < 5; ++i) sh.set(perez[i], m.perez[i]);
+    sh.set("uSkyZenithN", m.zenith);
+    sh.set("uSkySun", m.toSun);
+    sh.set("uSkyScale", m.scale);
+    float sh9[27];
+    for (int i = 0; i < 9; ++i) {
+        sh9[3 * i] = atmo_.skySH[i].x;
+        sh9[3 * i + 1] = atmo_.skySH[i].y;
+        sh9[3 * i + 2] = atmo_.skySH[i].z;
+    }
+    sh.setVec3Array("uSkySH", sh9, 9);
+}
+
 void Renderer::drawSky(const CameraView& cam, int w, int h, const RenderSettings& s, float time) {
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     sky_->use();
+    setSkyUniforms(*sky_);
     sky_->set("uInvViewProj", inverse(cam.proj * cam.view));
     sky_->set("uCamPos", cam.position);
     sky_->set("uViewMode", static_cast<int>(s.view));
@@ -603,6 +632,7 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
     surfaceWrites(false);
     moonDir_ = scene.lights.moon.direction;
     atmo_ = scene.lights.atmo;
+    skyModel_ = preethamSky(atmo_.sunDir * -1.0f);   // v9 M8: the frame's analytic sky (the model DayCycle's ambient uses)
     walk_ = sceneaccess::walkSpace(scene);
     uploadHeatTrail(scene);
     if (!groundBuilt_) {  // needs the world matrices, so it is built on the first frame

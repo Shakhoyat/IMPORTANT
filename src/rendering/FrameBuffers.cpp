@@ -76,7 +76,7 @@ void FrameBuffers::release() {
     if (prepassNormal) glDeleteTextures(1, &prepassNormal);
     sceneFbo = sceneColorRb = sceneSurfaceRb = sceneDepthRb = depthFbo = depthTex = 0;
     prepassFbo = prepassDepth = prepassNormal = 0;
-    for (ColorTarget* t : {&resolved, &surface, &ao[0], &ao[1], &fog, &lit, &history[0], &history[1], &dof,
+    for (ColorTarget* t : {&resolved, &surface, &ao[0], &ao[1], &contact, &fog, &lit, &history[0], &history[1], &dof,
                            &dofCombined, &flare, &streak, &adapt[0], &adapt[1]})
         t->release();
     for (ColorTarget& b : bloom) b.release();
@@ -149,6 +149,7 @@ bool FrameBuffers::ensure(int width, int height, int samples, int fogDivisor, in
 
     ok = ao[0].create(halfW, halfH, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_LINEAR) && ok;
     ok = ao[1].create(halfW, halfH, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_LINEAR) && ok;
+    ok = contact.create(halfW, halfH, GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_LINEAR) && ok;
     ok = fog.create(std::max(1, width / fogDivisor), std::max(1, height / fogDivisor), GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
     ok = lit.create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;
     ok = history[0].create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_LINEAR) && ok;

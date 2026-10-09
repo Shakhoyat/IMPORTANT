@@ -1,5 +1,8 @@
-// The v2 frame: shadow maps, depth/normal pre-pass, SSAO, volumetric fog, HDR scene, bloom and composite.
+// The v2 frame: shadow maps, depth/normal pre-pass, SSAO / GTAO, contact shadows, volumetric fog, HDR scene, bloom and
+// composite.
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 
 #include "objects/BaseLayout.h"
 #include "objects/Terrain.h"
@@ -16,6 +19,20 @@ constexpr float kFogMaxDistance = 70.0f;
 // exposure, so the designed look is kept and only darker / brighter views are corrected (+-1 EV).
 // v6: the key of each frame comes from the scene's Atmosphere (DayCycle); this is the night value.
 constexpr float kExposureKeyLog2 = -5.2f;
+// v9 M8 aerial perspective (clear day): extinction 1/m at height 0 and the scale height of air + regional haze. 200 m of
+// horizontal view keep ~75 % of the surface radiance, the far hills turn towards the sky colour.
+constexpr float kAerialDensity = 0.0009f, kAerialHeight = 150.0f, kAerialMie = 0.25f;
+// Contact shadows: march length (m) and strength.
+constexpr float kContactLength = 0.6f, kContactStrength = 0.85f;
+
+// v9 M8 ablation switch for the before / after figures, the exe and the benchmarks: TS_LIGHTING_OFF is a comma list of
+// pcss, contact, gtao, aerial (e.g. TS_LIGHTING_OFF=contact,pcss shows the v8 shadows with the same build).
+bool lightingOff(const char* feature) {
+    const char* env = std::getenv("TS_LIGHTING_OFF");
+    if (!env) return false;
+    const std::string list = std::string(",") + env + ",";
+    return list.find(std::string(",") + feature + ",") != std::string::npos;
+}
 
 }  // namespace
 
@@ -63,6 +80,13 @@ QualityProfile qualityProfile(Quality q) {
         p.motionBlur = true;
         p.foliageDensity = 1.0f;
         p.fireflies = 700;
+        p.pcss = true;             // v9 M8
+        p.blockerTaps = 16;
+        p.contactShadows = true;
+        p.contactSteps = 16;
+        p.gtao = true;
+        p.gtaoSlices = 3;
+        p.gtaoSteps = 8;
     } else if (q == Quality::Ultra) {
         p.msaa = 8;
         p.moonShadowRes = 4096;
@@ -80,6 +104,15 @@ QualityProfile qualityProfile(Quality q) {
         p.motionBlur = true;
         p.foliageDensity = 0.7f;
         p.fireflies = 400;
+        p.pcss = true;             // v9 M8 (SSAO stays: GTAO is EPIC only)
+        p.blockerTaps = 16;
+        p.contactShadows = true;
+        p.contactSteps = 12;
+    } else {                       // HIGH
+        p.pcss = true;
+        p.blockerTaps = 8;
+        p.contactShadows = true;
+        p.contactSteps = 10;
     }
     return p;
 }
@@ -245,21 +278,34 @@ void Renderer::renderPrepass(const Scene& scene, const CameraView& cam, const Re
 }
 
 void Renderer::renderSsao(const CameraView& cam, const QualityProfile& q) {
-    timer_.begin("ssao");
+    timer_.begin(frame_.gtao ? "gtao" : "ssao");
     glDisable(GL_DEPTH_TEST);
     glBindVertexArray(emptyVao_);
     fb_.ao[0].bind();
-    ssao_->use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, fb_.prepassDepth);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, fb_.prepassNormal);
-    ssao_->set("uDepth", 0);
-    ssao_->set("uNormal", 1);
-    ssao_->set("uProj", cam.proj);
-    ssao_->set("uInvProj", inverse(cam.proj));
-    ssao_->set("uRadius", 0.45f);
-    ssao_->set("uSamples", q.ssaoSamples);
+    if (frame_.gtao) {   // v9 M8: horizon-based ground-truth AO (EPIC), rotated per frame for the TAA to accumulate
+        gtao_->use();
+        gtao_->set("uDepth", 0);
+        gtao_->set("uNormal", 1);
+        gtao_->set("uProj", cam.proj);
+        gtao_->set("uInvProj", inverse(cam.proj));
+        gtao_->set("uRadius", 0.8f);
+        gtao_->set("uSlices", q.gtaoSlices);
+        gtao_->set("uSteps", q.gtaoSteps);
+        gtao_->set("uFrame", frame_.taa ? static_cast<float>(frameIndex_ % 64) : 0.0f);
+        gtao_->set("uPower", 1.4f);
+    } else {
+        ssao_->use();
+        ssao_->set("uDepth", 0);
+        ssao_->set("uNormal", 1);
+        ssao_->set("uProj", cam.proj);
+        ssao_->set("uInvProj", inverse(cam.proj));
+        ssao_->set("uRadius", 0.45f);
+        ssao_->set("uSamples", q.ssaoSamples);
+    }
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     fb_.ao[1].bind();
@@ -273,6 +319,31 @@ void Renderer::renderSsao(const CameraView& cam, const QualityProfile& q) {
     blur_->set("uNearFar", cam.nearZ, cam.farZ);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glActiveTexture(GL_TEXTURE0);
+    timer_.end();
+}
+
+// v9 M8: screen-space contact shadows of the sun (kContactFrag) into fb_.contact, read by moonShadow() in the scene.
+void Renderer::renderContactShadows(const Scene& scene, const CameraView& cam, const QualityProfile& q) {
+    timer_.begin("contact shadows");
+    glDisable(GL_DEPTH_TEST);
+    glBindVertexArray(emptyVao_);
+    fb_.contact.bind();
+    contact_->use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, fb_.prepassDepth);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, fb_.prepassNormal);
+    glActiveTexture(GL_TEXTURE0);
+    contact_->set("uDepth", 0);
+    contact_->set("uNormal", 1);
+    contact_->set("uProj", cam.proj);
+    contact_->set("uInvProj", inverse(cam.proj));
+    contact_->set("uLightView", normalize(transformDirection(cam.view, scene.lights.moon.direction * -1.0f)));
+    contact_->set("uLength", kContactLength);
+    contact_->set("uSteps", q.contactSteps);
+    contact_->set("uFrame", frame_.taa ? static_cast<float>(frameIndex_ % 64) : 0.0f);
+    contact_->set("uStrength", kContactStrength * clampf(scene.lights.atmo.day * 1.5f, 0.0f, 1.0f));
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     timer_.end();
 }
 
@@ -425,6 +496,11 @@ void Renderer::bindLightingTextures() {
     glBindTexture(GL_TEXTURE_2D, ground_.texture() ? ground_.texture() : whiteTex_);
     glActiveTexture(GL_TEXTURE0 + kUnitTrail);
     glBindTexture(GL_TEXTURE_2D, trailTex_ ? trailTex_ : whiteTex_);
+    glActiveTexture(GL_TEXTURE0 + kUnitMoonDepth);   // v9 M8: the cascades as raw depth (sampler object, no compare)
+    glBindTexture(GL_TEXTURE_2D_ARRAY, shadows_.moonTex);
+    glBindSampler(kUnitMoonDepth, moonDepthSampler_);
+    glActiveTexture(GL_TEXTURE0 + kUnitContact);
+    glBindTexture(GL_TEXTURE_2D, frame_.contact && fb_.contact.tex ? fb_.contact.tex : whiteTex_);
     glActiveTexture(GL_TEXTURE0);
 }
 
@@ -439,6 +515,14 @@ void Renderer::setShadowUniforms(Shader& sh, const RenderSettings& s) {
     sh.set("uCascadeSplit", frame_.split);
     sh.set("uSpotVP", frame_.spot.viewProj);
     sh.set("uPcfTaps", frame_.pcfTaps);
+    // v9 M8: PCSS on the sun's cascades (frame_.pcss is off at night: the moon keeps the v8 fixed-radius PCF)
+    sh.set("uPcss", hdr && frame_.pcss ? 1 : 0);
+    sh.set("uBlockerTaps", frame_.blockerTaps);
+    sh.set("uMoonDepthRange", frame_.moon[0].depthRange, frame_.moon[1].depthRange);
+    sh.set("uLightTan", 2.0f * std::tan(0.5f * radians(kSunSourceDeg)));
+    sh.set("uPcssSearch", pcssSearchRadius(kSunSourceDeg, kPcssMaxBlockerDistance));
+    sh.set("uFrameNoise", frame_.taa ? 0.618034f * static_cast<float>(frameIndex_ % 16) : 0.0f);
+    sh.set("uContactOn", hdr && frame_.contact ? 1 : 0);
 }
 
 void Renderer::drawGrass(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
@@ -596,9 +680,13 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     if (!s.ssaoOn) q.ssao = false;
     if (!s.fogOn) q.volumetric = false;
     if (!s.msaaOn) q.msaa = 0;
+    if (lightingOff("pcss")) q.pcss = false;              // v9 M8 ablation (TS_LIGHTING_OFF)
+    if (lightingOff("contact")) q.contactShadows = false;
+    if (lightingOff("gtao")) q.gtao = false;
     fb_.ensure(w, h, std::min(q.msaa, maxSamples_), q.fogDivisor, q.prepassDivisor);
     const bool visible = s.view == ViewMode::Visible;
     frame_.settings = s;
+    if (lightingOff("aerial")) frame_.settings.aerialOn = false;
     frame_.pcfTaps = q.pcfTaps;
     frame_.time = scene.time();
     atmo_ = scene.lights.atmo;
@@ -615,6 +703,13 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     frame_.dof = frame_.hdr && q.dof && s.dof > 0.0f;
     frame_.shadowMode = 0;
     frame_.ao = frame_.fog = false;
+    // v9 M8: PCSS and GTAO are daylight features; the moonlit night keeps the v8 fixed PCF and SSAO (night parity:
+    // the night was graded with them; SSIM against v8 / M1 in docs/v9_notes/m8/night_ssim.txt).
+    const bool sunKey = scene.lights.atmo.keyIsSun && scene.lights.atmo.day > 0.0f;
+    frame_.pcss = q.pcss && s.pcssOn && sunKey;
+    frame_.blockerTaps = q.blockerTaps;
+    frame_.gtao = q.gtao && s.gtaoOn && sunKey;
+    frame_.contact = false;
     rtBegin(scene, camIn, w, h, s);   // v7 WP-H: ray-traced modes (no-op in raster mode)
 
     // Camera cut (director cut, camera mode switch, teleport): the history no longer matches the view.
@@ -657,10 +752,17 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
             frame_.shadowMode = (q.spotShadowRes > 0 && s.spotOn && scene.lights.spot.enabled && s.spotShadowOn) ? 2 : 1;
             renderShadowMaps(scene, st);
         }
-        if (q.ssao || q.volumetric) renderPrepass(scene, cam, s, st);
+        // v9 M8: contact shadows of the sun need the pre-pass depth too (off at night: the moon keeps the v8 look)
+        const bool contact = q.contactShadows && s.contactShadowsOn && s.shadowsOn && scene.lights.atmo.keyIsSun &&
+                             scene.lights.atmo.day > 0.0f;
+        if (q.ssao || q.volumetric || contact) renderPrepass(scene, cam, s, st);
         if (q.ssao) {
             renderSsao(cam, q);
             frame_.ao = true;
+        }
+        if (contact) {
+            renderContactShadows(scene, cam, q);
+            frame_.contact = true;
         }
         if (q.volumetric) {
             renderFog(scene, cam, s, q);
@@ -735,6 +837,14 @@ GLuint Renderer::renderCombine() {
     combine_->set("uCamPos", frame_.cam.position);
     combine_->set("uNearFar", frame_.cam.nearZ, frame_.cam.farZ);
     combine_->set("uTime", frame_.time);
+    // v9 M8 aerial perspective: by day only (the night keeps its own fog look exactly)
+    setSkyUniforms(*combine_);
+    const bool aerial = frame_.hdr && frame_.settings.aerialOn;
+    combine_->set("uAerialDensity", aerial ? kAerialDensity * atmo_.day * (1.0f + 1.5f * frame_.settings.rain) : 0.0f);
+    combine_->set("uAerialHeight", kAerialHeight);
+    combine_->set("uAerialMie", kAerialMie);
+    combine_->set("uSunColor", atmo_.sunColor);
+    combine_->set("uHazeRef", atmo_.fogColor);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     timer_.end();
     return fb_.lit.tex;
@@ -895,8 +1005,23 @@ void Renderer::endFrame(GLuint targetFbo, int w, int h, float time) {
     composite_->set("uDepth", 5);
     composite_->set("uMode", frame_.hdr ? 0 : (frame_.thermalPost ? 1 : 2));
     composite_->set("uPalette", s.palette);
-    composite_->set("uBloomStrength", bloom && !fb_.bloom.empty() ? s.bloom * 0.12f : 0.0f);
-    composite_->set("uFlareStrength", frame_.flare ? 0.05f : 0.0f);
+    // v9 M8 bloom / flare by day: AgX rolls the highlights off itself, so a lighter veil (the night keeps the v8 values)
+    composite_->set("uBloomStrength", bloom && !fb_.bloom.empty() ? s.bloom * 0.12f * lerpf(1.0f, 0.6f, atmo_.day) : 0.0f);
+    composite_->set("uFlareStrength", frame_.flare ? 0.05f * lerpf(1.0f, 0.4f, atmo_.day) : 0.0f);
+    // v9 M8 display transform: AgX by default, ACES as the option (RenderSettings::toneMap, or env TS_TONEMAP=aces|agx)
+    tonemap::Operator op = s.toneMap;
+    if (const char* env = std::getenv("TS_TONEMAP")) {
+        if (std::strcmp(env, "aces") == 0) op = tonemap::Operator::Aces;
+        else if (std::strcmp(env, "agx") == 0) op = tonemap::Operator::AgX;
+    }
+    composite_->set("uToneMap", op == tonemap::Operator::Aces ? 1 : 0);
+    // AgX by day, the v8 ACES curve at night (the night grade was authored for its toe), cross-faded through twilight.
+    const float agxW = op == tonemap::Operator::AgX ? tonemap::agxDayWeight(atmo_.day) : 0.0f;
+    composite_->set("uDayContrast", tonemap::dayContrast(agxW));
+    composite_->set("uDaySaturation", tonemap::daySaturation(agxW));
+    composite_->set("uAgxWeight", agxW);
+    composite_->set("uAgxExposure", tonemap::kAgxExposure);
+    composite_->set("uAcesExposure", tonemap::kAcesExposure);
     composite_->set("uExposure", s.exposure * 1.5f);
     composite_->set("uAutoExposure", s.autoExposureOn && adaptValid_ ? 1 : 0);
     composite_->set("uKeyLog2", atmo_.exposureKeyLog2);

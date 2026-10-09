@@ -49,6 +49,7 @@ LightMatrix fitDirectionalShadow(const Vec3& lightDir, const Sphere& bounds, int
     m.proj = ortho(-r, r, -r, r, 0.0f, back + r);
     m.viewProj = m.proj * m.view;
     m.texelWorld = texel;
+    m.depthRange = back + r;   // ortho depth 0..1 spans the near..far planes linearly
     return m;
 }
 
@@ -59,6 +60,31 @@ LightMatrix spotShadowMatrix(const Vec3& position, const Vec3& direction, float 
     m.proj = perspective(radians(2.0f * outerConeDeg + 4.0f), 1.0f, zNear, zFar);
     m.viewProj = m.proj * m.view;
     return m;
+}
+
+float pcssPenumbraWidth(float dReceiver, float dBlocker, float lightSize) {
+    if (dBlocker <= 1e-6f || dReceiver <= dBlocker) return 0.0f;
+    return (dReceiver - dBlocker) * lightSize / dBlocker;
+}
+
+float pcssPenumbraDirectional(float receiverDepth, float blockerDepth, float angularDiameterDeg) {
+    const float gap = std::max(receiverDepth - blockerDepth, 0.0f);
+    return gap * 2.0f * std::tan(0.5f * radians(angularDiameterDeg));
+}
+
+float pcssSearchRadius(float angularDiameterDeg, float maxBlockerDistance) {
+    return 0.5f * pcssPenumbraDirectional(maxBlockerDistance, 0.0f, angularDiameterDeg);
+}
+
+float pcssKernelTexels(float penumbraWorld, float texelWorld, float minTexels, float maxTexels) {
+    if (texelWorld <= 0.0f) return minTexels;
+    return clampf(0.5f * penumbraWorld / texelWorld, minTexels, maxTexels);
+}
+
+float cascadeBlendWeight(float viewDistance, float split, float bandFraction) {
+    const float lo = split * (1.0f - clampf(bandFraction, 1e-4f, 1.0f));
+    const float t = clampf((viewDistance - lo) / (split - lo), 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
 }
 
 }  // namespace ts

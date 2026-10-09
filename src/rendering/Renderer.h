@@ -7,6 +7,8 @@
 
 #include "math/Frustum.h"
 #include "math/ShadowMath.h"
+#include "math/SkyModel.h"
+#include "math/ToneMap.h"
 // Foliage / particles are being written in parallel; the renderer compiles without them until they exist.
 #if __has_include("rendering/Foliage.h")
 #include "rendering/Foliage.h"
@@ -68,6 +70,13 @@ struct QualityProfile {
     bool motionBlur = false;     // camera motion blur (cinematic / video)
     float foliageDensity = 0.5f; // foliage cards on trees and bushes (fraction of the EPIC count)
     int fireflies = 200;         // instanced fireflies and drifting motes
+    // v9 M8 lighting depth
+    bool pcss = false;           // contact-hardening soft shadows (blocker search + variable PCF kernel)
+    int blockerTaps = 8;         // PCSS blocker-search samples
+    bool contactShadows = false; // screen-space contact shadows of the sun (needs the pre-pass)
+    int contactSteps = 12;
+    bool gtao = false;           // ground-truth AO instead of SSAO
+    int gtaoSlices = 3, gtaoSteps = 6;
 };
 QualityProfile qualityProfile(Quality q);
 const char* qualityName(Quality q);
@@ -119,6 +128,10 @@ struct RenderSettings {
     bool rtDenoise = true;        // a-trous denoiser (path / light tracing)
     int rtLightPathsK = 256;      // light paths per frame, thousands (light tracing)
     bool rtOverlay = true;        // status line of the ray-traced modes + the ray debugger's tree
+    // v9 M8: display transform (AgX default; ACES = the v3-v8 curve; env TS_TONEMAP=aces overrides) and the switches
+    // of the new lighting features (benchmark ablation, before / after figures).
+    tonemap::Operator toneMap = tonemap::Operator::AgX;
+    bool pcssOn = true, contactShadowsOn = true, gtaoOn = true, aerialOn = true;
 };
 
 // Internal render targets that the lab figures read back (Renderer::labReadBuffer, after endFrame).
@@ -255,6 +268,8 @@ private:
         bool ao = false, fog = false, hdr = false, thermalPost = false;
         bool taa = false, ssr = false, flare = false, dof = false;
         int ssrSteps = 48;
+        bool pcss = false, contact = false, gtao = false;   // v9 M8
+        int blockerTaps = 8;
         Mat4 viewProj, viewProjJ;   // unjittered / jittered (what the depth buffer holds)
         float dt = 1.0f / 60.0f;    // seconds since the previous frame (temporal adaptation)
         float jitterUV[2] = {0.0f, 0.0f};  // screen offset of the current TAA jitter (UV units)
@@ -269,6 +284,9 @@ private:
     void renderShadowMaps(const Scene& scene, FrameStats& st);
     void renderPrepass(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st);
     void renderSsao(const CameraView& cam, const QualityProfile& q);
+    void renderContactShadows(const Scene& scene, const CameraView& cam, const QualityProfile& q);   // v9 M8
+    void setSkyUniforms(Shader& sh) const;   // v9 M8: analytic sky (Preetham) + SH ambient of the frame
+    SkyModel skyModel_;
     void renderFog(const Scene& scene, const CameraView& cam, const RenderSettings& s, const QualityProfile& q);
     void renderBloom(GLuint source);
     // v3 post chain (RendererFrame.cpp)
@@ -303,6 +321,8 @@ private:
     std::unique_ptr<Shader> flat_, gouraud_, phong_, beam_, line_, sky_;
     std::unique_ptr<Shader> depth_, prepass_, ssao_, blur_, fog_, bloomDown_, bloomUp_, composite_;
     std::unique_ptr<Shader> combine_, taa_, reduce_, adapt_, flare_, streak_, dof_, dofCombine_;
+    std::unique_ptr<Shader> gtao_, contact_;   // v9 M8
+    GLuint moonDepthSampler_ = 0;              // v9 M8: no-compare sampler for the PCSS blocker search
     std::unique_ptr<Shader> flatI_, gouraudI_, phongI_, depthI_, prepassI_;   // v7 WP-Q instanced variants
     InstanceStream instances_;
     std::vector<float> instanceScratch_;
@@ -338,6 +358,7 @@ private:
     Vec3 moonDir_{0, -1, 0};
     static constexpr int kUnitMoonShadow = 5, kUnitSpotShadow = 6, kUnitAO = 7, kUnitGround = 8, kUnitTrail = 9;
     static constexpr int kUnitInstances = 11;   // v7 WP-Q (unit 10 = soft-particle depth of the effects)
+    static constexpr int kUnitMoonDepth = 12, kUnitContact = 13;   // v9 M8 (Shader::build assigns them by name)
     GLuint trailTex_ = 0;
     uint32_t trailVersion_ = 0xFFFFFFFFu;
     void uploadHeatTrail(const Scene& scene);

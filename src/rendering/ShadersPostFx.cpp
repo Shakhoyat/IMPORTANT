@@ -32,7 +32,35 @@ uniform int uSsrSteps;
 uniform mat4 uViewProj, uInvViewProj;   // jittered (matches the depth buffer)
 uniform vec3 uCamPos;
 uniform float uTime;
+// v9 M8 aerial perspective: air + regional haze between the camera and every surface (0 at night: uAerialDensity)
+uniform float uAerialDensity;  // extinction at height 0, 1/m
+uniform float uAerialHeight;   // scale height H of the exponential density, m
+uniform float uAerialMie;      // strength of the forward (Mie) glow around the sun
+uniform vec3 uSunColor;        // sun radiance (DayCycle Atmosphere::sunColor)
+uniform vec3 uHazeRef;         // mean horizon radiance of the sky model (Atmosphere::fogColor by day)
 layout(location = 0) out vec4 Color;
+
+// Optical depth of sigma(h) = s0 exp(-h / H) along the segment camera -> P is closed-form:
+//     tau = s0 exp(-h_cam / H) |P - cam| (1 - exp(-k)) / k,   k = (h_P - h_cam) / H
+// transmittance T = exp(-tau); the in-scattered light is the sky model's radiance towards the horizon in that direction
+// (the light the same air scatters into the sky) plus a Henyey-Greenstein forward lobe around the sun:
+//     L = L_surface T + (L_sky + sun HG(cos, 0.76) k_mie) (1 - T)
+vec3 aerialPerspective(vec3 c, vec3 P) {
+    vec3 ray = P - uCamPos;
+    float dist = length(ray);
+    if (uAerialDensity <= 0.0 || dist < 1e-3) return c;
+    vec3 dir = ray / dist;
+    float k = ray.y / uAerialHeight;
+    float tau = uAerialDensity * exp(-max(uCamPos.y, 0.0) / uAerialHeight) * dist * (abs(k) > 1e-3 ? (1.0 - exp(-k)) / k : 1.0);
+    float T = exp(-tau);
+    vec3 sky = skyModelRadiance(vec3(dir.x, max(dir.y, 0.04), dir.z));
+    // The Perez fit over-brightens the horizon right below a low sun: cap the in-scatter at 1.6x the mean horizon.
+    const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+    sky *= min(1.0, 1.6 * dot(uHazeRef, lw) / max(dot(sky, lw), 1e-4));
+    float cs = dot(dir, uSkySun), g = 0.76;
+    float hg = (1.0 - g * g) / (12.566371 * pow(1.0 + g * g - 2.0 * g * cs, 1.5));
+    return c * T + (sky + uSunColor * hg * uAerialMie) * (1.0 - T);
+}
 
 vec3 worldAt(vec2 uv, float d) {
     vec4 p = uInvViewProj * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
@@ -94,6 +122,8 @@ void main() {
         vec4 f = texture(uFog, vUV);
         c = c * f.a + f.rgb;
     }
+    float dc = texture(uDepth, vUV).r;
+    if (dc < 1.0) c = aerialPerspective(c, worldAt(vUV, dc));   // the sky already contains its own air
     Color = vec4(c, 1.0);
 }
 )";
@@ -373,6 +403,9 @@ uniform float uKeyLog2;       // log2 luminance the auto-exposure maps to the ba
 uniform float uEvRange;       // +- stops the auto-exposure may move
 uniform float uPurkinje;      // v6: scotopic shift weight (1 night, 0 day)
 uniform float uDayGrade;      // v6: weight of the neutral daylight grade
+uniform float uDayContrast;   // v9 M8: log-space day contrast around mid grey (1.10 with ACES; more with AgX, whose
+                              // base-contrast sigmoid is ~2/3 as steep at mid grey)
+uniform float uDaySaturation; // extra day saturation (0.10 ACES)
 uniform float uTime;
 uniform float uGrain;
 uniform float uVignette;
@@ -381,6 +414,9 @@ uniform float uLetterbox;     // fraction of the height covered by each black ba
 uniform float uMotionBlur;    // shutter fraction (0 = off)
 uniform mat4 uReproject;      // previous view-projection * inverse(current view-projection)
 // Thermal sensor
+uniform int uToneMap;         // v9 M8: 0 AgX (default), 1 ACES (RenderSettings::toneMap, TS_TONEMAP=aces)
+uniform float uAgxWeight;     // weight of AgX against the ACES curve (see Renderer::endFrame)
+uniform float uAgxExposure, uAcesExposure;
 uniform float uShutter;       // NUC shutter closed (0..1)
 uniform float uSensorNoise;
 layout(location = 0) out vec4 FragColor;
@@ -492,11 +528,14 @@ void main() {
     if (uDayGrade > 0.0) {
         vec3 lc = log2(max(c, vec3(1e-6)));
         const float mid = -2.4739;   // log2(0.18)
-        c = mix(c, exp2(mid + (lc - mid) * 1.10), uDayGrade);
+        c = mix(c, exp2(mid + (lc - mid) * uDayContrast), uDayGrade);
     }
     float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    c = max(mix(vec3(lum), c, 1.12 + 0.10 * uDayGrade), vec3(0.0));
-    c = acesFitted(c * 1.6);
+    c = max(mix(vec3(lum), c, 1.12 + uDaySaturation * uDayGrade), vec3(0.0));
+    // Display transform: AgX (log encoding + sigmoid; saturated highlights desaturate towards white instead of clipping
+    // one channel) or the v3-v8 ACES fit.
+    vec3 aces = acesFitted(c * uAcesExposure);
+    c = uToneMap == 1 || uAgxWeight <= 0.0 ? aces : mix(aces, agxDisplay(c * uAgxExposure), uAgxWeight);
     c = linearToSrgb(c);
     c *= 1.0 - uVignette * dot(q, q) * 1.5;
     c += grain * uGrain * (1.0 - 0.6 * c);                  // film grain, stronger in the shadows

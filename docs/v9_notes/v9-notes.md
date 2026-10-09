@@ -191,3 +191,34 @@ parallel builds.
   60 s night session (variable frame times with hitches, 217 random key events on a possessed unit) written to text,
   parsed and re-run: 60 / 60 checkpoints bit-identical; one tampered key mid-session diverges only after its tick.
   339 tests, 0 failed.
+
+## M8: lighting depth: PCSS, contact shadows, GTAO, analytic sky, aerial perspective, AgX (done)
+- Shadows (`kLighting`, `math/ShadowMath`): PCSS on the sun cascades (HIGH+): a blocker search over a Poisson disc,
+  then the penumbra `w = (dR - dB) * wL / dB` (sun at infinity: `gap * 2 tan(0.8 deg)` = 2.8 cm per metre of gap), a
+  Poisson PCF kernel of radius `w / 2` (1.6 texels at contact, clamped to 40). Stored depth x `depthRange` = metres
+  (T389). Near / world cascades cross-fade over the last 20 % of the split with a smoothstep (T381). The moon keeps
+  the v8 filter.
+- Contact shadows (`ShadersLightingDepth.cpp`): a 0.6 m screen-space march (16 steps at EPIC) towards the sun through the
+  pre-pass depth, by day. Soldiers' feet, vehicle wheels and props now sit on the ground (`feet_contact_off_on.jpg`,
+  `mechanic_off_on.jpg`, `feet_m1_m8.jpg`).
+- GTAO replaces SSAO at EPIC by day (Jimenez 2016 horizon search, 3 slices x 8 steps at EPIC, per-frame rotated, bilateral blur + TAA accumulation). Nights
+  and LOW / HIGH / ULTRA keep SSAO.
+- Sky (`math/SkyModel`): a Preetham sky with a limb-darkened sun disc and lit procedural cumulus, driven by
+  `DayCycle::sunDirection` (T385, T386). The day ambient is the order-2 SH projection of the same sky plus the sunlit
+  ground (T387, T388: noon zenith ambient L 0.44, v8 0.49), so ambient matches the sky that is drawn. Aerial
+  perspective in-scatters the sky plus a Henyey-Greenstein sun lobe by distance and height.
+- Tone mapping (`math/ToneMap`): AgX (Sobotka, base contrast look) is the default by day; the night keeps the v8 ACES
+  curve (its grade was authored for that toe), with a twilight cross-fade by the day weight (T382-T384; T383: AgX
+  clips 0 / 8 saturated samples, ACES 1 / 8; hue drift 13 vs 28 deg). `TS_TONEMAP=aces|agx`,
+  `RenderSettings::toneMap`. Ablation: `TS_LIGHTING_OFF=pcss,contact,gtao,aerial`.
+- Night parity: SSIM against the M1 renders (96782ee, same `--only` lists): 1.000000 on all 7 night shots
+  (walk_forest, cine_chase, base_overview, night_searchlights, cine_establishing, base_gate, helipad), re-measured
+  after the final build. Against v8 (138163d) the values are those M1 already had (walk_forest 0.968, searchlights
+  0.946, others >= 0.987): the night differences are from M1 (grass strips / fixed tick), not M8
+  (`m8/night_ssim.txt`, `v8_vs_m1_*.jpg`).
+- GPU (GpuTimer, `--bench-shots` 1080p EPIC, 2 rounds, shared GPU so +-1 ms noise; `m8/gpu_passes_summary.txt`):
+  GTAO 0.53-1.71 ms (WSL) / 0.59-1.45 ms (exe) vs SSAO 0.39-0.59; contact shadows 0.10-0.17 ms; PCSS is inside the
+  scene pass: +1.0-1.9 ms by day (WSL); composite +0.013 ms. Night passes unchanged. Exe day frames 9.1-11.7 ms.
+- Exe run (native NVIDIA, 10:30, input script): `m8/exe_m8_*.jpg`. Workbook: `tools/wb_v9_m8.py`, sheet
+  "37 v9 Lighting & Shadows". Tests T380-T389.
+- Open: the v8 night-forest / searchlights deltas from M1 (above) belong to M6's grass night-parity check.

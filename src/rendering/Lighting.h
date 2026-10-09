@@ -48,6 +48,9 @@ struct Atmosphere {
     // v6 additions (defaults again = the v5 night)
     bool keyIsSun = false;              // the key light (moon slot) is the sun: cloud shadows, solar loading
     float twilight = 0.0f;              // warm horizon glow around sunrise / sunset 0..1
+    // v9 M8: the day ambient from the analytic sky (math/SkyModel.h): order-2 SH of irradiance / pi from the Preetham
+    // sky + the sunlit ground below the horizon (all zero at night, where the v5 hemisphere is used).
+    Vec3 skySH[9];
 };
 
 struct LightRig {
