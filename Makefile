@@ -6,7 +6,9 @@
 #   Windows exe cross-built on Linux:      tools/build_windows.sh    -> ThermalSense.exe (zig c++, static)
 CXX      ?= g++
 CC       ?= gcc
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -Isrc -Iinclude -MMD -MP
+CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -Isrc -Iinclude -Ithird_party -MMD -MP
+# v9 M6: vendored third-party C++ (meshoptimizer, MIT) is compiled with its own warning level.
+THIRD_CXXFLAGS = -std=c++17 -O2 -w -MMD -MP
 CFLAGS   = -O2 -Iinclude
 
 ifeq ($(OS),Windows_NT)
@@ -40,8 +42,11 @@ EXPORTER = build/export_docs$(EXE)
 
 APP_SRC  = $(wildcard src/*.cpp src/*/*.cpp)
 CORE_SRC = $(filter-out src/main.cpp src/app/% src/rendering/%,$(APP_SRC))
-APP_OBJ  = $(patsubst src/%.cpp,$(OBJ)/%.o,$(APP_SRC)) $(OBJ)/glad.o
-TEST_OBJ = $(patsubst src/%.cpp,$(OBJ)/%.o,$(CORE_SRC)) $(patsubst tests/%.cpp,$(OBJ)/tests/%.o,$(wildcard tests/*.cpp))
+THIRD_SRC = $(wildcard third_party/meshoptimizer/*.cpp)
+THIRD_OBJ = $(patsubst third_party/%.cpp,$(OBJ)/third_party/%.o,$(THIRD_SRC))
+APP_OBJ  = $(patsubst src/%.cpp,$(OBJ)/%.o,$(APP_SRC)) $(OBJ)/glad.o $(THIRD_OBJ)
+TEST_OBJ = $(patsubst src/%.cpp,$(OBJ)/%.o,$(CORE_SRC)) $(patsubst tests/%.cpp,$(OBJ)/tests/%.o,$(wildcard tests/*.cpp)) $(THIRD_OBJ)
+BAKER    = build/bake_assets$(EXE)
 
 all: $(APP) $(TESTS)
 
@@ -54,6 +59,10 @@ $(TESTS): $(TEST_OBJ)
 $(OBJ)/%.o: src/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ)/third_party/%.o: third_party/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(THIRD_CXXFLAGS) -c $< -o $@
 
 $(OBJ)/tests/%.o: tests/%.cpp
 	@mkdir -p $(dir $@)
@@ -71,7 +80,18 @@ EXPORT_SRC = $(CORE_SRC) src/app/DocExport.cpp tools/export_docs_main.cpp
 
 $(EXPORTER): $(EXPORT_SRC) $(wildcard src/*/*.h)
 	@mkdir -p build
-	$(CXX) -std=c++17 -O1 -Isrc -Iinclude $(EXPORT_SRC) $(TEST_LDFLAGS) -o $@
+	$(CXX) -std=c++17 -O1 -Isrc -Iinclude -Ithird_party $(EXPORT_SRC) $(THIRD_SRC) $(TEST_LDFLAGS) -o $@
+
+# v9 M6: offline asset baker. Reads the full-resolution CC0 originals (python3 tools/fetch_assets.py -> build/asset_cache)
+# and writes the game-ready, reduced glTF files and textures under assets/ (committed; see assets/LICENSES.md).
+BAKE_SRC = tools/bake_assets.cpp src/assets/Model.cpp src/assets/Image.cpp src/assets/FoliageLod.cpp $(THIRD_SRC)
+
+$(BAKER): $(BAKE_SRC) $(wildcard src/assets/*.h)
+	@mkdir -p build
+	$(CXX) -std=c++17 -O2 -Isrc -Iinclude -Ithird_party $(BAKE_SRC) -o $@
+
+bake-assets: $(BAKER)
+	./$(BAKER) build/asset_cache assets
 
 # Regenerates the workbook. tests / benchmark.json / trace.csv are used as they are on disk
 # (run `make test`, `ThermalSense --benchmark` / `--trace` to refresh them).
@@ -87,4 +107,4 @@ clean:
 	rm -rf build/obj build/obj-headless $(APP) $(TESTS)
 
 -include $(APP_OBJ:.o=.d) $(TEST_OBJ:.o=.d)
-.PHONY: all test docs run clean
+.PHONY: all test docs run clean bake-assets

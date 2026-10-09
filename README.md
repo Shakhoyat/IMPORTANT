@@ -464,6 +464,21 @@ marker, reticle on the gimbal aim point, lock ring on the squad's target (progre
 picture-in-picture stays. Spinning rotors fade from blades to translucent blur discs with the rotor speed (visible and thermal).
 Captures: `ThermalSense --headless --capture DIR --only play_uav_docked_day,play_uav_rotor_still,play_uav_rotor_spinup,play_uav_rotor_blur,play_uav_dayops_chase,play_uav_chase,play_uav_chase_steady,play_uav_fpv,play_uav_gimbal,play_uav_hud`.
 
+## v9 M6: third-party assets and licenses
+
+At ULTRA / EPIC the camp's trees, bushes, boulders and treeline are drawn with CC0 (public domain) models from
+Poly Haven and the grass blades use a CC0 Poly Haven atlas; the five ambientCG terrain sets are also vendored (CC0) but
+not used yet (M7 terrain was not built). The full table (asset, author, source URL, license) is `assets/LICENSES.md`;
+`assets/bake_summary.json` lists source -> baked triangle counts. Third-party code: cgltf (MIT, `include/cgltf.h`),
+stb_image / stb_image_write (public domain, `include/`), meshoptimizer (MIT, `third_party/meshoptimizer/`).
+
+- `assets/` is found next to the executable (or up to 3 parent directories), else under the current directory. Without
+  it the program draws the procedural v8 trees and untextured grass blades, as LOW / HIGH do (`TS_NO_VEG_ASSETS=1`
+  switches only the asset trees off).
+- Refreshing the assets: `python3 tools/fetch_assets.py` (downloads the originals into `build/asset_cache`, ~1.7 GB, not
+  committed), then `make bake-assets` (`tools/bake_assets.cpp`: card thinning, meshoptimizer simplification, wind
+  weights in `COLOR_0`, textures re-encoded).
+
 ## Quality presets
 
 | Preset | For | Adds |

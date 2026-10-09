@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "math/Frustum.h"
@@ -32,6 +33,7 @@
 #include "rendering/Mesh.h"
 #include "rendering/RenderTarget.h"
 #include "rendering/Shader.h"
+#include "rendering/VegetationRenderer.h"
 #include "scene/Camera.h"
 #include "raytrace/RayTracer.h"   // v7 WP-H: RtMode, RayTree
 
@@ -116,6 +118,7 @@ struct RenderSettings {
     // v9 M4 eye adaptation (scene/EyeAdapt.h): local exposure bias of the indoor light volume around the camera (stops
     // the eye may open beyond the outdoor range).
     float exposureBiasEv = 0.0f;
+    bool vegetationOn = true;     // v9 M6: grass + asset vegetation (off: the shimmer measurement's vegetation mask)
     float dof = 0.0f;             // depth-of-field strength (cinematic shots); 0 = off
     float focusDistance = -1.0f;  // metres; < 0 = autofocus on the frame centre
     float motionBlur = 0.0f;      // camera motion blur, shutter fraction (0.5 = 180 degrees); 0 = off
@@ -161,6 +164,10 @@ struct FrameStats {
     int prepassDraws = 0;    // depth + normal pre-pass draws
     int grassBlades = 0;     // instanced blades submitted
     int rainDrops = 0;       // instanced rain streaks submitted
+    int vegInstances = 0;    // v9 M6: asset vegetation instances drawn (meshes + impostors)
+    int vegImpostors = 0;
+    long long vegTriangles = 0;   // asset vegetation triangles of the colour pass
+    int vegLod[4] = {0, 0, 0, 0}; // instances per level (LOD 0, 1, 2, impostor)
 };
 
 struct LineVertex {
@@ -354,6 +361,20 @@ private:
     float prevTime_ = -1.0f;
     void drawGrass(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
     GrassField grass_;
+    // v9 M6: CC0 asset vegetation (ULTRA / EPIC, assets/ present); the primitive trees it replaces are skipped in the
+    // colour, pre-pass and shadow passes of those frames (vegHidden_), the scene graph keeps them for gameplay.
+    VegetationRenderer vegetation_;
+    std::unordered_set<const SceneNode*> vegHidden_;
+    bool vegLayoutBuilt_ = false;
+    bool vegActive(const RenderSettings& s);
+    void prepareVegetation(const Scene& scene, const RenderSettings& s);   // loads + lays out on first use (beginFrame)
+    bool vegHides(const SceneNode* n, const RenderSettings& s) { return vegActive(s) && vegHidden_.count(n) != 0; }
+    void drawVegetation(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
+    VegetationRenderer::View vegView(const CameraView& cam, int h, const Scene& scene) const;
+public:
+    // v9 M6: build/vegetation_assets.json for the workbook (LOD triangles, impostor size); "" when not loaded.
+    std::string vegetationSummary() const { return vegetation_.ready() ? vegetation_.summaryJson() : std::string(); }
+private:
     RainField rain_;
     void drawRain(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s, FrameStats& st);
     GroundMap ground_;

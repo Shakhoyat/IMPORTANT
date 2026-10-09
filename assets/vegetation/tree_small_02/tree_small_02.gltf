@@ -1,0 +1,76 @@
+{
+  "asset": {"version": "2.0", "generator": "ThermalSense bake_assets (v9 M6)"},
+  "scene": 0,
+  "extensionsUsed": ["KHR_mesh_quantization"],
+  "extensionsRequired": ["KHR_mesh_quantization"],
+  "scenes": [{"nodes": [0]}],
+  "nodes": [
+    {"name": "tree_small_02_LOD0", "mesh": 0}
+  ],
+  "meshes": [
+    {"name": "tree_small_02_LOD0", "primitives": [{"attributes": {"POSITION": 0, "NORMAL": 1, "TEXCOORD_0": 2, "COLOR_0": 3}, "indices": 4, "material": 0}, {"attributes": {"POSITION": 5, "NORMAL": 6, "TEXCOORD_0": 7, "COLOR_0": 8}, "indices": 9, "material": 1}, {"attributes": {"POSITION": 10, "NORMAL": 11, "TEXCOORD_0": 12, "COLOR_0": 13}, "indices": 14, "material": 2}]}
+  ],
+  "materials": [
+    {"name": "tree_small_02_branches", "doubleSided": true, "pbrMetallicRoughness": {"metallicFactor": 0, "baseColorTexture": {"index": 0}, "metallicRoughnessTexture": {"index": 1}}, "normalTexture": {"index": 2}},
+    {"name": "tree_small_02_leaves", "doubleSided": true, "alphaMode": "MASK", "alphaCutoff": 0.5, "pbrMetallicRoughness": {"metallicFactor": 0, "baseColorTexture": {"index": 3}, "metallicRoughnessTexture": {"index": 4}}, "normalTexture": {"index": 5}},
+    {"name": "tree_small_02_trunk", "doubleSided": true, "pbrMetallicRoughness": {"metallicFactor": 0, "baseColorTexture": {"index": 6}, "metallicRoughnessTexture": {"index": 7}}, "normalTexture": {"index": 8}}
+  ],
+  "samplers": [{"magFilter": 9729, "minFilter": 9987}],
+  "images": [
+    {"uri": "textures/tree_small_02_branch_diff_1k.jpg"},
+    {"uri": "textures/tree_small_02_branch_arm_1k.jpg"},
+    {"uri": "textures/tree_small_02_branch_nor_gl_1k.jpg"},
+    {"uri": "textures/tree_small_02_leaves_diff_1k.png"},
+    {"uri": "textures/tree_small_02_leaves_arm_1k.jpg"},
+    {"uri": "textures/tree_small_02_leaves_nor_gl_1k.jpg"},
+    {"uri": "textures/tree_small_02_diff_1k.jpg"},
+    {"uri": "textures/tree_small_02_arm_1k.jpg"},
+    {"uri": "textures/tree_small_02_nor_gl_1k.jpg"}
+  ],
+  "textures": [
+    {"sampler": 0, "source": 0},
+    {"sampler": 0, "source": 1},
+    {"sampler": 0, "source": 2},
+    {"sampler": 0, "source": 3},
+    {"sampler": 0, "source": 4},
+    {"sampler": 0, "source": 5},
+    {"sampler": 0, "source": 6},
+    {"sampler": 0, "source": 7},
+    {"sampler": 0, "source": 8}
+  ],
+  "accessors": [
+    {"bufferView": 0, "componentType": 5126, "count": 32574, "type": "VEC3", "min": [-1.095066, 1.624015, -1.264192], "max": [1.418554, 4.392509, 2.793057]},
+    {"bufferView": 1, "componentType": 5120, "count": 32574, "type": "VEC3", "normalized": true},
+    {"bufferView": 2, "componentType": 5123, "count": 32574, "type": "VEC2", "normalized": true},
+    {"bufferView": 3, "componentType": 5121, "count": 32574, "type": "VEC4", "normalized": true},
+    {"bufferView": 4, "componentType": 5125, "count": 142221, "type": "SCALAR"},
+    {"bufferView": 5, "componentType": 5126, "count": 276515, "type": "VEC3", "min": [-1.312263, 1.453882, -1.388434], "max": [1.652576, 4.549021, 2.913492]},
+    {"bufferView": 6, "componentType": 5120, "count": 276515, "type": "VEC3", "normalized": true},
+    {"bufferView": 7, "componentType": 5123, "count": 276515, "type": "VEC2", "normalized": true},
+    {"bufferView": 8, "componentType": 5121, "count": 276515, "type": "VEC4", "normalized": true},
+    {"bufferView": 9, "componentType": 5125, "count": 773706, "type": "SCALAR"},
+    {"bufferView": 10, "componentType": 5126, "count": 8427, "type": "VEC3", "min": [-0.7654516, -0.024032, -0.3932397], "max": [0.9294252, 3.664573, 1.923167]},
+    {"bufferView": 11, "componentType": 5120, "count": 8427, "type": "VEC3", "normalized": true},
+    {"bufferView": 12, "componentType": 5123, "count": 8427, "type": "VEC2", "normalized": true},
+    {"bufferView": 13, "componentType": 5121, "count": 8427, "type": "VEC4", "normalized": true},
+    {"bufferView": 14, "componentType": 5125, "count": 42435, "type": "SCALAR"}
+  ],
+  "bufferViews": [
+    {"buffer": 0, "byteOffset": 0, "byteLength": 390888, "target": 34962},
+    {"buffer": 0, "byteOffset": 390888, "byteLength": 130296, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 521184, "byteLength": 130296, "target": 34962},
+    {"buffer": 0, "byteOffset": 651480, "byteLength": 130296, "target": 34962},
+    {"buffer": 0, "byteOffset": 781776, "byteLength": 568884, "target": 34963},
+    {"buffer": 0, "byteOffset": 1350660, "byteLength": 3318180, "target": 34962},
+    {"buffer": 0, "byteOffset": 4668840, "byteLength": 1106060, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 5774900, "byteLength": 1106060, "target": 34962},
+    {"buffer": 0, "byteOffset": 6880960, "byteLength": 1106060, "target": 34962},
+    {"buffer": 0, "byteOffset": 7987020, "byteLength": 3094824, "target": 34963},
+    {"buffer": 0, "byteOffset": 11081844, "byteLength": 101124, "target": 34962},
+    {"buffer": 0, "byteOffset": 11182968, "byteLength": 33708, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 11216676, "byteLength": 33708, "target": 34962},
+    {"buffer": 0, "byteOffset": 11250384, "byteLength": 33708, "target": 34962},
+    {"buffer": 0, "byteOffset": 11284092, "byteLength": 169740, "target": 34963}
+  ],
+  "buffers": [{"uri": "tree_small_02.bin", "byteLength": 11453832}]
+}

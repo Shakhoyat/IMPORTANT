@@ -16,9 +16,17 @@ file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
 set(CORE_SOURCES ${APP_SOURCES})
 list(FILTER CORE_SOURCES EXCLUDE REGEX ".*/src/(main\\.cpp|app/.*|rendering/.*)$")
 
+# ---- v9 M6: vendored meshoptimizer (MIT), compiled as a static library with its own warning level ----
+file(GLOB MESHOPT_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/third_party/meshoptimizer/*.cpp)
+add_library(meshoptimizer STATIC ${MESHOPT_SOURCES})
+if(NOT MSVC)
+  target_compile_options(meshoptimizer PRIVATE -O2 -w)
+endif()
+
 # ---- common flags ---------------------------------------------------------------------------
 function(ts_common target)
-  target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include)
+  target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/third_party)
+  target_link_libraries(${target} PRIVATE meshoptimizer)
   if(MSVC)
     target_compile_options(${target} PRIVATE /O2 /utf-8)
     target_compile_definitions(${target} PRIVATE NOMINMAX _CRT_SECURE_NO_WARNINGS)

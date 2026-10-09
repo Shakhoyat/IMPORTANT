@@ -101,6 +101,7 @@ struct Shot {
     float exposure = 1.0f;      // RenderSettings::exposure (the hero objects alone against the bright day sky: +1 EV)
     // v10 teaching views: RenderSettings::projection (0 perspective, 1 top, 2 front, 3 side, 4 isometric) / lightTerms
     int projection = 0, lightTerms = 0;
+    bool quick = false;         // v9 M6: an --only list of quick shots runs just those (no earlier shots simulated)
 };
 
 // The scripted sequence (directorScript) starts on the simulation clock at kScriptStart: shots with
@@ -561,6 +562,18 @@ add(cam(v4("motor_pool", 58.5f), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 
             add(l);
         }
     }
+    // ---- v9 M6 close-ups: asset vegetation and grass (10:30, 1 s of simulation) ----------
+    auto quick = [](Shot x) {
+        x.quick = true;
+        return x;
+    };
+    add(quick(v6(cam(v4("m6_overview", 0.0f), {-30.0f, 17.0f, 44.0f}, {2.0f, 0.5f, 4.0f}, 56.0f), 9.5f, 1.0f)));   // day_overview's camera
+    add(quick(v6(cam(v4("m6_tree_close", 0.0f), {-2.6f, 1.7f, 9.4f}, {-6.5f, 2.4f, 13.0f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m6_broadleaf_close", 0.0f), {-1.8f, 1.7f, 0.6f}, {-6.2f, 2.3f, 3.6f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m6_bush_close", 0.0f), {8.6f, 1.5f, -2.0f}, {8.6f, 0.3f, -5.8f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m6_grass_close", 0.0f), {-15.5f, 0.9f, 2.0f}, {-10.0f, 0.2f, 4.5f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m6_treeline", 0.0f), {12.0f, 5.5f, 26.0f}, {26.0f, 5.0f, 36.0f}, 60.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m6_forest_night", 0.0f), {9.0f, 1.7f, -6.0f}, {0.0f, 1.6f, -9.3f}, 70.0f), 23.0f, 1.0f)));
     // ---- v5 lab figures (technique explanations rendered by the program). ./ts --capture DIR --only lab_cv,lab_materials,...
     // (an --only list made only of lab_* shots runs on a fresh simulation, independent of the other shots).
     for (const auto& [name, kind] : std::initializer_list<std::pair<const char*, const char*>>{
@@ -653,9 +666,10 @@ int App::captureMode() {
                 if (n == x.file) return &x;
             return nullptr;
         };
-        bool allLab = !names.empty(), allV6 = !names.empty(), allHero = !names.empty();
+        bool allLab = !names.empty(), allV6 = !names.empty(), allHero = !names.empty(), allQuick = !names.empty();
         for (const std::string& n : names) {
             const Shot* x = find(n);
+            allQuick = allQuick && x && x->quick;
             allLab = allLab && x && x->lab[0] && !x->v6;
             allV6 = allV6 && x && x->v6;
             allHero = allHero && x && x->hero;
@@ -663,6 +677,7 @@ int App::captureMode() {
         if (allHero) shots.erase(std::remove_if(shots.begin(), shots.end(), [](const Shot& x) { return !x.hero; }), shots.end());
         if (allLab) shots.erase(std::remove_if(shots.begin(), shots.end(), [](const Shot& x) { return !x.lab[0] || x.v6; }), shots.end());
         if (allV6) shots.erase(std::remove_if(shots.begin(), shots.end(), [](const Shot& x) { return !x.v6; }), shots.end());
+        if (allQuick) shots.erase(std::remove_if(shots.begin(), shots.end(), [&](const Shot& x) { return !x.quick || std::find(names.begin(), names.end(), x.file) == names.end(); }), shots.end());
     }
     std::error_code ec;
     std::filesystem::create_directories(dir, ec);

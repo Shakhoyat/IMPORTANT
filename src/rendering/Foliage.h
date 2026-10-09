@@ -8,6 +8,7 @@
 #include <glad/gl.h>
 
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 #include "math/Frustum.h"
@@ -20,7 +21,9 @@ class FoliageField {
 public:
     ~FoliageField();
     bool init();                                   // shaders + card geometry (unit cube)
-    void build(const Scene& scene, float density); // (re)generates instances if density changed or first call
+    // (Re)generates the instances if the density or the skip set changed. v9 M6: 'skip' = leaves drawn by the asset
+    // vegetation (no cards on them).
+    void build(const Scene& scene, float density, const std::unordered_set<const SceneNode*>* skip = nullptr);
     int count() const { return count_; }
     Shader& shader() { return *shader_; }
 
@@ -45,6 +48,7 @@ private:
     int count_ = 0;
     float density_ = -1.0f;
     size_t leafCount_ = 0;
+    size_t skipCount_ = 0;
     std::vector<Cell> cells_;
 };
 

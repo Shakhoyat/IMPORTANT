@@ -1,0 +1,42 @@
+{
+  "asset": {"version": "2.0", "generator": "ThermalSense bake_assets (v9 M6)"},
+  "scene": 0,
+  "extensionsUsed": ["KHR_mesh_quantization"],
+  "extensionsRequired": ["KHR_mesh_quantization"],
+  "scenes": [{"nodes": [0]}],
+  "nodes": [
+    {"name": "boulder_01", "mesh": 0}
+  ],
+  "meshes": [
+    {"name": "boulder_01", "primitives": [{"attributes": {"POSITION": 0, "NORMAL": 1, "TEXCOORD_0": 2, "COLOR_0": 3}, "indices": 4, "material": 0}]}
+  ],
+  "materials": [
+    {"name": "boulder_01", "doubleSided": true, "pbrMetallicRoughness": {"metallicFactor": 0, "baseColorTexture": {"index": 0}, "metallicRoughnessTexture": {"index": 1}}, "normalTexture": {"index": 2}}
+  ],
+  "samplers": [{"magFilter": 9729, "minFilter": 9987}],
+  "images": [
+    {"uri": "textures/boulder_01_diff_1k.jpg"},
+    {"uri": "textures/boulder_01_arm_1k.jpg"},
+    {"uri": "textures/boulder_01_nor_gl_1k.jpg"}
+  ],
+  "textures": [
+    {"sampler": 0, "source": 0},
+    {"sampler": 0, "source": 1},
+    {"sampler": 0, "source": 2}
+  ],
+  "accessors": [
+    {"bufferView": 0, "componentType": 5126, "count": 58563, "type": "VEC3", "min": [-0.7480386, -0.07364297, -0.9457284], "max": [0.5239759, 0.9301872, 0.8818938]},
+    {"bufferView": 1, "componentType": 5120, "count": 58563, "type": "VEC3", "normalized": true},
+    {"bufferView": 2, "componentType": 5123, "count": 58563, "type": "VEC2", "normalized": true},
+    {"bufferView": 3, "componentType": 5121, "count": 58563, "type": "VEC4", "normalized": true},
+    {"bufferView": 4, "componentType": 5125, "count": 169674, "type": "SCALAR"}
+  ],
+  "bufferViews": [
+    {"buffer": 0, "byteOffset": 0, "byteLength": 702756, "target": 34962},
+    {"buffer": 0, "byteOffset": 702756, "byteLength": 234252, "byteStride": 4, "target": 34962},
+    {"buffer": 0, "byteOffset": 937008, "byteLength": 234252, "target": 34962},
+    {"buffer": 0, "byteOffset": 1171260, "byteLength": 234252, "target": 34962},
+    {"buffer": 0, "byteOffset": 1405512, "byteLength": 678696, "target": 34963}
+  ],
+  "buffers": [{"uri": "boulder_01.bin", "byteLength": 2084208}]
+}

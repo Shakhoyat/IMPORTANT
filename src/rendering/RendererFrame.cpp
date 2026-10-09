@@ -16,6 +16,7 @@ namespace {
 
 constexpr float kShadowCasterMargin = 30.0f;  // metres behind the fitted sphere that may still cast shadows
 constexpr float kFogMaxDistance = 70.0f;
+constexpr float kGrassNightLift = 1.0f;    // v9 M6: extra moon / sky light on the textured grass at night (night parity)
 // Mean log2 luminance of the reference night frame (establishing shot): auto-exposure maps it to the base
 // exposure, so the designed look is kept and only darker / brighter views are corrected (+-1 EV).
 // v6: the key of each frame comes from the scene's Atmosphere (DayCycle); this is the night value.
@@ -151,6 +152,7 @@ void Renderer::drawDepthOnly(const Scene& scene, const Mat4& lightVP, Casters wh
         if (which == Casters::AllButUav && n->object == "Autonomous UAV") continue;  // the lamp is inside it
         if (which == Casters::Static && isDynamic(*n)) continue;
         if (which == Casters::Dynamic && !isDynamic(*n)) continue;
+        if (vegHides(n, frame_.settings)) continue;   // v9 M6: the asset vegetation casts these shadows
         if (instanced) {
             casters.push_back(n);
             continue;
@@ -197,10 +199,20 @@ void Renderer::renderShadowMaps(const Scene& scene, FrameStats& st) {
     if (frame_.settings.foliageOn) st.shadowDraws += foliage_.drawDepth(frame_.moon[0].viewProj, frame_.time);
     depth_->use();
 #endif
+    if (vegActive(frame_.settings)) {   // v9 M6: near cascade, camera LOD + 1, with wind
+        timer_.begin("vegetation depth");
+        VegetationRenderer::View v = vegView(frame_.cam, fb_.height(), scene);
+        v.lodBias = 1;
+        v.shadowPass = true;
+        st.shadowDraws += vegetation_.drawDepth(v, frame_.moon[0].viewProj);
+        depth_->use();
+        timer_.end();
+    }
     // World cascade: its matrix never changes, so the static casters are rendered once and cached;
     // each frame the cache is copied in and only the moving UAV and rover are drawn on top.
     // The cache also depends on the foliage cards (on/off, density of the preset).
-    const float cacheKey = scene.explode + (frame_.settings.foliageOn ? 10.0f * qualityProfile(frame_.settings.quality).foliageDensity : 0.0f);
+    const float cacheKey = scene.explode + (frame_.settings.foliageOn ? 10.0f * qualityProfile(frame_.settings.quality).foliageDensity : 0.0f) +
+                           (vegActive(frame_.settings) ? 100.0f : 0.0f);
     // v6: the key light moves by day (quantised to 1 deg by DayCycle), so its direction is part of the key.
     const Vec3 keyDir = scene.lights.moon.direction;
     const bool sameDir = keyDir.x == shadows_.staticDir.x && keyDir.y == shadows_.staticDir.y && keyDir.z == shadows_.staticDir.z;
@@ -212,6 +224,13 @@ void Renderer::renderShadowMaps(const Scene& scene, FrameStats& st) {
         if (frame_.settings.foliageOn) st.shadowDraws += foliage_.drawDepth(frame_.moon[1].viewProj, 0.0f);
         depth_->use();
 #endif
+        if (vegActive(frame_.settings)) {   // v9 M6: cached world cascade, LOD 2, no wind
+            VegetationRenderer::View v = vegView(frame_.cam, fb_.height(), scene);
+            v.staticPass = true;
+            v.shadowPass = true;
+            st.shadowDraws += vegetation_.drawDepth(v, frame_.moon[1].viewProj);
+            depth_->use();
+        }
         shadows_.staticValid = true;
         shadows_.staticKey = cacheKey;
         shadows_.staticDir = keyDir;
@@ -245,6 +264,7 @@ void Renderer::renderPrepass(const Scene& scene, const CameraView& cam, const Re
         if (!n->visible || n->primitive == PrimitiveType::BeamCone || isSkyBody(*n) || n->material.opacity < 1.0f) continue;
         if (!inFrustum(*n, frustum)) continue;
         if (!s.isolate.empty() && n->object != s.isolate) continue;
+        if (vegHides(n, s)) continue;
         if (instanced) {
             parts.push_back(n);
             continue;
@@ -274,6 +294,11 @@ void Renderer::renderPrepass(const Scene& scene, const CameraView& cam, const Re
                 ++st.prepassDraws;
             }
         }
+    }
+    if (vegActive(s)) {   // v9 M6: alpha-tested vegetation depth for SSAO and the fog march
+        timer_.begin("vegetation depth");
+        st.prepassDraws += vegetation_.drawPrepass(vegView(cam, fb_.height(), scene), cam.view, cam.proj);
+        timer_.end();
     }
     timer_.end();
 }
@@ -528,7 +553,7 @@ void Renderer::setShadowUniforms(Shader& sh, const RenderSettings& s) {
 
 void Renderer::drawGrass(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
                          FrameStats& st) {
-    if (s.view == ViewMode::HeatRaw || s.view == ViewMode::Diagnostic || !s.isolate.empty()) return;
+    if (s.view == ViewMode::HeatRaw || s.view == ViewMode::Diagnostic || !s.isolate.empty() || !s.vegetationOn) return;
     grass_.setCount(qualityProfile(s.quality).grassBlades);
     if (grass_.count() <= 0) return;
     // Rovers and vehicles push blades aside; rotor wash flattens them under a low UAV / helicopter. The shader
@@ -553,13 +578,25 @@ void Renderer::drawGrass(const Scene& scene, const CameraView& cam, int w, int h
     });
     while (pushers.size() < 2) pushers.push_back({{0, -100, 0}, 0.0f, 0.0f});
     const GrassField::Pusher rover = pushers[0], wash = pushers[1];
+    // v9 M6: textured blades with alpha-to-coverage on the multisampled scene target.
+    const bool a2c = mrt_ && fb_.samples() > 1 && grass_.textured();
     auto prepare = [&](Shader& sh) {
         setFrameUniforms(sh, scene, cam, w, h, s);
         sh.set("uBaseColor", primitiveColor(PrimitiveType::Cube));
         sh.set("uFogged", 1.0f);
         sh.set("uHeatVariation", 0.0f);
+        sh.set("uA2C", a2c ? 1 : 0);
+        sh.set("uPixelScale", 0.5f * static_cast<float>(h) * std::fabs(cam.proj.at(1, 1)));
+        // Night parity (v9 M6): the textured cards cover less of each blade's strip than the v8 cube blades did; the
+        // moon / sky light on them is lifted at night so the meadow keeps the v8 brightness (walk_forest, walk_meadow).
+        sh.set("uNightLift", grass_.textured() ? 1.0f + kGrassNightLift * atmo_.night : 1.0f);
     };
+    const bool timed = mrt_;
+    if (timed) timer_.begin("grass");
+    if (a2c) glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     st.drawCalls += grass_.draw(cam.proj * cam.view, cam.position, prepare, rover, wash, scene.time());
+    if (a2c) glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+    if (timed) timer_.end();
     st.grassBlades = grass_.submitted();
     st.triangles += static_cast<long long>(grass_.submitted()) * grass_.trianglesPerBlade();
 }
@@ -613,7 +650,7 @@ void Renderer::drawFoliage(const Scene& scene, const CameraView& cam, int w, int
     if (!s.foliageOn || s.view == ViewMode::HeatRaw || s.view == ViewMode::Diagnostic || !s.isolate.empty()) return;
     const float density = qualityProfile(s.quality).foliageDensity;
     if (density <= 0.0f) return;
-    foliage_.build(scene, density);
+    foliage_.build(scene, density, vegActive(s) ? &vegHidden_ : nullptr);
     auto prepare = [&](Shader& sh) {
         setFrameUniforms(sh, scene, cam, w, h, s);
         sh.set("uFogged", 1.0f);
@@ -684,6 +721,7 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     if (lightingOff("pcss")) q.pcss = false;              // v9 M8 ablation (TS_LIGHTING_OFF)
     if (lightingOff("contact")) q.contactShadows = false;
     if (lightingOff("gtao")) q.gtao = false;
+    prepareVegetation(scene, s);   // v9 M6: first ULTRA / EPIC frame loads the assets (before any pass binds its target)
     fb_.ensure(w, h, std::min(q.msaa, maxSamples_), q.fogDivisor, q.prepassDivisor);
     const bool visible = s.view == ViewMode::Visible;
     frame_.settings = s;

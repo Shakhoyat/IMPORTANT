@@ -503,6 +503,14 @@ public:
     bool setupBenchShot(const std::string& name);   // camera / control for one shot (after the world is warm)
 private:
     int benchShotsMode();
+    // v9 M6 (Shimmer.cpp): temporal stability of the current view. The scene is frozen (no simulation step: wind and
+    // grain stand still) while the renderer keeps its TAA jitter; after 'warm' frames the mean absolute frame-to-frame
+    // luma difference (0..255) is measured over 'frames' frames, on the vegetation pixels (where the frame differs from
+    // the same view without grass / vegetation) and on the whole frame.
+    struct ShimmerResult {
+        double vegetation = 0.0, all = 0.0, maskFraction = 0.0;
+    };
+    ShimmerResult measureShimmer(int w, int h, int warm = 16, int frames = 24);
     // v9 M1: last member, so it is destroyed (thread joined) before the sensors / tracker it works on.
     std::unique_ptr<VisionWorker> visionWorker_;
 };

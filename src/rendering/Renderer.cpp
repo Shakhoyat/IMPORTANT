@@ -482,6 +482,7 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
         if ((s.view == ViewMode::HeatRaw || s.hideUav) && n->object == "Autonomous UAV") continue;
         if (!inFrustum(*n, frustum)) continue;
         if (n->material.opacity < 1.0f && s.view != ViewMode::Diagnostic) continue;  // translucent pass
+        if (vegHides(n, s)) continue;   // v9 M6: drawn by the asset vegetation
         bucketOf(&programFor(*n, s)).push_back(n);
     }
     for (auto& [program, nodes] : buckets) {
@@ -664,6 +665,7 @@ void Renderer::drawScene(const Scene& scene, const CameraView& cam, int w, int h
         if (s.edges == EdgeMode::Solid) {
             drawGrass(scene, cam, w, h, s, st);
             drawFoliage(scene, cam, w, h, s, st);
+            drawVegetation(scene, cam, w, h, s, st);
         }
         surfaceWrites(false);
         if (s.edges == EdgeMode::Solid) drawEffects(scene, cam, w, h, s, st, false);
