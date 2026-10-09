@@ -318,6 +318,7 @@ private:
     bool thirdPerson_ = false;                  // V: the soldier view preference
     bool aiming_ = false;                       // right mouse held (controlling a soldier)
     float aimBlend_ = 0.0f;                     // first-person iron-sight zoom 0..1
+    bool headBob_ = true;                       // v9 M3: first-person head bob (settings toggle: M2)
     bool jumpEdge_ = false;                     // Space went down (possessed soldier)
     float alignYaw_ = 0.0f;                     // third -> first person: body turn still to apply (degrees)
     float tpLookYaw_ = 0.0f, tpLookPitch_ = 0.0f;   // mouse look for the third-person arm since the last frame

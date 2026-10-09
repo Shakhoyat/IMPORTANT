@@ -40,15 +40,19 @@ const std::vector<std::string>& App::benchShotNames() {
 }
 
 std::string App::stateLine() const {
-    char line[400];
+    char line[512];
     const DayCycle* clock = sa::dayCycle(*scene_);
     const std::string when = clock ? clock->clockText() : std::string("--:--");
     const Soldier* s = soldierOf(*scene_, possessedSoldierIndex());
     if (s) {
-        std::snprintf(line, sizeof(line), "%s cam %s %s ctl %s pos %.2f %.2f %.2f yaw %.0f speed %.2f stance %d %s eye %.2f %.2f %.2f",
+        // v9 M3: + sim time, the motor's sprint / crouch blends, the FOV kick and the spring-arm length
+        std::snprintf(line, sizeof(line),
+                      "%s cam %s %s ctl %s pos %.2f %.2f %.2f yaw %.0f speed %.2f stance %d %s eye %.2f %.2f %.2f simt %.3f "
+                      "sprint %.2f crouch %.2f fovkick %.2f arm %.2f",
                       when.c_str(), cameraModeName(camera_.mode), camera_.possessSight ? "FIRST" : "THIRD", s->name(),
                       s->position().x, s->position().y, s->position().z, s->yawDeg(), s->speed(), s->stance(),
-                      s->airborne() ? "AIR" : "GROUND", shownPose_.eye.x, shownPose_.eye.y, shownPose_.eye.z);
+                      s->airborne() ? "AIR" : "GROUND", shownPose_.eye.x, shownPose_.eye.y, shownPose_.eye.z, scene_->time(),
+                      s->motor().sprintBlend(), s->motor().crouchBlend(), fovKick_, tp_.arm());
     } else {
         std::snprintf(line, sizeof(line), "%s cam %s ctl %s sel %u eye %.2f %.2f %.2f", when.c_str(), cameraModeName(camera_.mode),
                       possessed_ >= 0 ? possessedName() : "-", selKey_, shownPose_.eye.x, shownPose_.eye.y, shownPose_.eye.z);

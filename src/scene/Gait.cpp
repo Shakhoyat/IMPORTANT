@@ -50,6 +50,48 @@ GaitParams GaitParams::run() {
     return g;
 }
 
+GaitParams GaitParams::crouchWalk() {
+    GaitParams g;
+    g.speed = 0.8f; g.stride = 0.9f; g.duty = 0.65f; g.lift = 0.08f; g.bob = 0.012f; g.sink = 0.28f;
+    g.reachBack = 0.06f; g.heelRise = 0.05f; g.armSwingDeg = 6.0f; g.lean = 18.0f;
+    return g;
+}
+
+GaitParams lerpGait(const GaitParams& a, const GaitParams& b, float t) {
+    GaitParams g;
+    g.speed = lerpf(a.speed, b.speed, t);
+    g.stride = lerpf(a.stride, b.stride, t);
+    g.duty = lerpf(a.duty, b.duty, t);
+    g.lift = lerpf(a.lift, b.lift, t);
+    g.bob = lerpf(a.bob, b.bob, t);
+    g.sink = lerpf(a.sink, b.sink, t);
+    g.reachBack = lerpf(a.reachBack, b.reachBack, t);
+    g.heelRise = lerpf(a.heelRise, b.heelRise, t);
+    g.armSwingDeg = lerpf(a.armSwingDeg, b.armSwingDeg, t);
+    g.lean = lerpf(a.lean, b.lean, t);
+    g.thigh = lerpf(a.thigh, b.thigh, t);
+    g.shin = lerpf(a.shin, b.shin, t);
+    g.hipHeight = lerpf(a.hipHeight, b.hipHeight, t);
+    return g;
+}
+
+float runWeight(float speed) { return smooth((std::fabs(speed) - 1.6f) / (3.0f - 1.6f)); }
+
+GaitParams locomotionGait(float speed, float crouch) {
+    const float v = std::fabs(speed), w = runWeight(v);
+    GaitParams g = lerpGait(GaitParams::walk(), GaitParams::run(), w);
+    // Slower than a walk: shorter steps (cadence drops less than speed), down to 60 % of the stride.
+    const GaitParams wk = GaitParams::walk();
+    g.stride *= lerpf(clampf(0.6f + 0.4f * v / wk.speed, 0.6f, 1.0f), 1.0f, w);
+    if (crouch > 0.0f) {
+        GaitParams c = GaitParams::crouchWalk();
+        c.stride *= clampf(0.6f + 0.4f * v / c.speed, 0.6f, 1.25f);
+        g = lerpGait(g, c, clampf(crouch, 0.0f, 1.0f));
+    }
+    g.speed = std::max(v, 0.05f);
+    return g;
+}
+
 bool inStance(const GaitParams& g, float phase, int leg, float* stanceFraction) {
     const float p = fract(phase - 0.5f * static_cast<float>(leg));
     if (stanceFraction) *stanceFraction = p < g.duty ? p / g.duty : (p - g.duty) / (1.0f - g.duty);
@@ -105,7 +147,8 @@ Pose gaitPose(const GaitParams& g, float phase) {
     const float c = std::cos(kTwoPi * phase);
     p.shoulder[0] = -g.armSwingDeg * c;
     p.shoulder[1] = g.armSwingDeg * c;
-    for (int i = 0; i < 2; ++i) p.elbow[i] = 12.0f + 0.6f * std::fmax(0.0f, p.shoulder[i]) + (g.speed > 2.5f ? 60.0f : 0.0f);
+    // v9 M3: the run's bent elbows blend in with speed (was a switch at 2.5 m/s; walk 0, run 60 deg as before)
+    for (int i = 0; i < 2; ++i) p.elbow[i] = 12.0f + 0.6f * std::fmax(0.0f, p.shoulder[i]) + 60.0f * smooth((g.speed - 2.0f) / 1.0f);
     p.spineYaw = 5.0f * c * g.armSwingDeg / 18.0f;   // shoulders counter-rotate against the pelvis
     p.spinePitch = g.lean;
     p.pelvisRoll = 2.0f * std::sin(kTwoPi * phase);
