@@ -193,33 +193,28 @@ void brdf(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 F0, float rough, out vec3 
     diff = radiance * nl * (1.0 - F) * (1.0 - uMetalness);
 }
 
-// ---- v8 daylight sky model (HDR view; uDayWeight blends it in, so the night keeps the v5 hemisphere exactly) ----
-// Irradiance on a face with normal N: the part of the sky dome it sees (zenith overhead, the brighter, whiter horizon
-// band for vertical faces), sunlit ground bounce from below, and the brighter circumsolar sky on the sun's side.
+// ---- daylight sky model (HDR view; uDayWeight blends it in, so the night keeps the v5 hemisphere exactly) ----
+// v9 M8: irradiance / pi on a face with normal N from the analytic sky that is drawn (Preetham) and the sunlit ground
+// below the horizon, as an order-2 spherical-harmonic irradiance map (Ramamoorthi & Hanrahan): the dome the face sees,
+// the brighter horizon band, the circumsolar brightening on the sun's side and the ground bounce all come out of the
+// same sky (v8 used a hand-made zenith / horizon / ground mix here).
 vec3 dayAmbient(vec3 N) {
-    float up = clamp(N.y, -1.0, 1.0);
-    vec3 dome = mix(uSkyHorizon * 0.62, uSkyZenith, smoothstep(-0.1, 0.85, up));
-    vec3 sky = dome * (0.5 + 0.5 * up);
-    vec3 ground = uGroundBounce * (0.5 - 0.5 * up);
-    vec3 Ls = normalize(-uMoonDir);
-    vec3 sunSide = normalize(vec3(Ls.x, max(Ls.y, 0.0) * 0.6, Ls.z) + 1e-4);
-    float circum = max(dot(N, sunSide), 0.0) * (0.55 + 0.45 * up);
-    return sky + ground + uMoonColor * (0.035 * circum) * float(uKeyIsSun);
+    return skyAmbientSH(N);
 }
 vec3 hemiAmbient(vec3 N) {
     vec3 night = mix(uGroundBounce, uSkyZenith, 0.5 + 0.5 * N.y);
     return uDayWeight > 0.0 ? mix(night, dayAmbient(N), uDayWeight) : night;
 }
-// Radiance the sky / ground send along a reflected direction R (specular ambient), pre-blurred by roughness: a
-// horizon-bright gradient, the ground below the horizon and a soft glow around the sun (the sharp sun highlight
-// itself is the key light's GGX lobe).
+// Radiance the sky / ground send along a reflected direction R (specular ambient), pre-blurred by roughness: the sky
+// model's radiance for a smooth surface, the cosine-filtered sky (the SH ambient in direction R) for a rough one, the
+// ground below the horizon and a soft glow around the sun (the sharp sun highlight itself is the key light's GGX lobe).
 vec3 skyEnvironment(vec3 R, float rough) {
     vec3 night = mix(uGroundBounce, uSkyZenith * 1.6, smoothstep(-0.2, 0.6, R.y));
     if (uDayWeight <= 0.0) return night;
     float up = R.y;
-    vec3 sky = mix(uSkyHorizon * 1.05, uSkyZenith * 1.25, smoothstep(0.02, 0.75, up));
-    vec3 env = mix(uGroundBounce * 0.9, sky, smoothstep(-0.10 - 0.3 * rough, 0.03 + 0.2 * rough, up));
-    env = mix(env, 0.5 * (uSkyHorizon + uGroundBounce), rough * rough * 0.6);       // rough: a wide average
+    vec3 sky = skyModelRadiance(vec3(R.x, max(up, 0.0), R.z));
+    vec3 env = mix(skyAmbientSH(vec3(0.0, -1.0, 0.0)), sky, smoothstep(-0.10 - 0.3 * rough, 0.03 + 0.2 * rough, up));
+    env = mix(env, skyAmbientSH(R), smoothstep(0.15, 0.85, rough));
     vec3 Ls = normalize(-uMoonDir);
     env += uMoonColor * float(uKeyIsSun) * 0.05 * pow(max(dot(R, Ls), 0.0), mix(24.0, 3.0, rough)) * smoothstep(-0.05, 0.1, up);
     return mix(night, env, uDayWeight);
@@ -315,6 +310,15 @@ uniform sampler2DShadow uSpotShadow;
 uniform mat4 uSpotVP;
 uniform sampler2D uAO;     uniform int uUseAO;
 uniform int uPcfTaps;      // 8 (high) or 16 (ultra)
+// v9 M8 soft shadows: the cascades again without depth comparison (PCSS blocker search), contact shadows
+uniform sampler2DArray uMoonDepth;
+uniform int uPcss;              // 1: contact-hardening PCSS, 0: the v8 fixed-radius Poisson PCF
+uniform int uBlockerTaps;       // blocker-search samples
+uniform vec2 uMoonDepthRange;   // metres along the light per unit of stored depth (near, world cascade)
+uniform float uLightTan;        // 2 tan(angular diameter / 2) of the key light: penumbra metres per metre of gap
+uniform float uPcssSearch;      // metres: blocker search radius (math/ShadowMath.h pcssSearchRadius)
+uniform float uFrameNoise;      // per-frame offset of the PCSS kernel rotation (the TAA averages the rotations)
+uniform sampler2D uContactShadow; uniform int uContactOn;
 uniform sampler2D uHeatTrail;                          // rover footprints (scene/HeatTrail)
 uniform float uTrailExtent; uniform float uTrailHeat;
 float trailHeat(vec3 P) { return uTrailHeat * texture(uHeatTrail, P.xz / (2.0 * uTrailExtent) + 0.5).r; }
@@ -359,6 +363,19 @@ mat2 pixelRotation() {
     return mat2(c, s, -s, c);
 }
 
+// v9 M8: PCSS (Fernando 2005) on the sun / moon cascades.
+//   1. blocker search: average depth of the shadow-map texels nearer to the light than the receiver within the search
+//      radius (raw depths through uMoonDepth),
+//   2. penumbra estimate: w = (d_receiver - d_blocker) * light size / d_blocker; for a light at infinity
+//      light size / d_blocker is the angle of the disc, so w = gap (metres) * uLightTan (math/ShadowMath.cpp),
+//   3. filtering: Poisson PCF with a kernel radius of w / 2 (at least the v8 radius): hard at contact, softer with
+//      the distance to the blocker (contact hardening).
+mat2 pcssRotation() {
+    float a = 6.2831853 * fract(hash21(gl_FragCoord.xy) + uFrameNoise);
+    float c = cos(a), s = sin(a);
+    return mat2(c, s, -s, c);
+}
+
 float cascadeShadow(int layer, mat4 vp, vec3 P, vec3 N, float texel) {
     vec3 L = normalize(-uMoonDir);
     float slope = 1.0 - max(dot(N, L), 0.0);
@@ -367,16 +384,35 @@ float cascadeShadow(int layer, mat4 vp, vec3 P, vec3 N, float texel) {
     if (any(lessThan(p, vec3(0.0))) || any(greaterThan(p, vec3(1.0)))) return 1.0;
     vec2 size = vec2(textureSize(uMoonShadow, 0).xy);
     float radius = layer == 0 ? 1.6 : 1.2;
-    mat2 rot = pixelRotation();
+    float zr = p.z - 0.0004;
+    mat2 rot;
+    if (uPcss == 1) {
+        rot = pcssRotation();
+        float range = layer == 0 ? uMoonDepthRange.x : uMoonDepthRange.y;
+        float search = clamp(uPcssSearch / texel, radius, 40.0);            // texels
+        float sum = 0.0, n = 0.0;
+        for (int i = 0; i < 16; ++i) {
+            if (i >= uBlockerTaps) break;
+            float d = texture(uMoonDepth, vec3(p.xy + rot * kPoisson[i] * search / size, float(layer))).r;
+            if (d < zr - 0.0002) { sum += d; n += 1.0; }
+        }
+        if (n == 0.0) return 1.0;                                          // no blocker: fully lit
+        float penumbra = (zr - sum / n) * range * uLightTan;               // metres
+        radius = clamp(0.5 * penumbra / texel, radius, 40.0);
+    } else {
+        rot = pixelRotation();
+    }
     float sum = 0.0;
     for (int i = 0; i < 16; ++i) {
         if (i >= uPcfTaps) break;
         vec2 o = rot * kPoisson[i] * radius / size;
-        sum += texture(uMoonShadow, vec4(p.xy + o, float(layer), p.z - 0.0004));
+        sum += texture(uMoonShadow, vec4(p.xy + o, float(layer), zr));
     }
     return sum / float(uPcfTaps);
 }
 
+// Cascade blending (math/ShadowMath.h cascadeBlendWeight): the near and the world cascade cross-fade over the last 20 %
+// of the split distance, so the change of resolution / filter has no visible seam.
 float moonShadowMap(vec3 P, vec3 N) {
     if (uShadows == 0) return 1.0;
     float dist = length(P - uCamPos);
@@ -388,8 +424,14 @@ float moonShadowMap(vec3 P, vec3 N) {
     return cascadeShadow(1, uMoonVP1, P, N, uMoonTexel.y);
 }
 
+// v9 M8: screen-space contact shadow of the sun at this pixel (1 = lit; computed by the contact pass, kContactFrag).
+float contactShadow() {
+    if (uContactOn == 0) return 1.0;
+    return texture(uContactShadow, gl_FragCoord.xy / uResolution).r;
+}
+
 // Visibility of the key light: shadow map x cloud shadow (1 at night: the moon is not shaded by the cloud layer).
-float moonShadow(vec3 P, vec3 N) { return moonShadowMap(P, N) * cloudShadowAt(P); }
+float moonShadow(vec3 P, vec3 N) { return moonShadowMap(P, N) * cloudShadowAt(P) * contactShadow(); }
 
 float spotShadow(vec3 P, vec3 N) {
     if (uShadows < 2) return 1.0;
@@ -771,7 +813,9 @@ vec4 shadeFragment(Terms t, vec3 P, vec3 N) {
 
 }  // namespace
 
-std::string withPalette(const char* body) { return std::string("#version 330 core\n") + kPalette + cloudBlock() + body; }
+std::string withPalette(const char* body) {
+    return std::string("#version 330 core\n") + kPalette + cloudBlock() + skyModelBlock() + agxBlock() + body;
+}
 std::string withLighting(const char* body) { return withPalette(kLighting) + body; }
 std::string withLightingAndOutput(const char* body) { return withPalette(kLighting) + kOutput + body; }
 

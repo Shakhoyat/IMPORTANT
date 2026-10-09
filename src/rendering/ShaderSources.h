@@ -44,6 +44,13 @@ extern const char* kCompositeFrag;   // grading + filmic curve / thermal sensor 
 extern const char* kHudVert;      // 2D overlay (NDC), optional texture
 extern const char* kHudFrag;
 
+// v9 M8 (ShadersLightingDepth.cpp): analytic sky + SH ambient (uniforms + functions) and the AgX display transform,
+// part of every program's preamble (withPalette); GTAO and contact shadows (full-screen, + palette).
+std::string skyModelBlock();
+std::string agxBlock();
+extern const char* kGtaoFrag;
+extern const char* kContactFrag;
+
 // Source assembly: palette only (sky, HUD); + lighting (vertex/geometry stages); + output (fragment stage).
 std::string withPalette(const char* body);
 std::string withLighting(const char* body);

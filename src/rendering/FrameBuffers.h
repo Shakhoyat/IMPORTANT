@@ -1,7 +1,8 @@
 // GPU render targets of the v3 pipeline:
 //   HDR scene: multisampled RGBA16F colour + RGBA8 surface (world normal, reflectivity) + depth
 //     -> resolved colour, surface and depth textures (full resolution)
-//   pre-pass (depth + view normal, full or half resolution) -> SSAO (ping-pong R8) and volumetric fog (RGBA16F)
+//   pre-pass (depth + view normal, full or half resolution) -> SSAO / GTAO (ping-pong R8), contact shadows (R8) and
+//   volumetric fog (RGBA16F)
 //   lit (fog + reflections applied), TAA history ping-pong, DOF, bloom mip chain, lens flare,
 //   luminance / heat reduction chain + 1x1 adaptation ping-pong (auto-exposure, thermal AGC)
 //   shadow maps (moon: 2-layer depth array + static cache, searchlight: depth texture).
@@ -42,7 +43,8 @@ public:
     GLuint depthTex = 0, depthFbo = 0;            // resolved full-resolution depth
     GLuint prepassFbo = 0, prepassDepth = 0, prepassNormal = 0;
     int halfW = 0, halfH = 0;                     // pre-pass / SSAO resolution
-    ColorTarget ao[2];                            // raw SSAO, blurred SSAO
+    ColorTarget ao[2];                            // raw SSAO / GTAO, blurred
+    ColorTarget contact;                          // v9 M8: sun contact shadows (R8, pre-pass resolution)
     ColorTarget fog;                              // rgb in-scatter, a transmittance
     ColorTarget lit;                              // scene with fog and reflections (TAA input)
     ColorTarget history[2];                       // TAA output / history ping-pong

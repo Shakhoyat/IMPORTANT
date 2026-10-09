@@ -136,46 +136,51 @@ vec3 nightSky(vec3 dir) {
     return max(c, vec3(0.0));
 }
 
-// Day sky: Rayleigh-like blue gradient, Mie aureole and disc of the sun, twilight band, and the drifting
-// cumulus layer (cloudDensity, the same field that casts the cloud shadows on the ground).
+// Day sky (v9 M8): the analytic Preetham sky (skyModelRadiance, the same model the ambient light and the aerial
+// perspective use), a limb-darkened sun disc with a tight Mie aureole, the twilight band, and the drifting cumulus layer
+// (cloudDensity, the same field that casts the cloud shadows on the ground), lit by the sun and by the sky model.
 vec3 daySky(vec3 dir) {
     vec3 toSun = normalize(-uSunDir);
     float up = dir.y;
     float cosS = dot(dir, toSun);
-    float bright = mix(0.03, 1.0, smoothstep(-0.10, 0.20, toSun.y));     // the whole dome dims at sunset
-    vec3 zenith = vec3(0.10, 0.22, 0.52), horizon = vec3(0.55, 0.66, 0.80);
-    float hz = pow(1.0 - clamp(up, 0.0, 1.0), 4.0);
-    vec3 c = mix(zenith, horizon, hz) * bright * (1.0 - 0.4 * uRain);
-    c += uSunColor * (0.06 * pow(max(cosS, 0.0), 8.0) + 0.30 * pow(max(cosS, 0.0), 160.0)) * (1.0 - 0.8 * uRain);   // aureole
+    float below = mix(0.03, 1.0, smoothstep(-0.10, 0.02, toSun.y));     // the sun below the horizon: the day sky fades
+    vec3 c = skyModelRadiance(vec3(dir.x, max(up, 0.0), dir.z)) * below * (1.0 - 0.4 * uRain);
+    c += uSunColor * 0.30 * pow(max(cosS, 0.0), 160.0) * (1.0 - 0.8 * uRain);   // aureole (Mie forward lobe)
     vec2 sideXZ = normalize(dir.xz + 1e-5), sunXZ = normalize(toSun.xz + 1e-5);
     float side = pow(max(dot(sideXZ, sunXZ), 0.0), 2.0);
-    c += uTwilight * exp(-max(up, 0.0) * 5.0) * (vec3(0.90, 0.38, 0.12) * (0.25 + 0.75 * side) + vec3(0.10, 0.06, 0.14)) * 0.8;
-    c += uSunColor * 40.0 * smoothstep(0.99994, 0.99997, cosS) * (1.0 - uRain);              // disc (~0.5 deg)
+    c += uTwilight * exp(-max(up, 0.0) * 5.0) * (vec3(0.90, 0.38, 0.12) * (0.25 + 0.75 * side) + vec3(0.10, 0.06, 0.14)) * 0.5;
+    // Sun disc, 0.27 deg radius, limb darkening I(mu) = 1 - 0.6 (1 - mu) (mu = cosine at the solar surface)
+    float r = acos(clamp(cosS, -1.0, 1.0)) / 0.0047124;
+    if (r < 1.2) {
+        float mu = sqrt(max(1.0 - r * r, 0.0));
+        c += uSunColor * 40.0 * (1.0 - 0.6 * (1.0 - mu)) * smoothstep(1.08, 0.92, r) * (1.0 - uRain);
+    }
     if (up > 0.0) {
-        // Cumulus layer: the shared cloudDensity field (it casts the ground's cloud shadows) plus two zero-mean
-        // detail octaves that erode the edges, faded out where the pixel footprint would alias them.
+        // Cumulus layer: the shared cloudDensity field plus two zero-mean detail octaves that erode the edges, faded
+        // out where the pixel footprint would alias them.
         float t = (kCloudAltitude - uCamPos.y) / max(up, 0.03);
         vec2 q = uCamPos.xz + dir.xz * t;
-        vec2 cp = (q + kCloudWind * uTime) * kCloudScale;                   // noise coordinates of the layer
-        float fw = length(fwidth(cp));                                      // noise cells per pixel
+        vec2 cp = (q + kCloudWind * uTime) * kCloudScale;
+        float fw = length(fwidth(cp));
         float detail = 1.0 - smoothstep(0.012, 0.05, fw);
         float n = fbm(cp) + detail * (0.11 * (valueNoise(cp * 8.3 + 5.1) - 0.5) + 0.05 * (valueNoise(cp * 17.9 + 2.7) - 0.5));
-        float soft = 0.015 + 1.5 * fw;                                      // wider edge where cells shrink
+        float soft = 0.015 + 1.5 * fw;
         float d = smoothstep(kCloudLo - soft, kCloudHi + soft, n);
         // Light reaching this point of the layer: optical depth of three samples towards the sun (Beer-Lambert),
-        // "powder" darkening of thick cores, Henyey-Greenstein forward lobe for the silver linings.
+        // "powder" darkening of thick cores, Henyey-Greenstein forward lobe for the silver linings; the sky light
+        // from above and the ground light from below come from the sky model's SH ambient.
         float od = 0.0;
         for (int k = 1; k <= 3; ++k) od += cloudDensity(q + sunXZ * (9.0 * float(k * k)), uTime) * (1.0 / float(k));
         float sunT = exp(-0.9 * od - 0.6 * d);
         float powder = 1.0 - 0.55 * exp(-4.0 * d);
-        float g = 0.62, hg = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosS, 1.5);   // 0.15 back .. 11 forward
+        float g = 0.62, hg = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosS, 1.5);
         float thin = (1.0 - d) * (1.0 - d);
-        vec3 skyAmb = mix(zenith, horizon, 0.45) * bright * (1.25 - 0.45 * d);           // blue sky light from above
-        vec3 baseTint = vec3(0.56, 0.59, 0.64) * bright * (0.55 + 0.45 * (1.0 - d));     // darker, greyer bases
-        vec3 cloud = baseTint * 0.55 + skyAmb * 0.55
+        vec3 skyTop = skyAmbientSH(vec3(0.0, 1.0, 0.0)), skyBottom = skyAmbientSH(vec3(0.0, -1.0, 0.0));
+        vec3 cloud = 0.92 * mix(skyBottom, skyTop * 1.15, 0.7 + 0.25 * (1.0 - d)) * below
                    + uSunColor * (0.30 * sunT * powder + 0.075 * hg * thin * (0.35 + 0.65 * sunT));
-        cloud = mix(cloud, horizon * bright, 1.0 - exp(-t / 5200.0));                    // aerial perspective
-        float alpha = smoothstep(0.0, 0.5, d) * (0.6 + 0.35 * d) * smoothstep(0.015, 0.14, up);   // wispy, translucent rims
+        // aerial perspective: distant cloud fades into the sky behind it
+        cloud = mix(cloud, skyModelRadiance(vec3(dir.x, max(up, 0.0), dir.z)) * below, 1.0 - exp(-t / 5200.0));
+        float alpha = smoothstep(0.0, 0.5, d) * (0.6 + 0.35 * d) * smoothstep(0.015, 0.14, up);
         c = mix(c, cloud * (1.0 - 0.3 * uRain), alpha);
     }
     c = mix(c, uFogColor, smoothstep(0.06, -0.04, up));                    // horizon haze meets the fog colour

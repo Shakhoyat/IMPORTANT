@@ -410,7 +410,7 @@ Scripted figures of the new paths (off-screen, like the other captures):
 | LOW | integrated GPUs, software rendering | 2x MSAA, 1024 shadows, no SSAO / fog / TAA |
 | HIGH | mid-range GPUs | 4x MSAA + TAA, SSAO, volumetric fog, 35k grass, lens flare |
 | ULTRA | report figures | 8x MSAA, 4096 shadows, moon god rays, 140k grass, SSR, DOF, motion blur |
-| EPIC | RTX 4070 class (auto-selected on NVIDIA / discrete GPUs) | 4x MSAA + TAA, 4096 / 2048 shadows, full-resolution SSAO, 64-step fog, 450k grass blades, full foliage density, 700 fireflies, 64-step SSR |
+| EPIC | RTX 4070 class (auto-selected on NVIDIA / discrete GPUs) | 4x MSAA + TAA, 4096 / 2048 shadows with PCSS, contact shadows, full-resolution GTAO, 64-step fog, 450k grass blades, full foliage density, 700 fireflies, 64-step SSR |
 
 The v3 pipeline: shadows -> depth/normal pre-pass -> SSAO -> volumetric fog -> HDR scene (MSAA, jittered,
 second render target with normal + reflectivity) -> resolve colour / surface / depth -> fog + screen-space
@@ -418,6 +418,24 @@ reflections -> TAA (depth reprojection, Catmull-Rom history, YCoCg variance clip
 statistics (auto-exposure, thermal AGC, temporally adapted) -> bloom -> lens flare + anamorphic streak ->
 depth of field -> composite (motion blur, grading, ACES fit, sRGB) or the thermal sensor model. Details in
 `docs/PLAN_V3.md`.
+
+### Lighting depth and tone mapping (v9 M8)
+
+- **Soft shadows:** PCSS contact-hardening on the sun's cascades (HIGH and above): a blocker search, then a penumbra
+  `w = gap x 2 tan(theta / 2)` and a Poisson PCF kernel of radius `w / 2`. The cascades cross-fade over the last 20 % of
+  the split. The moonlit night keeps the v8 filter.
+- **Contact shadows:** a 0.6 m screen-space ray towards the sun through the pre-pass depth, by day (HIGH and above).
+- **GTAO** (ground-truth ambient occlusion) replaces SSAO at EPIC by day. Nights and the LOW / HIGH / ULTRA presets
+  keep SSAO.
+- **Analytic sky:** a Preetham sky with a limb-darkened sun disc and lit cumulus. The day ambient is the same sky
+  projected onto spherical harmonics, plus the sunlit ground. Aerial perspective in-scatters this sky (and a
+  Henyey-Greenstein sun lobe) by distance and height.
+- **Tone mapping:** AgX (base contrast) is the default by day. The night keeps the v8 ACES curve, because its grade
+  was authored for that toe; the two cross-fade through twilight. ACES can be used everywhere:
+  - code: `RenderSettings::toneMap = tonemap::Operator::Aces`;
+  - environment: `TS_TONEMAP=aces` (or `agx`) for the exe, `--capture` and `--bench-shots`.
+- **Feature switches:** `TS_LIGHTING_OFF=pcss,contact,gtao,aerial` turns features off for before / after comparisons
+  (`RenderSettings::pcssOn / contactShadowsOn / gtaoOn / aerialOn` in code).
 
 ## Measured on the test machine (RTX 4070, v7 renderer)
 
