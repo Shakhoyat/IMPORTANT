@@ -58,6 +58,74 @@ Notice the check column: the world matrix computed in the sheet matches the one 
 \label{fig:wb-trace}
 \end{figure}
 
+\subsection{Following vertices into the world}
+\label{sec:worked}
+Four parts of the scene, followed by the same rule $\vect p_{\text{world}}=W\,\vect p_{\text{local}}$ with
+$W=W_{\text{parent}}\,T\,R_y\,R_x\,R_z\,S$ (Eqs.~\ref{eq:trs}, \ref{eq:world}). All matrices and points are computed by
+\code{tools/v10/gen\_m3.py} from the exported $S$, $R$, $T$ of each part; the composition reproduces the exported world
+matrices.
+
+\textbf{A. A bunker wall panel: the 8 corners of a cuboid.} Part \wgAname, child of \wgAparent; its local
+transform is $\wgAsrt$. The scale stretches the unit cube to the panel's size, the translation places it, and the
+parent's matrix carries it into the world.
+\[\scriptsize\wgAmats\]
+\begin{table}[H]
+\centering\footnotesize\wgA
+\caption{Group A: the cube's corners $v_0..v_7$ (Figure~\ref{fig:corners}a) and where they land in the world.}
+\label{tab:wgA}
+\end{table}
+
+\textbf{B. A tank road wheel: turning a torus onto the axle.} The torus is generated around the $z$ axis; the
+road-wheel group (\wgBname) turns it with $R_y$ so that the tyre's axis follows the hull's side, and the tyre's own scale
+sets its radius and width: $\wgBsrt$.
+\[\scriptsize\wgBmats\]
+\begin{table}[H]
+\centering\footnotesize\wgB
+\caption{Group B: points of the unit torus through the tyre's and wheel's matrices, then into the world; the tyre's
+axis in world space is $\wgBaxle$. The wheel group also spins about this axis as the track moves (only its local
+angle changes).}
+\label{tab:wgB}
+\end{table}
+
+\textbf{C. Joints and doors: only one local matrix changes.} Walking changes the soldier's hip and knee angles
+(rotations about the joint's $x$ axis, from the gait cycle of Section~\ref{sec:dynamic}); opening the blast door
+changes one translation of the leaf group by \wgDoorSlide\,m. Every part below the changed node moves with it,
+with no other matrix touched.
+\begin{table}[H]
+\centering\footnotesize\wgC\\[2mm]\wgCdoor
+\caption{Group C. Top: soldier 1's left leg in the exported standing pose and at the gait phase with the most knee
+bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame. Bottom: the west blast-door leaf (its
+panel \wgDoorPanel) closed and open: two opposite corners of the panel.}
+\label{tab:wgC}
+\end{table}
+
+\textbf{D. The UAV's camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
+groups, $\wgDchain$. Its view axis is the camera frame's $+z$ direction, $W(0,0,1,0)^\top$ (a direction: $w=0$, so
+translations do not affect it).
+\begin{table}[H]
+\centering\footnotesize\wgD
+\caption{Group D: camera position and view axis of UAV~1 for the exported gimbal angles and two other settings.
+Notice that the pitch alone sets the angle below the horizon, and that the camera barely moves: the gimbal turns it
+about points a few centimetres away.}
+\label{tab:wgD}
+\end{table}
+
+\begin{figure}[H]
+\centering
+{\footnotesize\textit{A: the panel's local matrix, its parent's and its world matrix}}\\[0.5mm]
+\wbblock{Vertex_Groups}{a}\\[1mm]
+\begin{minipage}[t]{0.42\linewidth}\centering{\footnotesize\textit{A: the 8 corners into the world}}\\[0.5mm]\wbblock{Vertex_Groups}{corners}\end{minipage}\hfill
+\begin{minipage}[t]{0.56\linewidth}\centering{\footnotesize\textit{C: leg forward kinematics against the exported gait}}\\[0.5mm]\wbblock{Vertex_Groups}{fk}\end{minipage}\\[1.5mm]
+{\footnotesize\textit{D: gimbal angles (inputs) and the camera's view axis}}\\[0.5mm]
+\wbblock{Vertex_Groups}{camin}\\[0.5mm]
+\wbblock{Vertex_Groups}{cam}\\[1mm]
+{\footnotesize\wbkey}
+\caption{Workbook sheet \code{Vertex\_Groups}: groups A, C and D as live formulas. Change $S$, $R$, $T$ or the gimbal
+angles and every corner and axis follows; the forward kinematics of the exported hip and knee angles reproduces
+the exported ankle path (last column $\approx0$). \fullsheet{Vertex_Groups}}
+\label{fig:wb-vgroups}
+\end{figure}
+
 \where{src/scene/Transform.h (matrix), src/math/Math3D.cpp (translate, rotateEulerYXZ, scale), src/objects/Builder.cpp}
 \critique{Euler angles in a fixed order are easy to tabulate (the brief's T/R/S table) but suffer gimbal lock at
 $\theta=\pm90^\circ$; the camera rig and the interpolation between simulation ticks therefore use quaternions

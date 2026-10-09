@@ -24,8 +24,7 @@ OUT = os.path.join(ROOT, "report", "sections", "wb")
 L = list  # readability of the config below
 BLOCKS = {
     "Primitives": [
-        ("table", "counts", "A5:Q13", dict(cols=L("ACDEFGHLMP"), hw="1.3cm")),
-        ("table", "param", "A26:J31", dict(cols=L("ABJ"), wrap={"B": "8.2cm", "J": "5.2cm"})),
+        ("table", "counts", "A5:Q22", dict(cols=L("ACDEFGHLMP"), hw="1.3cm")),
     ],
     "Decomposition": [
         ("table", "totals", "A6:L40", dict(first="3.2cm", hw="1.2cm")),
@@ -38,6 +37,13 @@ BLOCKS = {
         ("mats", "tw", [("W_{\\mathrm{par}}", "Q25:T28"), ("W", "B31:E34")]),
         ("table", "stages", "G37:O43", dict(first="5.6cm")),
         ("table", "checks", "Q37:T41", dict(first="5cm")),
+    ],
+    "Vertex_Groups": [
+        ("mats", "a", [("M", "B12:E15"), ("W_{\\text{parent}}", "G12:J15"), ("W=W_{\\text{parent}}M", "L12:O15")]),
+        ("table", "corners", "A18:I26", dict(cols=L("ABCDGHI"))),
+        ("table", "fk", "L19:S28", dict(hw="1.2cm")),
+        ("table", "camin", "A30:D30", dict(head=0)),
+        ("mats", "cam", [("R_{\\text{UAV}}", "B32:D34"), ("R_y(\\psi)R_x(\\theta)\\,\\hat z", "G32:G34"), ("\\text{view axis}", "I32:I34")]),
     ],
     "View_Projection": [
         ("table", "basis", "A5:D25", dict(first="6.4cm")),

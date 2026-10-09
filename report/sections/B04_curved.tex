@@ -20,11 +20,12 @@ shading hides the facets inside the outline but cannot hide the polygonal silhou
 \label{fig:tess}
 \end{figure}
 
-\textbf{Curved objects in the scene.} Tank road wheels and tyres, barrels, masts, helmets and heads (spheres and
-cylinders); the bunker's earth berm (a flattened sphere); rotor blur discs (flat cylinders); the soldiers' walking
+\textbf{Curved objects in the scene.} Barrels, masts and heads (spheres and cylinders); tyres and muzzle rings (tori);
+helmets, the radome and the bunker's earth berm (hemispheres); sandbags (capsules); the concertina wire (helices);
+rotor blur discs (flat cylinders); the soldiers' walking
 paths and the patrol routes are curves too (centripetal Catmull--Rom splines, Section~\ref{sec:paths}). The CC0
 trees (v9) carry their own detail levels: three simplified meshes (meshoptimizer) and an octahedral impostor far away.
-\where{src/primitives/Sphere.cpp, Cylinder.cpp; LOD chain in src/rendering/Foliage.cpp}
-\critique{There is no torus or helix generator, and the primitives have no level of detail: a distant sphere costs
+\where{src/primitives/Sphere.cpp, Hemisphere.cpp, Cylinder.cpp, Torus.cpp, Capsule.cpp, Helix.cpp; LOD chain in src/rendering/Foliage.cpp}
+\critique{The primitives have no level of detail: a distant sphere costs
 the same 1224 triangles as a close one. Choosing $s$ from projected size (e.g.\ $s\propto\sqrt{\text{pixels}}$) would cut
 the sphere triangles by a large factor in the overview shots.}

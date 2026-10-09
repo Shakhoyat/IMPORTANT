@@ -10,30 +10,31 @@ with different model matrices.}
 \text{cylinder, frustum, cone: } \vect{p}(\theta,y)=\big(r(y)\cos\theta,\ y,\ r(y)\sin\theta\big),\quad r(y)=r_b+(r_t-r_b)\big(y+\tfrac12\big)\nonumber
 \end{gather}
 with $\theta\in[0,2\pi)$ sampled at $s$ slices and $\phi\in[-\tfrac{\pi}{2},\tfrac{\pi}{2}]$ at $k$ stacks; a cone is a
-frustum with $r_t=0$. Cuboids are scaled unit cubes.
+frustum with $r_t=0$. Cuboids are scaled unit cubes. The library has sixteen generators (Table~\ref{tab:prims}); every
+one fits the unit cube $[-\tfrac12,\tfrac12]^3$, so a part's scale $S$ is its size in metres.
 
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{v5/primitive_library}{\linewidth}\caption{The unit primitives, as the program draws them.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{v5/scene_primitives_exploded}{\linewidth}\caption{\key{G}: the camp exploded into primitives, coloured by type.}\end{subfigure}
+\begin{subfigure}{\linewidth}\centering\primgrid\caption{The unit primitives, as the program draws them (all 16, with their triangle edges; \code{ts --capture prims}).}\end{subfigure}\\[2mm]
+\begin{subfigure}{0.62\linewidth}\raw{v5/scene_primitives_exploded}{\linewidth}\caption{\key{G}: the camp exploded into primitives, coloured by type.}\end{subfigure}
 \caption{Primitives in the program. Notice in (b) that the whole camp (bunker, vehicles, towers, soldiers) is made
 of the same few meshes: the colour shows which primitive each part is.}
 \label{fig:prims}
 \end{figure}
 
 \begin{table}[H]
-\centering\small
-\primtable
-\caption{The primitive library (\code{ts --export-docs}). Instances are counted over the whole scene.}
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{\primtable}
+\caption{The primitive library (\code{ts --export-docs}). Instances are counted over the whole scene. $V$ and $T$
+are given as formulas of the generator parameters ($s$ slices, $k$ stacks or rings, $u\times v$ torus grid, $c$ cap
+stacks, $n$ segments, $m$ tube sides) and as the counts of the meshes the scene uses.}
 \label{tab:prims}
 \end{table}
 
 \begin{figure}[H]
 \centering
 {\footnotesize\textit{Counts: closed-form formulas, exported counts and instances}}\\[0.5mm]
-\wbblock{Primitives}{counts}\\[2mm]
-{\footnotesize\textit{Parametric equations}}\\[0.5mm]
-\wbblock{Primitives}{param}\\[1mm]
+\wbblock{Primitives}{counts}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Primitives}: vertex and triangle counts as formulas of the slice and stack
 parameters, checked against the counts the program exports. Notice that indexing saves the vertices shared by
@@ -41,9 +42,48 @@ neighbouring triangles: the sphere draws 1224 triangles from 614 vertices instea
 \label{fig:wb-prims}
 \end{figure}
 
-\where{src/primitives/Cube.cpp, Sphere.cpp (createSphere(36,18)), Cylinder.cpp (createCylinder(slices, rTop, rBottom, caps)), Terrain.cpp}
-\critique{The brief lists eleven primitives. This code has seven: cube (and cuboid), sphere, cylinder, frustum,
-cone, the terrain disc, and an instanced 5-triangle grass blade (\code{rendering/Grass.cpp}). There is no torus,
-wedge, hemisphere or helix generator; where the scene needs a mound (the bunker's earth berm) it uses a flattened sphere
-($5.4\times1.0\times2.0$\,m, \code{objects/Bunker.cpp}). A fixed tessellation is also wasteful: all 826 sphere instances use 1224 triangles each
-(about 1.0 million triangles) even when a sphere covers a few pixels (Section~\ref{sec:curved}).}
+\begin{table}[H]
+\centering\footnotesize
+\primusetable
+\caption{Where each primitive is used: number of scene parts and the most frequent part kinds (\code{--export-docs}).}
+\label{tab:primuse}
+\end{table}
+
+\subsection{The vertices of each primitive}
+\label{sec:primverts}
+A primitive is two arrays: vertices (position $+$ normal) and indices (three per triangle). The flat primitives are
+defined by a few corners; the curved ones by a parametric formula sampled on a grid.
+
+\textbf{Flat primitives.} The cube has 8 corners $v_0..v_7$ (Figure~\ref{fig:corners}) but its mesh has 24 vertices: each
+corner belongs to three faces, and each face needs its own normal for flat shading, so the corner is stored three
+times with three normals ($6\text{ faces}\times4=24$). Each face is two counter-clockwise triangles seen from
+outside, $(0,1,2)$ and $(0,2,3)$ of its four corners. The wedge, tapered box and pyramid are built the same way from
+their corner lists.
+\begin{figure}[H]
+\centering
+\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigCube & {\scriptsize\cornersCube}\end{tabular}\\{\footnotesize (a) cube}\end{minipage}\hfill
+\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigWedge & {\scriptsize\cornersWedge}\end{tabular}\\{\footnotesize (b) wedge}\end{minipage}\\[2mm]
+\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigTaperedBox & {\scriptsize\cornersTaperedBox}\end{tabular}\\{\footnotesize (c) tapered box}\end{minipage}\hfill
+\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigPyramid & {\scriptsize\cornersPyramid}\end{tabular}\\{\footnotesize (d) pyramid}\end{minipage}
+\caption{Corner numbering of the flat primitives in their unit cube (drawn and tabulated from the export's corner
+and face lists; dashed edges are hidden from this view). A face lists its corners counter-clockwise seen from outside.}
+\label{fig:corners}
+\end{figure}
+
+\textbf{Curved primitives.} The others sample a formula on a grid of parameters; Table~\ref{tab:primparam} lists the
+formula of each as the program exports it. Neighbouring grid cells share their vertices through the index array
+(smooth normals), which is why the sphere needs \nSphereV{} vertices for \nSphereTri{} triangles.
+\begin{table}[H]
+\centering\footnotesize
+\primparamtable
+\caption{How each primitive's vertices are generated (\code{--export-docs}, fields \code{axis} and \code{parametric}).}
+\label{tab:primparam}
+\end{table}
+
+\where{src/primitives/*.cpp (Cube, Sphere, Hemisphere, Cylinder, Torus, Wedge, TaperedBox, Pyramid, Capsule, Annulus, Helix, GrassBlade, Terrain; Library.h holds the scene's generator calls)}
+\critique{The brief lists eleven primitives; the library has sixteen, and each is used in the scene
+(Table~\ref{tab:primuse}). Two shortcuts remain. The ray tracer has analytic shapes only for spheres, cylinders,
+boxes and planes: it traces a hemisphere as its whole ellipsoid, a capsule, torus or annulus as a cylinder, a wedge,
+tapered box or pyramid as a box, and it leaves the helix out. And a fixed tessellation is wasteful: all
+\nSphereInst{} sphere instances use \nSphereTri{} triangles each (about \sphereTriTotal{} million triangles) even when a
+sphere covers a few pixels (Section~\ref{sec:curved}).}

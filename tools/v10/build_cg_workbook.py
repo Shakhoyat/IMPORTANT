@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v10 teaching workbook: report/workbooks/cg_workbook.xlsx (14 formula-driven sheets) + per-sheet PNG snaps.
+"""v10 teaching workbook: report/workbooks/cg_workbook.xlsx (15 formula-driven sheets) + per-sheet PNG snaps.
 
 Run:  ~/.local/bin/uv run -q --with openpyxl --with matplotlib python tools/v10/build_cg_workbook.py
       [--export FILE.json]  (default: runs ./build/ts-v9 --export-docs into a temp file)
@@ -31,7 +31,7 @@ SOFFICE = Path.home() / ".local/opt/squashfs-root/opt/libreoffice25.8/program/so
 UV = Path.home() / ".local/bin/uv"
 NSS_LIB = Path.home() / ".local/opt/nss/root/usr/lib/x86_64-linux-gnu"
 
-SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "View_Projection", "Clipping", "Illumination",
+SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
           "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
           "Performance"]
 
@@ -186,34 +186,48 @@ def comp_index(exp):
 
 # --------------------------------------------------------------------------------------------- sheets
 def sheet_primitives(wb, exp):
-    s = Sheet(wb, "Primitives", "Primitives: vertex and triangle counts of the real mesh generators",
-              "src/primitives/{Cube,Sphere,Cylinder}.cpp, objects/Terrain.cpp createTerrainDisc, rendering/Grass.cpp; "
-              "exported counts: ts --export-docs 'primitives'.")
-    s.widths({"A": 19, "B": 33, "C": 7, "D": 8, "E": 12, "F": 8, "G": 11, "H": 8, "I": 8, "J": 11, "K": 11,
+    s = Sheet(wb, "Primitives", "Primitives: vertex and triangle counts of the 16 mesh generators",
+              "src/primitives/*.cpp (Library.h lists the scene's generator calls); exported counts and parameters: "
+              "ts --export-docs 'primitives' (P01..P16).")
+    s.widths({"A": 15, "B": 27, "C": 7, "D": 7, "E": 14, "F": 7, "G": 12, "H": 7, "I": 8, "J": 10, "K": 10,
               "L": 8, "M": 8, "N": 6, "O": 6, "P": 9, "Q": 11})
     r = 5
-    s.heads(r, 1, ["Primitive", "Generator call", "slices s", "stacks / rings k", "V formula", "V",
+    s.heads(r, 1, ["Primitive", "Generator call", "param a", "param b", "V formula", "V",
                    "T formula", "T", "indices I = 3T", "bytes indexed 24V+4I", "bytes non-indexed 72T",
                    "V export", "T export", "dV", "dT", "instances (export)", "scene triangles T export x inst"], height=42)
-    prims = {p["type"]: p for p in exp["primitives"]}
-    rows = [
-        ("Cube", "createCube()", None, None, "6 faces x 4", "=6*4", "6 faces x 2", "=6*2"),
-        ("Sphere", "createSphere(36, 18)", 36, 18, "(k-1)s + 2", "=(D{r}-1)*C{r}+2", "2s(k-1)", "=2*C{r}*(D{r}-1)"),
-        ("Cylinder", "createCylinder(36) (capped)", 36, None, "4s + 2", "=4*C{r}+2", "4s", "=4*C{r}"),
-        ("Cylinder (frustum)", "createCylinder(36, 0.03, 0.5, false)", 36, None, "2s", "=2*C{r}", "2s", "=2*C{r}"),
-        ("Cone", "createCylinder(36, 0.5, 0, true)", 36, None, "3s + 1", "=3*C{r}+1", "2s", "=2*C{r}"),
-        ("Terrain disc", "createTerrainDisc(130, 384, 36)", 384, 130, "1 + k s", "=1+D{r}*C{r}", "s(2k-1)",
-         "=C{r}*(2*D{r}-1)"),
-        ("Grass blade", "Grass.cpp instanced strip (3 segments)", None, 3, "2k + 1", "=2*D{r}+1", "2k - 1",
-         "=2*D{r}-1"),
+    P = {p["name"]: p for p in exp["primitives"]}
+    pa = lambda n, k: P[n]["params"][k]
+    rows = [  # name, a (label, value), b (label, value), V text, V formula, T text, T formula
+        ("cube", None, None, "6 x 4", "=6*4", "6 x 2", "=6*2"),
+        ("cuboid", None, None, "6 x 4", "=6*4", "6 x 2", "=6*2"),
+        ("sphere", ("s", pa("sphere", "slices")), ("k", pa("sphere", "stacks")), "(k-1)s + 2", "=(D{r}-1)*C{r}+2", "2s(k-1)", "=2*C{r}*(D{r}-1)"),
+        ("hemisphere", ("s", pa("hemisphere", "slices")), ("k", pa("hemisphere", "stacks")), "s(k+1) + 2", "=C{r}*(D{r}+1)+2", "2sk", "=2*C{r}*D{r}"),
+        ("cylinder", ("s", pa("cylinder", "slices")), None, "4s + 2", "=4*C{r}+2", "4s", "=4*C{r}"),
+        ("frustum", ("s", pa("frustum", "slices")), None, "2s", "=2*C{r}", "2s", "=2*C{r}"),
+        ("cone", ("s", pa("cone", "slices")), None, "3s + 1", "=3*C{r}+1", "2s", "=2*C{r}"),
+        ("torus", ("u", pa("torus", "u")), ("v", pa("torus", "v")), "uv", "=C{r}*D{r}", "2uv", "=2*C{r}*D{r}"),
+        ("wedge", None, None, "3 x 4 + 2 x 3", "=3*4+2*3", "3 x 2 + 2", "=3*2+2*1"),
+        ("tapered box", None, None, "6 x 4", "=6*4", "6 x 2", "=6*2"),
+        ("pyramid", None, None, "4 + 4 x 3", "=4+4*3", "2 + 4", "=2+4"),
+        ("capsule", ("s", pa("capsule", "slices")), ("c", pa("capsule", "cap_stacks")), "2cs + 2", "=2*D{r}*C{r}+2", "4cs", "=4*D{r}*C{r}"),
+        ("annulus", ("n", pa("annulus", "segments")), None, "4n", "=4*C{r}", "4n", "=4*C{r}"),
+        ("helix", ("n", pa("helix", "segments")), ("m", pa("helix", "sides")), "(n+1)m + 2(m+1)", "=(C{r}+1)*D{r}+2*(D{r}+1)",
+         "2nm + 2m", "=2*C{r}*D{r}+2*D{r}"),
+        ("grass blade", None, ("rows", len(pa("grass blade", "rows"))), "2 x rows + 1", "=2*D{r}+1", "2(rows-1) + 1", "=2*(D{r}-1)+1"),
+        ("terrain disc", ("s", pa("terrain disc", "slices")), ("k", pa("terrain disc", "rings")), "1 + ks", "=1+D{r}*C{r}",
+         "s(2k-1) - D", "=C{r}*(2*D{r}-1)-" + str(pa("terrain disc", "trench_dropped"))),
     ]
     first = r + 1
-    for name, call, sl, st, vtxt, vf, ttxt, tf in rows:
+    for name, a_, b_, vtxt, vf, ttxt, tf in rows:
         r += 1
-        s.put(r, 1, name, bold=True)
-        s.put(r, 2, call, inp=True)
-        s.put(r, 3, sl if sl is not None else "-", inp=sl is not None, center=True)
-        s.put(r, 4, st if st is not None else "-", inp=st is not None, center=True)
+        p = P[name]
+        s.put(r, 1, f"{p['number']} {name}", bold=True)
+        s.put(r, 2, p["function"] if name != "cuboid" else "createCube(), S non-uniform", inp=True)
+        for col, par in ((3, a_), (4, b_)):
+            if par:
+                s.put(r, col, par[1], inp=True, center=True, fmt="0")
+            else:
+                s.put(r, col, "-", center=True)
         s.put(r, 5, vtxt, center=True)
         s.put(r, 6, vf.format(r=r), fmt="0")
         s.put(r, 7, ttxt, center=True)
@@ -221,72 +235,46 @@ def sheet_primitives(wb, exp):
         s.put(r, 9, f"=3*H{r}", fmt="0")
         s.put(r, 10, f"=24*F{r}+4*I{r}", fmt="0")
         s.put(r, 11, f"=72*H{r}", fmt="0")
-        if name in prims:
-            p = prims[name]
-            s.put(r, 12, p["vertices"], inp=True)
-            s.put(r, 13, p["triangles"], inp=True)
-            s.put(r, 16, p["instances"], inp=True)
-            s.put(r, 17, f"=M{r}*P{r}", fmt="0")
-        else:  # grass: counts from the Grass.cpp comment (7 vertices, 5 triangles); not in the primitive library
-            s.put(r, 12, 7, inp=True)
-            s.put(r, 13, 5, inp=True)
-            s.put(r, 16, "-", center=True)
-            s.put(r, 17, "-", center=True)
+        s.put(r, 12, p["vertices"], inp=True)
+        s.put(r, 13, p["triangles"], inp=True)
         s.put(r, 14, f"=F{r}-L{r}", fmt="0")
         s.put(r, 15, f"=H{r}-M{r}", fmt="0")
+        s.put(r, 16, p["instances"], inp=True)
+        s.put(r, 17, f"=M{r}*P{r}", fmt="0")
     last = r
     r += 1
-    s.put(r, 1, "Scene total (library)", bold=True)
-    s.put(r, 16, f"=SUM(P{first}:P{last - 1})", fmt="0")
-    s.put(r, 17, f"=SUM(Q{first}:Q{last - 1})", fmt="0")
+    s.put(r, 1, "Scene total (parts)", bold=True)
+    s.put(r, 16, f"=SUM(P{first}:P{last})", fmt="0")
+    s.put(r, 17, f"=SUM(Q{first}:Q{last})", fmt="0")
     r += 1
-    s.note(r, 1, "dV = dT = 0: the closed-form counts match the exported meshes. Terrain dT = triangles whose centroid "
-                 "lies in the entrance-trench hole (dropped by createTerrainDisc).")
+    s.note(r, 1, "dV = dT = 0: the closed-form counts match the exported meshes. Terrain: D = triangles dropped inside the "
+                 "entrance trench (export params.trench_dropped). Grass blade: 0 scene parts, "
+                 f"{P['grass blade'].get('gpu_instances', 0)} GPU instances at EPIC.")
     r += 1
     s.note(r, 1, "Bytes: 24-byte vertex (position + normal, 6 floats), 4-byte indices; non-indexed = 3 vertices per "
                  "triangle (72 bytes). Exported bytes_indexed / bytes_non_indexed agree.")
-    r += 2
-    s.put(r, 1, "Not primitives in this code (docs/audit.md section 2)", border=False, bold=True)
     r += 1
-    s.heads(r, 1, ["Shape", "Status in the code"])
-    for shape, status in [("Cuboid", "a scaled createCube() (S per part); not a separate generator"),
-                          ("Hemisphere", "NOT a primitive (only scaled / clipped spheres in places)"),
-                          ("Torus", "NOT a primitive: no generator exists"),
-                          ("Wedge / prism", "NOT a primitive: no generator exists"),
-                          ("Helix", "NOT a primitive: no generator exists")]:
-        r += 1
-        s.put(r, 1, shape, bold=True)
-        s.put(r, 2, status)
-        s.ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=8)
-    r += 2
-    s.put(r, 1, "Parametric equations (local space, unit size)", border=False, bold=True)
+    s.ws.row_breaks.append(Break(id=r))
     r += 1
-    s.heads(r, 1, ["Primitive", "Point p(parameters)", "", "", "", "", "", "", "", "Parameter ranges"])
+    s.put(r, 1, "Parametric equations (local space, unit size; export 'parametric' and 'axis')", border=False, bold=True)
+    r += 1
+    s.heads(r, 1, ["Primitive", "Point p(parameters)", "", "", "", "", "", "", "", "Placement / axis"])
     s.ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=9)
     s.ws.merge_cells(start_row=r, start_column=10, end_row=r, end_column=17)
-    eqs = [
-        ("Cube", "p = 0.5 n + 0.5 (a u + b v), face frame (n, u, v) with u x v = n",
-         "6 faces, a, b in {-1, +1}; 2 CCW triangles (0,1,2), (0,2,3) per face"),
-        ("Sphere", "p = 0.5 (sin(th) cos(ph), cos(th), sin(th) sin(ph)), normal = p / 0.5",
-         "th = pi k / stacks, k = 1..stacks-1; ph = 2 pi j / slices; 2 poles; south half mirrored (y -> -y)"),
-        ("Cylinder / frustum / cone", "p = (r(z) cos(ph), r(z) sin(ph), z), r(-0.5) = r_bottom, r(+0.5) = r_top",
-         "ph = 2 pi j / slices; cylinder r = 0.5 / 0.5, frustum 0.5 / 0.03, cone 0.5 / 0 (apex); caps = fans"),
-        ("Terrain disc", "p = (r cos(ph), h(x, z), r sin(ph)), r = 36 k / rings",
-         "k = 0..130, ph = 2 pi j / 384; h = terrainHeight(x, z); normal by central differences"),
-        ("Grass blade", "p = (+-0.625 w(t), t - 0.5, 0), t in {0, 0.38, 0.72}; tip (0, 0.5, 0)",
-         "bent and scaled per instance in the vertex shader (wind, lean); one-sided strip"),
-    ]
-    for name, eq, rg in eqs:
+    r0 = r
+    for p in exp["primitives"]:
         r += 1
-        s.put(r, 1, name, bold=True)
-        s.put(r, 2, eq)
+        s.put(r, 1, f"{p['number']} {p['name']}", bold=True)
+        eq = p["parametric"] or ("corners: " + " ".join("(" + ",".join(f"{x:g}" for x in c) + ")" for c in p.get("corners", [])))
+        s.put(r, 2, eq, wrap=True)
         s.ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=9)
-        s.put(r, 10, rg)
+        s.put(r, 10, p["axis"], wrap=True)
         s.ws.merge_cells(start_row=r, start_column=10, end_row=r, end_column=17)
-    for rr in range(r - len(eqs) + 1, r + 1):
+        s.ws.row_dimensions[r].height = 15 * max(1, (len(eq) + 89) // 90)
+    for rr in range(r0 + 1, r + 1):
         for cc in range(2, 18):
             s.ws.cell(row=rr, column=cc).border = BORDER
-    s.finish(last_col=17)
+    s.finish(last_col=17, fit=False, scale=78)
 
 
 PRIM_ORDER = ["Cube", "Sphere", "Cylinder", "Cylinder (frustum)", "Cone", "Terrain disc"]
@@ -1884,6 +1872,110 @@ def sheet_line_follower(wb, exp):
     s.finish(last_col=13)
 
 
+def sheet_vertex_groups(wb, exp):
+    """v10 M3: object creation by matrices: a wall panel's 8 corners into the world (group A), the soldier's leg by
+    forward kinematics against the exported gait (group C), the UAV camera's view axis under gimbal yaw / pitch (D)."""
+    C = exp["components"]
+    byid = comp_index(exp)
+    wall = next(c for c in C if c["object"] == "Command Bunker" and c["primitive"] == "Cube" and "wall" in c["name"].lower()
+                and c.get("surface") == "Concrete" and abs(c["R_deg"][1]) < 1e-3 and max(c["S"]) > 2)
+    par = byid[wall["parent_id"]]
+    s = Sheet(wb, "Vertex_Groups", "Vertex_Groups: parts built from unit primitives by matrices (report Section 7.1)",
+              f"ts --export-docs: {wall['id']} '{wall['name']}' (S, R_deg, T, parent world), cube corners (primitives P01), "
+              "v6.garrison.gait (thigh, shin, cycle), UAV gimbal parts; objects/Builder M = T Ry Rx Rz S; scene/Gait legFK.")
+    s.widths({"A": 20, **{get_column_letter(c): 8.5 for c in range(2, 24)}})
+    S = s.put
+    r = 5
+    S(r, 1, f"A. {wall['name']} ({wall['id']}): unit cube -> world", border=False, bold=True)
+    s.heads(r + 1, 1, ["", "x", "y", "z"])
+    rows = {}
+    for k, (lab, vals) in enumerate([("S", wall["S"]), ("R_deg", wall["R_deg"]), ("T", wall["T"])]):
+        S(r + 2 + k, 1, lab, bold=True)
+        for j, x in enumerate(vals):
+            S(r + 2 + k, 2 + j, round(x, 6), inp=True)
+        rows[lab] = r + 2 + k
+    Sx, Sy, Sz = (A(rows["S"], 2 + j, True) for j in range(3))
+    Rx_, Ry_, Rz_ = (A(rows["R_deg"], 2 + j, True) for j in range(3))
+    Tx, Ty, Tz = (A(rows["T"], 2 + j, True) for j in range(3))
+    cx, sx = f"COS(RADIANS({Rx_}))", f"SIN(RADIANS({Rx_}))"
+    cy, sy = f"COS(RADIANS({Ry_}))", f"SIN(RADIANS({Ry_}))"
+    cz, sz = f"COS(RADIANS({Rz_}))", f"SIN(RADIANS({Rz_}))"
+    # R = Ry Rx Rz written out, times S, plus T: the local matrix in one grid
+    R = [[f"{cy}*{cz}+{sy}*{sx}*{sz}", f"-{cy}*{sz}+{sy}*{sx}*{cz}", f"{sy}*{cx}"],
+         [f"{cx}*{sz}", f"{cx}*{cz}", f"-{sx}"],
+         [f"-{sy}*{cz}+{cy}*{sx}*{sz}", f"{sy}*{sz}+{cy}*{sx}*{cz}", f"{cy}*{cx}"]]
+    Ssc = [Sx, Sy, Sz]
+    Tv = [Tx, Ty, Tz]
+    M = [[f"=({R[i][j]})*{Ssc[j]}" for j in range(3)] + [f"={Tv[i]}"] for i in range(3)] + [[0, 0, 0, 1]]
+    gm = s.grid(r + 6, 2, "M = T Ry Rx Rz S", M)
+    gp = s.grid(r + 6, 7, "W parent (export)", [[round(x, 7) for x in row] for row in rowmajor(par["world_matrix"])], inp=True)
+    gw = s.grid(r + 6, 12, "W = W parent M", matmul_cells(gp, gm))
+    gx = s.grid(r + 6, 17, "W exported", [[round(x, 7) for x in row] for row in rowmajor(wall["world_matrix"])], inp=True)
+    S(r + 11, 17, "max |W - W exported|", bold=True)
+    s.ws.merge_cells(start_row=r + 11, start_column=17, end_row=r + 11, end_column=19)
+    S(r + 11, 20, "=MAX(" + ",".join(f"ABS({A(gw[0] + i, gw[1] + j)}-{A(gx[0] + i, gx[1] + j)})" for i in range(4) for j in range(4)) + ")")
+    b = r + 13
+    s.heads(b, 1, ["corner", "x", "y", "z", "w", "", "world x", "world y", "world z"])
+    corners = next(p for p in exp["primitives"] if p["name"] == "cube")["corners"]
+    for i, c in enumerate(corners):
+        rr = b + 1 + i
+        S(rr, 1, f"v{i}", bold=True, center=True)
+        for j, x in enumerate(c + [1]):
+            S(rr, 2 + j, x, inp=True, fmt="0.0")
+        v = [A(rr, 2 + k) for k in range(4)]
+        for j, f_ in enumerate(matvec(gw, v)[:3]):
+            S(rr, 7 + j, f_)
+    # C: leg forward kinematics vs the exported gait cycle
+    gait = exp["v6"]["garrison"]["gait"]
+    c0 = 12
+    b = r + 13
+    S(b - 1, c0, "C. Leg FK: x = L1 sin h + L2 sin(h - k), y = -L1 cos h - L2 cos(h - k)", border=False, bold=True)
+    S(b, c0, "L1 thigh", head=True)
+    S(b, c0 + 1, gait["walk"]["thigh"], inp=True)
+    S(b, c0 + 2, "L2 shin", head=True)
+    S(b, c0 + 3, gait["walk"]["shin"], inp=True)
+    L1, L2 = A(b, c0 + 1, True), A(b, c0 + 3, True)
+    s.heads(b + 1, c0, ["phase", "hip h", "knee k", "x FK", "y FK", "x export", "y export", "|diff|"], height=18)
+    for i, row in enumerate(gait["cycle"][::4]):
+        rr = b + 2 + i
+        S(rr, c0, row["phase"], inp=True, fmt="0.000")
+        S(rr, c0 + 1, round(row["hip_l"], 4), inp=True, fmt="0.0")
+        S(rr, c0 + 2, round(row["knee_l"], 4), inp=True, fmt="0.0")
+        h, k = A(rr, c0 + 1), A(rr, c0 + 2)
+        S(rr, c0 + 3, f"={L1}*SIN(RADIANS({h}))+{L2}*SIN(RADIANS({h}-{k}))")
+        S(rr, c0 + 4, f"=-{L1}*COS(RADIANS({h}))-{L2}*COS(RADIANS({h}-{k}))")
+        S(rr, c0 + 5, row["foot_x_l"], inp=True)
+        S(rr, c0 + 6, row["foot_y_l"], inp=True)
+        S(rr, c0 + 7, f"=SQRT(({A(rr, c0 + 3)}-{A(rr, c0 + 5)})^2+({A(rr, c0 + 4)}-{A(rr, c0 + 6)})^2)", fmt="0.0E+00")
+    # D: UAV camera view axis under gimbal yaw / pitch
+    yaw = next(c for c in C if c["object"] == "Autonomous UAV" and c["name"] == "Gimbal yaw")
+    pitch = next(c for c in C if c["object"] == "Autonomous UAV" and c["name"] == "Gimbal pitch" and c["parent_id"] == yaw["id"])
+    uav = byid[yaw["parent_id"]]
+    b = r + 24
+    S(b, 1, "D. UAV camera: view axis = R_UAV Ry(yaw) Rx(pitch) (0, 0, 1)", border=False, bold=True)
+    S(b + 1, 1, "yaw (deg)", bold=True)
+    S(b + 1, 2, round(yaw["R_deg"][1], 3), inp=True)
+    S(b + 1, 3, "pitch (deg)", bold=True)
+    S(b + 1, 4, round(pitch["R_deg"][0], 3), inp=True)
+    yv, pv = A(b + 1, 2, True), A(b + 1, 4, True)
+    Wu = rowmajor(uav["world_matrix"])
+    gu = s.grid(b + 2, 2, f"R_UAV (rotation of {uav['id']} world, export)", [[round(Wu[i][j], 7) for j in range(3)] for i in range(3)], inp=True)
+    # local axis Ry(yaw) Rx(pitch) (0,0,1) = (sin(yaw) cos(pitch), -sin(pitch), cos(yaw) cos(pitch))
+    S(b + 2, 7, "gimbal axis", bold=True)
+    loc = [f"=SIN(RADIANS({yv}))*COS(RADIANS({pv}))", f"=-SIN(RADIANS({pv}))", f"=COS(RADIANS({yv}))*COS(RADIANS({pv}))"]
+    for i, f_ in enumerate(loc):
+        S(b + 3 + i, 7, f_)
+    S(b + 2, 9, "world view axis", bold=True)
+    for i in range(3):
+        S(b + 3 + i, 9, "=" + "+".join(f"{A(gu[0] + i, gu[1] + k)}*{A(b + 3 + k, 7)}" for k in range(3)))
+    S(b + 2, 11, "below horizon (deg)", bold=True)
+    s.ws.merge_cells(start_row=b + 2, start_column=11, end_row=b + 2, end_column=12)
+    S(b + 3, 11, f"=DEGREES(ASIN(-{A(b + 4, 9)}))")
+    s.note(b + 7, 1, "Change yaw / pitch (yellow): the axis turns; the pitch alone sets the angle below the horizon "
+                     "(the UAV flies level).")
+    s.finish(last_col=20, fit=False, scale=76)
+
+
 def build(export_path):
     exp = load_export(export_path)
     wb = Workbook()
@@ -1895,6 +1987,7 @@ def build(export_path):
     vp = sheet_view_projection(wb, exp)
     wb.remove(tt_placeholder)
     sheet_transform_trace(wb, exp, vp)
+    sheet_vertex_groups(wb, exp)
     sheet_clipping(wb)
     sheet_illumination(wb, exp, vp)
     sheet_color_interp(wb, exp)

@@ -4,13 +4,16 @@
 \textit{Builds on: primitives (\ref{sec:prims}), modelling transforms (\ref{sec:trs}), hierarchy (\ref{sec:hier}).}
 
 Every object is listed with its assembled view, its exploded view where the program draws one (\key{G}), and a
-parts table generated from \code{--export-docs}: part kinds grouped by name and primitive, their count, the local
-scale $S$ of the first part of each kind, its base colour, and its material (specular weight $k_s$ and Blinn--Phong
-shininess $n$). The workbook sheet \code{Decomposition} lists every single part of the UAV and a soldier with
+parts table generated from \code{--export-docs} that covers every part: parts grouped by primitive and material, their
+count, the base colour and material (specular weight $k_s$ and Blinn--Phong shininess $n$) of the group's first part,
+and the part kinds in the group. For the UAV, the soldier, the tank and the command bunker a second table lists the
+largest parts with $S$, $T$, $R$ and parent; every part kind of the UAV and the soldier is shown as the program renders
+it (\code{ts --capture parts:<object>}), and the UAV and the tank are shown being built up in hierarchy order
+(\code{ts --capture build:<object>}). The workbook sheet \code{Decomposition} lists every single part of the UAV and a soldier with
 $T$, $R$, $S$ and parent (Figure~\ref{fig:wb-decomp}). Table~\ref{tab:objs} gives the totals for all objects.
 
 \begin{table}[H]
-\centering\footnotesize
+\centering\footnotesize\setlength{\tabcolsep}{2.6pt}
 \objtable
 \caption{Every composite object, per unit: parts, group nodes, animated nodes and primitives used, with the number of
 units $n$ of each design (\code{--export-docs}).}
@@ -19,15 +22,80 @@ units $n$ of each design (\code{--export-docs}).}
 
 \newcommand{\catalogue}[5]{%
 \begin{figure}[H]\centering
-\begin{minipage}[c]{0.47\linewidth}\centering #2\\[0.5mm] #3\end{minipage}\hfill
-\begin{minipage}[c]{0.51\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{#4}\end{minipage}
+\ifx\relax#3\relax\begin{minipage}[c]{0.6\linewidth}\centering #2\end{minipage}%
+\else\begin{minipage}[c]{0.49\linewidth}\centering #2\end{minipage}\hfill
+\begin{minipage}[c]{0.49\linewidth}\centering #3\end{minipage}\fi\\[1.5mm]
+{\scriptsize\setlength{\tabcolsep}{3pt}#4}
 \caption{#1 #5}\end{figure}}
 
 \catalogue{UAV.}{\raw{v5/iso_uav_assembled}{\linewidth}}{\raw{v5/iso_uav_exploded}{\linewidth}}{\decompAutonomousUav}
 {Notice how small parts dominate the count: 16 fins on four rounds are a fifth of the parts but invisible from the camp.}
 
+\begin{table}[H]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}\mainAutonomousUav
+\caption{The UAV's largest parts (by the volume of $S$), in hierarchy order, with $S$, $T$, $R$ and parent.}
+\label{tab:main-uav}
+\end{table}
+\begin{figure}[H]
+\centering\partsgridUav
+\caption{Every part kind of the UAV (\nKindsUav{} kinds, $\times n$ = parts of that kind), each rendered alone at
+the same size by \code{ts --capture parts:"Autonomous UAV"}. Glass and rotor-blur parts are drawn opaque, the light
+beam as a solid.}
+\label{fig:parts-uav}
+\end{figure}
+\begin{figure}[H]
+\centering\buildstripUav
+\caption{The UAV built up in hierarchy order (depth-first order of the scene graph): the first 12, 35, 65 and 100\,\%
+of its parts (\code{ts --capture build:"Autonomous UAV"}).}
+\label{fig:build-uav}
+\end{figure}
+
 \catalogue{Soldier (rigged; all eight share it).}{\raw{scene/soldier_front}{0.8\linewidth}}{\raw{scene/soldier_exploded}{\linewidth}}{\decompSoldier}
 {Notice the joints in the exploded view: limbs are separate group nodes, so the gait only writes joint angles.}
+
+\begin{figure}[H]
+\centering\soldiergraph
+\caption{The soldier's scene graph: the \soldierGroups{} group nodes from the pelvis down, each with its local $T$ (m)
+and $R$ ($^\circ$) in the exported pose and the number of parts ($p$) attached to it; orange = animated by the
+gait or the pose. The root \code{Soldier 1} places the pelvis in the world at $T=\soldierRootT$.}
+\label{fig:soldier-graph}
+\end{figure}
+The gait (\code{scene/Gait.cpp}) writes only the joint angles of Figure~\ref{fig:soldier-graph}. The phase advances
+by distance over stride, so a stance foot stands still on the ground at any speed. During the stance the ankle moves back
+relative to the hip; during the swing it follows a cycloid forward with a sine lift; two-link inverse kinematics then
+gives the hip and knee angles that put the ankle there (thigh $L_1=\gait{thigh}$\,m, shin $L_2=\gait{shin}$\,m):
+\begin{gather}
+x=x_b+(x_f-x_b)\Big(s-\frac{\sin2\pi s}{2\pi}\Big),\quad y=y_0+h\sin\pi s+r(1-s)^2\qquad\text{(swing, }s\in[0,1],\ r=\text{heel rise})\nonumber\\
+\kappa=\pi-\arccos\frac{L_1^2+L_2^2-d^2}{2L_1L_2},\quad
+\eta=\operatorname{atan2}(x,-y)+\arccos\frac{L_1^2+d^2-L_2^2}{2L_1d},\quad d=\sqrt{x^2+y^2}
+\label{eq:gait}
+\end{gather}
+with $\kappa$ the knee bend and $\eta$ the hip angle (applied as $R_x(-\eta)$ and $R_x(\kappa)$). Walking uses
+\gait{speed}\,m/s, stride \gait{stride}\,m, stance \gait{duty} of the cycle, lift $h=\gait{lift}$\,m and a pelvis bob of
+\gait{bob}\,m (\gait{cadence_steps_per_min} steps per minute).
+\begin{figure}[H]
+\centering\includegraphics[width=\linewidth]{figures/diagrams/d_gait.pdf}
+\caption{The walk cycle as the program exports it (\code{v6.garrison.gait.cycle}): (a) hip and knee angles of both
+legs over one cycle; (b) the left ankle's path relative to the hip (stance along the bottom, swing above it).}
+\label{fig:gait}
+\end{figure}
+\begin{table}[H]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}\mainSoldier
+\caption{The soldier's largest parts with $S$, $T$, $R$ and parent.}
+\label{tab:main-soldier}
+\end{table}
+\begin{table}[H]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}\variantsSoldier
+\caption{The eight soldiers are one design (\nSoldierParts{} parts) placed eight times. What differs: the root
+transform, the girth (pelvis and torso $S_x$ relative to soldier 1), the colours of skin and uniform parts, and the
+joint angles of the pose each was in at export (animated groups more than $0.5^\circ$ from soldier 1).}
+\label{tab:var-soldier}
+\end{table}
+\begin{figure}[H]
+\centering\partsgridSoldier
+\caption{Every part kind of the soldier (\nKindsSoldier{} kinds), rendered alone by \code{ts --capture parts:"Soldier 1"}.}
+\label{fig:parts-soldier}
+\end{figure}
 
 \catalogue{Target rover (intruder).}{\raw{v5/iso_rover_assembled}{\linewidth}}{\raw{v5/iso_rover_exploded}{\linewidth}}{\decompTargetRover}
 {Notice that \roverAnim{} of its nodes are animated (wheels, sensor mast); the scene has \roverN{} rovers of this design, \roverParts{} parts each.}
@@ -35,8 +103,28 @@ units $n$ of each design (\code{--export-docs}).}
 \catalogue{Command bunker (underground).}{\raw{v5/iso_bunker_assembled}{\linewidth}}{\raw{v5/iso_bunker_exploded}{\linewidth}}{\decompCommandBunker}
 {Notice that the bunker is the \bunkerRank{} object (\bunkerParts{} parts, after \bunkerAbove): its rooms below ground are modelled and walkable.}
 
+\begin{table}[H]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}\mainCommandBunker
+\caption{The command bunker's largest parts with $S$, $T$, $R$ and parent.}
+\label{tab:main-bunker}
+\end{table}
+
 \catalogue{Main battle tank.}{\raw{scene/iso_tank}{\linewidth}}{}{\decompMainBattleTank}
-{Notice that 118 of its nodes are animated (road wheels, track, turret, gun): driving only changes local matrices.}
+{Notice that \tankAnim{} of its nodes are animated (road wheels, track, turret, gun): driving only changes local matrices.}
+
+\begin{table}[H]
+\centering\scriptsize\setlength{\tabcolsep}{3pt}\mainMainBattleTank\\[2mm]
+\footnotesize\variantsTank
+\caption{Top: the tank's largest parts with $S$, $T$, $R$ and parent. Bottom: the three tanks are one design; only
+the root transform differs.}
+\label{tab:main-tank}
+\end{table}
+\begin{figure}[H]
+\centering\buildstripTank
+\caption{The tank built up in hierarchy order (\code{ts --capture build:"Main Battle Tank"}): hull first, then
+running gear, then turret and gun.}
+\label{fig:build-tank}
+\end{figure}
 
 \catalogue{Scout helicopter.}{\raw{scene/iso_heli}{\linewidth}}{}{\decompScoutHelicopter}
 {Notice the one frustum (a cylinder with two radii): it is the searchlight's visible cone.}
@@ -72,4 +160,4 @@ first 26 UAV parts with their transforms. \fullsheet{Decomposition}}
 \where{src/objects/*.cpp (one builder per object), src/app/DocExport.cpp (export), tools/v10/gen\_decomp.py (tables)}
 \critique{Static scenery (base walls, camouflage nets, environment props) is listed only in Table~\ref{tab:objs}; its
 \partsBase{} + \partsEnv{} + \partsCamp{} parts are repetitive kit pieces. Exploded views exist for the UAV, rover, bunker, soldier and the
-whole scene; the other vehicles are shown assembled.}
+whole scene; the other vehicles are shown assembled (the tank also built up stage by stage).}

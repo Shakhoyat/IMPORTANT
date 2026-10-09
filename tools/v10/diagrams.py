@@ -781,6 +781,43 @@ def triangulation():
     save(fig, "d_triangulation")
 
 
+# ------------------------------------------------------------------------------- soldier gait cycle (from the export)
+def gait():
+    import json
+    exp = json.load(open(os.path.join(ROOT, "report", "data", "scene_export_v10.json")))
+    g = exp["v6"]["garrison"]["gait"]
+    cyc = g["cycle"]
+    ph = np.array([r["phase"] for r in cyc])
+    fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.4), gridspec_kw=dict(width_ratios=[1.5, 1]))
+    a_ = ax[0]
+    duty = g["walk"]["duty"]
+    a_.axvspan(0, duty, color=C["light"], alpha=0.7, lw=0)
+    a_.text(duty / 2, -26, "left foot on the ground (stance)", ha="center", fontsize=7.5, color=C["blue"])
+    for key, col, ls, lab in [("hip_l", C["blue"], "-", "hip L"), ("knee_l", C["red"], "-", "knee L"),
+                              ("hip_r", C["blue"], "--", "hip R"), ("knee_r", C["red"], "--", "knee R")]:
+        a_.plot(ph, [r[key] for r in cyc], color=col, ls=ls, lw=1.4, label=lab)
+    a_.set_xlabel("gait phase (cycles)")
+    a_.set_ylabel("joint angle (degrees)")
+    a_.set_xlim(0, 1)
+    a_.set_ylim(-30, 98)
+    a_.grid(alpha=0.3)
+    a_.legend(loc="upper center", ncol=4, fontsize=7.5, handlelength=1.6, columnspacing=1.0)
+    a_.set_title(f"(a) walk: {g['walk']['speed']:g} m/s, stride {g['walk']['stride']:g} m, stance {duty:.0%}")
+    b_ = ax[1]
+    x = [r["foot_x_l"] for r in cyc]
+    y = [r["foot_y_l"] for r in cyc]
+    b_.plot(x, y, color=C["purple"], lw=1.5)
+    b_.plot(x[0], y[0], "o", color=C["purple"], ms=4)
+    b_.plot(0, 0, "o", color="k", ms=5)
+    b_.annotate("hip", (0, 0), (0.06, -0.06), fontsize=7.5)
+    b_.set_aspect("equal")
+    b_.set_xlabel("ankle forward of the hip (m)")
+    b_.set_ylabel("ankle height (m)")
+    b_.grid(alpha=0.3)
+    b_.set_title("(b) left ankle path relative to the hip")
+    save(fig, "d_gait")
+
+
 if __name__ == "__main__":
     trs()
     hierarchy()
@@ -797,3 +834,4 @@ if __name__ == "__main__":
     particles()
     floodfill()
     triangulation()
+    gait()

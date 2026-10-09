@@ -14,8 +14,9 @@ G[play]="play_select,play_first_person,play_third_person,play_prompt_uav,play_do
 G[lab]="lab_shading,lab_buffers,lab_cv,lab_materials,lab_relief,lab_reflect,explorer"
 G[rt]="raytrace_modes,raytrace_tree,raytrace_perf"
 G[game]="uav_missile_launch,combined_strike,thermal_fpv_strike,explosion_early,explosion_mid,explosion_smoke,wreck_burning,kill_banner"
+G[m3]="prims,parts:Autonomous UAV,parts:Main Battle Tank,parts:Soldier 1,parts:Command Bunker,parts:Ammunition bunker,build:Autonomous UAV,build:Main Battle Tank,build:Soldier 1,build:Command Bunker,build:Ammunition bunker"
 SEL=("$@")
-[ ${#SEL[@]} -eq 0 ] && SEL=(scene v5 play lab rt game)
+[ ${#SEL[@]} -eq 0 ] && SEL=(scene v5 play lab rt game m3)
 for g in "${SEL[@]}"; do
   mkdir -p "$OUT/$g"
   echo "== $g: ${G[$g]}"

@@ -71,6 +71,41 @@ link them without a GPU" -> "that runs without a GPU (the --export-docs path use
 has no conflicts" -> "it has no conflicts"); Table 23.1 "Test" column and caption clause; test ids in Sections 3, 23,
 28 and Table 31.1.
 
+## M3: 16 primitives adopted in the program and documented
+
+Program (merged from the M3 worktree branch): 9 new generators (hemisphere, torus, wedge, tapered box, pyramid, capsule,
+annulus, helix, grass blade moved out of Grass.cpp) with tests T410-T435 (388 tests, 0 failed); parts moved onto them
+(helix concertina wire, torus tyres / treads / muzzle rings / cupola and motor rings, hemisphere radome / helmets /
+earth berm, wedge ramp floor / glacis / wing-wall slopes, tapered-box turret bodies / torsos, capsule sandbags,
+pyramid gate-post caps, annulus pad rings); export schema 8 (16 primitives with parameters, formulas, corner and face
+lists; per part S_rest, hidden_at_export, dfs order, part kind; per object variants, instances, build stages); capture
+modes `prims`, `parts:<object>`, `build:<object>` (capture group `m3`).
+
+| Where | Old | New |
+|---|---|---|
+| Scene parts (`\nLeaves`, Table 19.1 total, Table 6.1 total) | 5 736 | 5 476 (312 "Wire coil turn" cylinders -> 52 helices) |
+| Table 6.1 | 6 rows (Cube 2 478, Sphere 826, Cylinder 2 133, Frustum 3, Cone 295, Terrain 1) | 16 rows P01-P16 with V / T formulas: cube 24, cuboid 2 443, sphere 808, hemisphere 10, cylinder 1 358, frustum 3, cone 295, torus 97, wedge 6, tapered box 11, pyramid 2, capsule 364, annulus 2, helix 52, grass blade 0 parts (450 000 GPU instances at EPIC), terrain disc 1 |
+| Table 6.1 caption | "...counted over the whole scene." | + "V and T are given as formulas of the generator parameters ... and as the counts of the meshes the scene uses." |
+| Fig. 6.1a | old library render (7 primitives) | all 16 primitives with triangle edges (`ts --capture prims`); subcaption keeps its wording + "(all 16, with their triangle edges; ts --capture prims)" |
+| Section 6 text | "Cuboids are scaled unit cubes." | + "The library has sixteen generators (Table 6.1); every one fits the unit cube, so a part's scale S is its size in metres." |
+| Section 6 critique | "This code has seven ... There is no torus, wedge, hemisphere or helix generator; ... flattened sphere ... all 826 sphere instances use 1224 triangles each (about 1.0 million triangles)" | "the library has sixteen, and each is used in the scene ... ray tracer stand-ins ... all 808 sphere instances use 1224 triangles each (about 0.99 million triangles)" |
+| Section 6 where | Cube, Sphere, Cylinder, Terrain | all generator files + Library.h |
+| new Table 6.2 | -- | where each primitive is used (parts and most frequent part kinds) |
+| new 6.1 "The vertices of each primitive" | -- | corner drawings + tables of cube / wedge / tapered box / pyramid (Fig. 6.3, from the export's corner and face lists), why the cube has 24 vertices, Table 6.3 parametric generation of all 16 |
+| Workbook sheet Primitives (Fig. 6.2, App. A.1) | 7 rows + "not primitives" list + 5 parametric rows | 16 rows with live V / T formulas (dV = dT = 0 for all), 16 parametric rows from the export; prints at 77 % (7.0 pt) |
+| new 7.1 "Following vertices into the world" | -- | Groups A (bunker retaining wall: 8 corners), B (tank road wheel: torus turned by R_y onto the axle), C (soldier hip / knee standing vs walking; blast-door leaf closed vs open, slide 1.5 m), D (UAV camera under gimbal yaw / pitch); Tables 7.1-7.4, matrices computed from the export (composition matches the exported world matrices to 2e-5) |
+| Section 19 intro | "part kinds grouped by name and primitive, their count, the local scale S of the first part of each kind, its base colour, and its material" | parts grouped by primitive and material covering every part; main-parts tables; part-kind grids; build stages |
+| Section 19 per-object tables | top 9 (name, primitive) kinds + "N more part kinds" | every part, grouped by (primitive, material), with the part kinds of each group |
+| new Tables 19.x | -- | largest parts with S, T, R, parent: UAV, soldier, tank, command bunker |
+| new Figures 19.x | -- | UAV and soldier part-kind grids; UAV and tank build stages 12 / 35 / 65 / 100 %; soldier scene graph with T / R per joint; walk cycle plot (export v6.garrison.gait.cycle) and gait equations (Eq. 19.1, Gait.cpp) |
+| new variant tables | -- | 8 soldiers (root T, heading, girth, recoloured parts, posed joints, duty); 3 tanks (only the root transform differs) |
+| Table 19.1 | columns Cube, Sphere, Cylinder, Frustum, Cone | Cube, Cuboid, Sphere, Hemisphere, Cylinder, Frustum, Cone, Torus, Wedge, Tapered box, Pyramid, Capsule, Annulus, Helix (rotated headers); Base 1 253 -> 993 parts |
+| Section 19 critique | "1 253 + 652 + 658 parts" | "993 + 652 + 658 parts" (macros) |
+| Tank caption | "118 of its nodes are animated" (typed) | `\tankAnim` (118, from the export) |
+| Section 22 (curved) | "tyres ... helmets and heads (spheres and cylinders); the bunker's earth berm (a flattened sphere)"; critique "There is no torus or helix generator, and the primitives have no level of detail" | tyres and muzzle rings (tori); helmets, radome, berm (hemispheres); sandbags (capsules); concertina wire (helices); critique "The primitives have no level of detail" |
+| Limitations | "no torus, wedge, hemisphere or helix generator" | "no level of detail; the ray tracer stands in a sphere, cylinder or box for seven of the sixteen and leaves the helix out" |
+| Conclusion Table | "7 primitives" | "16 primitives" |
+
 ## M4: pipeline flow, explanatory diagrams, Game mode, explosions, intruder algorithm
 
 ### New explanatory diagrams (`tools/v10/diagrams.py` -> `figures/diagrams/*.pdf`)

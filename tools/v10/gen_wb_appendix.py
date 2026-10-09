@@ -10,7 +10,7 @@ import pymupdf
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 PDF = os.path.join(ROOT, "report", "workbooks", "cg_workbook.pdf")
 OUT = os.path.join(ROOT, "report", "sections", "gen_wb_appendix.tex")
-SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "View_Projection", "Clipping", "Illumination",
+SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
           "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
           "Performance"]
 W_MM, H_MM = 272.0, 172.0  # landscape: the portrait text height (277 mm) less a little; room for the caption
@@ -51,6 +51,7 @@ def main():
         bw, bh = x1 - x0, y1 - y0
         scale = min(W_MM * PT_PER_MM / bw, H_MM * PT_PER_MM / bh, 1.25)
         printed = min(sizes) * scale
+        if printed < MIN_PT: print(f"  page {i + 1} ({owner[i]}): {printed:.3f} pt")
         worst = min(worst, printed)
         name = owner[i] or "Workbook"
         count[name] = count.get(name, 0) + 1
