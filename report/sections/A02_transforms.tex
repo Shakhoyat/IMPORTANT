@@ -1,8 +1,8 @@
 \section{Modelling transformations}
 \label{sec:trs}
 \here{2}
-\concept{Each part's local matrix places a unit primitive: scale first, then rotate, then translate. In homogeneous
-coordinates all three are $4\times4$ matrices, so one product gives the whole placement.}
+Each part's local matrix places a unit primitive: scale first, then rotate, then translate. In homogeneous
+coordinates all three are $4\times4$ matrices, so one product gives the whole placement.
 
 \begin{gather}
 M = T(\vect t)\,R_y(\psi)\,R_x(\theta)\,R_z(\varphi)\,S(\vect s)\label{eq:trs}\\
@@ -14,7 +14,8 @@ S=\mathrm{diag}(s_x,s_y,s_z,1)\nonumber
 \text{rotation about a pivot } \vect p:\quad M_{\text{pivot}} = T(\vect p)\,R\,T(-\vect p)
 \label{eq:pivot}
 \end{equation}
-Order matters: $T R S \neq S R T$. Scaling after a rotation would shear a rotated box; translating before a rotation
+Each part's geometry is defined in its own frame (Figure~\ref{fig:axes}); only the product of matrices up the
+hierarchy places it in the world. Order matters: $T R S \neq S R T$. Scaling after a rotation would shear a rotated box; translating before a rotation
 would swing the part around the parent's origin. The turret, gun barrel, rotor and door hinges use
 Eq.~\eqref{eq:pivot}: each sits in a group node whose origin is the pivot.
 
@@ -33,15 +34,14 @@ Mat4 matrix() const { return translate(translation) * rotateEulerYXZ(rotationDeg
 \begin{figure}[H]
 \centering
 \raw{scene/soldier_axes}{0.72\linewidth}
-\caption{Local versus world coordinates (\key{H}: local axes of the hierarchy), shown on a soldier's joints: each
-red/green/blue triad is one local frame. Notice that the axis triads are rotated with their parts: each part's
-geometry is defined in its own frame, and only the product of matrices up the hierarchy places it in the world.}
+\caption{Local versus world coordinates on a soldier's joints (\key{H}): each red/green/blue triad is one local
+frame, turned with its part.}
 \label{fig:axes}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-{\footnotesize\textit{Inputs exported by the program (part UAV-14, parent UAV-00)}}\\[0.5mm]
+{\footnotesize\textit{Inputs (part UAV-14, parent UAV-00)}}\\[0.5mm]
 \wbblock{Transform_Trace}{inputs}\\[1mm]
 {\footnotesize\textit{Scale and the three rotations}}\\[0.5mm]
 \wbblock{Transform_Trace}{srt}
@@ -52,18 +52,18 @@ geometry is defined in its own frame, and only the product of matrices up the hi
 \begin{minipage}[t]{0.38\linewidth}\centering{\footnotesize\textit{Checks}}\\[0.5mm]
 \wbblock{Transform_Trace}{checks}\end{minipage}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Transform\_Trace}: one real vertex of one real UAV part traced through $S$, $R$, $T$,
-the parent matrix, view, projection, perspective divide, NDC and viewport, each matrix as a live $4\times4$ grid.
-Notice the check column: the world matrix computed in the sheet matches the one the program exports. \fullsheet{Transform_Trace}}
+\caption{Workbook sheet \code{Transform\_Trace}: one vertex of a UAV part through $S$, $R$, $T$, the parent matrix,
+view, projection, perspective divide, NDC and viewport. The check column compares the sheet's world matrix with the
+exported one. \fullsheet{Transform_Trace}}
 \label{fig:wb-trace}
 \end{figure}
 
 \subsection{Following vertices into the world}
 \label{sec:worked}
 Four parts of the scene, followed by the same rule $\vect p_{\text{world}}=W\,\vect p_{\text{local}}$ with
-$W=W_{\text{parent}}\,T\,R_y\,R_x\,R_z\,S$ (Eqs.~\ref{eq:trs}, \ref{eq:world}). All matrices and points are computed by
-\code{tools/v10/gen\_m3.py} from the exported $S$, $R$, $T$ of each part; the composition reproduces the exported world
-matrices.
+$W=W_{\text{parent}}\,T\,R_y\,R_x\,R_z\,S$ (Eqs.~\ref{eq:trs}, \ref{eq:world}). The matrices are composed from each
+part's $S$, $R$ and $T$ and reproduce its world matrix. The workbook sheet \code{Vertex\_Groups} (Appendix~\ref{app:wb-Vertex_Groups})
+holds the same groups as live formulas.
 
 \textbf{A. A bunker wall panel: the 8 corners of a cuboid.} Part \wgAname, child of \wgAparent; its local
 transform is $\wgAsrt$. The scale stretches the unit cube to the panel's size, the translation places it, and the
@@ -104,29 +104,14 @@ groups, $\wgDchain$. Its view axis is the camera frame's $+z$ direction, $W(0,0,
 translations do not affect it).
 \begin{table}[H]
 \centering\footnotesize\wgD
-\caption{Group D: camera position and view axis of UAV~1 for the exported gimbal angles and two other settings.
-Notice that the pitch alone sets the angle below the horizon, and that the camera barely moves: the gimbal turns it
-about points a few centimetres away.}
+\caption{Group D: camera position and view axis of UAV~1 for the starting gimbal angles and two other settings; the
+pitch alone sets the angle below the horizon.}
 \label{tab:wgD}
 \end{table}
+The camera barely moves between the three settings: the gimbal turns it about points a few centimetres away.
 
-\begin{figure}[H]
-\centering
-{\footnotesize\textit{A: the panel's local matrix, its parent's and its world matrix}}\\[0.5mm]
-\wbblock{Vertex_Groups}{a}\\[1mm]
-\begin{minipage}[t]{0.42\linewidth}\centering{\footnotesize\textit{A: the 8 corners into the world}}\\[0.5mm]\wbblock{Vertex_Groups}{corners}\end{minipage}\hfill
-\begin{minipage}[t]{0.56\linewidth}\centering{\footnotesize\textit{C: leg forward kinematics against the exported gait}}\\[0.5mm]\wbblock{Vertex_Groups}{fk}\end{minipage}\\[1.5mm]
-{\footnotesize\textit{D: gimbal angles (inputs) and the camera's view axis}}\\[0.5mm]
-\wbblock{Vertex_Groups}{camin}\\[0.5mm]
-\wbblock{Vertex_Groups}{cam}\\[1mm]
-{\footnotesize\wbkey}
-\caption{Workbook sheet \code{Vertex\_Groups}: groups A, C and D as live formulas. Change $S$, $R$, $T$ or the gimbal
-angles and every corner and axis follows; the forward kinematics of the exported hip and knee angles reproduces
-the exported ankle path (last column $\approx0$). \fullsheet{Vertex_Groups}}
-\label{fig:wb-vgroups}
-\end{figure}
 
-\where{src/scene/Transform.h (matrix), src/math/Math3D.cpp (translate, rotateEulerYXZ, scale), src/objects/Builder.cpp}
-\critique{Euler angles in a fixed order are easy to tabulate (the brief's T/R/S table) but suffer gimbal lock at
-$\theta=\pm90^\circ$; the camera rig and the interpolation between simulation ticks therefore use quaternions
-(\code{RigPose.rot}). Reflection and shear are not used by any part.}
+
+\textbf{Limitation.} Euler angles in a fixed order are easy to tabulate as a $T$/$R$/$S$ table but lock at
+$\theta=\pm90^\circ$; the camera rig and the interpolation between simulation ticks therefore keep their rotations as
+quaternions.

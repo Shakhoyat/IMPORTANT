@@ -1,7 +1,5 @@
 \section{Game mode}
 \label{sec:game}
-\textit{Builds on: ray casting (\ref{sec:rt}), the thermal pipeline (\ref{sec:thermal}), paths (\ref{sec:paths}).}
-
 At night intruder rovers attack from the perimeter in waves; two UAVs patrol, detect them in their thermal images,
 hold a lock (lead \gv{kSquadLeadLock}\,s, wing \gv{kSquadWingLock}\,s) and launch guided rounds. The player can join in by taking control of a soldier, a tank, the AA
 gun or a launcher. Hits are ray tests: each tick a projectile's path segment (previous to current position) is
@@ -29,9 +27,9 @@ through the chain of Figure~\ref{fig:cvchain}, so the game is a working computer
 \draw[ar] (r)--(s); \draw[ar] (s)--(t); \draw[ar] (t)--(d); \draw[ar] (d)--(c); \draw[ar] (c)--(f);
 \draw[ar] (f)--(k); \draw[ar] (k)--(p); \draw[ar] (p)--(g); \draw[ar] (g)--(m);
 \end{tikzpicture}
-\caption{The detection chain of each UAV, every vision frame (\code{vision/CvPipeline.cpp}, \code{ai/Squad.cpp}).
-Orange: image formation (Section~\ref{sec:thermal}); blue: image processing on 8-bit pixels; green: back to 3D
-with the inverse of the camera's projection; red: the squad's one shared track picture.}
+\caption{The detection chain of each UAV, every vision frame. Orange: image formation (Section~\ref{sec:thermal});
+blue: image processing on 8-bit pixels; green: back to 3D with the inverse of the camera's projection; red: the
+squad's one shared track picture.}
 \label{fig:cvchain}
 \end{figure}
 
@@ -48,7 +46,7 @@ Classification & target: hot engine core $\geq$\gv{core}, elongation $\leq$\gv{m
 Back-projection & the centroid's pixel ray hits the terrain \code{0.2}\,m above ground (a rover's hot body) & $\sigma=0.12+0.015\,d$\\
 \bottomrule
 \end{tabularx}
-\caption{Computer-vision concepts used by the UAVs (constants from \code{--export-docs}).}
+\caption{Computer-vision concepts used by the UAVs.}
 \label{tab:cv}
 \end{table}
 
@@ -67,7 +65,7 @@ after \gv{coastAfter}\,s unseen $\to$ deleted after \gv{deleteAfter}\,s.
 \end{itemize}
 \begin{figure}[H]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_triangulation.pdf}
-\caption{(a) two-view triangulation (\code{MultiTracker::triangulate}); (b) gating: only measurements inside the
+\caption{(a) two-view triangulation; (b) gating: only measurements inside the
 99\,\% ellipse of the predicted track are candidates for the assignment (drawn with an example covariance).}
 \label{fig:triang}
 \end{figure}
@@ -105,7 +103,7 @@ t_{\mathrm{launch},k}=t_0+\big(\max_j T_j-T_k\big),\qquad
 \begin{table}[H]
 \centering\footnotesize\setlength{\tabcolsep}{3.5pt}
 \flighttimetable
-\caption{Predicted round flight time against distance (\code{roundFlightTime}, export \code{v5.flight\_time}).}
+\caption{Predicted round flight time against distance.}
 \label{tab:flight}
 \end{table}
 The rounds themselves steer by proportional navigation: the turn rate is
@@ -140,7 +138,7 @@ $\hat{\boldsymbol\omega}$ --- the same axis--angle rotation as in Section~\ref{s
 \node[ev,right] at (6.3,-8.3) {track lost: both circle the last known position for \gv{kSquadReacquireTime}\,s};
 \end{tikzpicture}
 \caption{How the UAVs cooperate after a detection, as a sequence over time (top to bottom). The ``messages'' are
-reads and writes of the one shared tracker; the squad logic (\code{Squad::update}) runs once per tick for both.}
+reads and writes of the one shared tracker; the squad logic runs once per tick for both.}
 \label{fig:seq}
 \end{figure}
 
@@ -150,8 +148,8 @@ reads and writes of the one shared tracker; the squad logic (\code{Squad::update
 \begin{subfigure}{0.49\linewidth}\raw{game/combined_strike}{\linewidth}\caption{Combined strike: both rounds inbound.}\end{subfigure}\\[1mm]
 \begin{subfigure}{0.49\linewidth}\raw{game/thermal_fpv_strike}{\linewidth}\caption{Hit: the HUD reports a multi-hit (combined) kill.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{game/kill_banner}{\linewidth}\caption{Kill: wreck, score banner.}\end{subfigure}
-\caption{One engagement, captured by the program while the squad plays it (event-triggered shots of
-\code{ts --capture}). Notice in (b) the HUD labels ``UAV-1 LEAD'' and ``UAV-2 WING'' over the target and the strike phase ``combined strike inbound''.}
+\caption{One engagement, captured while the squad plays it; in (b) the HUD marks ``UAV-1 LEAD'', ``UAV-2 WING'' and
+the phase ``combined strike inbound''.}
 \label{fig:engage}
 \end{figure}
 
@@ -209,9 +207,8 @@ reads and writes of the one shared tracker; the squad logic (\code{Squad::update
 \end{tikzpicture}
 \caption{Soldier.}
 \end{subfigure}
-\caption{State diagrams. (a) a UAV (duty cycle \code{ai/SquadDuty.cpp}, engagement \code{ai/Squad.cpp}); each UAV
-runs it independently. (b) an intruder rover (\code{ai/HideController.cpp}); (c) a soldier's shift
-(\code{scene/Garrison.cpp}).}
+\caption{State diagrams of (a) a UAV, each running it independently, (b) an intruder rover and (c) a soldier's
+shift.}
 \label{fig:fsm}
 \end{figure}
 
@@ -222,7 +219,7 @@ runs it independently. (b) an intruder rover (\code{ai/HideController.cpp}); (c)
 \begin{subfigure}{0.325\linewidth}\raw{v5/aa_gun_burst}{\linewidth}\caption{AA gun burst.}\end{subfigure}\\[1mm]
 \begin{subfigure}{0.49\linewidth}\raw{scene/dusk_shift_change}{\linewidth}\caption{Shift change at dusk.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{scene/dawn_withdraw}{\linewidth}\caption{Dawn: survivors withdraw.}\end{subfigure}
-\caption{Game events captured by the program. Notice in (a) the HUD lock ring and the tracking ID from the CV tracker.}
+\caption{Game events; in (a) the HUD shows the lock ring and the track ID from the CV tracker.}
 \label{fig:events}
 \end{figure}
 
@@ -232,8 +229,6 @@ runs it independently. (b) an intruder rover (\code{ai/HideController.cpp}); (c)
 \caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift. \fullsheet{Duty_Cycle}}
 \label{fig:wb-duty}
 \end{figure}
-\where{src/ai/Squad.cpp, SquadDuty.cpp, DroneController.cpp, HideController.cpp; src/scene/Combat.cpp (segmentSphere, segmentBoxT), Mission.cpp (waves, score), Garrison.cpp (shifts)}
-\critique{The brief asked for shifts every 6 in-game hours and an explicit ``backup fire'' call from the nearest soldiers.
-The code has two shifts (day 06:24--17:36 and night) with staggered changes, and AI soldiers do not fire: ground
-backup fire exists only when the player controls a soldier or a weapon. Both UAVs can independently detect, lock
-and fire, and they coordinate a combined strike when both hold the same track.}
+
+\textbf{Limitation.} AI soldiers do not fire: ground backup fire exists only when the player controls a soldier or a
+weapon. The garrison works two shifts (day 06:24--17:36 and night) with staggered changes.

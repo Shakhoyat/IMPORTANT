@@ -3,7 +3,7 @@
 ThermalSense is a real-time 3D scene of a forward military outpost. It started as a lab exercise: build objects only
 from unit primitives with a scale, rotation and translation table. It grew into a full renderer and a small game.
 This report follows the graphics pipeline in the order taught in class \cite{hearn2011,foley1996} (Part~A) and then shows the advanced work
-built on it (Part~B). Every claim is backed by a capture, a debug view, an equation, a plot or a workbook sheet.
+built on it (Part~B).
 
 \textbf{Objectives.}
 \begin{enumerate}[label=O\arabic*.]
@@ -13,10 +13,10 @@ built on it (Part~B). Every claim is backed by a capture, a debug view, an equat
 \item Drive lighting from a physical day/night model (Section~\ref{sec:day}).
 \item Build a simulated thermal sensor and an image-processing chain on its output (Section~\ref{sec:thermal}).
 \item Make the scene interactive: controllable units, AI, path planning (Sections~\ref{sec:dynamic}, \ref{sec:game}, \ref{sec:paths}).
-\item Measure performance and state the trade-offs honestly (Sections~\ref{sec:hard}, \ref{sec:perf}, \ref{sec:limits}).
+\item Measure performance and state the trade-offs (Sections~\ref{sec:hard}, \ref{sec:perf}, \ref{sec:limits}).
 \end{enumerate}
 
 \textbf{What is simulated.} The ``thermal'' image is not real sensing. Each part carries a temperature value; a
 sensor model blurs, adds noise and fixed-pattern error, and maps heat to a false-colour palette
-(Section~\ref{sec:thermal}). The audit in \code{docs/audit.md} lists every feature as present, partial or absent;
-this report describes only present or partial features, and says which.
+(Section~\ref{sec:thermal}). The report describes only features that work, fully or in part; Appendix~\ref{app:req}
+maps each course requirement to the section that covers it and says which are partial.

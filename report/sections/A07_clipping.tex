@@ -1,9 +1,9 @@
 \section{Clipping}
 \label{sec:clip}
 \here{5}
-\concept{Primitives outside the view volume must be removed and primitives crossing it cut, before rasterisation.
+Primitives outside the view volume must be removed and primitives crossing it cut, before rasterisation.
 The GPU clips every triangle against the six planes $-w_c\le x_c,y_c,z_c\le w_c$. The program adds two CPU steps:
-whole parts are culled against the frustum before they are submitted, and grass is culled per cell.}
+whole parts are culled against the frustum before they are submitted, and grass is culled per cell.
 \begin{equation}
 \text{plane } i:\ \vect a_i\cdot\vect p+d_i\ge0\ \text{inside};\qquad
 \text{sphere }(\vect c,r)\ \text{rejected if}\ \exists i:\ \vect a_i\cdot\vect c+d_i<-r
@@ -24,12 +24,13 @@ The six planes come from the rows of $PV$ (Gribb--Hartmann): left $=\text{row}_4
 \\[1mm]
 {\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
 \feStageAssemblyInfo\hfill\feStageAssemblyFormula
-\caption{Clipping in the program. In (a) the view volume is an 80\,m slab around the camp: notice that the
-backdrop hills and the far terrain are cut flat at the near and far planes, and the cut faces show the inside of
-the terrain mesh, exactly as clipping produces (no capping). (b) shows the assembled triangles of the frame.}
+\caption{Clipping in the renderer: (a) an 80\,m orthographic slab around the camp cuts the hills and the far terrain
+flat; (b) the assembled triangles of the frame.}
 \label{fig:clip}
 \end{figure}
 
+Clipping leaves the cut faces open: in Figure~\ref{fig:clip}a the cut shows the inside of the terrain mesh, because
+clipping does not cap what it cuts.
 \begin{figure}[H]
 \centering
 {\footnotesize\textit{1. Cohen--Sutherland outcodes}}\\[0.5mm]
@@ -42,7 +43,7 @@ the terrain mesh, exactly as clipping produces (no capping). (b) shows the assem
 \wbblock{Clipping}{sh2}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Clipping}: Cohen--Sutherland outcodes, Liang--Barsky parameters and
-Sutherland--Hodgman steps. These are worked textbook examples computed by formulas, not code in the program. \fullsheet{Clipping}}
+Sutherland--Hodgman steps, worked as formulas (the renderer itself does not run them). \fullsheet{Clipping}}
 \label{fig:wb-clip}
 \end{figure}
 
@@ -59,7 +60,6 @@ Frustum culling & whole object against 6 planes (Eq.~\ref{eq:cull}) & 6 dot prod
 \end{tabularx}
 \caption{Clipping methods compared.}
 \end{table}
-\where{src/math/Frustum.{h,cpp} (plane extraction, sphere test); grass cell culling in src/rendering/Grass.cpp}
-\critique{There is no interactive user-defined clip window (the brief's item); clipping is shown through the
-orthographic slab and the workbook. Frustum culling with bounding spheres is conservative: a long thin part (a
-wall) has a large sphere and is drawn even when only its sphere touches the frustum.}
+
+\textbf{Limitation.} Frustum culling with bounding spheres is conservative: a long thin part (a wall) has a large
+sphere and is drawn even when only its sphere touches the frustum.

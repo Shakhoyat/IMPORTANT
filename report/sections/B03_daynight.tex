@@ -1,7 +1,5 @@
 \section{Day and night system}
 \label{sec:day}
-\textit{Builds on: illumination (\ref{sec:illum}), colour interpolation (\ref{sec:color}).}
-
 The sun follows a solar-position model for the camp's latitude (Khulna, $\varphi=22.8^\circ$, early October,
 declination $\delta=-4.6^\circ$). It rises in the east, crosses the southern sky and sets in the west. Every lighting
 parameter is a function of its elevation $e$.
@@ -15,27 +13,29 @@ removed first near the horizon and the light turns orange.
 
 \begin{figure}[H]
 \centering\plot{p_day_cycle}{\linewidth}
-\caption{The code's solar model over 24 hours (plotted from Eq.~\eqref{eq:sun}). Notice in (a) the asymmetric
-twilight bands where the phases switch (night below $-6^\circ$, day above $4^\circ$), and in (b) that red outlasts
-blue at both ends of the day: that is the sunset colour of Figure~\ref{fig:hero}b, produced by the formula, not painted.}
+\caption{The solar model over 24 hours (Eq.~\eqref{eq:sun}): (a) sun elevation with the twilight bands where the
+phases switch, (b) the key light per channel.}
 \label{fig:daycycle}
 \end{figure}
 
+The phases switch at night below $-6^\circ$ and day above $4^\circ$ (Figure~\ref{fig:daycycle}a). Red outlasts blue at
+both ends of the day (b): that is the sunset colour of Figure~\ref{fig:hero}b, produced by the formula.
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{scene/dawn_withdraw}{\linewidth}\caption{Dawn: the intruders withdraw.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{scene/sky_noon}{\linewidth}\caption{Noon.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{scene/dusk_shift_change}{\linewidth}\caption{Dusk: shift change.}\end{subfigure}
-\caption{Phases of the day. Notice how the fog colour follows the sky's horizon colour in each phase: both come
-from the same analytic sky (Preetham model \cite{preetham1999}) evaluated for the current sun direction.}
+\caption{Phases of the day; the fog colour follows the sky's horizon colour in each.}
 \label{fig:phases}
 \end{figure}
 
+Fog and horizon agree because both come from the same analytic sky (Preetham model \cite{preetham1999}) evaluated for
+the current sun direction.
 \begin{table}[H]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
-Derived quantity & Rule in \code{DayCycle::applyTo}\\\midrule
+Derived quantity & Rule\\\midrule
 Key light & sun above $-1^\circ$ ($3.2\,s(e)\,T(e)$, direction quantised to $1^\circ$ for the shadow cache); else the moon, fading in as $1-s_{[-6,-1]}(e)$\\
 Sky, ambient, fog & by day: a Preetham sky for the sun direction; its spherical-harmonic irradiance is the ambient light; fog takes the horizon colour; night presets blended in log space\\
 Exposure & key value moves from the night to the day value as $s_{[-8,10]}(e)$\\
@@ -47,7 +47,6 @@ Rules & intruder waves only at night (unless day ops); soldiers' day shift 06:24
 \end{table}
 \textbf{Transitions.} The clock runs automatically (one day = \daySeconds\,s) or is scrubbed by hand (\key{,} \key{.}),
 jumps to the next phase (\key{/}) or to a preset in the pause menu; lighting follows continuously in every case.
-\where{src/scene/DayCycle.{h,cpp}, src/math/SkyModel.cpp (Preetham sky, SH ambient)}
-\critique{The moon is not an orbiting body: it is a fixed-direction night key light (intensity \moonI), so it does
-not rise as the sun sets as the brief asked; the sun arc is fully physical. The brief's \key{N}/\key{D} keys were
-not added because both are taken (Section~\ref{sec:controls}).}
+
+\textbf{Limitation.} The moon is not an orbiting body: it is a fixed-direction night key light (intensity \moonI) and
+does not rise as the sun sets.

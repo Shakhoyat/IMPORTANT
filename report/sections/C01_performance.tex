@@ -1,18 +1,17 @@
 \section{Performance evaluation}
 \label{sec:perf}
-\textbf{Setup.} \code{TS\_BENCH\_V10=1 ts --headless --quality epic --size 1920x1080 --seed 1 --benchmark report/data/bench.json}:
-the same orbit camera for every configuration; each configuration first settles (2\,s of simulation after a clock
-change), then is timed in 3 interleaved rounds of 10\,s (30\,s per configuration). A frame includes the simulation
-tick, both UAV camera renders, the main frame and the HUD. Mean and 95th-percentile frame times come from every timed
-frame; draw calls include shadow passes. The program writes \code{bench.json.csv}, copied to \code{report/data/bench.csv}.
-Headless runs use the RTX\,4070 through the WSL2 d3d12 driver, which is slower than the native Windows driver (v9 M0
-measured 54--73\,fps headless against 80--101\,fps in the native exe on the same shots).
+\textbf{Setup.} 1920$\times$1080, EPIC, seed 1, the same orbit camera for every configuration (the command is in
+Appendix~\ref{app:repro}). Each configuration first settles for 2\,s of simulation after a clock change, then is
+timed in 3 interleaved rounds of 10\,s. A frame includes the simulation tick, both UAV camera renders, the main frame
+and the HUD. Mean and 95th-percentile frame times come from every timed frame; draw calls include shadow passes.
+Headless runs use the RTX\,4070 through the WSL2 d3d12 driver, which is slower than the native Windows driver
+(54--73\,fps headless against 80--101\,fps natively on the same shots).
 
 \begin{table}[H]
 \centering\small
 \benchtable
-\caption{Benchmark (\code{report/data/bench.csv}; columns as the program wrote them). Day = 10:30, no enemies, UAVs
-docked; night = 23:00 with intruder waves, both UAVs flying and searchlights on.}
+\caption{Benchmark. Day = 10:30, no enemies, UAVs docked; night = 23:00 with intruder waves, both UAVs flying and
+searchlights on.}
 \label{tab:bench}
 \end{table}
 \begin{figure}[H]
@@ -22,11 +21,6 @@ docked; night = 23:00 with intruder waves, both UAVs flying and searchlights on.
 \end{figure}
 \input{sections/gen_bench_text}
 
-\begin{figure}[H]
-\centering\wbblock{Performance}{bench}\\[1mm]
-{\footnotesize\wbkey}
-\caption{Workbook sheet \code{Performance}: the same CSV imported, with a chart. \fullsheet{Performance}}
-\end{figure}
-\textbf{Per-pass costs from v9 (RTX\,4070, 1080p EPIC).} GTAO 0.53--1.71\,ms (replaced SSAO, 0.39--0.59\,ms); contact
+\textbf{Per-pass costs (RTX\,4070, 1080p EPIC).} GTAO 0.53--1.71\,ms (replaced SSAO, 0.39--0.59\,ms); contact
 shadows 0.10--0.17\,ms; PCSS added 1.0--1.9\,ms to the day scene pass; vegetation 1.7--2.7\,ms in gameplay views but 6.6\,ms
 on the high overview (over its 3\,ms budget); grass 0.4--1.5\,ms. Measured on a GPU shared with other jobs.

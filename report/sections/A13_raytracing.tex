@@ -1,9 +1,9 @@
 \section{Ray tracing concepts in the project}
 \label{sec:rt}
 \here{10}
-\concept{A ray $\vect r(t)=\vect o+t\vect d$ is intersected with the scene. Rays answer three questions here: what is
+A ray $\vect r(t)=\vect o+t\vect d$ is intersected with the scene. Rays answer three questions here: what is
 under the cursor (picking), is a point lit (shadow rays), and what does a mirror or glass show (reflection and
-refraction rays, Whitted \cite{whitted1980}). The program includes a CPU/GPU ray tracer over the same scene with a BVH.}
+refraction rays, Whitted \cite{whitted1980}). A CPU/GPU ray tracer with a BVH runs over the same scene.
 \begin{equation}
 \text{sphere: } t^2(\vect d\cdot\vect d)+2t\,\vect d\cdot(\vect o-\vect c)+\lVert\vect o-\vect c\rVert^2-r^2=0;\quad
 \text{plane: } t=\frac{(\vect p_0-\vect o)\cdot\vect n}{\vect d\cdot\vect n}
@@ -25,11 +25,12 @@ refraction rays, Whitted \cite{whitted1980}). The program includes a CPU/GPU ray
 \centering
 \raw{rt/raytrace_modes}{\linewidth}
 \caption{The same view in the five render modes (\key{;}): raster, hybrid (raster plus ray-traced reflections),
-Whitted, path tracing and light tracing. Notice the shiny surfaces: the raster image can only reflect what is on screen, Whitted traces exact
-mirror reflections and shadow rays, and the path tracer adds soft indirect light and soft shadows.}
+Whitted, path tracing and light tracing.}
 \label{fig:rtmodes}
 \end{figure}
 
+On the shiny surfaces the raster image can only reflect what is on screen; Whitted tracing gives exact mirror
+reflections and shadow rays, and the path tracer adds soft indirect light and soft shadows.
 \begin{figure}[H]
 \centering\raw{rt/raytrace_tree}{\linewidth}
 \caption{The ray debugger (\key{'}, click a pixel) draws the ray tree of one pixel: primary ray, shadow rays to
@@ -55,7 +56,7 @@ ray--plane intersections, reflection, Snell refraction and the contribution of e
 \textbf{Uses in the game.} Mouse picking casts a ray through the clicked pixel (middle click jumps into that object);
 the interaction prompt tests a segment against wall boxes for line of sight; the UAV searchlight's beam length is a
 ray marched to the terrain and refined by bisection; a third-person camera arm is a sphere cast against the walls.
-\where{src/raytrace/ (Intersect, Bvh, RayTracer), src/rendering/RayTracerGL.cpp, src/scene/Interact.cpp (segmentClear), src/scene/Scene.cpp (beam length)}
-\critique{The ray-traced modes are teaching modes: at 1080p the path tracer runs at reduced internal resolution
+
+\textbf{Limitation.} The ray-traced modes are teaching modes: at 1080p the path tracer runs at reduced internal resolution
 (0.5) and accumulates over frames, so it is not used in play. The raster renderer approximates reflections with
-screen-space reflections (Section~\ref{sec:rtadv}).}
+screen-space reflections (Section~\ref{sec:rtadv}).

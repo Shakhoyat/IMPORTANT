@@ -1,8 +1,6 @@
 \section{Explosions: particles, physics and colour}
 \label{sec:explode}
-\textit{Builds on: instancing and billboards (\ref{sec:view}), blending (\ref{sec:hsr}), colour interpolation (\ref{sec:color}), the hierarchy (\ref{sec:hier}).}
-
-An explosion is a particle system: one call (\code{Combat::explodeImpl}) spawns a few hundred short-lived
+An explosion is a particle system: one call spawns a few hundred short-lived
 particles of seven kinds, each with a position, velocity, size, life and heat. Every tick each particle is moved by
 its own simple law of motion (Table~\ref{tab:explode}); every frame each one is drawn as a single instanced quad --- the
 $+Z$ face of the unit cube --- turned to face the camera (puffs), stretched along its velocity (sparks, embers),
@@ -11,9 +9,8 @@ from a temperature $T$.
 \begin{table}[H]
 \centering\footnotesize\setlength{\tabcolsep}{3pt}
 \explosiontable
-\caption{What one blast spawns (counts from the program's effect census in \code{--export-docs}; power 1 = a UAV
-round, 1.6 = a tank shell, 0.15 = a tracer impact), how each kind moves per tick of length $\Delta t$
-(\code{Combat::updateParticles}) and how its colour is made (\code{rendering/Effects.cpp}).}
+\caption{What one blast spawns (power 1 = a UAV round, 1.6 = a tank shell, 0.15 = a tracer impact), how each kind
+moves per tick of length $\Delta t$ and how its colour is made.}
 \label{tab:explode}
 \end{table}
 
@@ -29,7 +26,7 @@ blast with speed $\propto\sqrt{\text{power}}$, spinning about a random axis, int
 \begin{figure}[H]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_particles.pdf}
 \caption{The integrators of Table~\ref{tab:explode} run from the same start point (initial velocities are typical
-spawn values); (b) one debris piece bouncing to rest (\code{Scene::updateDebris}).}
+spawn values); (b) one debris piece bouncing to rest.}
 \label{fig:particles}
 \end{figure}
 
@@ -74,12 +71,12 @@ flame core and a spark over their lives, one spark integrated step by step, and 
 \begin{subfigure}{0.245\linewidth}\raw{game/explosion_mid}{\linewidth}\caption{Fire cools, sparks fall.}\end{subfigure}\hfill
 \begin{subfigure}{0.245\linewidth}\raw{game/explosion_smoke}{\linewidth}\caption{5\,s on: the next round's flash.}\end{subfigure}\hfill
 \begin{subfigure}{0.245\linewidth}\raw{game/wreck_burning}{\linewidth}\caption{Burning wreck.}\end{subfigure}
-\caption{One blast over time, captured by the program. Notice how the colour of the fire moves along the ramp of
-Figure~\ref{fig:bb}: white-yellow flash and sparks with the shock-wave ring in (a), orange and deep red as the fire
-cools in (b); in (c) a second round's flash is white again, while the first blast's fire burns low and red.}
+\caption{One blast over time; the fire's colour moves along the ramp of Figure~\ref{fig:bb} as it cools.}
 \label{fig:boom}
 \end{figure}
-\where{src/scene/Combat.cpp (explodeImpl, updateParticles), src/rendering/Effects.cpp (billboards, bb(T), blending), src/scene/Scene.cpp (debris)}
-\critique{Sorting is per group, not across the two groups: a glowing particle behind a smoke puff is drawn after
+In Figure~\ref{fig:boom}a the flash and sparks are white-yellow with the shock-wave ring; in (b) the fire turns orange
+and deep red as it cools; in (c) a second round's flash is white again while the first blast burns low and red.
+
+\textbf{Limitation.} Sorting is per group, not across the two groups: a glowing particle behind a smoke puff is drawn after
 the puff and so shows through it (bright additive light makes this hard to notice). Sparks and embers bounce on
-the terrain only, not on buildings.}
+the terrain only, not on buildings.

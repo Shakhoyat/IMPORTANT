@@ -1,8 +1,8 @@
 \section{3D viewing transformation}
 \label{sec:view}
 \here{3}
-\concept{The view matrix moves the world into the camera's frame. It is built from the eye $\vect e$, the point
-looked at $\vect a$ and an up hint $\vect{up}$, by an orthonormal basis and a translation.}
+The view matrix moves the world into the camera's frame. It is built from the eye $\vect e$, the point
+looked at $\vect a$ and an up hint $\vect{up}$, by an orthonormal basis and a translation.
 \begin{equation}
 \vect n=\frac{\vect e-\vect a}{\lVert\vect e-\vect a\rVert},\quad
 \vect u=\frac{\vect{up}\times\vect n}{\lVert\vect{up}\times\vect n\rVert},\quad
@@ -24,9 +24,7 @@ The code writes the same matrix with $\vect f=-\vect n$ (forward), $\vect s=\vec
 \begin{subfigure}{0.325\linewidth}\raw{play/play_first_person}{\linewidth}\caption{Soldier, first person.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Third person (spring arm).}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{v5/uav_camera_view}{\linewidth}\caption{UAV-mounted gimbal camera.}\end{subfigure}
-\caption{Three cameras on the same scene; each is just a different $(\vect e,\vect a,\vect{up})$. Notice in (c) that
-the UAV camera's eye and axes come from the gimbal nodes of Figure~\ref{fig:sg}: the view matrix is the inverse of
-the camera node's world matrix.}
+\caption{Three cameras on the same scene, each a different $(\vect e,\vect a,\vect{up})$.}
 \label{fig:cams}
 \end{figure}
 
@@ -44,9 +42,12 @@ camera, the view matrix, the perspective matrix, and the depth table used in Sec
 \label{fig:wb-view}
 \end{figure}
 
+The UAV camera of Figure~\ref{fig:cams}c takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
+view matrix is the inverse of the camera node's world matrix.
+
 \textbf{Camera system.} Orbit (default), free fly (\key{Home}), chase, UAV camera, walk, first and third person on
 any soldier (\key{Tab}, \key{V}), UAV chase / FPV / gimbal, any moving object's point of view (\key{F4}) and the
-cinematic director (\key{K}). Changes of camera blend over 0.6\,s on a critically damped spring (\code{CameraRig::kBlendTime}).
-\where{src/math/Math3D.cpp lookAt, src/scene/Camera.cpp compute(), src/scene/CameraRig.cpp, src/scene/UavView.cpp}
-\critique{When $\vect{up}\parallel\vect n$ (looking straight down) the cross product vanishes. The top view of
-Section~\ref{sec:proj} avoids this by using $\vect{up}=-\vect z$; the free camera clamps its pitch to $\pm85^\circ$.}
+cinematic director (\key{K}). Changes of camera blend over 0.6\,s on a critically damped spring.
+
+\textbf{Limitation.} When $\vect{up}\parallel\vect n$ (looking straight down) the cross product vanishes. The top view of
+Section~\ref{sec:proj} avoids this by using $\vect{up}=-\vect z$; the free camera clamps its pitch to $\pm85^\circ$.

@@ -1,9 +1,9 @@
 \section{Texture mapping}
 \label{sec:tex}
 \here{9}
-\concept{A texture adds detail without geometry. A surface point gets coordinates $(u,v)$ (stored per vertex, or
+A texture adds detail without geometry. A surface point gets coordinates $(u,v)$ (stored per vertex, or
 computed from position), the texture is sampled there with filtering and mip-maps, and the result modulates a
-material property. A procedural texture computes the value with a function instead of an image.}
+material property. A procedural texture computes the value with a function instead of an image.
 \begin{equation}
 \text{bump: }\ \vect N'=\mathrm{normalize}\big(\vect N-\nabla h\big),\qquad
 \text{mip level: }\ \lambda=\log_2\max\Big(\Big\lVert\tfrac{\partial(u,v)}{\partial x}\Big\rVert,\Big\lVert\tfrac{\partial(u,v)}{\partial y}\Big\rVert\Big)
@@ -22,16 +22,16 @@ material property. A procedural texture computes the value with a function inste
 \begin{subfigure}{0.49\linewidth}\raw{lab/material_grid}{\linewidth}\caption{Procedural materials on unit primitives.}\end{subfigure}\\[1mm]
 \begin{subfigure}{0.49\linewidth}\raw{scene/m6_grass_close}{\linewidth}\caption{Image textures: CC0 grass atlas on instanced blades.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{Image textures: glTF tree with alpha-tested leaf cards.}\end{subfigure}
-\caption{Textures in the program. Notice in (a) that the geometry is identical; only the normal is perturbed by
-Eq.~\eqref{eq:tex}, so the silhouette stays straight while the lighting shows relief. (c) and (d) use image
-textures with mip-maps; the leaves are cut out by alpha-to-coverage.}
+\caption{Procedural (a, b) and image textures (c, d); the leaves in (d) are cut out by alpha-to-coverage.}
 \label{fig:tex}
 \end{figure}
 
+In Figure~\ref{fig:tex}a the geometry is identical and only the normal is perturbed by Eq.~\eqref{eq:tex}: the
+silhouette stays straight while the lighting shows relief.
+
 \textbf{Where coordinates come from.} Primitives carry no UV set. Their surfaces (concrete, camouflage, sandbags,
 wood, metal, terrain soil and grass) are procedural: noise and cellular patterns evaluated from the world position
-in the fragment shader (\code{surfaceAlbedo}, \code{surfaceBump}, \code{terrainShade}). The v9 vegetation assets
-bring real UV-mapped image textures (glTF, \code{stb\_image}).
-\where{surfaceAlbedo / surfaceBump / terrainShade in src/rendering/ShaderSources.cpp; image textures in src/rendering/Foliage.cpp, Grass.cpp}
-\critique{Procedural world-space patterns need no UV unwrapping and never stretch, but they slide over a moving
-part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to MSAA and TAA.}
+in the fragment shader. The imported vegetation brings real UV-mapped image textures (glTF) with mip-maps.
+
+\textbf{Limitation.} Procedural world-space patterns need no UV unwrapping and never stretch, but they slide over a moving
+part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to MSAA and TAA.

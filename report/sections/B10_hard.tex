@@ -1,15 +1,14 @@
 \section{Hard problems and trade-offs}
 \label{sec:hard}
-Each problem below was met in this code. For each: why the class method alone falls short, what the program does,
-and what was measured. Numbers come from the v9 milestone notes (\code{docs/v9\_notes/v9-notes.md}) or
-this report's plots; measurements on a GPU shared with other jobs are marked as such there.
+Each problem below was met in this code. For each: why the class method alone falls short, what the renderer does,
+and what was measured. Some GPU timings were taken on a GPU shared with other jobs; they are marked.
 
 \subsection*{1. Depth precision and z-fighting}
 \textbf{Problem.} A 600\,m far plane (hills, sky objects) and a 0.05\,m near plane (first-person rifle). \textbf{Why the
 class method falls short.} A perspective Z-buffer stores $z_w$, hyperbolic in distance (Eq.~\ref{eq:ndc}); with
 $F/N=12\,000$ the 24-bit buffer resolves only about 1\,m at 100\,m (Figure~\ref{fig:depth}b). \textbf{Solution.} Layered
 details are separated in depth instead of being coplanar: on each UAV pad the painted ring sits 2\,mm and the centre
-disc 4\,mm above the slab (\code{objects/UavPad.cpp}). That is enough close to the camera, where pads are seen. \textbf{Measured.} The plot quantifies it; raising $N$ to 0.5\,m would improve
+disc 4\,mm above the slab. That is enough close to the camera, where pads are seen. \textbf{Measured.} The plot quantifies it; raising $N$ to 0.5\,m would improve
 precision tenfold but clip the first-person weapon. Reversed-Z needs OpenGL 4.5 (not the 3.3 baseline).
 
 \subsection*{2. Many UAV searchlights versus the light budget}
@@ -17,16 +16,16 @@ precision tenfold but clip the first-person weapon. Reversed-Z needs OpenGL 4.5 
 \textbf{Why the class method falls short.} Eq.~\eqref{eq:phong} loops over all lights per fragment, and a shadowed spot
 light needs its own shadow map each frame. \textbf{Solution.} One shadowed spot slot (L2, UAV-1's searchlight, PCF
 shadow map); UAV-2's searchlight is an unshadowed dynamic light at 0.6 of the intensity with a 26\,m range; practicals
-are capped at 16 per frame (\code{kMaxPracticals}); the searchlights are switched off by day and when docked.
+are capped at 16 per frame; the searchlights are switched off by day and when docked.
 \textbf{Measured.} The light count per fragment is bounded (1 key + 1 spot + 1 dynamic + $\le$16 practicals); the
 night/day difference in the benchmark (Section~\ref{sec:perf}) includes this cost.
 
 \subsection*{3. Thousands of grass blades}
 \textbf{Problem.} A dense meadow in a 36\,m disc. \textbf{Why the class method falls short.} One draw call per blade, or
-one 12-triangle cube per blade (the v8 version), gave 6.3--7.7 million triangles per frame. \textbf{Solution.} GPU
+one 12-triangle cube per blade (the earlier version), gave 6.3--7.7 million triangles per frame. \textbf{Solution.} GPU
 instancing of a 5-triangle curved strip, culled per cell, with a rank-based distance LOD that submits only a prefix of
-each cell's shuffled blades. \textbf{Measured.} At most 1.82 million grass triangles, and 86--121\,fps on the ten fixed
-shots (was 80--101), Windows exe, 1080p EPIC (v9 M1).
+each cell's shuffled blades. \textbf{Measured.} At most 1.82 million grass triangles, and 86--121\,fps on ten fixed shots (80--101 before), native
+Windows build, 1080p EPIC.
 
 \subsection*{4. Thermal convolution cost}
 \textbf{Problem.} The sensor PSF blurs every UAV frame on the CPU, twice per tick. \textbf{Why the class method falls short.}
@@ -39,19 +38,18 @@ it grows to $49\to14$ for a $7\times7$ Gaussian. A threaded run is byte-identica
 \textbf{Problem.} Self-shadowing stripes on lit surfaces (acne) versus shadows detached from their casters (peter-panning).
 \textbf{Why the class method falls short.} A constant depth bias large enough to remove acne on sloped surfaces lifts
 contact shadows off the ground. \textbf{Solution.} A normal-offset bias that grows with the surface slope,
-$\vect p'=\vect p+\vect N\,\text{texel}\,(1+2\,\text{slope})$, plus screen-space contact shadows (v9 M8) that put back the
-short shadows at feet and wheels. \textbf{Measured.} Contact shadows cost 0.10--0.17\,ms (v9 M8); before/after images
-in \code{docs/v9\_notes/m8/feet\_contact\_off\_on.jpg}.
+$\vect p'=\vect p+\vect N\,\text{texel}\,(1+2\,\text{slope})$, plus screen-space contact shadows that put back the
+short shadows at feet and wheels. \textbf{Measured.} Contact shadows cost 0.10--0.17\,ms (shared GPU).
 
 \subsection*{6. Transparency and eye adaptation}
 \textbf{Problem.} Rotor blur discs, beams and particles are translucent; walking from daylight into the hall changes
 the scene brightness by several stops. \textbf{Solution.} Translucent parts are drawn after all opaque geometry with
-depth test on and depth writes off (\code{Renderer::drawTranslucent}), so they are hidden by solid objects in front
+depth test on and depth writes off, so they are hidden by solid objects in front
 but never hide each other. They are \emph{not} sorted back to front: two overlapping blur discs can blend in the wrong
 order, which is acceptable for faint discs but would not be for stained glass; exposure adapts with two
 time constants (0.35\,s brighter, 1.1\,s darker) plus a +1.25\,EV indoor bias. When the post mode changes (visible to
-thermal) the TAA history and the adaptation restart, which fixed a washed-out thermal gimbal view found in the real
-exe. \textbf{Measured.} Figure~\ref{fig:dyn}d--e.
+thermal) the TAA history and the adaptation restart; without that the thermal gimbal view came out washed out.
+\textbf{Measured.} Figure~\ref{fig:dyn}d--e.
 
 \subsection*{Summary}
 \begin{table}[H]

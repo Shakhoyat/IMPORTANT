@@ -1,9 +1,9 @@
 \section{Hidden surface removal}
 \label{sec:hsr}
 \here{6}
-\concept{Two tests decide what is visible. Back-face culling drops triangles facing away from the eye before
+Two tests decide what is visible. Back-face culling drops triangles facing away from the eye before
 rasterisation (about half of a closed mesh). The Z-buffer keeps, per pixel, the nearest depth so far and rejects
-fragments behind it, in any drawing order.}
+fragments behind it, in any drawing order.
 \begin{equation}
 \text{back face if}\ (\vect p_1-\vect p_0)\times(\vect p_2-\vect p_0)\cdot(\vect p_0-\vect e)\ge0;\qquad
 \text{write}\ (c,z)\ \text{iff}\ z<Z[x,y]
@@ -21,8 +21,8 @@ fragments behind it, in any drawing order.}
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_hiddenline}{\linewidth}\caption{Hidden-line wireframe (\key{X}).}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_xray}{\linewidth}\caption{X-ray wireframe: no depth test.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_depth}{\linewidth}\caption{The Z-buffer itself.}\end{subfigure}
-\caption{Hidden-surface removal made visible. Notice that (a) and (b) draw the same edges: in (a) the depth buffer
-of the solid pass hides edges behind surfaces, in (b) everything shows through, including the underground bunker.}
+\caption{Hidden-surface removal made visible: the same edges with the depth test (a) and without it (b), where
+even the underground bunker shows through.}
 \label{fig:hsr}
 \end{figure}
 
@@ -31,11 +31,14 @@ of the solid pass hides edges behind surfaces, in (b) everything shows through, 
 \\[1mm]
 {\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
 \feStageDepthInfo\hfill\feStageDepthFormula
-\caption{Frame Explorer depth stage. Notice that depth is resolved per fragment, so intersecting parts (a barrel
-through a wall) are cut exactly along their intersection line; a painter's sort by object could not do this.}
+\caption{Frame Explorer depth stage: depth is resolved per fragment.}
 \label{fig:explorer-depth}
 \end{figure}
-\where{glEnable(GL\_CULL\_FACE) / GL\_DEPTH\_TEST in src/rendering/RendererFrame.cpp; \key{Z} depth test toggle; depth pre-pass at EPIC}
-\critique{Culling is disabled for the terrain (an open surface must cast shadows from both sides) and for
-foliage cards and grass (thin, seen from both sides), so these pay for both faces. A depth pre-pass fills the Z-buffer first, so the expensive lighting shader
-runs about once per pixel instead of once per overlapping fragment; translucent effects (rotor blur discs, beams) need sorting (Section~\ref{sec:hard}).}
+
+Because the test is per fragment, intersecting parts (a barrel through a wall) are cut exactly along their
+intersection line; sorting whole objects, as the painter's algorithm does, could not do this.
+
+\textbf{Limitation.} Culling is disabled for the terrain (an open surface must cast shadows from both sides) and for
+foliage cards and grass (thin, seen from both sides), so these pay for both faces. Translucent effects (rotor blur discs, beams) need sorting
+(Section~\ref{sec:hard}). A depth pre-pass fills the Z-buffer first, so the lighting shader runs about once per pixel
+instead of once per overlapping fragment.

@@ -1,7 +1,5 @@
 \section{Reflection: approximated and traced}
 \label{sec:rtadv}
-\textit{Builds on: ray tracing (\ref{sec:rt}), illumination (\ref{sec:illum}).}
-
 The raster renderer approximates mirror reflection with screen-space reflections (SSR): for a reflective pixel it
 marches the reflected ray through the depth buffer and copies the colour where the ray passes behind a stored depth.
 It can only reflect what is on screen. The hybrid mode replaces that with real reflection rays against a BVH of the
@@ -15,16 +13,16 @@ L_{\text{out}}=(1-F)\,L_{\text{local}}+F\,L(\vect r)
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{lab/reflections_compare}{\linewidth}\caption{Reflections off / SSR on (wet ground, metal).}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{rt/raytrace_ssr}{\linewidth}\caption{SSR vs ray-traced reflections.}\end{subfigure}
-\caption{Approximate versus traced reflection. Notice in (b) where SSR fails: objects outside the screen or hidden
-behind others are missing from the reflection, and the reflection fades towards the screen edge; the traced
-reflection has them.}
+\caption{Approximate versus traced reflection.}
 \label{fig:refl}
 \end{figure}
 
+Figure~\ref{fig:refl}b shows where SSR fails: objects outside the screen or hidden behind others are missing from the
+reflection, and the reflection fades towards the screen edge. The traced reflection has them.
 \begin{table}[H]
 \centering\small
 \rtperftable
-\caption{Cost of each render mode at \rtperfsize{} on the RTX 4070 (\code{--capture raytrace\_perf}). Hybrid traces at full size; Whitted,
+\caption{Cost of each render mode at \rtperfsize{} on the RTX 4070. Hybrid traces at full size; Whitted,
 path and light tracing render at a reduced internal size and upscale.}
 \label{tab:rtperf}
 \end{table}
@@ -42,7 +40,7 @@ Path / light tracing & soft shadows, indirect light, caustics (light) & many pat
 \end{tabularx}
 \caption{Differences between reflection methods.}
 \end{table}
-\where{SSR in src/rendering/ShadersPost.cpp; src/raytrace/RayTracer.cpp (Whitted, path, light tracing), Bvh.cpp; src/rendering/RayTracerGL.cpp}
-\critique{The hybrid mode traces only the reflection. The screen-space passes (SSAO/GTAO, fog, SSR) work on the primary
+
+\textbf{Limitation.} The hybrid mode traces only the reflection. The screen-space passes (SSAO/GTAO, fog, SSR) work on the primary
 image, so they cannot apply to what is seen in a traced reflection; Whitted, path and light tracing also run at reduced
-internal resolution (Table~\ref{tab:rtperf}) and are for demonstration, not play.}
+internal resolution (Table~\ref{tab:rtperf}) and are for demonstration, not play.

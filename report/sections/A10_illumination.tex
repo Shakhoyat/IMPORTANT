@@ -1,8 +1,8 @@
 \section{Illumination model}
 \label{sec:illum}
 \here{8}
-\concept{The local illumination model sums an ambient term, and for every light a diffuse (Lambert) and a
-specular (Blinn--Phong) term, scaled by the light's attenuation and, for a spot light, its cone factor.}
+The local illumination model sums an ambient term, and for every light a diffuse (Lambert) and a
+specular (Blinn--Phong) term, scaled by the light's attenuation and, for a spot light, its cone factor.
 \begin{equation}
 I = k_a I_a + \sum_{l} f_{\text{att},l}\,c_l\,I_l\Big[k_d\,\max(0,\vect N\cdot\vect L_l) + k_s\,\max(0,\vect N\cdot\vect H_l)^{n}\Big],
 \qquad \vect H=\frac{\vect L+\vect V}{\lVert\vect L+\vect V\rVert}
@@ -18,7 +18,7 @@ c_{\text{spot}}=\Big(\mathrm{clamp}\Big(\frac{\cos\gamma-\cos\theta_o}{\cos\thet
 \centering\small
 \begin{tabularx}{\linewidth}{@{}llXl@{}}
 \toprule
-Light & Type & Parameters (exported by the program) & When\\\midrule
+Light & Type & Parameters & When\\\midrule
 Sun & directional & direction and colour from the solar model (Section~\ref{sec:day}), intensity up to 3.2 & sun above $-1^\circ$\\
 Moon & directional & intensity \moonI, colour (0.55, 0.62, 0.80) & night\\
 Beacon & point & $k_l=\beaconLin$, $k_q=\beaconQuad$, pulsing 0.6--2.0 & night\\
@@ -27,7 +27,7 @@ Practical lamps & point & up to 16 at once (floodlights, lamps, fire barrel) & d
 Ambient & hemisphere / SH & night constant; by day the irradiance of the drawn sky & always\\
 \bottomrule
 \end{tabularx}
-\caption{Light sources (\code{--export-docs}, \code{scene/DayCycle}).}
+\caption{Light sources.}
 \label{tab:lights}
 \end{table}
 
@@ -43,17 +43,17 @@ Ambient & hemisphere / SH & night constant; by day the irradiance of the drawn s
 \begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_ambient}{\linewidth}\caption{Ambient only.}\end{subfigure}\hfill
 \begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_diffuse}{\linewidth}\caption{Diffuse only.}\end{subfigure}\hfill
 \begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_specular}{\linewidth}\caption{Specular only.}\end{subfigure}
-\caption{The terms of Eq.~\eqref{eq:phong} one at a time on the ammunition bunker at 10:30 (\key{Ctrl+L}). Notice:
-ambient (b) has no direction, so the shape reads only through colour; diffuse (c) depends on $\vect N\cdot\vect L$
-and darkens faces turned from the sun; specular (d) is small and sits on edges and rims, and moves with the camera
-because $\vect H$ depends on $\vect V$.}
+\caption{The terms of Eq.~\eqref{eq:phong} one at a time on the ammunition bunker at 10:30 (\key{Ctrl+L}).}
 \label{fig:terms}
 \end{figure}
 
+Ambient light (Figure~\ref{fig:terms}b) has no direction, so the shape reads only through colour. The diffuse term
+(c) depends on $\vect N\cdot\vect L$ and darkens faces turned from the sun. The specular term (d) is small, sits on
+edges and rims, and moves with the camera because $\vect H$ depends on $\vect V$.
 \begin{figure}[H]
 \centering\plot{p_specular_falloff}{0.62\linewidth}
-\caption{The specular lobe $(\vect N\cdot\vect H)^n$ for shininess values that occur in the scene (2 to 64).
-Notice that $n=64$ gives a highlight eight times narrower than $n=2$.}
+\caption{The specular lobe $(\vect N\cdot\vect H)^n$ for the shininess values of the scene (2 to 64); $n=64$ gives a
+highlight eight times narrower than $n=2$.}
 \label{fig:spec}
 \end{figure}
 
@@ -68,7 +68,9 @@ Notice that $n=64$ gives a highlight eight times narrower than $n=2$.}
 three terms for one roof point at noon, sunset, under the moon and under a UAV searchlight. \fullsheet{Illumination}}
 \label{fig:wb-illum}
 \end{figure}
-\where{kLighting in src/rendering/ShaderSources.cpp (compose(), brdf()); lights in src/scene/Scene.cpp, src/scene/DayCycle.cpp}
-\critique{At HIGH and above the program uses a physically based GGX/Cook--Torrance BRDF by default; \key{B} switches to
-classic Blinn--Phong. The term split (\key{Ctrl+L}) applies to the scene-object and terrain shaders; grass and
-foliage use their own shaders and always show all terms.}
+
+At HIGH and above the renderer uses a physically based GGX/Cook--Torrance BRDF by default; \key{B} switches to the
+classic Blinn--Phong of Eq.~\eqref{eq:phong}.
+
+\textbf{Limitation.} The term split (\key{Ctrl+L}) covers the scene-object and terrain shaders only; grass and
+foliage have their own shaders and always show all terms.

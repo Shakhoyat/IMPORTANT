@@ -119,7 +119,7 @@ def esc(s):
     return s.replace("<=", "$\\le$").replace(">=", "$\\ge$").replace("->", "$\\to$").replace("|", "$|$")
 
 
-def fmt(v, decimals=4):
+def fmt(v, decimals=3):
     if v is None:
         return ""
     if isinstance(v, bool):
@@ -130,10 +130,13 @@ def fmt(v, decimals=4):
         if v == int(v) and abs(v) < 1e9:
             iv = int(v)
             return f"{iv:,}".replace(",", "{,}") if abs(iv) >= 10000 else str(iv)
+        if v != 0 and abs(v) < 1e-6:          # a residual / check value: print the bound, not noise digits
+            return "$<10^{-6}$"
         if v != 0 and (abs(v) < 1e-3 or abs(v) >= 1e6):
-            m, e = f"{v:.3e}".split("e")
-            return f"${m}\\times10^{{{int(e)}}}$"
-        return f"{v:.{decimals}f}"
+            m, e = f"{v:.2e}".split("e")
+            return f"${m.rstrip('0').rstrip('.')}\\times10^{{{int(e)}}}$"
+        t = f"{v:.{decimals}f}".rstrip("0").rstrip(".")   # meaningful precision: 5.5, not 5.5000
+        return "0" if t in ("-0", "") else t
     return esc(str(v))
 
 
@@ -155,7 +158,7 @@ def table(ws, wv, rng, opts):
     c0, r0, c1, r1 = range_boundaries(rng)
     cols = [column_index_from_string(x) for x in opts["cols"]] if opts.get("cols") else list(range(c0, c1 + 1))
     rows = opts.get("rows") or list(range(r0, r1 + 1))
-    dec = int(opts.get("fmt", 4))
+    dec = int(opts.get("fmt", 3))
     head = opts.get("head", 1)
     merged = merged_lookup(ws)
     grid = []
@@ -215,7 +218,7 @@ def mats(ws, wv, items):
             vals = []
             for c in range(c0, c1 + 1):
                 v = wv.cell(row=r, column=c).value
-                s = fmt(v, 4)
+                s = fmt(v, 3)
                 s = s.strip("$")
                 vals.append(s)
             rows.append(" & ".join(vals))

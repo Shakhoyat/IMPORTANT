@@ -1,9 +1,9 @@
 \section{Rasterisation and anti-aliasing}
 \label{sec:raster}
 \here{7}
-\concept{Rasterisation finds the pixels whose centres a triangle covers (edge functions) and interpolates the
+Rasterisation finds the pixels whose centres a triangle covers (edge functions) and interpolates the
 vertex attributes with barycentric weights. Because the triangle was projected, attributes must be interpolated
-perspective-correctly: interpolate $a/w$ and $1/w$, then divide.}
+perspective-correctly: interpolate $a/w$ and $1/w$, then divide.
 \begin{equation}
 E_{ij}(\vect x)=(\vect x-\vect p_i)\times(\vect p_j-\vect p_i),\quad
 \lambda_k=\frac{E_k}{E_0+E_1+E_2},\qquad
@@ -24,25 +24,25 @@ a=\frac{\sum_k\lambda_k a_k/w_k}{\sum_k\lambda_k/w_k}
 \\[1mm]
 {\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
 \feRasterScanInfo\hfill\feInterpAffinePerspectiveInfo
-\caption{Rasterisation in the Frame Explorer. Notice in (b) that the affine checker bends along the diagonal of each
-quad, because $a$ is interpolated linearly in screen space; the perspective-correct one stays straight.}
+\caption{Rasterisation in the Frame Explorer: (a) the scan of one triangle; (b) the affine checker bends along each
+quad's diagonal, the perspective-correct one stays straight.}
 \label{fig:raster}
 \end{figure}
 
 \textbf{Anti-aliasing.} Edges sampled once per pixel form stairs. The program uses MSAA (several coverage samples, one
 shading per pixel): 2$\times$ at LOW, 4$\times$ at HIGH, 8$\times$ at ULTRA, and 4$\times$ plus TAA at EPIC. TAA
 jitters the projection by a Halton(2,3) sub-pixel offset every frame and blends the history, clipped to the
-variance box of the current $3\times3$ neighbourhood in YCoCg (\code{ShadersPostFx.cpp kTaaFrag}).
+variance box of the current $3\times3$ neighbourhood in YCoCg. The affine checker of Figure~\ref{fig:raster}b bends
+because $a$ is interpolated linearly in screen space instead of through $a/w$.
 \begin{figure}[H]
 \centering\raw{lab/explorer_stage_15_taa}{0.7\linewidth}
 \\[1mm]
 {\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
 \feStageTaaInfo\hfill\feStageTaaFormula
-\caption{Frame Explorer TAA stage. Notice the thin wires and grass blades: without temporal accumulation they break
-into dotted lines; with it they are continuous, at the cost of slight blur in motion.}
+\caption{Frame Explorer TAA stage: thin wires and grass blades stay continuous instead of breaking into dots.}
 \label{fig:taa}
 \end{figure}
-\where{Rasterisation is done by the GPU; the explorer re-draws it on the CPU for teaching (src/rendering/FrameExplorer.cpp, math/ExplorerMath.cpp). MSAA/TAA in src/rendering/RendererFrame.cpp, ShadersPost.cpp}
-\critique{TAA trades aliasing for ghosting: a fast UAV leaves a faint trail for a few frames. The v9 vegetation
-work measured that, with a static camera, pixels without vegetation still change by about 2.4/255 per frame from the
-jitter alone, and vegetation pixels by 2.6--6.6/255 (target 1.5; not met, \code{docs/v9\_notes/v9-notes.md}).}
+
+\textbf{Limitation.} TAA trades aliasing for blur and ghosting: a fast UAV leaves a faint trail for a few frames. With
+a static camera, pixels without vegetation still change by about 2.4/255 per frame from the jitter alone and vegetation
+pixels by 2.6--6.6/255, above the 1.5/255 that was the target.

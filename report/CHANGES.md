@@ -155,6 +155,57 @@ only in Table 19.1. `tools/v10/gen_decomp.py` / `gen_decomp.tex` are no longer u
 Layout: cards are non-floating blocks (`\needspace` before each, `\captionof`), parts tables are 7 pt longtables that
 break across pages; family subsections end with `\FloatBarrier`. Section 19 is pages 45-91 (was 40-53).
 
+## M4: repetitive, template-like writing removed (whole report)
+
+`tools/report/lint_prose.py` (new) checks every section that `main.tex` inputs (generated files included) except
+Section 3 and the appendices, and fails on the forbidden patterns. Counts at the start of the pass (`--rev 9a4e54a`)
+and now:
+
+| Pattern | Before | After |
+|---|---:|---:|
+| "Notice ..." (caption opener) | 42 | 0 |
+| "Builds on:" | 10 | 0 |
+| "Where in the project" | 23 | 0 |
+| version tags (v1 ... v12) | 36 | 0 |
+| "the brief" | 9 | 0 |
+| "honest(ly)" | 2 | 0 |
+| `--export-docs` | 10 | 0 |
+| `\concept` paragraphs ("Concept.") | 13 | 0 |
+| `\critique` ("Critique.") | 23 | 0 (21 kept as "Limitation", the rest folded) |
+| "the program" | 36 | 4 |
+| "Every claim / painted over / honestly" | 4 | 0 |
+
+What changed:
+- Captions: every "Notice ..." caption is now one sentence saying what the figure shows, with at most one direct
+  observation; the longer explanations moved into the body next to the figure.
+- "Concept." labels removed (the paragraph stays); "Builds on:" lines deleted (the pipeline banner shows it); all 23
+  "Where in the project" paragraphs replaced by one appendix table, "Where each section lives in the code".
+- Critiques: specific, non-obvious ones kept and renamed "Limitation" (21); the brief-related ones (clip window, N/D
+  keys, live thermal panel, 6-hour shifts, backup fire, moon rise, enemy toggle key) moved to the new appendix table
+  "Requirements coverage" (requirement -> section -> done / partial / not done, from `docs/audit.md`); the world-update
+  cost is also listed in Section 31.
+- Development history removed: version tags, "what each key did before v9", `docs/v9_notes` and `tools/v10` paths in
+  captions and text, and code identifiers used as prose (mixLog -> mix_log notation, terrainShade, surfaceAlbedo,
+  RigPose.rot, DayCycleConfig, weave / speedWander / hesitate, CameraRig::kBlendTime, kMaxPracticals,
+  Renderer::drawTranslucent, Combat::explodeImpl / updateParticles, Scene::updateDebris, HideController::update,
+  MultiTracker::triangulate, Squad::update, roundFlightTime, v6.garrison.gait.cycle, kTaaFrag). The benchmark
+  configuration "v1 look" is shown as "classic look". The regeneration commands are in one new appendix,
+  "Reproducing the figures" (the benchmark command moved there from Section 29).
+- Reassurances: one statement in Section 3 that every image is a program capture (or a plot / workbook block) and
+  every number comes from the export through a script; "Every claim is backed...", "nothing is painted over",
+  "listed honestly", "(--export-docs)" and "rendered / captured by the program" removed elsewhere; the cover's
+  provenance line removed.
+- Section 20 title "Colour interpolation, with critique" -> "Colour interpolation".
+- Workbook blocks (`tools/v10/sheet_to_tex.py`): meaningful precision (trailing zeros dropped: 5.5 not 5.5000; 3
+  decimals in tables and matrices; values below 1e-6 printed as "< 10^-6"). Workbook figures deleted because the same
+  section already has the content as a table: Fig. 7.4 (`Vertex_Groups`, repeats Tables 7.1-7.4), Fig. 29.2
+  (`Performance`, repeats Table 29.1); Figs. 6.2 and 19.17 went in M2 / M3. The remaining blocks (Transform_Trace,
+  View_Projection, Clipping, Illumination, Ray_Tracing, Color_Interp, Thermal_Kernels, Tracking, Duty_Cycle,
+  Line_Follower, Explosion) hold worked values that are not tabulated elsewhere and stay.
+- Over-precise numbers: the day length prints as 291 s (was 290.6), the benchmark analysis to 0.1 ms / 1 fps;
+  "k_s / n" no longer appears (the material columns of Section 19 were dropped in M3).
+- Cover: "parts in designs" instead of the old object count; Conclusion's O1 row likewise.
+
 # Earlier round (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
 
 Figure and table numbers refer to the report before this round unless marked "new".

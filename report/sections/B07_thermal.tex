@@ -1,7 +1,5 @@
 \section{Thermal sensor and image-processing pipeline}
 \label{sec:thermal}
-\textit{Builds on: rendering to texture, convolution, histograms; Section~\ref{sec:illum} (the heat render reuses the scene passes).}
-
 \textbf{Simulated, not sensed.} Each part has a heat value (engines and people hot, sun-heated walls warm, ground cool;
 the sun adds a solar term by day). Each UAV renders its view of these values into a 320$\times$240 image; a sensor model
 turns the ideal image into what an uncooled microbolometer would output, and the computer-vision (CV) pipeline finds
@@ -24,12 +22,14 @@ S_x=\begin{bmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{bmatrix},\quad
 \begin{figure}[H]
 \centering
 \raw{lab/cv_pipeline_uav1}{\linewidth}
-\caption{The CV pipeline on one real UAV frame (lab figure): raw sensor image, histogram and Otsu threshold, mask,
-despeckle, components, overlay. Notice that the sensor noise and the warm walls survive the blur but not the
-threshold-plus-despeckle; only compact hot blobs with a hot core become targets.}
+\caption{The CV pipeline on one UAV frame: raw sensor image, histogram and Otsu threshold, mask, despeckle,
+components, overlay.}
 \label{fig:cv}
 \end{figure}
 
+Sensor noise and warm walls survive the blur but not the threshold and despeckle steps; only compact hot blobs with a
+hot core become targets. The CV runs on the CPU at 320$\times$240 on a worker thread, and the PSF blur is separable
+(two 3-tap passes instead of one 9-tap pass).
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_imagelab_gauss_gamma}{\linewidth}\caption{Frame Explorer image lab: Gaussian and gamma.}\end{subfigure}\hfill
@@ -37,7 +37,7 @@ threshold-plus-despeckle; only compact hot blobs with a hot core become targets.
 {\footnotesize\textit{Zoomed kernel panels of (a) and (b):}}\\[0.5mm]
 \feImagelabGaussGammaKernel\\[1mm]
 \feImagelabSobelKernel\\[1mm]
-\caption{Image-processing stages on frames from the program (\key{`} then \key{P}: \key{K} cycles the kernel, \key{[} \key{]} change $\gamma$).}
+\caption{Image-processing stages in the Frame Explorer (\key{`} then \key{P}: \key{K} cycles the kernel, \key{[} \key{]} change $\gamma$).}
 \label{fig:imglab-fe}
 \end{figure}
 
@@ -45,12 +45,13 @@ threshold-plus-despeckle; only compact hot blobs with a hot core become targets.
 \centering
 \begin{subfigure}{\linewidth}\plot{p_thermal_histogram}{\linewidth}\caption{Histogram and CDF before and after equalisation.}\end{subfigure}\\[1mm]
 \begin{subfigure}{0.5\linewidth}\centering\plot{p_separable_cost}{\linewidth}\caption{Separable convolution cost.}\end{subfigure}
-\caption{Histogram and convolution cost. Notice in (a) that the raw thermal frame uses a narrow band of grey levels (most pixels are
-cool ground); equalisation spreads them over the full range so the CDF becomes a straight line. Histogram
-equalisation is computed offline here (\code{tools/v10/plots.py}); it is not a switch in the program.}
+\caption{Histogram equalisation of a raw thermal frame (a) and the cost of a separable convolution (b).}
 \label{fig:imglab}
 \end{figure}
 
+The raw thermal frame uses a narrow band of grey levels, because most pixels are cool ground; equalisation spreads them
+over the full range, so the CDF becomes a straight line (Figure~\ref{fig:imglab}a). The equalisation is computed
+offline for the figure; it is not a switch in the renderer.
 \begin{figure}[H]
 \centering
 {\footnotesize\textit{Gaussian ($\sigma=1$, $5\times5$): raw and normalised}}\\[0.5mm]
@@ -68,12 +69,10 @@ $5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{v5/scene_thermal}{\linewidth}\caption{External thermal view, ironbow palette.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{scene/day_thermal_fpv_persons}{\linewidth}\caption{UAV gimbal by day: people classified, not engaged.}\end{subfigure}
-\caption{The thermal views. Notice in (b) the ``PERS'' brackets: blobs that are warm but have no hot engine core are
-classified as people and never targeted.}
+\caption{The thermal views. In (b) the ``PERS'' brackets mark warm blobs without a hot engine core: people, never
+targeted.}
 \label{fig:thermal}
 \end{figure}
-\where{src/vision/SensorModel.cpp (Eq.~\ref{eq:sensor}), CvPipeline.cpp, MultiTracker.cpp; src/math/ExplorerMath.cpp (kernels); src/rendering/ThermalPalette.h (4 palettes: \key{T})}
-\critique{The brief's live panel with all stages as tiles and sliders (key \key{V}) is only partly met: the stages exist
-(lab figures, Frame Explorer image lab with kernel and gamma controls), but not as one live tile strip with
-threshold and histogram-equalisation sliders. The CV runs on the CPU at 320$\times$240 on a worker thread; the
-PSF blur is separable (two 3-tap passes instead of one 9-tap pass).}
+
+\textbf{Limitation.} The stages are shown in the lab figures and in the Frame Explorer's image lab (kernel and gamma
+controls), but there is no single live strip of all stages with threshold and equalisation sliders.

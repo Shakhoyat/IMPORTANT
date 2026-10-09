@@ -1,7 +1,5 @@
 \section{Dynamic and controllable objects}
 \label{sec:dynamic}
-\textit{Builds on: hierarchy (\ref{sec:hier}), viewing (\ref{sec:view}).}
-
 \nControllables{} units can be controlled (soldiers, two UAVs, tanks, helicopter, AA gun, radar, launchers, blast
 doors, gate). Motion is integrated at a fixed 60\,Hz tick; between ticks the drawn pose is interpolated, so motion is
 smooth at any frame rate. Almost every follow behaviour (character speed, cameras, doors) uses one tool: a
@@ -25,7 +23,7 @@ Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% op
 Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,EV indoor bias\\
 \bottomrule
 \end{tabularx}
-\caption{Dynamic objects and their motion models (\code{docs/v9\_notes/v9-notes.md}).}
+\caption{Dynamic objects and their motion models.}
 \label{tab:dyn}
 \end{table}
 
@@ -37,10 +35,13 @@ Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards
 \begin{subfigure}{0.325\linewidth}\raw{play/play_exposure_enter}{\linewidth}\caption{Just inside: eye not adapted.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play/play_exposure_adapted}{\linewidth}\caption{Two seconds later: adapted.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play/play_sprint_fov}{\linewidth}\caption{Sprint: FOV widens by up to $6^\circ$.}\end{subfigure}
-\caption{Controllable dynamics in the program. Notice in (d)--(e) that the room is the same frame of geometry; only
-the exposure changed, following the slower bright-to-dark time constant.}
+\caption{Controllable dynamics: a door on a spring (a--c), eye adaptation on entering the hall (d, e) and the
+sprint field of view (f).}
 \label{fig:dyn}
 \end{figure}
-\where{src/scene/CharacterMotor.cpp, Gait.cpp, CameraRig.cpp, UavView.cpp, Door.cpp, EyeAdapt.cpp, ai/SquadDuty.cpp; src/scene/TickInterp.cpp (60\,Hz tick, interpolation)}
-\critique{The fixed tick makes motion deterministic (a recorded session replays bit for bit) but adds up to one tick
-(16.7\,ms) of input latency; render interpolation hides the stepping, not the latency.}
+
+Between Figure~\ref{fig:dyn}d and e nothing in the room changes but the exposure, which follows the slower
+bright-to-dark time constant.
+
+\textbf{Limitation.} The fixed tick makes motion deterministic (a recorded session replays bit for bit) but adds up to one tick
+(16.7\,ms) of input latency; render interpolation hides the stepping, not the latency.

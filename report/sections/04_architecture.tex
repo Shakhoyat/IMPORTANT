@@ -30,9 +30,8 @@
 \draw[a] (prims) -- (math);
 \draw[a] (app.west) -- ++(-5.6,0) |- (audio.west);
 \end{tikzpicture}
-\caption{Module architecture (directories under \code{src/}). Notice the split: \code{scene/} and \code{objects/} are
-pure CPU code that runs without a GPU (the \code{--export-docs} path uses it); everything that touches OpenGL lives in
-\code{rendering/} and \code{app/}.}
+\caption{Module architecture (directories under \code{src/}). \code{scene/} and \code{objects/} are pure CPU code
+that runs without a GPU; everything that touches OpenGL lives in \code{rendering/} and \code{app/}.}
 \label{fig:arch}
 \end{figure}
 
@@ -55,11 +54,12 @@ pure CPU code that runs without a GPU (the \code{--export-docs} path uses it); e
 \draw[-{Latex},very thick,blue!80!black] (0.04,0.115) -- ++(0,-0.07) node[right,text=blue!70!black,font=\scriptsize\bfseries] {$+z$ (north)};
 \end{scope}
 \end{tikzpicture}
-\caption{Top-down layout: an orthographic top view rendered by the program (\key{Ctrl+P}). Labels are placed
-from the world coordinates in \code{objects/BaseLayout.h}; the perimeter wall has radius 34\,m. Notice that an
-orthographic top view keeps distances true, so this picture doubles as a scaled site plan; $+y$ points at the viewer.}
+\caption{Top-down layout: an orthographic top view (\key{Ctrl+P}) with labels placed from the world coordinates of
+the layout; the perimeter wall has radius 34\,m and $+y$ points at the viewer.}
 \label{fig:layout}
 \end{figure}
+
+An orthographic top view keeps distances true, so Figure~\ref{fig:layout} doubles as a scaled site plan.
 
 \textbf{Frame loop.} Each frame: fixed 60\,Hz simulation ticks (scene, AI, combat, UAV cameras), render with
 interpolation between the last two ticks, the UAV images' vision on a worker thread, HUD, present. Offline modes

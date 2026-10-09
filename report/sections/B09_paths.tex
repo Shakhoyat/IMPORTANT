@@ -1,7 +1,5 @@
 \section{Line follower and MicroMouse logic}
 \label{sec:paths}
-\textit{Builds on: grids, curves (\ref{sec:curved}), ray casting for line of sight (\ref{sec:rt}).}
-
 The intruder rovers are built like two classic robot-contest machines. \textbf{Planning (MicroMouse):} the
 40\,m$\times$40\,m area is divided into $80\times80$ cells of 0.5\,m; every cell hidden from the UAVs by an occluder
 is a goal; a breadth-first flood fill spreads distances out from the goals, and the rover walks ``downhill'' to the
@@ -21,8 +19,8 @@ with $w_i$ the sensors' lateral offsets, $s_i\in\{0,1\}$ their readings, $K_p=3.
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_floodfill.pdf}
 \caption{The two layers on a small example grid. (a) Breadth-first distances from the hidden goal cells (green, 0);
 the rover (red dot) steps to the smaller neighbour each time (dashed) and the cell path is rounded by three Chaikin
-passes into the guide line (red). (b) The line follower drawn to scale with the constants of
-\code{HideController.cpp}; here two sensors on the left see the line, so the error is positive and the rover turns left.}
+passes into the guide line (red). (b) The line follower drawn to scale; two sensors on the left see the line, so the
+error is positive and the rover turns left.}
 \label{fig:floodfill}
 \end{figure}
 
@@ -41,7 +39,7 @@ one (Dijkstra from the goal cell): a step costs one cell plus a penalty if eithe
 smooth noise, so each rover picks its own covered route. Algorithm~\ref{alg:intruder} is the whole controller of one
 rover, run every tick.
 \begin{algorithm}[H]
-\caption{Intruder rover, one tick (\code{HideController::update}, \code{replan}, \code{followLine})}
+\caption{Intruder rover, one tick}
 \label{alg:intruder}
 \footnotesize
 \begin{algorithmic}[1]
@@ -81,9 +79,8 @@ rover, run every tick.
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{v5/plan_routes}{\linewidth}\caption{\key{M}: flood field, routes and guide lines.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{scene/day_patrol_spline}{\linewidth}\caption{A soldier's A* patrol spline.}\end{subfigure}
-\caption{Path debug views drawn by the program. Notice in (a) that the routes bend towards cover (cells the UAVs cannot
-see) rather than taking the straight line, and in (b) that the spline rounds the grid path's corners while keeping
-clear of the walls.}
+\caption{Path debug views: (a) the rovers' routes bend towards cover, cells the UAVs cannot see; (b) the patrol spline
+rounds the grid path's corners and keeps clear of the walls.}
 \label{fig:paths}
 \end{figure}
 
@@ -100,8 +97,8 @@ Catmull--Rom (centripetal) & smooth curve through the waypoints, no loops or cus
 \end{tabularx}
 \caption{Differences between the path methods.}
 \end{table}
-\where{src/ai/HideController.{h,cpp} (flood fill, guide line, PD gains kKp / kKd), src/scene/Garrison.cpp SitePlanner (A*), src/math/Spline.cpp}
-\critique{The rover's sensors are simulated against a line the planner drew, not against a painted line in the scene,
-so the line-follower layer adds realistic lag and overshoot rather than new information. On top of it, a deliberate
-lateral weave, speed wander and short hesitations (\code{weave}, \code{speedWander}, \code{hesitate}) keep the UAVs'
-tracker from extrapolating a rover along one straight, constant-speed line.}
+
+\textbf{Limitation.} The rover's sensors read a line the planner drew, not a line painted in the scene, so the
+line-follower layer adds realistic lag and overshoot rather than new information. On top of it a deliberate sideways
+weave, a wandering speed and short pauses keep the UAVs' tracker from extrapolating a rover along one straight,
+constant-speed line.
