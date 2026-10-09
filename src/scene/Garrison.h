@@ -20,6 +20,7 @@
 #include "ai/Occlusion.h"
 #include "math/Spline.h"
 #include "objects/Soldier.h"
+#include "scene/CharacterMotor.h"
 #include "scene/Controllable.h"
 #include "scene/Gait.h"
 
@@ -144,6 +145,10 @@ public:
     float verticalSpeed() const { return vy_; }
     float lastLandSpeed() const { return landSpeed_; }   // m/s at the latest touch-down
     int landings() const { return landings_; }           // touch-downs so far (the App plays the landing)
+    // v9 M3: the possessed soldier's character motor (velocity springs, stance blends, coyote / buffer, step smoothing)
+    const CharacterMotor& motor() const { return motor_; }
+    float landDip() const { return landDip_; }           // 0..1 landing dip still showing
+    float drawnFeetY() const;                            // feet height as drawn (smoothed over steps)
     float routeLeft() const;                         // m to the end of the current route (0 when holding)
     float routeCurvature() const;                    // 1/m at the current route position (0 when holding)
     // Teleport onto the surface (tests); feetY: start from this level instead (rooms below / above the terrain).
@@ -177,8 +182,10 @@ private:
     Pose pose_;
     bool carrying_ = false, day_ = false, possessed_ = false;
     int stance_ = 0;
-    // v7.1 WP-T (possessed only): forward command speed, strafe speed, jump state, landing dip
-    float cmdSpeed_ = 0.0f, strafe_ = 0.0f, vy_ = 0.0f, airT_ = 0.0f, landDip_ = 0.0f, landSpeed_ = 0.0f;
+    // v7.1 WP-T (possessed only): jump state, landing dip; v9 M3: the motor drives them (cmdSpeed_ / strafe_ went
+    // into its velocity spring)
+    float vy_ = 0.0f, airT_ = 0.0f, landDip_ = 0.0f, landSpeed_ = 0.0f;
+    CharacterMotor motor_;
     bool airborne_ = false;
     int landings_ = 0;
 };

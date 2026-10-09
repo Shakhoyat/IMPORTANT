@@ -318,8 +318,9 @@ RigPose App::thirdPersonTarget(float dt) {
     const Soldier* s = soldierOf(*scene_, si);
     if (!s) return shownPose_;
     const Vec3 p = s->position();
-    const float crouch = s->stance() == 1 || s->activity() == Activity::Crouch ? 0.42f : 0.0f;
-    const Vec3 pivot = p + Vec3{0.0f, 1.45f - crouch, 0.0f};
+    // v9 M3: the pivot rides on the drawn feet (smooth over steps) and sinks with the motor's crouch blend.
+    const float crouch = 0.42f * s->motor().crouchBlend();
+    const Vec3 pivot = Vec3{p.x, s->drawnFeetY(), p.z} + Vec3{0.0f, 1.45f - crouch, 0.0f};
     const uint32_t key = static_cast<uint32_t>(si) + 1u;
     if (tpKey_ != key || !tp_.valid()) {
         tp_.reset(pivot, s->yawDeg(), -10.0f);
@@ -653,12 +654,45 @@ int App::capturePlay() {
     // west wall instead of looking through it.
     if (Garrison* g = scene_->garrison()) {
         const int si = possessedSoldierIndex();
+        Soldier* own = nullptr;
         for (int u = 0; u < g->count(); ++u)
-            if (sa::soldierIndex(*scene_, u) == si) g->unit(u)->place(-4.3f, -5.0f, 90.0f, -3.4f);
+            if (sa::soldierIndex(*scene_, u) == si) own = g->unit(u);
+        if (own) own->place(-4.3f, -5.0f, 90.0f, -3.4f);
         tp_.invalidate();
         tpPoseValid_ = false;
         run(0.6f);
         shot("play_third_person_indoor");
+        // v9 M3 (after the v8 shots, so those stay comparable): back outside; first-person sprint with the FOV kick,
+        // third-person crouch walk, a jump in the air.
+        if (own && opt_.only.find(",play_sprint") != std::string::npos) {
+            // An open strip of the south apron: 10 m east from (-11, -24) keep 1.2 m from every obstacle.
+            own->place(-11.0f, -24.0f, 90.0f);
+            tp_.yawDeg = 90.0f;   // first person looks (and runs) east
+            setViewThirdPerson(false);
+            run(CameraRig::kBlendTime + 0.1f);
+            held_.forward = 1.0f;
+            held_.boost = true;
+            run(1.2f);
+            shot("play_sprint_fov");
+            held_ = ControlInput{};
+            run(0.5f);
+            own->place(own->position().x, own->position().z, -90.0f);   // turn round: back west along the strip
+            setViewThirdPerson(true);
+            run(CameraRig::kBlendTime + 0.1f);
+            tpLookYaw_ += 160.0f;   // the camera swings round behind (a little off to the side)
+            crouchWant_ = 1;
+            run(0.4f);
+            held_.forward = 1.0f;
+            run(1.0f);
+            shot("play_crouch");
+            held_.forward = 0.0f;
+            crouchWant_ = 0;
+            run(0.5f);
+            jumpEdge_ = true;
+            run(0.3f);
+            shot("play_jump");
+            run(1.0f);
+        }
     }
     // ---- the barracks hall: outside, inside by day (residents training / talking / resting), a resident in third
     // person inside, and the hall at night (asleep in the bunks)

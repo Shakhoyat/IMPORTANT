@@ -123,7 +123,9 @@ struct FlyCam {
 // Over-the-shoulder (soldiers) / chase (vehicles) camera on a spring arm, like a modern third-person shooter:
 //   pivot (lagged follow of the subject's chest / hull) -> shoulder point (sideways, probed) -> camera (behind, probed).
 // The arm pulls in at once when a wall, the ground or a ceiling comes between the shoulder and the camera, and eases
-// back out (no clipping into geometry, no popping). Mouse orbits (yaw / pitch); right mouse aims: a shorter arm, the
+// back out (no clipping into geometry, no popping). v9 M3: the pivot follow and the arm's way back out are critically
+// damped springs (zeta = 1, x'' = -2 w x' - w^2 (x - goal), w = 2 / tau: the same lag behind a steady walk as the v8
+// exponential, but no velocity jump when the subject starts / stops and no overshoot). Mouse orbits (yaw / pitch); right mouse aims: a shorter arm, the
 // shoulder closer and a narrower field of view; Q swaps the shoulder (smoothed).
 struct ThirdPersonParams {
     float arm = 3.1f, aimArm = 1.45f;            // m behind the shoulder point
@@ -132,9 +134,9 @@ struct ThirdPersonParams {
     float fovDeg = 62.0f, aimFovDeg = 42.0f;
     float minPitch = -70.0f, maxPitch = 55.0f;
     float probe = 0.22f;                         // probe sphere radius (> near plane)
-    float lagTau = 0.05f, lagTauY = 0.11f;       // s: pivot follow (horizontal, vertical: softer for jumps / steps)
+    float lagTau = 0.05f, lagTauY = 0.11f;       // s: pivot follow (horizontal, vertical: softer for jumps / steps), w = 2 / tau
     float maxLag = 0.8f;                         // m: the lagged pivot never trails further
-    float armOutTau = 0.28f;                     // s: arm extension after a pull-in
+    float armOutTau = 0.28f;                     // s: arm extension after a pull-in (spring w = 2 / tau)
     float aimTau = 0.07f, sideTau = 0.11f;
     static ThirdPersonParams soldier() { return {}; }
     // Vehicles: centred chase on the same arm (no shoulder offset, no aim zoom).
@@ -166,12 +168,15 @@ public:
     float aimBlend() const { return aim_; }
     float sideBlend() const { return side_; }
     Vec3 pivot() const { return pivot_; }
+    Vec3 pivotVelocity() const { return pivotVel_; }
     Vec3 shoulderPoint() const { return shoulderPt_; }
 
 private:
     bool valid_ = false;
     Vec3 pivot_, shoulderPt_;
     float arm_ = -1.0f, want_ = 0.0f, aim_ = 0.0f, side_ = 1.0f;
+    Vec3 pivotVel_;              // v9 M3: spring state of the pivot follow (m/s) and of the arm (m/s)
+    float armVel_ = 0.0f;
 };
 
 }  // namespace ts

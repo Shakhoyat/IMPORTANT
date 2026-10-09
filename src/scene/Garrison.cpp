@@ -697,6 +697,13 @@ struct Soldier::State {
     float prevPhase = 0.0f;
     bool wasPossessed = false;
     bool nextAfterUnsettle = false;   // v8: a timed settle hold ended: get up, then walk the planned leg on
+    // v9 M3: possessed motor in sync with the body, the boxes around it (steps / walls, also the feet's ground), the
+    // direction of travel relative to the heading (gait plane), per-leg hip roll and the pelvis drop of the foot IK
+    bool motorLive = false;
+    std::vector<Box> nearSolids;
+    float travelDeg = 0.0f;
+    float legRoll[2] = {0.0f, 0.0f};
+    float pelvisDrop = 0.0f;
 };
 
 // Walkers keep apart. A lateral offset from the route passes soldiers ahead on the side away from them (both pass
@@ -1006,63 +1013,62 @@ void Soldier::stepPossessed(const WorldContext& w, const ControlInput& in, float
     yaw_ = wrapDeg(yaw_ - in.turn * 110.0f * dt - in.aimYaw * 60.0f * dt - in.aimYawDelta);
     viewPitch_ = clampf(viewPitch_ + in.aimPitch * 50.0f * dt + in.aimPitchDelta, -60.0f, 60.0f);
     if (in.actionPressed) stance_ = (stance_ + 1) % 3;
-    if (in.jump && !airborne_) stance_ = 0;   // v7.1 WP-T: a jump stands up first
-    const bool crouched = stance_ == 1;
-    const float top = crouched ? 0.8f : (in.boost ? GaitParams::run().speed : GaitParams::walk().speed);
-    const float target = in.forward >= 0.0f ? in.forward * top : in.forward * 0.9f;
-    // v7.1 WP-T: in the air the body keeps its momentum (little air control).
-    const float air = airborne_ ? 0.2f : 1.0f;
-    cmdSpeed_ += clampf(target - cmdSpeed_, -5.0f * dt * air, (in.boost ? 3.0f : 2.0f) * dt * air);
-    const float strafeTop = crouched ? 0.6f : (in.boost ? 2.6f : 0.9f * GaitParams::walk().speed);
-    strafe_ += clampf(in.strafe * strafeTop - strafe_, -6.0f * dt * air, 6.0f * dt * air);
-    const float yr = radians(yaw_);
-    const Vec3 fwd{std::sin(yr), 0.0f, std::cos(yr)}, right{-std::cos(yr), 0.0f, std::sin(yr)};
-    const float ox = x_, oz = z_;
-    const float dx = (fwd.x * cmdSpeed_ + right.x * strafe_) * dt, dz = (fwd.z * cmdSpeed_ + right.z * strafe_) * dt;
+    // v9 M3: the character motor (scene/CharacterMotor.h) moves the body: critically damped velocity, sprint / crouch
+    // blends, coyote time + jump buffer, slope limit, step smoothing. Taken over or placed: it starts from rest here.
+    const FootBody& mb = motor_.body();
+    if (!s.motorLive || mb.x != x_ || mb.z != z_ || mb.feetY != feetY_) {
+        motor_.reset(x_, z_, feetY_);
+        s.motorLive = true;
+    }
+    MotorInput mi;
+    mi.forward = in.forward;
+    mi.strafe = in.strafe;
+    mi.yawDeg = yaw_;
+    mi.sprint = in.boost;
+    mi.crouch = stance_ == 1;
+    mi.jumpPressed = in.jump;
     // Collisions: WalkSpace walls, static solids around (low ones are steps / floors), doors / vehicles, the other
     // soldiers; terrain following, jump arc and landing, the treeline and the soft map bound (scene/WalkSpace.h).
-    std::vector<Box> extra;
+    const Vec3 v = motor_.velocity();
+    std::vector<Box>& extra = s.nearSolids;
+    extra.clear();
     for (const Box& b : g_->staticBoxes)
-        if (boxDistance(x_ + dx, z_ + dz, b) < 1.5f) extra.push_back(b);
+        if (boxDistance(x_ + v.x * dt, z_ + v.z * dt, b) < 1.5f) extra.push_back(b);
     for (const Box& b : g_->dynamicBoxes) extra.push_back(b);
     for (const Soldier* o : g_->units)
         if (o != this) {
             const float r = soldier::kBodyRadius;
             extra.push_back({{o->x_ - r, o->feetY_, o->z_ - r}, {o->x_ + r, o->feetY_ + 1.8f, o->z_ + r}});
         }
-    FootBody b;
-    b.x = x_;
-    b.z = z_;
-    b.feetY = feetY_;
-    b.vy = vy_;
-    b.grounded = !airborne_;
-    b.airTime = airT_;
-    FootParams fp;
-    fp.radius = soldier::kBodyRadius;
-    fp.height = crouched ? 1.25f : 1.8f;
-    stepFoot(b, g_->walk, extra, dx, dz, in.jump, dt, fp);
+    motor_.foot.radius = soldier::kBodyRadius;
+    motor_.step(mi, g_->walk, extra, dt);
+    const FootBody& b = motor_.body();
     x_ = b.x;
     z_ = b.z;
     feetY_ = b.feetY;
     vy_ = b.vy;
     airborne_ = !b.grounded;
     airT_ = b.airTime;
-    if (b.landed) {
-        landSpeed_ = b.landSpeed;
-        landDip_ = clampf(b.landSpeed / 6.0f, 0.3f, 1.0f);
+    if (motor_.jumped()) stance_ = 0;   // a jump stands up first
+    if (motor_.landed()) {
+        landSpeed_ = motor_.landSpeed();
+        landDip_ = clampf(landSpeed_ / 6.0f, 0.3f, 1.0f);
         ++landings_;
     }
-    if (dt > 0.0f) {
-        const float moved = std::hypot(x_ - ox, z_ - oz) / dt;
-        speed_ = std::copysign(moved, cmdSpeed_ < -0.05f ? -1.0f : 1.0f);
-        if (!airborne_ && std::fabs(cmdSpeed_) > moved + 0.5f) cmdSpeed_ = std::copysign(moved + 0.5f, cmdSpeed_);   // against a wall
-    }
-    activity_ = std::fabs(speed_) > 0.05f ? (in.boost && !crouched ? Activity::Run : Activity::Walk)
+    // Actual ground speed (the animation's distance per tick), negative while moving backwards.
+    const Vec3 m = motor_.moved();
+    const float yr = radians(yaw_);
+    const float along = dt > 0.0f ? (m.x * std::sin(yr) + m.z * std::cos(yr)) / dt : 0.0f;
+    speed_ = std::copysign(motor_.groundSpeed(), along < -0.05f ? -1.0f : 1.0f);
+    const bool crouched = stance_ == 1;
+    activity_ = std::fabs(speed_) > 0.05f ? (motor_.sprintBlend() > 0.5f && !crouched ? Activity::Run : Activity::Walk)
                                            : (stance_ == 1 ? Activity::Crouch : stance_ == 2 ? Activity::Wave : Activity::Idle);
     s.phase = State::Phase::Hold;
     s.holdDur = 0.0f;
     (void)w;
 }
+
+float Soldier::drawnFeetY() const { return feetY_ + (possessed_ && st_->motorLive ? motor_.stepOffset() : 0.0f); }
 
 void Soldier::update(const WorldContext& w, const ControlInput* in) {
     if (g_ && w.time != g_->frameTime) {
@@ -1109,7 +1115,8 @@ void Soldier::update(const WorldContext& w, const ControlInput* in) {
         s.wasPossessed = false;
         stance_ = 0;
         airborne_ = false;   // v7.1 WP-T: released mid-jump: back on the floor
-        vy_ = cmdSpeed_ = strafe_ = 0.0f;
+        vy_ = 0.0f;
+        s.motorLive = false;   // v9 M3: the motor starts from rest at the next possession
         if (std::hypot(x_, z_) > L::kPerimeterRadius - 1.5f) {   // left outside the wall: back on the road inside the gate
             x_ = 0.8f;
             z_ = L::kPerimeterRadius - 2.5f;
@@ -1224,12 +1231,29 @@ void Soldier::animate(float dt, float time) {
     State& s = *st_;
     (void)time;
     const float t = s.animT + 1.7f * static_cast<float>(index_);
-    const bool run = activity_ == Activity::Run || std::fabs(speed_) > 2.2f;
-    const GaitParams gp = run ? GaitParams::run() : GaitParams::walk();
-    const bool moving = std::fabs(speed_) > 0.02f;
-    s.moveW += clampf((moving ? 1.0f : 0.0f) - s.moveW, -dt / 0.3f, dt / 0.3f);
-    phase_ += speed_ * dt / gp.stride;
+    // v9 M3 locomotion blend tree: idle -> walk -> run by the actual ground speed, towards the crouch walk by the motor's
+    // crouch blend (scene/Gait.h locomotionGait). The phase advances by the distance travelled over the stride of the
+    // current blend, so the stance foot moves back exactly at the body speed (no sliding at any speed).
+    const float v = std::fabs(speed_);
+    const bool motorOn = possessed_ && s.motorLive;
+    const float crouchW = motorOn ? motor_.crouchBlend() : 0.0f;
+    const GaitParams gp = locomotionGait(v, crouchW);
+    const bool moving = v > 0.02f;
+    s.moveW += clampf((moving ? clampf(v / 0.25f, 0.0f, 1.0f) : 0.0f) - s.moveW, -dt / 0.3f, dt / 0.3f);
+    phase_ += v * dt / gp.stride;
     phase_ -= std::floor(phase_);
+    const float yr = radians(yaw_);
+    const Vec3 f{std::sin(yr), 0.0f, std::cos(yr)}, left{std::cos(yr), 0.0f, -std::sin(yr)};
+    // Direction of travel relative to the heading: the gait runs in that plane (strafe, walk backwards).
+    if (motorOn) {
+        const Vec3 m = motor_.moved();
+        if (m.x * m.x + m.z * m.z > 1e-10f) {
+            const float want = degrees(std::atan2(dot(m, left), dot(m, f)));
+            s.travelDeg = wrapDeg(s.travelDeg + wrapDeg(want - s.travelDeg) * (1.0f - std::exp(-dt / 0.08f)));
+        }
+    } else {
+        s.travelDeg = speed_ < 0.0f ? 180.0f : 0.0f;
+    }
 
     // station pose
     Pose station;
@@ -1269,8 +1293,14 @@ void Soldier::animate(float dt, float time) {
         default: station = armed ? guardPose(t) : idlePose(t); break;
     }
     if (activity_ == Activity::Duck) station = duckPose(s.duckT);
+    if (motorOn && crouchW > 0.0f) {   // v9 M3: stand <-> crouch follows the motor's 0.2 s blend
+        const Pose stand = a == Activity::Crouch ? (armed ? guardPose(t) : idlePose(t)) : station;
+        station = blendPose(stand, crouchPose(t), crouchW);
+    } else if (motorOn && a == Activity::Crouch) {
+        station = armed ? guardPose(t) : idlePose(t);
+    }
 
-    // gait pose with world-locked stance feet
+    // gait pose (arms, spine, pelvis bob; the legs are solved below)
     Pose g = gaitPose(gp, phase_);
     if (armed) {   // rifle at the low ready while walking
         g.shoulder[1] = 35.0f; g.elbow[1] = 78.0f; g.shoulder[0] = 52.0f; g.elbow[0] = 55.0f;
@@ -1281,43 +1311,11 @@ void Soldier::animate(float dt, float time) {
         g.elbow[0] = g.elbow[1] = 72.0f;
         g.spineYaw *= 0.3f;
     }
-    const float yr = radians(yaw_);
-    const Vec3 f{std::sin(yr), 0.0f, std::cos(yr)}, left{std::cos(yr), 0.0f, -std::sin(yr)};
-    if (s.moveW > 0.0f && !airborne_) {   // v7.1 WP-T: no foot planting in the air
-        for (int leg = 0; leg < 2; ++leg) {
-            const float sx = leg == 0 ? 1.0f : -1.0f;
-            const Vec3 hip = Vec3{x_, feetY_ + gp.hipHeight + g.pelvisY, z_} + left * (sx * soldier::kHipHalfWidth);
-            float fx = 0.0f, fy = 0.0f;
-            footInPelvis(gp, phase_, leg, fx, fy);
-            Vec3 F = hip + f * fx;
-            const float above = fy + gp.hipHeight + g.pelvisY;   // nominal ankle height above the ground
-            F.y = floorAt(F.x, F.z) + above;
-            const bool stance = inStance(gp, phase_, leg);
-            Vec3 target = F;
-            if (stance && moving) {
-                if (!planted_[leg]) {
-                    planted_[leg] = true;
-                    lock_[leg] = F;
-                    if (!underground()) g_->footfalls.push_back({F.x, F.y - kAnkleHeight, F.z});
-                }
-                target = lock_[leg];
-                target.y = F.y;   // heel rise / ground follow; the plan position stays locked
-                if (length(target - hip) > gp.thigh + gp.shin) { planted_[leg] = false; target = F; }
-            } else {
-                planted_[leg] = false;
-            }
-            const Vec3 d = target - hip;
-            float h = 0.0f, k = 0.0f;
-            legIK(dot(d, f), d.y, gp.thigh, gp.shin, h, k);
-            const float toeDown = (g.knee[leg] - g.hip[leg]) - g.ankle[leg];
-            g.hip[leg] = degrees(h);
-            g.knee[leg] = degrees(k);
-            g.ankle[leg] = g.knee[leg] - g.hip[leg] - toeDown;
-        }
-    } else {
-        planted_[0] = planted_[1] = false;
-    }
     pose_ = blendPose(station, g, s.moveW);
+    if (motorOn) {   // v9 M3: the player's head looks where the player looks (no guard / idle head scan)
+        pose_.headYaw = 0.0f;
+        pose_.headPitch = clampf(-0.6f * viewPitch_, -30.0f, 30.0f);
+    }
     // v7.1 WP-T: jump tuck (knees and hips bend in the air) and the landing dip.
     if (airborne_ || landDip_ > 0.0f) {
         const float tuck = airborne_ ? clampf(airT_ / 0.12f, 0.0f, 1.0f) : 0.0f;
@@ -1332,8 +1330,85 @@ void Soldier::animate(float dt, float time) {
         landDip_ = std::max(0.0f, landDip_ - dt / 0.25f);
     }
 
+    // v9 M3 foot IK on the final pose (two-link legIK + hip roll): stance feet world-locked, swing feet on the gait's
+    // path in the plane of travel, standing feet on the ground under them (slopes, steps); the pelvis drops when a foot
+    // is out of reach and each foot pitches with the ground.
+    const float rootY = drawnFeetY();
+    const bool standing = (a == Activity::Idle || a == Activity::Guard || a == Activity::Wave) && crouchW < 0.5f &&
+                          activity_ != Activity::Duck;
+    const bool footIK = !airborne_ && (s.moveW > 0.0f || standing);
+    FootParams feetProbe;
+    feetProbe.radius = 0.0f;   // a foot stands on a step only when over it
+    auto ground = [&](float px, float pz) {
+        return motorOn ? supportHeight(g_ ? g_->walk : nullptr, s.nearSolids, px, pz, feetY_, feetProbe) : floorAt(px, pz);
+    };
+    if (footIK) {
+        const float tr = radians(s.travelDeg);
+        const Vec3 mdir = f * std::cos(tr) + left * std::sin(tr);
+        const float reach = gp.thigh + gp.shin, hipH = GaitParams{}.hipHeight;
+        Vec3 target[2];
+        float toeDown[2];
+        for (int leg = 0; leg < 2; ++leg) {
+            const Vec3 side = left * ((leg == 0 ? 1.0f : -1.0f) * soldier::kHipHalfWidth);
+            toeDown[leg] = (pose_.knee[leg] - pose_.hip[leg]) - pose_.ankle[leg];
+            // station foot: FK of the station leg, put on the ground under it
+            float sx = 0.0f, sy = 0.0f;
+            legFK(radians(station.hip[leg]), radians(station.knee[leg]), gp.thigh, gp.shin, sx, sy);
+            Vec3 S = Vec3{x_, 0.0f, z_} + side + f * sx;
+            S.y = (standing ? ground(S.x, S.z) : rootY) + hipH + station.pelvisY + sy;
+            // gait foot on its path (relative to the hip, along the direction of travel), over the ground under it
+            float fx = 0.0f, fy = 0.0f;
+            footInPelvis(gp, phase_, leg, fx, fy);
+            Vec3 G = Vec3{x_, 0.0f, z_} + side + mdir * fx;
+            G.y = ground(G.x, G.z) + fy + gp.hipHeight + g.pelvisY;
+            if (moving && s.moveW >= 0.5f && inStance(gp, phase_, leg)) {
+                if (!planted_[leg]) {
+                    planted_[leg] = true;
+                    lock_[leg] = G;
+                    if (!underground()) g_->footfalls.push_back({G.x, G.y - kAnkleHeight, G.z});
+                }
+                target[leg] = lock_[leg];
+                target[leg].y = G.y;   // heel rise / ground follow; the plan position stays locked
+            } else {
+                planted_[leg] = false;
+                target[leg] = S + (G - S) * s.moveW;
+            }
+        }
+        // Pelvis drop: the hips come down until the farther foot is in reach (at once), and rise back eased.
+        float need = 0.0f;
+        for (int leg = 0; leg < 2; ++leg) {
+            const Vec3 hip = Vec3{x_, rootY + hipH + pose_.pelvisY, z_} + left * ((leg == 0 ? 1.0f : -1.0f) * soldier::kHipHalfWidth);
+            const Vec3 d = target[leg] - hip;
+            const float dist = length(d), over = dist - 0.995f * reach;
+            if (over > 0.0f && -d.y > 0.1f) need = std::max(need, over * dist / -d.y);
+        }
+        need = std::min(need, 0.25f);
+        s.pelvisDrop = need >= s.pelvisDrop ? need : need + (s.pelvisDrop - need) * std::exp(-dt / 0.08f);
+        pose_.pelvisY -= s.pelvisDrop;
+        for (int leg = 0; leg < 2; ++leg) {
+            const Vec3 hip = Vec3{x_, rootY + hipH + pose_.pelvisY, z_} + left * ((leg == 0 ? 1.0f : -1.0f) * soldier::kHipHalfWidth);
+            const Vec3 d = target[leg] - hip;
+            const float sag = dot(d, f), lat = dot(d, left), down = std::sqrt(d.y * d.y + lat * lat);
+            const float roll = d.y < -0.05f ? clampf(std::atan2(lat, -d.y), -0.6f, 0.6f) : 0.0f;
+            float h = 0.0f, k = 0.0f;
+            legIK(sag, -down, gp.thigh, gp.shin, h, k);
+            if (planted_[leg] && std::sqrt(sag * sag + down * down) > reach) planted_[leg] = false;   // stretched: let go
+            const Vec3 T = target[leg];
+            const float slope = (ground(T.x + f.x * 0.12f, T.z + f.z * 0.12f) - ground(T.x - f.x * 0.12f, T.z - f.z * 0.12f)) / 0.24f;
+            const float slopeDeg = clampf(degrees(std::atan(slope)), -25.0f, 25.0f);
+            pose_.hip[leg] = degrees(h);
+            pose_.knee[leg] = degrees(k);
+            pose_.ankle[leg] = pose_.knee[leg] - pose_.hip[leg] - toeDown[leg] + slopeDeg;
+            s.legRoll[leg] = degrees(roll);
+        }
+    } else {
+        planted_[0] = planted_[1] = false;
+        s.legRoll[0] = s.legRoll[1] = 0.0f;
+        s.pelvisDrop = 0.0f;
+    }
+
     // ---- write the joint transforms
-    rig_.root->local.translation = {x_, feetY_, z_};
+    rig_.root->local.translation = {x_, rootY, z_};
     rig_.root->local.rotationDeg = {0.0f, yaw_, 0.0f};
     rig_.pelvis->local.translation = {0.0f, GaitParams{}.hipHeight + pose_.pelvisY, 0.0f};
     rig_.pelvis->local.rotationDeg = {pose_.bodyPitch, 0.0f, pose_.bodyRoll};   // v8: lying / floor exercises
@@ -1342,9 +1417,18 @@ void Soldier::animate(float dt, float time) {
     rig_.head->local.rotationDeg = {pose_.headPitch, pose_.headYaw - pose_.spineYaw, 0.0f};
     for (int i = 0; i < 2; ++i) {
         const float sx = i == 0 ? 1.0f : -1.0f;
-        rig_.hip[i]->local.rotationDeg = {-pose_.hip[i], 0.0f, 0.0f};
+        if (std::fabs(s.legRoll[i]) > 0.01f) {
+            // v9 M3: leg plane rolled about the forward axis, then pitched: R = Rz(roll) Rx(-hip) as Euler Y X Z
+            const float r = radians(s.legRoll[i]), p = radians(-pose_.hip[i]);
+            const Vec3 X{std::cos(r), std::sin(r), 0.0f};
+            const Vec3 Y{-std::cos(p) * std::sin(r), std::cos(p) * std::cos(r), std::sin(p)};
+            const Vec3 Z{std::sin(p) * std::sin(r), -std::sin(p) * std::cos(r), std::cos(p)};
+            rig_.hip[i]->local.rotationDeg = eulerYXZFromBasis(X, Y, Z);
+        } else {
+            rig_.hip[i]->local.rotationDeg = {-pose_.hip[i], 0.0f, 0.0f};
+        }
         rig_.knee[i]->local.rotationDeg = {pose_.knee[i], 0.0f, 0.0f};
-        rig_.ankle[i]->local.rotationDeg = {-pose_.ankle[i], 0.0f, 0.0f};
+        rig_.ankle[i]->local.rotationDeg = {-pose_.ankle[i], 0.0f, -s.legRoll[i]};
         rig_.shoulder[i]->local.rotationDeg = {-pose_.shoulder[i], 0.0f, sx * 6.0f};
         rig_.elbow[i]->local.rotationDeg = {-pose_.elbow[i], 0.0f, 0.0f};
     }
@@ -1358,13 +1442,19 @@ CameraHint Soldier::camera(bool firstPerson) const {
     CameraHint h;
     const float yr = radians(yaw_);
     const Vec3 f{std::sin(yr), 0.0f, std::cos(yr)};
-    const Vec3 base{x_, feetY_, z_};
+    const Vec3 base{x_, drawnFeetY(), z_};
     const bool lying = activity_ == Activity::Sleep || activity_ == Activity::PushUps || activity_ == Activity::SitUps;
-    const float eyeH = activity_ == Activity::Crouch || activity_ == Activity::Duck ? 1.05f
-                       : lying ? st_->cur.seatH + 0.35f
-                       : activity_ == Activity::Sit || (activity_ == Activity::Talk && st_->cur.settle) ? 1.15f : soldier::kEyeHeight;
+    float eyeH = activity_ == Activity::Crouch || activity_ == Activity::Duck ? 1.05f
+                 : lying ? st_->cur.seatH + 0.35f
+                 : activity_ == Activity::Sit || (activity_ == Activity::Talk && st_->cur.settle) ? 1.15f : soldier::kEyeHeight;
+    // v9 M3 (possessed): the eye height follows the motor's crouch blend and dips with the landing (drawn feet: smooth
+    // over steps)
+    if (possessed_ && st_->motorLive && activity_ != Activity::Duck)
+        eyeH = lerpf(soldier::kEyeHeight, 1.05f, motor_.crouchBlend()) - 0.13f * landDip_;
     if (firstPerson) {
-        const float hy = radians(yaw_ + pose_.headYaw), pr = radians(viewPitch_ - pose_.headPitch * 0.5f);
+        // v9 M3 (possessed): exactly the player's heading / pitch (mouse look stays direct)
+        const bool own = possessed_ && st_->motorLive;
+        const float hy = radians(yaw_ + (own ? 0.0f : pose_.headYaw)), pr = radians(viewPitch_ - (own ? 0.0f : pose_.headPitch * 0.5f));
         const Vec3 d{std::sin(hy) * std::cos(pr), std::sin(pr), std::cos(hy) * std::cos(pr)};
         h.eye = base + Vec3{0.0f, eyeH, 0.0f} + f * 0.12f;
         h.target = h.eye + d * 10.0f;

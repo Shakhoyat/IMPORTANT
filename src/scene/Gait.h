@@ -30,6 +30,7 @@ struct GaitParams {
     float thigh = 0.46f, shin = 0.44f, hipHeight = 0.98f;   // hip joint height standing = thigh + shin + ankle
     static GaitParams walk();
     static GaitParams run();
+    static GaitParams crouchWalk();   // v9 M3: knees bent, hips 0.3 m lower, short steps, rifle up (0.8 m/s)
     float period() const { return stride / (speed > 1e-3f ? speed : 1e-3f); }   // s per cycle
 };
 
@@ -58,6 +59,15 @@ Pose pullUpPose(float t);                               // hanging from a bar 2.
 Pose sitUpPose(float t);                                // on the back, knees bent, crunching up
 Pose talkPose(float t, bool seated);                    // chatting: hand gestures, head turns, nods
 Pose blendPose(const Pose& a, const Pose& b, float w);  // w = 0 -> a, 1 -> b
+
+// v9 M3 locomotion blend tree: every gait parameter interpolated (t = 0 -> a, 1 -> b).
+GaitParams lerpGait(const GaitParams& a, const GaitParams& b, float t);
+// The gait for an actual ground speed (m/s) and crouch share (0..1): walk -> run by speed (smoothstep 1.6 .. 3.0 m/s),
+// a shorter stride (higher cadence) below the walking speed, then towards the crouch walk. stride / period follow the
+// speed, so a phase advanced by distance / stride keeps the stance feet still on the ground at every speed.
+GaitParams locomotionGait(float speed, float crouch);
+// Weight of the run cycle in locomotionGait at this speed (0 walk .. 1 run).
+float runWeight(float speed);
 
 // Stance test for leg 'leg' at gait phase 'phase' (and the fraction of the stance done, 0..1).
 bool inStance(const GaitParams& g, float phase, int leg, float* stanceFraction = nullptr);

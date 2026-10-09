@@ -25,6 +25,7 @@ constexpr float kHoldAfterEnd = 2.5f;   // s the camera holds on an impact / a d
 // side the player sees. kGunEye: the frame origin in eye space (right, up, -forward); kMuzzleZ: muzzle tip along +Z.
 const Vec3 kGunEye{0.140f, -0.152f, -0.40f};
 constexpr float kMuzzleZ = 0.775f;
+constexpr float kSprintFovKick = 6.0f;   // v9 M3: degrees added at full sprint
 
 PovView defaultView(PovKind k) { return povProjectile(k) ? PovView::Chase : PovView::First; }
 
@@ -60,6 +61,19 @@ RigPose App::targetPose(float aspect) {
         int soldier = -1;
         if (camera_.possessSight && firstPersonSoldier(soldier)) {
             RigPose eye = soldierEyePose(*scene_, soldier);
+            // v9 M3: the player's own soldier: a stable eye (drawn feet + crouch-blended eye height + landing dip,
+            // Soldier::camera) plus a subtle head bob from the gait phase and the actual ground speed (Settings > Head bob);
+            // mouse look stays direct (the heading / pitch of the tick, no smoothing).
+            if (soldier == possessedSoldierIndex())
+                if (const Soldier* s = dynamic_cast<const Soldier*>(sa::controllables(*scene_)[soldier])) {
+                    const CameraHint h = s->camera(true);
+                    eye = RigPose::look(h.eye, h.target, h.fovDeg);
+                    eye.nearZ = 0.06f;
+                    if (headBobEnabled() && !s->airborne()) {
+                        const Vec3 b = headBobOffset(s->gaitPhase(), s->motor().groundSpeed());
+                        eye.eye = eye.eye + eye.right() * b.x + Vec3{0.0f, b.y, 0.0f};
+                    }
+                }
             eye.fovDeg = gs_.fovDeg;   // v9 M2: the player's field of view (Settings; default 65 = the soldier's own)
             eye.fovDeg = lerpf(eye.fovDeg, 44.0f, aimBlend_);   // v8: right mouse = iron-sight zoom
             return eye;
@@ -454,7 +468,13 @@ void App::updateGameCamera(float dt) {
             if (const Soldier* s = dynamic_cast<const Soldier*>(sa::controllables(*scene_)[soldierIdx])) speed = std::fabs(s->speed());
         kick = fovKickTarget(held_.boost, speed, topSpeed(src.kind));
     }
-    fovKick_ = easeTowards(fovKick_, gameMode_ ? kick : 0.0f, dt, 0.18f);
+    // v9 M3: the player's soldier sprinting: +6 deg at full sprint speed in every mode (sprint blend x ground speed /
+    // sprint speed), eased in and out.
+    const Soldier* sprinter = soldierIdx >= 0 ? dynamic_cast<const Soldier*>(sa::controllables(*scene_)[soldierIdx]) : nullptr;
+    if (sprinter && camera_.mode == CameraMode::Possess)
+        kick = kSprintFovKick * sprinter->motor().sprintBlend() *
+               clampf(sprinter->motor().groundSpeed() / sprinter->motor().params.runSpeed, 0.0f, 1.0f);
+    fovKick_ = easeTowards(fovKick_, gameMode_ || sprinter ? kick : 0.0f, dt, 0.18f);
     if (std::fabs(fovKick_) < 0.005f && !gameMode_) fovKick_ = 0.0f;
     letterbox_ = gameMode_ ? jumpLetterbox(rig_.progress()) : 0.0f;
     if ((possessed_ >= 0 || possessedRover_ >= 0) && held_.fire) lastShotT_ = now;

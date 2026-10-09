@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "scene/CharacterMotor.h"
+
 namespace ts {
 
 // --- quaternions -------------------------------------------------------------------------------------------------------
@@ -286,6 +288,8 @@ void ThirdPersonCam::reset(const Vec3& pivot, float yaw, float pitch) {
     arm_ = -1.0f;
     aim_ = 0.0f;
     side_ = static_cast<float>(side);
+    pivotVel_ = {0.0f, 0.0f, 0.0f};
+    armVel_ = 0.0f;
 }
 
 void ThirdPersonCam::look(float dYaw, float dPitch, const ThirdPersonParams& p) {
@@ -303,19 +307,24 @@ Vec3 ThirdPersonCam::flatRight() const { return {-std::cos(radians(yawDeg)), 0.0
 RigPose ThirdPersonCam::update(const Vec3& pivot, float dt, bool aiming, const ThirdPersonParams& p, const ArmCast& cast) {
     if (!valid_) reset(pivot, yawDeg, pitchDeg);
     pitchDeg = clampf(pitchDeg, p.minPitch, p.maxPitch);
-    // Lagged pivot: soft horizontal follow, softer vertical (steps, jumps, landings), never further than maxLag.
+    // Lagged pivot: critically damped follow (v9 M3), soft horizontally, softer vertically (steps, jumps, landings),
+    // never further than maxLag.
     if (dt > 0.0f) {
-        const float kh = 1.0f - std::exp(-dt / std::max(p.lagTau, 1e-4f)), kv = 1.0f - std::exp(-dt / std::max(p.lagTauY, 1e-4f));
-        pivot_.x += (pivot.x - pivot_.x) * kh;
-        pivot_.z += (pivot.z - pivot_.z) * kh;
-        pivot_.y += (pivot.y - pivot_.y) * kv;
+        const float wh = 2.0f / std::max(p.lagTau, 1e-4f), wv = 2.0f / std::max(p.lagTauY, 1e-4f);
+        critDampStep(pivot_.x, pivotVel_.x, pivot.x, wh, dt);
+        critDampStep(pivot_.z, pivotVel_.z, pivot.z, wh, dt);
+        critDampStep(pivot_.y, pivotVel_.y, pivot.y, wv, dt);
         aim_ = easeTowards(aim_, aiming ? 1.0f : 0.0f, dt, p.aimTau);
         side_ = easeTowards(side_, static_cast<float>(side), dt, p.sideTau);
     }
     const Vec3 lag = pivot_ - pivot;
     const float lagLen = length(lag);
-    if (lagLen > 4.0f) pivot_ = pivot;                                  // teleport: no swoop across the map
-    else if (lagLen > p.maxLag) pivot_ = pivot + lag * (p.maxLag / lagLen);
+    if (lagLen > 4.0f) {                                                // teleport: no swoop across the map
+        pivot_ = pivot;
+        pivotVel_ = {0.0f, 0.0f, 0.0f};
+    } else if (lagLen > p.maxLag) {
+        pivot_ = pivot + lag * (p.maxLag / lagLen);
+    }
     const Vec3 f = forward(), r = flatRight();
     // 1) pivot -> shoulder point (probed: a wall at the shoulder pulls the camera towards the head).
     const float sx = lerpf(p.shoulder, p.aimShoulder, aim_) * side_, lift = lerpf(p.lift, p.aimLift, aim_);
@@ -324,14 +333,26 @@ RigPose ThirdPersonCam::update(const Vec3& pivot, float dt, bool aiming, const T
     shoulderPt_ = pivot_;
     if (offLen > 1e-4f) {
         const Vec3 d = off * (1.0f / offLen);
-        const float free = cast ? std::min(offLen, cast(pivot_, d, offLen, p.probe)) : offLen;
+        float free = cast ? std::min(offLen, cast(pivot_, d, offLen, p.probe)) : offLen;
+        // v9 M3: stop 2 cm short of a contact: a shoulder point exactly on the probe boundary can round to inside the
+        // box, and the arm cast from there ignores boxes it starts in (the arm then passed through that wall).
+        if (free < offLen) free = std::max(0.0f, free - 0.02f);
         shoulderPt_ = pivot_ + d * free;
     }
-    // 2) shoulder -> camera, behind along the look direction: pull in at once, ease back out.
+    // 2) shoulder -> camera, behind along the look direction: pull in at once (never past the first contact), ease back
+    // out on a critically damped spring (v9 M3: starts and ends with zero speed, no overshoot past the free length).
     want_ = lerpf(p.arm, p.aimArm, aim_);
     const float free = cast ? std::min(want_, cast(shoulderPt_, -f, want_, p.probe)) : want_;
-    if (arm_ < 0.0f || free < arm_) arm_ = free;
-    else if (dt > 0.0f) arm_ = std::min(free, easeTowards(arm_, free, dt, p.armOutTau));
+    if (arm_ < 0.0f || free < arm_) {
+        arm_ = free;
+        armVel_ = 0.0f;
+    } else if (dt > 0.0f) {
+        critDampStep(arm_, armVel_, free, 2.0f / std::max(p.armOutTau, 1e-4f), dt);
+        if (arm_ > free) {
+            arm_ = free;
+            armVel_ = 0.0f;
+        }
+    }
     RigPose pose;
     pose.eye = shoulderPt_ - f * arm_;
     pose.rot = quatLook(f);

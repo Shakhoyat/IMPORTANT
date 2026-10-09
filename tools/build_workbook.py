@@ -36,10 +36,12 @@ from wb_v6 import build_v6  # noqa: E402
 from wb_v7 import build_v7  # noqa: E402
 from wb_v9 import V9_INFO, V9_SHEETS, build_v9  # noqa: E402
 import wb_v9_m2  # noqa: E402
+import wb_v9_m3  # noqa: E402
 
 # v9 milestone sheets (31+), one module each: (sheet name, cover-page line, builder)
 V9_MILESTONES = [
     (wb_v9_m2.S_V9M2, wb_v9_m2.INFO, wb_v9_m2.build_v9_m2),
+    (wb_v9_m3.S_V9M3, wb_v9_m3.V9M3_INFO, wb_v9_m3.build_v9_m3),
 ]
 from wb_v5 import build_audio_hud, build_cv, build_squad  # noqa: E402
 from wb_transforms import build_hierarchy, build_matrices  # noqa: E402
