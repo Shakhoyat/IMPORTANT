@@ -1,4 +1,5 @@
 #include "objects/Uav.h"
+#include "primitives/Library.h"
 
 #include "objects/Builder.h"
 #include "objects/PropKit.h"
@@ -140,7 +141,7 @@ UavRig buildUav() {
         SceneNode* mount = nullptr;
         for (auto& c : r->children)
             if (c->name == std::string("Motor mount ") + armName[i]) mount = c.get();
-        detail(b, mount, "Motor cooling ring", P::Cylinder, {0.05f, 0.05f, 0.01f}, {90, 0, 0}, {0, 0.004f, 0}, ring,
+        detail(b, mount, "Motor cooling ring", P::Torus, lib::torusScale(0.05f, 0.01f), {90, 0, 0}, {0, 0.004f, 0}, ring,
                "Finned stator base of the motor");
         if (i >= 2)
             detail(b, mount, "Status LED", P::Sphere, {0.016f, 0.016f, 0.016f}, {0, 0, 0}, {0, -0.012f, 0}, amber,

@@ -1,4 +1,5 @@
 #include "objects/Launchers.h"
+#include "primitives/Library.h"
 
 #include <algorithm>
 #include <cmath>
@@ -102,7 +103,7 @@ void wheel(Builder& b, SceneNode* p, const Vec3& pos, float dia, float width) {
 // v7: two raised tread bands on a tyre (slightly larger diameter than the tyre: lugs in the silhouette).
 void treads(Builder& b, SceneNode* p, const Vec3& pos, float dia, float width) {
     for (float u : {-0.28f, 0.28f})
-        detail(b, p, "Tyre tread", P::Cylinder, {1.03f * dia, 1.03f * dia, 0.2f * width}, {0, 90, 0}, pos + Vec3{u * width, 0, 0},
+        detail(b, p, "Tyre tread", P::Torus, lib::torusScale(1.03f * dia, 0.2f * width), {0, 90, 0}, pos + Vec3{u * width, 0, 0},
                shade(rubber(), 0.8f), "Raised tread band of the off-road tyre");
 }
 
@@ -485,7 +486,7 @@ void MlrsTruck::build() {
         std::snprintf(nm, sizeof(nm), "Tube %02d", i + 1);
         SceneNode* t = b.group(pod_, nm, tubeOffset(i), {0, 0, 0}, "Rocket launch tube with front cap");
         tube_[i] = b.part(t, "Launch tube", P::Cylinder, {0.30f, 0.30f, kTubeLen}, {0, 0, 0}, {0, 0, kTubeCentreZ}, camo, "Fibre-glass launch tube");
-        muzzleMark_[i] = b.part(t, "Muzzle ring", P::Cylinder, {0.34f, 0.34f, 0.08f}, {0, 0, 0}, {0, 0, kTubeFrontZ - 0.06f}, st, "Reinforced tube mouth (muzzle reference)");
+        muzzleMark_[i] = b.part(t, "Muzzle ring", P::Torus, lib::torusScale(0.34f, 0.08f), {0, 0, 0}, {0, 0, kTubeFrontZ - 0.06f}, st, "Reinforced tube mouth (muzzle reference)");
         cap_[i] = b.part(t, "Tube cap", P::Cylinder, {0.31f, 0.31f, 0.04f}, {0, 0, 0}, {0, 0, kTubeFrontZ + 0.01f}, od, "Frangible front cap, hidden after the round leaves");
         cap_[i]->animation = "Hidden when the tube has fired, shown again after the reload";
     }
@@ -724,8 +725,8 @@ std::unique_ptr<Controllable> makeAmmoBunker() {
     // Blast wing walls and baffle.
     for (float sx : {-1.0f, 1.0f}) {
         b.part(r, "Wing wall core", P::Cube, {0.6f, 1.3f, 2.4f}, {0, 0, 0}, {sx * 2.0f, 0.65f, 3.5f}, earth, "Earth wing wall guiding blast away from the door");
-        b.part(r, "Wing wall slope", P::Cube, {0.4f, 1.4f, 2.4f}, {0, 0, sx * 25.0f}, {sx * 2.55f, 0.6f, 3.5f}, earth, "Outer slope of the wing wall");
-        for (int k = 0; k < 4; ++k) b.part(r, "Wing sandbag", P::Cylinder, {0.28f, 0.17f, 0.5f}, {0, 90, 0}, {sx * 2.0f, 1.38f, 2.5f + 0.6f * k}, bag, "Sandbag crest");
+        b.part(r, "Wing wall slope", P::Wedge, {2.4f, 1.3f, 0.65f}, {0, sx * 90.0f, 0}, {sx * 2.625f, 0.65f, 3.5f}, earth, "Outer slope of the wing wall");
+        for (int k = 0; k < 4; ++k) b.part(r, "Wing sandbag", P::Capsule, {0.28f, 0.17f, 0.5f}, {0, 90, 0}, {sx * 2.0f, 1.38f, 2.5f + 0.6f * k}, bag, "Sandbag crest");
     }
     b.part(r, "Blast baffle", P::Cube, {2.6f, 1.0f, 0.5f}, {0, 0, 0}, {0, 0.5f, 5.4f}, bag, "Sandbag baffle in front of the door");
     for (float sx : {-1.0f, 1.0f}) {

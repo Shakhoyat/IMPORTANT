@@ -31,6 +31,7 @@
 #include "rendering/Hud.h"
 #include "rendering/Instancing.h"
 #include "rendering/Mesh.h"
+#include "primitives/GrassBlade.h"
 #include "rendering/RenderTarget.h"
 #include "rendering/Shader.h"
 #include "rendering/VegetationRenderer.h"
@@ -55,7 +56,7 @@ struct QualityProfile {
     int ssaoSamples = 8;
     int pcfTaps = 8;             // shadow filter taps (Poisson disc)
     bool moonShafts = false;     // moon shadows inside the fog (god rays)
-    int grassBlades = 35000;     // instanced unit-cube blades
+    int grassBlades = kGrassBladesHigh;   // instanced blades (primitives/GrassBlade.h)
     bool groundDetail = true;    // realistic terrain surface (materials, relief, wet specular)
     int rainDrops = 14000;       // instanced streaks at full rain
     bool volumetric = true;
@@ -223,6 +224,9 @@ public:
     void labInvalidateCaches();
     // Replaces the unit sphere mesh by a coarse one (slices x stacks) for the Gouraud / flat close-up; 0 = restore.
     void labSphereResolution(int slices, int stacks);
+    // v10 M3 (--only prims): draw 'mesh' wherever a part of type 'key' is drawn (an empty mesh restores the library
+    // mesh). Lets the lab draw the open light-beam frustum and the terrain disc as plain shaded solids.
+    void labOverrideMesh(PrimitiveType key, const MeshData& mesh);
     // v7 WP-I Frame Explorer (RendererLab.cpp): float copies of the LAST frame's internal buffers, matrices and
     // switches (math/ExplorerMath.h). Call right after endFrame.
     bool labSnapshot(fx::FrameSnapshot& out);

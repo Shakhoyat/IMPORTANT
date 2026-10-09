@@ -11,6 +11,7 @@
 #include "objects/Uav.h"
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
+#include "primitives/Library.h"
 #include "primitives/Sphere.h"
 #include "rendering/RayTracerGL.h"
 #include "rendering/SceneAccess.h"
@@ -56,6 +57,16 @@ Vec3 primitiveColor(PrimitiveType p) {
         case PrimitiveType::BeamCone: return {1.00f, 0.55f, 0.10f};
         case PrimitiveType::TerrainDisc: return {0.30f, 0.42f, 0.33f};
         case PrimitiveType::Cone: return {0.45f, 1.00f, 0.35f};      // green
+        // v10 M3 library primitives
+        case PrimitiveType::Hemisphere: return {0.85f, 0.45f, 1.00f};   // violet
+        case PrimitiveType::Torus: return {1.00f, 0.42f, 0.30f};        // coral
+        case PrimitiveType::Wedge: return {0.25f, 0.55f, 1.00f};        // blue
+        case PrimitiveType::TaperedBox: return {0.30f, 1.00f, 0.80f};   // aquamarine
+        case PrimitiveType::Pyramid: return {1.00f, 0.92f, 0.30f};      // yellow
+        case PrimitiveType::Capsule: return {0.95f, 0.65f, 0.45f};      // tan
+        case PrimitiveType::Annulus: return {0.75f, 0.90f, 0.25f};      // lime
+        case PrimitiveType::Helix: return {0.80f, 0.80f, 0.85f};        // steel
+        case PrimitiveType::GrassBlade: return {0.40f, 0.75f, 0.30f};
         default: return {1, 1, 1};
     }
 }
@@ -162,18 +173,11 @@ bool Renderer::init() {
     glGetIntegerv(GL_MAX_SAMPLES, &samples);
     maxSamples_ = samples;
 
-    // Each primitive is generated once and uploaded once; every component reuses it.
-    const std::pair<PrimitiveType, MeshData> data[] = {
-        {PrimitiveType::Cube, createCube()},
-        {PrimitiveType::Sphere, createSphere(36, 18)},
-        {PrimitiveType::Cylinder, createCylinder(36)},
-        {PrimitiveType::BeamCone, createCylinder(36, 0.03f, 0.5f, false)},
-        {PrimitiveType::TerrainDisc, createTerrainDisc()},
-        {PrimitiveType::Cone, createCylinder(36, 0.5f, 0.0f, true)},  // lab cylinder with top radius 0
-    };
-    for (const auto& [type, mesh] : data) {
+    // Each primitive is generated once and uploaded once; every component reuses it. v10 M3: the 16-primitive library
+    // (primitives/Library.cpp holds the scene's generator parameters; the cuboid is the cube mesh with a non-uniform S).
+    for (PrimitiveType type : kMeshTypes) {
         meshes_[type] = std::make_unique<Mesh>();
-        meshes_[type]->upload(mesh);
+        meshes_[type]->upload(sceneMesh(type));
     }
     glGenVertexArrays(1, &emptyVao_);
     glGenVertexArrays(1, &lineVao_);
@@ -315,8 +319,12 @@ float Renderer::specularLod(const SceneNode& n, const Mat4& world, float roughne
     const float sz = length(Vec3{world.at(0, 2), world.at(1, 2), world.at(2, 2)});
     switch (n.primitive) {
         case PrimitiveType::Cylinder:
+        case PrimitiveType::Capsule:
         case PrimitiveType::Cone: thick = std::min(sx, sy); break;
-        case PrimitiveType::Sphere: thick = std::min(sx, std::min(sy, sz)); break;
+        case PrimitiveType::Sphere:
+        case PrimitiveType::Hemisphere: thick = std::min(sx, std::min(sy, sz)); break;
+        case PrimitiveType::Torus: thick = 2.0f * lib::kTorusTube * std::min(sx, std::min(sy, sz)); break;   // the tube
+        case PrimitiveType::Helix: thick = 2.0f * lib::kHelixTube * std::min(sx, sy); break;                  // the wire
         default: return roughness;   // flat faces have one normal: no sub-pixel highlight to alias
     }
     const float footprint = length(transformPoint(world, {0, 0, 0}) - specLodEye_) * specLodPixel_;

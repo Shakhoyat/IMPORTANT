@@ -1,4 +1,5 @@
 #include "objects/Tank.h"
+#include "primitives/Library.h"
 
 #include <algorithm>
 #include <cmath>
@@ -134,7 +135,10 @@ void Tank::buildRig(const std::string& idPrefix, const std::string& objectName) 
     // --- hull plates -------------------------------------------------------------------------------------------
     camoPart(b.part(h, "Hull core", P::Cube, {1.7f, 0.9f, 5.6f}, {0, 0, 0}, {0, 0.8f, 0}, camo, "Armoured lower hull between the tracks"));
     camoPart(b.part(h, "Hull deck", P::Cube, {2.9f, 0.26f, 4.6f}, {0, 0, 0}, {0, 1.29f, -0.5f}, camo, "Superstructure deck over the tracks"));
-    camoPart(plate(h, "Glacis plate", 0.0f, 2.5f, 0.12f, 1.8f, 1.42f, 3.1f, 0.78f, camo, "Sloped upper front plate (27 deg)"));
+    // v10 M3: the glacis is a wedge (library primitive 9) filling the triangle under the 27 deg slope from (z 1.8,
+    // y 1.42 + t/2) to (z 3.1, y 0.78 + t/2): the slope face lies where the plate's upper face was; high side at the back.
+    camoPart(b.part(h, "Glacis plate", P::Wedge, {2.5f, 0.64f, 1.3f}, {0, 0, 0}, {0.0f, 0.5f * (1.42f + 0.78f) + 0.06f, 2.45f},
+                    camo, "Sloped upper front plate (27 deg)"));
     camoPart(plate(h, "Lower nose plate", 0.0f, 2.2f, 0.10f, 3.1f, 0.78f, 2.9f, 0.30f, camoDark, "Steep lower front plate"));
     camoPart(b.part(h, "Rear plate", P::Cube, {2.6f, 0.9f, 0.12f}, {0, 0, 0}, {0, 0.85f, -2.9f}, camo, "Rear hull plate"));
     camoPart(b.part(h, "Engine deck", P::Cube, {2.4f, 0.14f, 1.7f}, {0, 0, 0}, {0, 1.47f, -1.95f}, camo, "Raised engine compartment cover"));
@@ -181,7 +185,8 @@ void Tank::buildRig(const std::string& idPrefix, const std::string& objectName) 
             g->animation = "Spins with the track (angle = belt travel / radius)";
             roadWheels_[side].push_back(g);
             wheelRadius_[side].push_back(radius);
-            b.part(g, "Tyre", sprocket ? P::Cylinder : P::Cylinder, {2 * radius, 2 * radius, width}, {0, 0, 0}, {0, 0, 0}, sprocket ? steel : rubber, sprocket ? "Sprocket ring" : "Road wheel rim and rubber tyre");
+            // v10 M3: torus tyre (library primitive 8), same outer diameter and width; the hub covers the hole.
+            b.part(g, "Tyre", P::Torus, lib::torusScale(2 * radius, width), {0, 0, 0}, {0, 0, 0}, sprocket ? steel : rubber, sprocket ? "Sprocket ring" : "Road wheel rim and rubber tyre");
             b.part(g, "Hub", P::Cylinder, {radius, radius, width + 0.06f}, {0, 0, 0}, {0, 0, 0}, steel, "Hub cap");
             b.part(g, "Spoke", P::Cube, {2 * radius * 0.9f, 0.07f, width + 0.08f}, {0, 0, 0}, {0, 0, 0}, gunMetal, "Spoke bar (shows the rotation)");
         };
@@ -200,7 +205,8 @@ void Tank::buildRig(const std::string& idPrefix, const std::string& objectName) 
     turret_ = b.group(h, "Turret yaw", {0, kTurretY, kTurretZ}, {0, 0, 0}, "Turret ring: yaw about the hull Y axis");
     turret_->animation = "Stabilised: the turret's world yaw is held while the hull turns; slews 40 deg/s";
     SceneNode* t = turret_;
-    camoPart(b.part(t, "Turret body", P::Cube, {2.3f, 0.7f, 2.8f}, {0, 0, 0}, {0, 0.35f, -0.1f}, camo, "Cast turret body"));
+    // v10 M3: tapered box (library primitive 10): sides lean in to a 0.8 x 0.8 top, like a cast turret.
+    camoPart(b.part(t, "Turret body", P::TaperedBox, {2.3f, 0.7f, 2.8f}, {0, 0, 0}, {0, 0.35f, -0.1f}, camo, "Cast turret body"));
     camoPart(b.part(t, "Turret cheek L", P::Cube, {1.0f, 0.66f, 1.2f}, {0, -22, 0}, {0.95f, 0.34f, 1.15f}, camo, "Angled front armour module"));
     camoPart(b.part(t, "Turret cheek R", P::Cube, {1.0f, 0.66f, 1.2f}, {0, 22, 0}, {-0.95f, 0.34f, 1.15f}, camo, "Angled front armour module"));
     camoPart(b.part(t, "Turret front plate", P::Cube, {1.0f, 0.62f, 0.4f}, {0, 0, 0}, {0, 0.34f, 1.5f}, camoDark, "Armour behind the mantlet"));
@@ -212,7 +218,7 @@ void Tank::buildRig(const std::string& idPrefix, const std::string& objectName) 
     b.part(t, "Bedroll B", P::Cylinder, {0.2f, 0.2f, 1.0f}, {0, 90, 0}, {-0.5f, 0.62f, -2.72f}, camoDark, "Stowed camouflage net roll");
     b.part(t, "Gunner sight box", P::Cube, {0.45f, 0.28f, 0.55f}, {0, 0, 0}, {-0.55f, 0.9f, 0.7f}, steel, "Gunner's stabilised sight housing");
     b.part(t, "Gunner sight lens", P::Sphere, {0.18f, 0.18f, 0.12f}, {0, 0, 0}, {-0.55f, 0.92f, 1.0f}, glass, "Sight objective lens");
-    b.part(t, "Cupola ring", P::Cylinder, {0.85f, 0.85f, 0.2f}, {90, 0, 0}, {0.65f, 0.86f, -0.55f}, steel, "Commander's cupola ring");
+    b.part(t, "Cupola ring", P::Torus, lib::torusScale(0.85f, 0.2f), {90, 0, 0}, {0.65f, 0.86f, -0.55f}, steel, "Commander's cupola ring");
     for (int i = 0; i < 6; ++i) {
         const float a = radians(60.0f * i);
         b.part(t, "Cupola vision block", P::Cube, {0.16f, 0.1f, 0.1f}, {0, degrees(a), 0},
@@ -264,6 +270,7 @@ void Tank::buildRig(const std::string& idPrefix, const std::string& objectName) 
     muzzleFlashNode_ = b.part(recoilNode_, "Muzzle flash", P::Sphere, {0.5f, 0.5f, 0.9f}, {0, 0, 0}, {0, 0, kMuzzleZ - kBarrelBaseZ + 0.3f},
                               asLight(makeMaterial({1.0f, 0.65f, 0.25f}, 1.0f, Surface::Plain, 0.5f, 0.0f, 3.0f), 0.0f, 22.0f), "Muzzle flash (visible for 0.08 s)");
     muzzleFlashNode_->animation = "Flashes for 0.08 s per shot";
+    muzzleFlashNode_->restScale = muzzleFlashNode_->local.scale;   // v10 M3: S_rest of the flash (zero scale at rest)
     muzzleFlashNode_->local.scale = {0.0001f, 0.0001f, 0.0001f};
     muzzleFlashNode_->visible = false;  // only drawn (and seen by the thermal cameras) while firing
     muzzleFlashNode_->explodable = false;

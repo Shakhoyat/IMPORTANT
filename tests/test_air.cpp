@@ -54,8 +54,7 @@ void countLeaves(const SceneNode& n, int& leaves, bool& labOnly, bool& named) {
     if (n.isLeaf()) {
         ++leaves;
         const auto p = n.primitive;
-        if (!(p == PrimitiveType::Cube || p == PrimitiveType::Sphere || p == PrimitiveType::Cylinder ||
-              p == PrimitiveType::Cone || p == PrimitiveType::BeamCone))
+        if (!isLibraryPartPrimitive(p))   // v10 M3: any library part primitive
             labOnly = false;
     }
     if (n.name.empty() || n.object.empty() || n.purpose.empty()) named = false;

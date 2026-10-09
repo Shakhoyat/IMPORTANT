@@ -1,7 +1,9 @@
 // Line-of-sight tests against the scene's occluding parts.
 // Each occluder keeps the inverse of its model matrix, so a segment can be taken back into the primitive's
 // local space and tested against the exact unit shape (cube, sphere r = 0.5, cylinder r = 0.5 along Z,
-// cone with base r = 0.5 at z = -0.5 and apex at z = +0.5).
+// cone with base r = 0.5 at z = -0.5 and apex at z = +0.5). v10 M3: the hemisphere (half ellipsoid) and the flat
+// library solids (wedge, tapered box, pyramid: face planes) are exact too; capsule, torus, annulus and helix use their
+// bounding cylinder (conservative); anything else its unit box.
 #pragma once
 
 #include <vector>

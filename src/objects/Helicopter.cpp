@@ -142,6 +142,7 @@ Helicopter::Helicopter() {
     mainBlur_ = b.part(tpp_, "Main rotor blur disc", P::Cylinder, {2 * kBladeRadius, 2 * kBladeRadius, 0.02f}, {90, 0, 0},
                        {0, 0.12f, 0}, blur, "Translucent disc swept by the blades (fades in with rpm)");
     mainBlur_->explodable = false;
+    mainBlur_->restScale = mainBlur_->local.scale;   // v10 M3: shrunk to a point while the rotor is slow
     mainBlur_->animation = "Opacity follows rotor speed";
 
     // Tail rotor on the left of the fin (spins about the lateral axis, 5x faster than the main rotor).
@@ -154,6 +155,7 @@ Helicopter::Helicopter() {
     tailBlur_ = b.part(tailMount, "Tail rotor blur disc", P::Cylinder, {1.2f, 1.2f, 0.01f}, {0, 90, 0}, {0.03f, 0, 0}, blur,
                        "Translucent disc swept by the tail blades");
     tailBlur_->explodable = false;
+    tailBlur_->restScale = tailBlur_->local.scale;
 
     // Navigation lights (red left, green right, white tail) and the anti-collision strobe.
     navRed_ = b.part(bd, "Nav light left (red)", P::Sphere, {0.14f, 0.14f, 0.14f}, {0, 0, 0}, {0.66f, -0.1f, 0.55f}, red,
@@ -179,6 +181,7 @@ Helicopter::Helicopter() {
     beam_ = b.part(gimbalPitch_, "Searchlight cone", P::BeamCone, {1, 1, 1}, {0, 0, 0}, {0, 0, 1}, beamMat,
                    "Visible beam (length follows the distance to the ground)");
     beam_->explodable = false;
+    beam_->restScale = beam_->local.scale;   // v10 M3: shrunk to a point while the searchlight is off
     beam_->animation = "Length follows distance to the ground; hidden when the light is off";
     b.setShading(ShadingModel::Phong);
     (void)rubber;

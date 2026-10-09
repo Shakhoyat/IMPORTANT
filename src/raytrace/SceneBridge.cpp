@@ -16,14 +16,29 @@ float det3(const Mat4& m) {
            m.at(0, 2) * (m.at(1, 0) * m.at(2, 1) - m.at(1, 1) * m.at(2, 0));
 }
 
+// v10 M3: the tracer stays analytic (sphere, box, cylinder, cone). The new library primitives are traced as shapes
+// that approximate them: hemisphere -> its parent ellipsoid (rtWorld), capsule / torus / annulus -> their bounding
+// cylinder, wedge / tapered box / pyramid -> their unit box. The helix (thin concertina wire) is kept as a prim but
+// always hidden (below the tracer's useful resolution; a solid cylinder would read as a drum).
 Shape shapeOf(PrimitiveType p) {
     switch (p) {
-        case PrimitiveType::Sphere: return Shape::Sphere;
-        case PrimitiveType::Cylinder: return Shape::Cylinder;
+        case PrimitiveType::Sphere:
+        case PrimitiveType::Hemisphere: return Shape::Sphere;
+        case PrimitiveType::Cylinder:
+        case PrimitiveType::Capsule:
+        case PrimitiveType::Torus:
+        case PrimitiveType::Annulus:
+        case PrimitiveType::Helix: return Shape::Cylinder;
         case PrimitiveType::Cone: return Shape::Cone;
         default: return Shape::Box;
     }
 }
+
+// World matrix of the traced shape: the hemisphere (upper half of the ellipsoid centred at y = -0.5 with semi-axes
+// 0.5, 1, 0.5 in unit space) is traced as that whole ellipsoid; the lower half sits inside the part it rests on.
+Mat4 rtWorld(const SceneNode& n) { return SceneBridge::tracedWorld(n); }
+
+bool rtHidden(const SceneNode& n) { return n.primitive == PrimitiveType::Helix; }
 
 // Leaves that are not solid geometry for the tracer: the additive searchlight cone (volumetric light), the
 // translucent rotor blur discs, and the terrain disc (the height field).
@@ -42,6 +57,11 @@ bool insideAny(const std::vector<Box>& boxes, const Vec3& p) {
 Vec3 toLinear(const Vec3& c) { return {std::pow(c.x, 2.2f), std::pow(c.y, 2.2f), std::pow(c.z, 2.2f)}; }
 
 }  // namespace
+
+Mat4 SceneBridge::tracedWorld(const SceneNode& n) {
+    if (n.primitive == PrimitiveType::Hemisphere) return n.world * translate({0.0f, -0.5f, 0.0f}) * scale({1.0f, 2.0f, 1.0f});
+    return n.world;
+}
 
 RtMaterial materialFromScene(const Material& m, float emissiveFactor) {
     RtMaterial r;
@@ -88,13 +108,13 @@ void SceneBridge::rebuild(const Scene& scene, RtScene& out) {
         if (n.material.lightIntensity > 0.0f) flags |= kLightProxy;
         if (n.material.surface == Surface::Foliage) flags |= kFoliage;
         if (n.object == "Autonomous UAV") flags |= kDynamic | kLightHolder;
-        out.addPrim(shapeOf(n.primitive), n.world, materialFromScene(n.material, n.material.emissive), flags,
+        out.addPrim(shapeOf(n.primitive), rtWorld(n), materialFromScene(n.material, n.material.emissive), flags,
                     static_cast<int>(i), n.name.c_str());
     }
     // Per-frame state (visibility, emission) before the build so hidden parts get empty boxes.
     for (RtPrim& p : out.prims) {
         const SceneNode& n = *leaves_[p.node];
-        const bool hide = !n.visible || std::fabs(det3(n.world)) < 1e-12f ||
+        const bool hide = !n.visible || rtHidden(n) || std::fabs(det3(n.world)) < 1e-12f ||
                           (n.name == "Moon" && scene.lights.atmo.night <= 0.0f);
         p.flags = hide ? (p.flags | kHidden) : (p.flags & ~kHidden);
     }
@@ -117,9 +137,9 @@ bool SceneBridge::sync(const Scene& scene, const LightOptions& lo, RtScene& out)
     for (size_t k = 0; k < out.prims.size(); ++k) {
         RtPrim& p = out.prims[k];
         const SceneNode& n = *leaves_[p.node];
-        p.world = n.world;
+        p.world = rtWorld(n);
         if (traced(n)) p.shape = shapeOf(n.primitive);   // v7 WP-P: the first-person viewmodel re-shapes hidden leaves per frame
-        const bool hide = !n.visible || std::fabs(det3(n.world)) < 1e-12f ||
+        const bool hide = !n.visible || rtHidden(n) || std::fabs(det3(n.world)) < 1e-12f ||
                           (n.name == "Moon" && scene.lights.atmo.night <= 0.0f);
         p.flags = hide ? (p.flags | kHidden) : (p.flags & ~kHidden);
         out.materials[k] = materialFromScene(n.material, emissiveFactor(scene, n, lo.rain));

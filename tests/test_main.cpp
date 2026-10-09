@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <functional>
 #include <map>
@@ -492,9 +493,8 @@ void testShadows() {
 }
 
 // ---------------------------------------------------------------- 20 m world (v2): cone, props, terrain, agents
-bool isLabPrimitive(PrimitiveType p) {
-    return p == PrimitiveType::Cube || p == PrimitiveType::Sphere || p == PrimitiveType::Cylinder ||
-           p == PrimitiveType::Cone;
+bool isLabPrimitive(PrimitiveType p) {   // v10 M3: the library's part primitives (was cube / sphere / cylinder / cone)
+    return isLibraryPartPrimitive(p) && p != PrimitiveType::BeamCone;
 }
 
 // Every edge (by vertex position) is shared by exactly two triangles.
@@ -860,6 +860,15 @@ void testWalkCamera() {
 }
 
 int main(int argc, char** argv) {
+    // v10 M3: TS_TEST_ONLY=<group> runs just that TS_TEST_GROUP (quick iteration); the full run is the default.
+    if (const char* only = std::getenv("TS_TEST_ONLY")) {
+        for (const auto& g : testkit::groups())
+            if (std::string(g.first) == only) g.second();
+        int failed = 0;
+        for (const Result& r : g_results) failed += r.pass ? 0 : 1;
+        std::printf("\n%zu tests (group %s), %d failed\n", g_results.size(), only, failed);
+        return failed == 0 ? 0 : 1;
+    }
     testPrimitives();
     testMath();
     testScene();

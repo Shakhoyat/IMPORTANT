@@ -136,7 +136,7 @@ void addSandbagArc(Builder& b, SceneNode* parent, float cx, float cz, float radi
             const float a = radians(startDeg + step * (static_cast<float>(k) + 0.5f + 0.5f * static_cast<float>(r)));
             const float x = cx + radius * std::cos(a), z = cz + radius * std::sin(a);
             const float yaw = degrees(std::atan2(-std::sin(a), std::cos(a)));  // bag axis along the arc tangent
-            solid(b.part(wall, "Sandbag", P::Cylinder, {0.26f, 0.17f, 0.5f}, {0, yaw, 0},
+            solid(b.part(wall, "Sandbag", P::Capsule, {0.26f, 0.17f, 0.5f}, {0, yaw, 0},
                          onGround(x, 0.08f + 0.14f * static_cast<float>(r), z), sand, "Sandbag"));
         }
     }
@@ -382,7 +382,7 @@ SceneNode* addRevetment(Builder& b, SceneNode* parent, const Vec3& ground, float
         // Sandbag crest, one running course.
         const int n = std::max(2, static_cast<int>(len / 0.55f));
         for (int k = 0; k < n; ++k)
-            b.part(g, "Revetment sandbag", Pm::Cylinder, {0.28f, 0.17f, 0.5f}, {0, 90, 0},
+            b.part(g, "Revetment sandbag", Pm::Capsule, {0.28f, 0.17f, 0.5f}, {0, 90, 0},
                    {cx, 0.85f * h + 0.07f, cz + (static_cast<float>(k) + 0.5f) / static_cast<float>(n) * len - 0.5f * len}, bag,
                    "Sandbag on the crest of the revetment");
     };
@@ -397,7 +397,7 @@ SceneNode* addRevetment(Builder& b, SceneNode* parent, const Vec3& ground, float
         b.part(g, "Revetment slope (inner)", Pm::Cube, {len - 1.0f, 0.95f * h, 0.35f}, {10, 0, 0}, {0, 0.47f * h, zf - 0.47f}, earth, "Steep inner face of the front wall");
         const int n = std::max(2, static_cast<int>(len / 0.55f));
         for (int k = 0; k < n; ++k)
-            b.part(g, "Revetment sandbag", Pm::Cylinder, {0.28f, 0.17f, 0.5f}, {0, 0, 0},
+            b.part(g, "Revetment sandbag", Pm::Capsule, {0.28f, 0.17f, 0.5f}, {0, 0, 0},
                    {(static_cast<float>(k) + 0.5f) / static_cast<float>(n) * len - 0.5f * len, 0.85f * h + 0.07f, zf}, bag,
                    "Sandbag on the crest of the revetment");
     }

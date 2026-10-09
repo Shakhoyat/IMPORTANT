@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "primitives/Library.h"
+
 namespace ts {
 
 namespace {
@@ -22,6 +24,46 @@ bool quadraticInterval(const Vec3& a, const Vec3& d, bool withZ, float r, float&
     t0 = (-B - s) / (2.0f * A);
     t1 = (-B + s) / (2.0f * A);
     return true;
+}
+
+// v10 M3: exact test against a convex polyhedron given by its face planes (n . p <= d inside), Cyrus-Beck clipping of
+// the segment a + t dir, t in [0, 1].
+struct Plane {
+    Vec3 n;
+    float d;
+};
+
+bool segmentHitsConvex(const Vec3& a, const Vec3& dir, const std::vector<Plane>& planes) {
+    float tEnter = 0.0f, tExit = 1.0f;
+    for (const Plane& p : planes) {
+        const float denom = dot(p.n, dir), num = p.d - dot(p.n, a);
+        if (std::fabs(denom) < 1e-12f) {
+            if (num < 0.0f) return false;   // parallel and outside this face
+            continue;
+        }
+        const float t = num / denom;
+        if (denom > 0.0f) tExit = std::min(tExit, t);
+        else tEnter = std::max(tEnter, t);
+        if (tEnter > tExit) return false;
+    }
+    return true;
+}
+
+// Face planes of the flat library primitives, read from the scene meshes (one plane per face, a corner on it).
+std::vector<Plane> planesOf(PrimitiveType type) {
+    std::vector<Plane> planes;
+    const MeshData m = sceneMesh(type);
+    for (size_t i = 0; i < m.vertices.size(); ++i) {
+        if (i > 0 && length(m.vertices[i].normal - m.vertices[i - 1].normal) < 1e-5f) continue;   // same face
+        planes.push_back({m.vertices[i].normal, dot(m.vertices[i].normal, m.vertices[i].position)});
+    }
+    return planes;
+}
+
+const std::vector<Plane>& facePlanes(PrimitiveType type) {
+    static const std::vector<Plane> wedge = planesOf(PrimitiveType::Wedge), taper = planesOf(PrimitiveType::TaperedBox),
+                                    pyramid = planesOf(PrimitiveType::Pyramid);   // thread-safe one-time init
+    return type == PrimitiveType::Wedge ? wedge : type == PrimitiveType::TaperedBox ? taper : pyramid;
 }
 
 }  // namespace
@@ -111,6 +153,34 @@ bool segmentHitsPrimitive(const Vec3& a, const Vec3& b, const Occluder& o) {
                 return tv > lo && tv < hi && f(tv) <= 0.0f;
             }
             return false;
+        }
+        // v10 M3 library primitives. Exact: the hemisphere (half ellipsoid) and the flat solids (face planes).
+        case PrimitiveType::Hemisphere: {
+            // (x, y, z) -> (x, (y + 0.5) / 2, z) maps the half ellipsoid onto the upper half of the sphere r = 0.5.
+            const Vec3 a2{la.x, 0.5f * (la.y + 0.5f), la.z}, d2{d.x, 0.5f * d.y, d.z};
+            float t0, t1;
+            if (!quadraticInterval(a2, d2, true, 0.5f, t0, t1)) return false;
+            float lo = std::max(t0, 0.0f), hi = std::min(t1, 1.0f);
+            if (std::fabs(d2.y) < 1e-12f) {
+                if (a2.y < 0.0f) return false;
+            } else if (d2.y > 0.0f) {
+                lo = std::max(lo, -a2.y / d2.y);
+            } else {
+                hi = std::min(hi, -a2.y / d2.y);
+            }
+            return lo <= hi;
+        }
+        case PrimitiveType::Wedge:
+        case PrimitiveType::TaperedBox:
+        case PrimitiveType::Pyramid: return segmentHitsConvex(la, d, facePlanes(o.type));
+        // Conservative: the bounding cylinder (radius 0.5, |z| <= 0.5) of the round Z-axis primitives.
+        case PrimitiveType::Capsule:
+        case PrimitiveType::Torus:
+        case PrimitiveType::Annulus:
+        case PrimitiveType::Helix: {
+            Occluder c = o;
+            c.type = PrimitiveType::Cylinder;
+            return segmentHitsPrimitive(a, b, c);
         }
         default:
             return segmentHitsBox(la, la + d, Box{{-0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}});

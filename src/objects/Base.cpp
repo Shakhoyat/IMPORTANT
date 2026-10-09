@@ -6,6 +6,7 @@
 #include "objects/PropKit.h"
 #include "objects/Launchers.h"
 #include "objects/Structures.h"
+#include "primitives/Library.h"
 
 namespace ts {
 
@@ -89,7 +90,7 @@ void sandbagRun(Builder& b, SceneNode* p, const Vec3& a, const Vec3& c, int rows
     for (int r = 0; r < rows; ++r)
         for (int k = 0; k < n - (r & 1); ++k) {
             const float u = (static_cast<float>(k) + 0.5f + 0.5f * static_cast<float>(r & 1)) / static_cast<float>(n);
-            b.part(p, name, P::Cylinder, {0.26f, 0.17f, 0.5f}, {0, yaw, 0},
+            b.part(p, name, P::Capsule, {0.26f, 0.17f, 0.5f}, {0, yaw, 0},
                    {a.x + d.x * u, a.y + 0.09f + 0.15f * static_cast<float>(r), a.z + d.z * u}, sand, "Sandbag");
         }
 }
@@ -166,13 +167,12 @@ void addPerimeter(Builder& b, SceneNode* root) {
         const float a = kTwoPi * (static_cast<float>(i) + 0.5f) / static_cast<float>(plan.cells);
         const Vec3 n{std::cos(a), 0.0f, std::sin(a)}, t{-std::sin(a), 0.0f, std::cos(a)};
         const Vec3 c = n * kPerimeterRadius + Vec3{0, top + 0.40f, 0};
-        auto ringPoint = [&](int k) {
-            const float ang = radians(60.0f * static_cast<float>(k));
-            return c + n * (0.38f * std::cos(ang)) + Vec3{0, 0.38f * std::sin(ang), 0} + t * (0.14f * static_cast<float>(k) - 0.42f);
-        };
-        for (int k = 0; k < 6; ++k)
-            strut(b, coils, "Wire coil turn", P::Cylinder, ringPoint(k), ringPoint(k + 1), 0.035f, wire,
-                  "One turn of a concertina coil");
+        // v10 M3: one helix coil (library primitive 14) per coil position instead of 6 straight struts on a helical
+        // hexagon: same centre, axis along the wall tangent, coil radius 0.38 m, 0.84 m long (S.z = 0.84 / L, L = 1 - 2 r),
+        // wire diameter 2 r S.x = 4 cm.
+        const float coilD = 0.38f / lib::kHelixR;   // S.x = S.y: centre-line radius R S.x = 0.38 m
+        b.part(coils, "Wire coil", P::Helix, {coilD, coilD, 0.84f / (1.0f - 2.0f * lib::kHelixTube)}, alignZ(t), c, wire,
+               "Concertina coil (helix)");
         const Vec3 top0 = c + Vec3{0, 0.30f, 0};
         if (havePrev)
             strut(b, coils, "Razor strand", P::Cylinder, prev, top0, 0.03f, wire, "Strand tying neighbouring coils");
@@ -245,7 +245,8 @@ void addGate(Builder& b, SceneNode* root) {
     // Gate posts (the HESCO flanks next to them are double height).
     for (float s : {-1.0f, 1.0f}) {
         box(b, g, "Gate post", {0.7f, 3.4f, 0.7f}, {s * (kGateHalfGap + 0.45f), 1.7f, 0.2f}, 0, conc, "Reinforced gate post");
-        box(b, g, "Gate post cap", {0.85f, 0.15f, 0.85f}, {s * (kGateHalfGap + 0.45f), 3.45f, 0.2f}, 0, conc, "Post cap");
+        // v10 M3: pyramid cap (library primitive 11), same 0.85 m base, bottom at the old cap bottom, 0.3 m high.
+        b.part(g, "Gate post cap", P::Pyramid, {0.85f, 0.3f, 0.85f}, {0, 0, 0}, {s * (kGateHalfGap + 0.45f), 3.525f, 0.2f}, conc, "Post cap");
     }
     // Guard booth east of the road.
     SceneNode* booth = b.group(g, "Guard booth", {5.4f, 0, -2.4f}, {0, 0, 0}, "Corrugated checkpoint booth");
@@ -559,7 +560,7 @@ void addAaSurround(Builder& b, SceneNode* root) {
             float d = std::fabs(a - inward);
             d = std::min(d, kTwoPi - d);
             if (d < 0.45f) continue;  // entrance
-            b.part(s, "Sandbag", P::Cylinder, {0.26f, 0.17f, 0.52f}, {0, degrees(std::atan2(-std::sin(a), std::cos(a))), 0},
+            b.part(s, "Sandbag", P::Capsule, {0.26f, 0.17f, 0.52f}, {0, degrees(std::atan2(-std::sin(a), std::cos(a))), 0},
                    {3.7f * std::cos(a), 0.09f + 0.15f * static_cast<float>(r), 3.7f * std::sin(a)}, mats::sandbag(), "Ring wall");
         }
     for (int i = 0; i < 3; ++i) {
