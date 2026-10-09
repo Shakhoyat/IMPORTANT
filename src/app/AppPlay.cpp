@@ -294,7 +294,10 @@ void App::gatherNearSolids(const Vec3& centre, float radius) {
         if (n->obstacle && !n->dynamic) add(*n);
     for (Controllable* c : sa::controllables(*scene_)) {
         if (!c || dynamic_cast<const Soldier*>(c) || !c->root()) continue;
-        for (const Box& bx : c->dynamicObstacles()) {
+        // v9 M4: a hinged door's leaf parts (below, oriented with the leaf) are exact; its axis-aligned collision
+        // boxes would hold the arm off a half-open leaf by up to half its width.
+        const bool hinged = dynamic_cast<const DoorPortal*>(c) != nullptr;
+        for (const Box& bx : hinged ? std::vector<Box>{} : c->dynamicObstacles()) {
             NearBox b;
             b.c = (bx.min + bx.max) * 0.5f;
             b.u[0] = {1, 0, 0};
@@ -322,17 +325,20 @@ RigPose App::thirdPersonTarget(float dt) {
     const float crouch = 0.42f * s->motor().crouchBlend();
     const Vec3 pivot = Vec3{p.x, s->drawnFeetY(), p.z} + Vec3{0.0f, 1.45f - crouch, 0.0f};
     const uint32_t key = static_cast<uint32_t>(si) + 1u;
-    if (tpKey_ != key || !tp_.valid()) {
+    const bool fresh = tpKey_ != key || !tp_.valid();   // new subject, or placed / teleported (tp_.invalidate)
+    if (fresh) {
         tp_.reset(pivot, s->yawDeg(), -10.0f);
         tpKey_ = key;
     }
     ThirdPersonParams params = ThirdPersonParams::soldier();
     params.fovDeg = gs_.fovDeg - 3.0f;   // v9 M2: the player's field of view (default 65 -> the arm's own 62)
-    if (const WalkSpace* ws = sa::walkSpace(*scene_); ws && ws->ceilingHeight(p.x, p.z, p.y) < 1e8f) {
-        params.arm = 1.9f;            // indoors (bunker rooms, the barracks): a shorter arm, closer shoulder
-        params.shoulder = 0.45f;
-        params.maxPitch = 30.0f;
-    }
+    // Indoors (bunker rooms, the barracks, their doorways): a shorter arm, closer shoulder. v9 M4: blended on a spring
+    // across the doorway (the v8 switch popped the arm from 3.1 to 1.9 m in one frame); a new subject starts settled.
+    const WalkSpace* wsp = sa::walkSpace(*scene_);
+    const bool indoor = wsp && wsp->ceilingHeight(p.x, p.z, p.y) < 1e8f;
+    if (fresh || !tpIndoor_.valid) tpIndoor_.reset(indoor);
+    tpIndoor_.step(indoor, dt);
+    params = indoorArmParams(params, tpIndoor_.blend);
     tp_.look(tpLookYaw_, tpLookPitch_, params);
     tpLookYaw_ = tpLookPitch_ = 0.0f;
     tpFeetY_ = p.y;
@@ -516,7 +522,8 @@ int App::capturePlay() {
     };
     auto shot = [&](const char* name) {
         if (!wanted(name)) return;
-        renderer_->resetHistory();
+        if (keepAdaptation_) renderer_->resetTaaHistory();   // v9 M4 play_exposure_*: the eye keeps its adaptation
+        else renderer_->resetHistory();
         const int frames = qualityProfile(settings_.quality).taa ? 8 : 1;
         for (int f = 0; f < frames; ++f) {
             target.bind();
@@ -533,6 +540,12 @@ int App::capturePlay() {
                     shownPose_.eye.y, shownPose_.eye.z, sd ? sd->name() : "-", sd ? sd->position().x : 0.0f,
                     sd ? sd->position().y : 0.0f, sd ? sd->position().z : 0.0f, sd ? sd->yawDeg() : 0.0f, tp_.arm(), tp_.wantedArm());
         ok ? ++written : ++failed;
+        // v9 M4: the eye's state after the shot (adapted mean log2 luminance, key, local bias, exposure in stops)
+        float st[4];
+        renderer_->adaptedStats(st);
+        const float key = scene_->lights.atmo.exposureKeyLog2;
+        std::printf("  exposure: adapted mean log2 L %.2f, key %.2f, local bias %.2f EV -> EV %+.2f\n", st[2], key, eyeBias_.ev(),
+                    exposureEv(key, st[2], eyeBias_.ev()));
     };
 
     if (DayCycle* clock = sa::dayCycle(*scene_)) {
@@ -645,7 +658,11 @@ int App::capturePlay() {
             updateInteraction();
             std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
             shot("play_prompt_door");
-            performInteract();
+            performInteract();   // v9 M4: the hall door is shut: E opens it ("[E] Open door") ...
+            run(1.4f);
+            updateInteraction();
+            std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
+            performInteract();   // ... and once it is open, E goes through ("[E] Enter Barracks")
             run(CameraRig::kBlendTime + 0.4f);
             shot("play_hall_entered");
         }
@@ -765,6 +782,96 @@ int App::capturePlay() {
         freeView({27.0f, 1.9f, -9.2f}, {20.3f, 0.5f, -13.6f}, 72.0f);
         run(0.2f);
         shot("play_hall_night");
+    }
+    // ---- v9 M4 (after every earlier play shot, so those stay comparable): the hinged hall door (closed, swinging,
+    // open) seen over the shoulder, then a first-person walk from the sunlit apron into the hall: just inside (the eye
+    // still adapted to the daylight) and 3 s later (adapted, with the hall's local exposure bias).
+    if (opt_.only.find(",play_door") != std::string::npos || opt_.only.find(",play_exposure") != std::string::npos) {
+        namespace hl = layout::hall;
+        if (DayCycle* clock = sa::dayCycle(*scene_)) clock->setHour(10.5f);
+        Soldier* own = nullptr;
+        if (Garrison* g = scene_->garrison()) {
+            selKey_ = key;
+            controlSelected();
+            const int si = possessedSoldierIndex();
+            for (int u = 0; u < g->count(); ++u)
+                if (sa::soldierIndex(*scene_, u) == si) own = g->unit(u);
+        }
+        DoorPortal* door = scene_->hallDoor();
+        if (own && door) {
+            DoorKinematics& d = door->door();
+            auto doorLog = [&](const char* what) {
+                std::printf("play capture: %s: door %s %.1f deg (%.0f %% open), %.1f deg/s%s\n", what, d.stateName(), d.angleDeg(),
+                            100.0f * d.openFraction(), d.velocityDeg(), d.blocked() ? " BLOCKED" : "");
+            };
+            // 1) closed, over the shoulder, 2.4 m in front of the door, west of its swing
+            d.setTarget(false, true);
+            d.snap(0.0f);
+            own->place(hl::kDoorX - 0.55f, hl::kZ1 + 2.4f, 180.0f, layout::kApronLevel);
+            setViewThirdPerson(true);
+            tp_.invalidate();
+            tpPoseValid_ = false;
+            run(CameraRig::kBlendTime + 0.6f);
+            tpLookYaw_ -= 18.0f;   // a little to the right of the soldier's back: the leaf's swing is in view
+            run(0.6f);
+            updateInteraction();
+            std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
+            doorLog("closed");
+            shot("play_door_closed");
+            // 2) E: the leaf swings out on its spring; 3) on its holder
+            performInteract();
+            float t95 = -1.0f, t = 0.0f;
+            for (int k = 0; k < 24; ++k, t += kDt) run(kDt);   // 0.4 s
+            updateInteraction();
+            std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
+            doorLog("opening");
+            shot("play_door_opening");
+            for (; t < 3.0f && d.state() != DoorKinematics::State::Open; t += kDt) {
+                run(kDt);
+                if (t95 < 0.0f && d.openFraction() >= 0.95f) t95 = t + kDt;
+            }
+            std::printf("play capture: door 95 %% open %.2f s after E, latched open %.2f s after E\n", t95, t + kDt);
+            run(0.3f);
+            updateInteraction();
+            std::printf("play capture: prompt '%s'\n", interactPrompt_.c_str());
+            doorLog("open");
+            shot("play_door_open");
+            // 4) first person on the step, looking out over the sunlit apron (the eye adapts to the daylight); then into
+            // the hall through the open door (the M2 move: placed just inside, facing the room) -- the first frames are
+            // still exposed for the outside; the eye opens up over the next 1-2 s (tauDown, the hall's local bias).
+            own->place(hl::kDoorX, hl::kZ1 + 0.9f, 0.0f, layout::kApronLevel);
+            setViewThirdPerson(false);
+            alignYaw_ = 0.0f;   // keep the placed heading (north, away from the hall)
+            tp_.invalidate();
+            run(CameraRig::kBlendTime + 3.0f);
+            {
+                float st[4];
+                renderer_->adaptedStats(st);
+                std::printf("play capture: outside (looking out): adapted mean log2 L %.2f, local bias %.2f EV\n", st[2], eyeBias_.ev());
+            }
+            keepAdaptation_ = true;
+            shot("play_exposure_outside");
+            own->place(hl::kDoorX, hl::kIZ1 - 0.6f, 180.0f, hl::kFloorY);
+            alignYaw_ = 0.0f;
+            rig_.cancel();
+            run(2.0f * kDt);
+            shot("play_exposure_enter");
+            for (float te = 2.0f * kDt; te < 3.0f; te += kDt) {
+                run(kDt);
+                const int k = static_cast<int>(std::lround((te + kDt) / kDt));
+                if (k % 15 == 0) {
+                    float st[4];
+                    renderer_->adaptedStats(st);
+                    const float key = scene_->lights.atmo.exposureKeyLog2;
+                    std::printf("play capture: exposure trace t %.2f s: adapted mean log2 L %.3f, bias %.3f EV, EV %+.3f\n", te + kDt, st[2],
+                                eyeBias_.ev(), exposureEv(key, st[2], eyeBias_.ev()));
+                }
+            }
+            shot("play_exposure_adapted");
+            keepAdaptation_ = false;
+        } else {
+            std::printf("play capture: no soldier / hall door for the M4 shots\n");
+        }
     }
     playCapture_ = false;
     std::printf("play capture: %d written, %d failed\n", written, failed);

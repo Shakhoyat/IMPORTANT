@@ -16,6 +16,7 @@
 #include "scene/Combat.h"
 #include "scene/Controllable.h"
 #include "scene/DayCycle.h"
+#include "scene/Door.h"
 #include "scene/GameEvents.h"
 #include "scene/Garrison.h"
 #include "scene/HeatTrail.h"
@@ -190,6 +191,9 @@ public:
     const DayCycle& dayCycle() const { return dayCycle_; }
     const Garrison* garrison() const { return garrison_.get(); }   // nullptr when options().garrison == false
     Garrison* garrison() { return garrison_.get(); }
+    // v9 M4: the hinged doors (barracks hall entrance, bunker generator room); null when the scene has none.
+    DoorPortal* hallDoor() const { return hallDoor_; }
+    DoorPortal* generatorDoor() const { return generatorDoor_; }
     // The rules of the current frame (waves, searchlights, lamps). pinDayRules() overrides the clock's rules
     // (tests, captures) until unpinDayRules().
     const DayRules& dayRules() const { return rules_; }
@@ -224,6 +228,8 @@ private:
     void applyDayRules();
 
     std::unique_ptr<SceneNode> terrain_, environment_, backdrop_, base_, hall_;   // hall_: v8 barracks hall
+    DoorPortal* hallDoor_ = nullptr;        // v9 M4: owned by controllables_ (after the garrison: v5-v8 indices stay)
+    DoorPortal* generatorDoor_ = nullptr;
     std::vector<SceneNode*> aviationLights_;  // blinking red obstruction lights (radio masts)
     BunkerRig bunker_;
     UavRig uavs_[kUavCount];

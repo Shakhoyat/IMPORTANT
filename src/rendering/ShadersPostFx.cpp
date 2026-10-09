@@ -226,15 +226,19 @@ void main() {
 )";
 
 // Temporal adaptation of the 1x1 statistics (eye / sensor gain adapting over ~a second).
+// v9 M4: asymmetric (scene/EyeAdapt.h) -- each statistic moves up at uRateUp and down at uRateDown (the eye adapts to a
+// brighter view faster than to a darker one); 1 = reset.
 const char* kAdaptFrag = R"(#version 330 core
 uniform sampler2D uCurrent;
 uniform sampler2D uPrevious;
-uniform float uRate;       // 1 - exp(-dt * speed); 1 = reset
+uniform float uRateUp;     // 1 - exp(-dt / tauUp)
+uniform float uRateDown;   // 1 - exp(-dt / tauDown)
 layout(location = 0) out vec4 Stats;
 void main() {
     vec4 c = texelFetch(uCurrent, ivec2(0), 0);
     vec4 p = texelFetch(uPrevious, ivec2(0), 0);
-    Stats = mix(p, c, clamp(uRate, 0.0, 1.0));
+    vec4 k = mix(vec4(uRateDown), vec4(uRateUp), step(p, c));
+    Stats = mix(p, c, clamp(k, 0.0, 1.0));
 }
 )";
 
@@ -371,6 +375,7 @@ uniform float uExposure;
 uniform int uAutoExposure;
 uniform float uKeyLog2;       // log2 luminance the auto-exposure maps to the base exposure
 uniform float uEvRange;       // +- stops the auto-exposure may move
+uniform float uEvBias;        // v9 M4: local exposure bias -- inside an indoor light volume the eye may open further
 uniform float uPurkinje;      // v6: scotopic shift weight (1 night, 0 day)
 uniform float uDayGrade;      // v6: weight of the neutral daylight grade
 uniform float uTime;
@@ -474,7 +479,7 @@ void main() {
     float exposure = uExposure;
     if (uAutoExposure == 1) {
         float meanLog = texelFetch(uStats, ivec2(0), 0).z;
-        exposure *= exp2(clamp(uKeyLog2 - meanLog, -uEvRange, uEvRange));
+        exposure *= exp2(clamp(uKeyLog2 - meanLog, -uEvRange, uEvRange + uEvBias));   // v9 M4: + uEvBias
     }
     c *= exposure;
     // Night vision (Purkinje shift): in dim light the eye's rods take over -- less colour, bluer.

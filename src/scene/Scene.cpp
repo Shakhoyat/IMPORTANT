@@ -9,6 +9,7 @@
 #include "objects/BaseLayout.h"
 #include "objects/Environment.h"
 #include "objects/Terrain.h"
+#include "scene/EyeAdapt.h"
 #include "scene/TickInterp.h"
 #if __has_include("objects/Base.h")
 #include "objects/Base.h"
@@ -266,11 +267,14 @@ Scene::Scene(const SceneOptions& options)
     }
 #endif
     // v8: the enterable barracks hall on the east apron (walk floors, indoor light volume in the camp's WalkSpace).
+    // v9 M4: the indoor volume carries a local exposure bias (scene/EyeAdapt.h): inside, the eye may open up further.
+    std::unique_ptr<HingedDoor> hallDoor;
     {
         HallRig hall = buildBarracksHall();
         hall_ = std::move(hall.root);
+        hallDoor = std::move(hall.door);
         for (const WalkFloor& f : hall.floors) bunker_.walk.addFloor(f);
-        bunker_.walk.addIndoor(hall.indoor, IndoorLight{0.24f, 1.0f});
+        bunker_.walk.addIndoor(hall.indoor, IndoorLight{0.24f, 1.0f, kHallExposureBiasEv});
     }
     // v6: the soldiers and the sky clock come after every v5 object (the v5 key order / indices stay).
     const size_t garrisonStart = controllables_.size();
@@ -279,6 +283,15 @@ Scene::Scene(const SceneOptions& options)
         for (auto& o : garrison_->build(garrisonSeed, std::max(0, options.residents)))
             if (o) controllables_.push_back(std::move(o));
         if (auto clock = makeSkyClock(dayCycle_)) controllables_.push_back(std::move(clock));
+    }
+    // v9 M4: the hinged doors come last, so every earlier key / index stays as it was.
+    if (hallDoor) {
+        hallDoor_ = hallDoor.get();
+        controllables_.push_back(std::move(hallDoor));
+    }
+    if (bunker_.generatorDoor) {
+        generatorDoor_ = dynamic_cast<DoorPortal*>(bunker_.generatorDoor.get());
+        controllables_.push_back(std::move(bunker_.generatorDoor));
     }
     for (size_t i = 1; i < controllables_.size(); ++i)
         if (controllables_[i]->moves() && controllables_[i]->root()) markDynamic(*controllables_[i]->root());

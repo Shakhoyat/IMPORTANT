@@ -376,6 +376,8 @@ bool App::pickerClick(double nx, double ny) {
 
 void App::updateGameCamera(float dt) {
     rig_.advance(dt);
+    stepHallMove(dt);         // v9 M4: Enter / Exit Barracks waiting for the hall door
+    stepEyeAdaptation(dt);    // v9 M4: local exposure bias of the indoor light volume the camera is in
     const float now = scene_->time();
 
     // Riding along: follow the source; a round that hit or a destroyed rover leaves the camera holding on the spot.

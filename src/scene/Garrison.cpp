@@ -10,6 +10,7 @@
 #include "objects/Bunker.h"
 #include "objects/PropKit.h"
 #include "objects/Terrain.h"
+#include "scene/Door.h"
 #include "scene/WalkSpace.h"
 
 namespace ts {
@@ -19,6 +20,7 @@ namespace {
 namespace L = layout;
 constexpr float kF = L::kBunkerFloorY;
 constexpr float kMinWalkSpeed = 0.25f;   // floor of the curvature speed law (hairpins are still walked)
+constexpr float kLeafClearance = 0.2f;   // v9 M4: walkers keep this clear of a door leaf (the leaf stops at soldier::kBodyRadius)
 
 float groundAt(float x, float z) {
     return std::sqrt(x * x + z * z) <= kTerrainRadius ? terrainHeight(x, z) : terrainRimHeight();
@@ -510,6 +512,8 @@ struct GarrisonCore {
     const std::vector<std::unique_ptr<Controllable>>* controllables = nullptr;
     std::vector<Box> staticBoxes;      // planner input (solids + vehicles), for the possessed walker's collisions
     std::vector<Box> dynamicBoxes;     // this frame: doors, moving vehicles
+    std::vector<Box> routeBoxes;       // v9 M4: the part route walkers wait for / collide with (not the hinged leaves)
+    std::vector<DoorKinematics*> doors;   // v9 M4: hinged doors (auto open for walkers, bodies block the leaf)
     std::vector<Box> plannedBoxes;     // dynamic obstacles at planning time (routes already avoid the parts)
     std::vector<Vec3> footfalls;
     uint32_t seed = 0;
@@ -651,15 +655,36 @@ void GarrisonCore::frame(const WorldContext& w) {
     footfalls.clear();
     // Doors, barrier arm, vehicles that moved: waited for by walkers, collided with by the possessed soldier.
     dynamicBoxes.clear();
+    routeBoxes.clear();
     auto same = [](const Box& a, const Box& b) { return length(a.min - b.min) + length(a.max - b.max) < 0.05f; };
     if (controllables)
         for (const auto& c : *controllables)
-            if (c && !isUnit(c.get()))
+            if (c && !isUnit(c.get())) {
+                // v9 M4: a hinged door's leaf always collides with the possessed soldier (its boxes); route walkers do not
+                // wait for its axis-aligned boxes (a half-open leaf's bounds cover a lot of floor): they use the exact
+                // leaf instead (stepRoute: requests, waiting outside the sweep, never stepping into the leaf).
+                if (dynamic_cast<const DoorPortal*>(c.get())) {
+                    for (const Box& b : c->dynamicObstacles()) dynamicBoxes.push_back(b);
+                    continue;
+                }
                 for (const Box& b : c->dynamicObstacles()) {
                     bool planned = false;
                     for (const Box& p : plannedBoxes) planned = planned || same(b, p);
-                    if (!planned) dynamicBoxes.push_back(b);   // closed door, a vehicle that moved
+                    if (!planned) {
+                        dynamicBoxes.push_back(b);   // closed door, a vehicle that moved
+                        routeBoxes.push_back(b);
+                    }
                 }
+            }
+    // v9 M4: every soldier's body can stop a swinging leaf (and keeps an auto-opened door from closing on it).
+    if (!doors.empty()) {
+        std::vector<DoorBody> bodies;
+        for (const Soldier* u : units) bodies.push_back({{u->x_, u->feetY_, u->z_}, soldier::kBodyRadius, 1.8f, u->index_});
+        for (DoorKinematics* d : doors) {
+            d->setBodies(bodies);
+            d->step(w.time, std::max(w.dt, 0.0f));   // the requests of the last tick; the scene's own update is then a no-op
+        }
+    }
     // Shift change: staggered departures (seeded order), 2.5 s apart.
     const bool d = dayShift(w.hour);
     if (ready && d != day) {
@@ -798,6 +823,8 @@ Soldier::Soldier(int index, Duty duty, const SoldierLook& look, GarrisonCore* g)
 }
 
 Soldier::~Soldier() = default;
+
+bool Soldier::waitingForDoor() const { return st_->waitDoor; }
 
 bool Soldier::travelling() const {
     return st_->phase == State::Phase::Travel || (st_->phase == State::Phase::Loop && st_->holdDur <= 0.0f);
@@ -948,12 +975,39 @@ void Soldier::stepRoute(const WorldContext& w, float dt) {
     // Look-ahead: dynamic obstacles (closed blast doors, a vehicle on the path).
     s.waitDoor = false;
     const Vec3 ahead = path.pointAtDistance(closed ? s.s + 0.7f : std::fmin(len, s.s + 0.7f));
-    for (const Box& b : g_->dynamicBoxes) {
+    for (const Box& b : g_->routeBoxes) {
         if (b.min.y > feetY_ + 1.8f || b.max.y < feetY_ + 0.1f) continue;
         if (boxDistance(ahead.x, ahead.z, b) < 0.3f && boxDistance(x_, z_, b) < 1.6f) s.waitDoor = true;
     }
+    // v9 M4: hinged doors on the way. A walker whose route crosses a doorway within the door's trigger radius (or who
+    // stands in it) asks the door to open; it closes by itself closeDelay after the last request. While a leaf swings,
+    // walkers outside the zone it sweeps wait there; a walker that a swinging leaf ran into (it stops against him) walks
+    // on if his way leads away from the leaf, or steps back along his route if it leads into it.
+    bool doorStop = false;
+    for (DoorKinematics* d : g_->doors) {
+        const Vec3 dc = d->doorwayCentre();
+        const float reach = d->params().autoRadius;
+        if (std::hypot(dc.x - x_, dc.z - z_) > reach + 0.5f) continue;
+        bool want = d->inDoorway({x_, feetY_, z_}, 0.45f);
+        Vec3 prev{x_, feetY_, z_};
+        for (float a = 0.25f; !want && a <= reach; a += 0.25f) {
+            const float sa = closed ? s.s + a : std::fmin(len, s.s + a);
+            const Vec3 q = path.pointAtDistance(sa);
+            if (d->crossesDoorway(prev, q)) want = true;
+            prev = q;
+            if (!closed && sa >= len) break;
+        }
+        if (want) d->request(w.time, index_);
+        if (d->blockedBy() == index_) {
+            const float a = d->angleDeg();
+            doorStop = d->penetration({ahead, kLeafClearance, 1.8f, index_}, a) > d->penetration({{x_, feetY_, z_}, kLeafClearance, 1.8f, index_}, a);
+        }
+        // A swinging leaf (or one about to start): wait outside the zone it sweeps until it has latched on a stop.
+        if (d->moving() && d->inSweep(ahead, 0.3f) && !d->inSweep({x_, feetY_, z_}, soldier::kBodyRadius)) s.waitDoor = true;
+    }
     if (s.waitDoor || s.yield) vT = 0.0f;
     if (s.backOff && (closed || s.s > 0.05f)) vT = -0.6f;   // make room for an oncoming soldier
+    if (doorStop && (closed || s.s > 0.05f)) vT = -0.5f;    // v9 M4: out of the leaf's way
     const float acc = vT > speed_ ? 1.6f : 4.0f;
     speed_ += clampf(vT - speed_, -acc * dt, acc * dt);
     speed_ = std::fmin(speed_, vNow);
@@ -983,7 +1037,19 @@ void Soldier::stepRoute(const WorldContext& w, float dt) {
         q = p + side * s.lateral;   // ramp / bunker: the WalkSpace collision below keeps the offset off the walls
     }
     if (g_->walk && !surfaceSample(p))   // ramp / indoors: the WalkSpace walls (and closed doors) have the last word
-        g_->walk->collide(q.x, q.z, feetY_, feetY_ + 1.8f, 0.22f, g_->dynamicBoxes);
+        g_->walk->collide(q.x, q.z, feetY_, feetY_ + 1.8f, 0.22f, g_->routeBoxes);
+    // v9 M4: never into a door leaf (the exact leaf slab, not its axis-aligned boxes): a step that would cut deeper into
+    // a leaf than the body already is does not happen (the walker waits, the leaf stops against him or goes on).
+    for (const DoorKinematics* d : g_->doors) {
+        const float a = d->angleDeg();
+        const float pNew = d->penetration({{q.x, feetY_, q.z}, kLeafClearance, 1.8f, index_}, a);
+        if (pNew > 0.0f && pNew > d->penetration({{x_, feetY_, z_}, kLeafClearance, 1.8f, index_}, a) + 1e-5f) {
+            s.s = sBefore;
+            speed_ = 0.0f;
+            s.blockedT += dt;
+            return;
+        }
+    }
     // Hard separation: never step closer to a soldier who is already within 0.6 m (the yielding / back-off rules
     // resolve the encounter; this only guarantees that bodies never interpenetrate).
     for (const Soldier* o : g_->units) {
@@ -1711,10 +1777,18 @@ void Garrison::init(const GarrisonContext& ctx) {
                 vehicleRoots.push_back(c->root());
             }
     g.plannedBoxes.clear();
+    g.doors.clear();
+    std::vector<Box> doorRest;   // v9 M4: hinged door leaves on their holders: the routes keep clear of them
     if (ctx.controllables)
         for (const auto& c : *ctx.controllables)
-            if (c && !g.isUnit(c.get()))
+            if (c && !g.isUnit(c.get())) {
+                if (auto* portal = dynamic_cast<DoorPortal*>(c.get())) {
+                    g.doors.push_back(&portal->door());
+                    for (const Box& b : portal->door().restOpenBoxes()) doorRest.push_back(b);
+                    continue;   // the leaf is never a planned (ignored) obstacle: it collides wherever it is
+                }
                 for (const Box& b : c->dynamicObstacles()) g.plannedBoxes.push_back(b);
+            }
     if (ctx.leaves) {
         // exact oriented footprints: static obstacle parts + every part of the vehicles / installations
         std::vector<SitePlanner::Footprint> parts;
@@ -1729,9 +1803,12 @@ void Garrison::init(const GarrisonContext& ctx) {
             if (n->object.rfind("Soldier ", 0) == 0) continue;
             parts.push_back(SitePlanner::footprintOf(n->world));
         }
+        for (const Box& b : doorRest) parts.push_back(SitePlanner::footprintOf(b));
         g.planner.build(parts);
     } else {
-        g.planner.build(g.staticBoxes);
+        std::vector<Box> planBoxes = g.staticBoxes;
+        planBoxes.insert(planBoxes.end(), doorRest.begin(), doorRest.end());
+        g.planner.build(planBoxes);
     }
     // staggered shift order (seeded permutation; seed 0 = roster order)
     const int n = g.count();

@@ -104,6 +104,9 @@ struct RenderSettings {
     bool shadowsOn = true, spotShadowOn = true, ssaoOn = true, fogOn = true, bloomOn = true, msaaOn = true;
     // v3 post-processing switches (the quality preset decides what is available)
     bool taaOn = true, ssrOn = true, flareOn = true, autoExposureOn = true, foliageOn = true, particlesOn = true;
+    // v9 M4 eye adaptation (scene/EyeAdapt.h): local exposure bias of the indoor light volume around the camera (stops
+    // the eye may open beyond the outdoor range).
+    float exposureBiasEv = 0.0f;
     float dof = 0.0f;             // depth-of-field strength (cinematic shots); 0 = off
     float focusDistance = -1.0f;  // metres; < 0 = autofocus on the frame centre
     float motionBlur = 0.0f;      // camera motion blur, shutter fraction (0.5 = 180 degrees); 0 = off
@@ -163,6 +166,7 @@ public:
     GpuTimer& timer() { return timer_; }
     // Forget the temporal history (TAA, exposure / sensor gain): at camera cuts and for new capture shots.
     void resetHistory() { historyValid_ = false; adaptValid_ = false; }
+    void resetTaaHistory() { historyValid_ = false; }   // v9 M4: keeps the eye's adaptation (play_exposure_* shots)
     // Adapted frame statistics (min, max, mean, mean of squares) of log2 luminance (visible) or heat
     // (thermal); read back from the GPU, for logs and calibration only.
     void adaptedStats(float out[4]) const;

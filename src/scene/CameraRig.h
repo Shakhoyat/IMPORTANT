@@ -179,4 +179,21 @@ private:
     float armVel_ = 0.0f;
 };
 
+// v9 M4: the soldier's arm indoors (bunker rooms, the barracks hall): shorter (3.1 -> 1.9 m), the shoulder closer
+// (0.62 -> 0.45 m), a flatter pitch limit (55 -> 30 deg). Crossing a doorway blends the two on a critically damped spring
+// (blend 0 outdoors .. 1 indoors), so the arm glides in and out instead of popping. The probe still pulls the arm in at
+// once at any contact, so the blend never lets the camera into a wall or a door leaf.
+struct IndoorArmBlend {
+    float blend = 0.0f, vel = 0.0f;
+    float tau = 0.3f;            // s: spring w = 2 / tau (about 0.7 s for the whole change)
+    bool valid = false;
+    void reset(bool indoor) {
+        blend = indoor ? 1.0f : 0.0f;
+        vel = 0.0f;
+        valid = true;
+    }
+    void step(bool indoor, float dt);
+};
+ThirdPersonParams indoorArmParams(ThirdPersonParams outdoor, float blend);
+
 }  // namespace ts

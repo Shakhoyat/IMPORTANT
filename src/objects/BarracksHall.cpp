@@ -91,6 +91,26 @@ void bunk(Builder& b, SceneNode* p, float zc, int k, const Material& steel, cons
 
 }  // namespace
 
+HingeParams hallDoorHinge() {
+    HingeParams p;
+    const float jamb = H::kDoorX + 0.5f * H::kDoorW;   // east side of the opening (x 22.85 .. 24.15)
+    p.hinge = {jamb, F, H::kZ1 + 0.015f};               // just outside the outer wall face (z = kZ1)
+    p.closedYawDeg = -90.0f;                            // closed: hinge -> latch edge points west across the opening
+    p.swing = 1;                                        // opening turns the leaf north (outwards), then east onto the wall
+    p.openDeg = 180.0f;                                 // the door holder: parallel to the wall, 2.5 cm in front of it
+    p.u0 = 0.012f;
+    p.width = H::kDoorW - 0.012f - 0.01f;               // 1 cm gap to the west jamb
+    p.bottom = 0.012f;
+    p.height = H::kDoorH - 0.02f;
+    p.n0 = -0.075f;                                     // 50 mm leaf, inside the opening when closed
+    p.n1 = -0.025f;
+    p.omega = 4.2f;                                     // 95 % of the swing after 4.74 / 4.2 = 1.13 s
+    p.autoRadius = 4.5f;
+    p.closeDelay = 2.5f;
+    p.segments = 4;
+    return p;
+}
+
 HallRig buildBarracksHall() {
     HallRig rig;
     Builder b("Barracks hall", "HAL", ShadingModel::Phong);
@@ -149,10 +169,17 @@ HallRig buildBarracksHall() {
     // ---- door: open leaf against the outer wall, step, lamp, sign
     box(b, r, "Door step", {H::kDoorX - 0.9f, layout::kApronLevel - 0.04f, H::kZ1}, {H::kDoorX + 0.9f, F - 0.02f, H::kZ1 + 0.7f}, slab,
         "Concrete step in front of the door");
-    b.part(r, "Door leaf (open)", P::Cube, {1.25f, H::kDoorH - 0.05f, 0.05f}, {0, 0, 0},
-           {H::kDoorX + 0.5f * H::kDoorW + 0.66f, F + 0.5f * H::kDoorH, H::kZ1 + 0.04f}, frame, "Door swung open against the wall");
-    detail(b, r, "Door handle", P::Cube, {0.12f, 0.03f, 0.04f}, {0, 0, 0}, {H::kDoorX + 0.5f * H::kDoorW + 1.15f, F + 1.0f, H::kZ1 + 0.09f}, chrome,
-           "Lever handle");
+    // v9 M4: the hinged door (objects/HingedDoor.h) replaces the v8 leaf that stood open against the wall: it hangs on
+    // the east jamb and opens outwards through 180 deg onto the same spot of the wall.
+    {
+        HingedDoorLook look;
+        look.leaf = makeMaterial({0.19f, 0.25f, 0.18f}, 0.25f, Surface::Paint, 0.55f, 0.0f);    // dark olive door paint
+        look.trim = makeMaterial({0.24f, 0.30f, 0.22f}, 0.25f, Surface::Paint, 0.50f, 0.0f);
+        look.metal = chrome;
+        look.plate = makeMaterial({0.48f, 0.49f, 0.50f}, 0.25f, Surface::Metal, 0.38f, 1.0f);
+        const Vec3 eye{H::kDoorX - 2.2f, F + 1.75f, H::kZ1 + 3.4f}, at{H::kDoorX, F + 1.1f, H::kZ1};
+        rig.door = std::make_unique<HingedDoor>(b, r, "BARRACKS DOOR", hallDoorHinge(), look, eye, at);
+    }
     detail(b, r, "Door lamp hood", P::Cube, {0.30f, 0.04f, 0.24f}, {0, 0, 0}, {H::kDoorX, F + 2.55f, H::kZ1 + 0.14f}, steel, "Hood over the door lamp");
     b.part(r, "Hall door lamp", P::Sphere, {0.13f, 0.08f, 0.13f}, {0, 0, 0}, {H::kDoorX, F + 2.48f, H::kZ1 + 0.14f},
            asLight(makeMaterial({1.0f, 0.78f, 0.52f}, 0.55f, Surface::Glass, 0.2f, 0.0f, 1.0f), 1.2f, 6.0f), "Door lamp (practical light, off by day)");

@@ -131,6 +131,7 @@ public:
     float yawDeg() const { return yaw_; }
     float speed() const { return speed_; }
     bool travelling() const;
+    bool waitingForDoor() const;   // v9 M4: stopped this tick for a door (closed / swinging leaf, dynamic box ahead)
     bool underground() const { return feetY_ < -1.0f; }
     bool planted(int leg) const { return planted_[leg]; }
     Vec3 plantPoint(int leg) const { return lock_[leg]; }

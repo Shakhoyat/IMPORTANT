@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "ai/Occlusion.h"
+#include "objects/HingedDoor.h"
 #include "scene/SceneNode.h"
 #include "scene/WalkSpace.h"
 
@@ -19,7 +20,12 @@ struct HallRig {
     std::unique_ptr<SceneNode> root;
     std::vector<WalkFloor> floors;   // interior (ceiling 2.7 m) and the doorway
     Box indoor;                      // indoor light volume (windows: some sky light and the sun come in)
+    std::unique_ptr<HingedDoor> door;   // v9 M4: the hinged door in the north doorway (its leaf is under 'root')
 };
+
+// v9 M4: the hall door's hinge (east jamb, outer face; opens outwards through 180 deg onto the wall, where the v8 leaf
+// stood) -- shared by the scene build and the tests.
+HingeParams hallDoorHinge();
 
 HallRig buildBarracksHall();
 
