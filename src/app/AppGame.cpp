@@ -75,6 +75,18 @@ RigPose App::targetPose(float aspect) {
 }
 
 CameraView App::composeView(float aspect) {
+    if (viewOverride_) {   // v9 M1: the interactive loop draws a pose interpolated between two simulation ticks
+        const RigPose& p = *viewOverride_;
+        shownPose_ = p;
+        shownValid_ = true;
+        CameraView v;
+        v.position = p.eye;
+        v.view = p.view();
+        v.nearZ = p.nearZ;
+        v.farZ = tickFar_;
+        v.proj = perspective(radians(clampf(p.fovDeg, 1.0f, 170.0f)), aspect, v.nearZ, v.farZ);
+        return v;
+    }
     int soldier = -1;
     const bool custom = camera_.mode == CameraMode::Pov || (camera_.mode == CameraMode::Possess && possessAlt_) ||
                         (camera_.mode == CameraMode::Possess && camera_.possessSight && firstPersonSoldier(soldier)) ||

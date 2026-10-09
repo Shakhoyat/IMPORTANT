@@ -401,6 +401,7 @@ void main() {
     vec3 inscatter = vec3(0.0);
     float trans = 1.0;
     float sigmaSum = 0.0;
+    vec3 halo = vec3(0.0);
     for (int i = 0; i < 64; ++i) {
         if (i >= uSteps) break;
         vec3 p = uCamPos + dir * (stepLen * (float(i) + jitter));
@@ -410,12 +411,18 @@ void main() {
         vec3 toBeacon = uBeaconPos - p;
         float db = length(toBeacon);
         light += uBeaconColor / (1.0 + uBeaconAtt.x * db + uBeaconAtt.y * db * db) / (4.0 * 3.14159265) * (1.0 - inside);
-        for (int k = 0; k < TS_MAX_PRACTICALS; ++k) {   // halos of the lamps, fire, flashes in the mist
-            if (k >= uPracticalCount) break;
-            if (abs(uPracticalColor[k].w - inside) > 0.5) continue;
-            vec3 Lk;
-            light += uPracticalColor[k].rgb * practicalAttenuation(k, p, Lk) * (0.12 * uHaloScale);
+        // Halos of the lamps, fire, flashes in the mist. v9: evaluated on every other step and held for the next
+        // (a halo changes slowly along the ray; the per-pixel jitter + TAA hide the hold); none by day (faded out).
+        if ((i & 1) == 0) {
+            halo = vec3(0.0);
+            for (int k = 0; k < TS_MAX_PRACTICALS; ++k) {
+                if (k >= uPracticalCount || uHaloScale < 0.15) break;
+                if (abs(uPracticalColor[k].w - inside) > 0.5) continue;
+                vec3 Lk;
+                halo += uPracticalColor[k].rgb * practicalAttenuation(k, p, Lk) * (0.12 * uHaloScale);
+            }
         }
+        light += halo;
         float ext = exp(-sigma * stepLen);
         inscatter += trans * light * (1.0 - ext);   // energy-conserving single scattering step
         trans *= ext;

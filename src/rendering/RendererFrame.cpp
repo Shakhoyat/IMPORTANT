@@ -296,7 +296,9 @@ void Renderer::renderFog(const Scene& scene, const CameraView& cam, const Render
     fog_->set("uInvViewProj", inverse(cam.proj * cam.view));
     fog_->set("uCamPos", cam.position);
     fog_->set("uTime", scene.time());
-    fog_->set("uSteps", q.fogSteps);
+    // v9 M1: clear-day haze is thin and smooth (v8 cut it to 0.0013): half the march steps by day, and the lamp halo
+    // loop is skipped once the halos have faded (uHaloScale below), ~1 ms at 1080p EPIC.
+    fog_->set("uSteps", L.atmo.day > 0.5f ? std::max(16, q.fogSteps / 2) : q.fogSteps);
     fog_->set("uMaxDistance", kFogMaxDistance);
     fog_->set("uDensity", L.atmo.volFogDensity * (1.0f + 1.2f * s.rain));
     fog_->set("uHeightFalloff", 0.22f);
@@ -472,9 +474,9 @@ void Renderer::drawGrass(const Scene& scene, const CameraView& cam, int w, int h
         sh.set("uFogged", 1.0f);
         sh.set("uHeatVariation", 0.0f);
     };
-    st.drawCalls += grass_.draw(cam.proj * cam.view, prepare, rover, wash, scene.time());
-    st.grassBlades = grass_.count();
-    st.triangles += static_cast<long long>(grass_.count()) * 12;
+    st.drawCalls += grass_.draw(cam.proj * cam.view, cam.position, prepare, rover, wash, scene.time());
+    st.grassBlades = grass_.submitted();
+    st.triangles += static_cast<long long>(grass_.submitted()) * grass_.trianglesPerBlade();
 }
 
 void Renderer::drawRain(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,

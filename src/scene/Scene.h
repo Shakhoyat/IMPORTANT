@@ -124,6 +124,12 @@ public:
 
     const std::vector<SceneNode*>& leaves() const { return leaves_; }
     std::vector<SceneNode*> roots() const;
+    // v9 M1: render interpolation between the last two fixed simulation ticks (scene/TickInterp.h). captureTick after
+    // every tick; interpolate(alpha) just before drawing (leaf worlds blended); restoreTick right after drawing, so the
+    // simulation, the UAV cameras and every query see the tick state again. Returns the number of parts blended.
+    void captureTick();
+    int interpolate(float alpha);
+    void restoreTick();
 
 private:
     Squad squad_;                                       // declared first: 'drone' below refers into it
@@ -222,6 +228,8 @@ private:
     BunkerRig bunker_;
     UavRig uavs_[kUavCount];
     std::vector<SceneNode*> leaves_;
+    uint32_t tick_ = 0;                      // v9 M1: ticks captured
+    std::vector<SceneNode*> blended_;        // leaves whose world is an interpolated one right now
     std::vector<SceneNode*> practicals_;  // emissive parts that are also light sources
     HeatTrail heatTrail_;
     void updateHeatTrail(float dt);

@@ -15,9 +15,11 @@
 #include "scene/HudMath.h"
 #include "scene/InputScript.h"
 #include "scene/SceneApi.h"
+#include "scene/TickInterp.h"
 #include "scene/Scene.h"
 #include "vision/SensorModel.h"
 #include "vision/ThermalTracker.h"
+#include "vision/VisionWorker.h"
 
 struct GLFWwindow;
 
@@ -48,7 +50,8 @@ struct AppOptions {
     // v9 M0
     std::string inputScript;  // --input-script FILE: timed key / mouse events fed to the interactive loop
     std::string framesDir = "script_frames";   // --frames DIR: where the script's 'shot' frames go
-    int vsync = -1;           // --vsync 0|1 (-1 = the mode's default: interactive 1, benchmarks 0)
+    int vsync = -1;           // --vsync 0|1 (-1 = the mode's default: 0 = off, paced by the frame limiter)
+    float fpsLimit = -1.0f;   // --fps-limit N: interactive frame limiter (-1 = display refresh, 0 = uncapped)
 };
 
 class App {
@@ -155,11 +158,13 @@ private:
     // stepVision collects the images (sensor model, CV, squad tracker). The interactive loop and the benchmark
     // submit the main frame in between, so the CPU vision work overlaps the GPU instead of waiting for it.
     void stepSim(float dt);
-    void stepVision();
+    void stepVision(bool collectNow = false);   // collectNow: wait for the read-back instead of leaving it for the next tick
+    void joinVision();   // v9 M1: wait for the vision worker and apply its results (start of the next tick)
     struct PendingVision {
         bool active = false;
         bool rendered[2] = {false, false};   // per UAV: an image is on its way (not a dropped frame)
         Mat4 reported[2];                    // gimbal pose the measurement is geolocated with
+        bool collectLater = false;           // v9 M1: read-back not finished at stepVision: collected by joinVision
     } pendingVision_;
     void renderFrame(int w, int h, bool withHud);          // main view + overlays + HUD
     void drawOverlays(const CameraView& cam);              // hierarchy axes, MicroMouse plan
@@ -339,15 +344,26 @@ private:
     double scriptPx_ = 0.5, scriptPy_ = 0.5;
     std::vector<std::string> scriptShots_, scriptLogs_;
     struct LoopTiming {                         // interactive loop phases since the last log (CPU wall time, s)
-        double sim = 0, render = 0, vision = 0, swap = 0, start = -1;
+        double sim = 0, render = 0, vision = 0, swap = 0, wait = 0, start = -1;
         int frames = 0;
+        long long tick0 = 0;
     } loopT_;
+    // v9 M1: fixed simulation tick + render interpolation (scene/TickInterp.h)
+    FixedStepClock simClock_;
+    RigPose tickPose_[2];                       // camera pose at the previous / latest tick
+    bool tickPoseValid_[2] = {false, false};
+    float tickFar_ = 600.0f;
+    const RigPose* viewOverride_ = nullptr;     // set while drawing an interpolated frame: composeView shows this pose
+    int blendedParts_ = 0;
+    void captureTickPose(float aspect);
 public:
     // Fixed-shot benchmark: shot names and their setup (also used by the tests through the headless app).
     static const std::vector<std::string>& benchShotNames();
     bool setupBenchShot(const std::string& name);   // camera / control for one shot (after the world is warm)
 private:
     int benchShotsMode();
+    // v9 M1: last member, so it is destroyed (thread joined) before the sensors / tracker it works on.
+    std::unique_ptr<VisionWorker> visionWorker_;
 };
 
 }  // namespace ts

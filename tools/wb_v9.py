@@ -20,10 +20,12 @@ from wb_v6 import pending
 
 S_V8 = "28 v8 Daylight & Barracks"
 S_V9A = "29 v9 Audit & Budget"
-V9_SHEETS = [S_V8, S_V9A]
+S_V9M1 = "30 v9 Fixed Tick & Interp"
+V9_SHEETS = [S_V8, S_V9A, S_V9M1]
 V9_INFO = {
     S_V8: "v8: daylight sky / ambient / grade, click-to-control, first / third person, barracks hall + residents, natural rover motion; tests T320-T327",
     S_V9A: "v9 audit: fixed-shot benchmark (5 shots x day / night, CPU phases, GPU passes), the vsync stall in the real exe, frame budget",
+    S_V9M1: "v9 M1: fixed 60 Hz tick + render interpolation, frame limiter, UAV vision worker (deterministic join), grass LOD; before / after per shot",
 }
 
 FRAME_BUDGET_MS = 1000.0 / 60.0   # 60 fps target (labelled setting)
@@ -280,6 +282,88 @@ def build_v9_audit(wb, ctx):
     finish(ws, 7, freeze="A4")
 
 
+def build_v9_m1(wb, ctx):
+    ws = wb[S_V9M1]
+    title(ws, "30  v9 M1: Fixed Tick, Render Interpolation, Frame Pacing",
+          "Fixed timestep (\"fix your timestep\"): the world advances in 1/60 s ticks from an accumulator of real frame time; "
+          "the frame shows the world between the last two ticks, blended by alpha = leftover time / tick (parts: element-wise "
+          "matrix blend with cut / spin guards; camera: lerp eye, slerp orientation). Physics and AI never see an uneven step, the "
+          "same seed and input give the same run, and motion is smooth at any display rate. The blocking vsync swap (88 ms a "
+          "frame under the compositor, sheet 29) is replaced by a deadline frame limiter at the display refresh. The UAV image CV "
+          "runs on a worker thread and joins at the next tick, so results are bit-identical (T334, trace below). Grass: a 5-triangle "
+          "curved strip instead of the 12-triangle cube, and distance LOD that submits only the blades a cell needs.", span=14)
+    m0 = _load("docs/v9_notes/audit/bench_shots_m0_win.json")
+    m1 = _load("docs/v9_notes/m1/bench_shots_m1_win.json")
+    r = 5
+    section(ws, r, 1, "Before (M0) / after (M1): ThermalSense.exe, native NVIDIA, 1920x1080 EPIC, vsync off")
+    r += 1
+    header(ws, r, ["Shot", "Time", "M0 frame ms", "M1 frame ms", "M0 FPS", "M1 FPS", "Speed-up", "M0 triangles (M)", "M1 triangles (M)",
+                   "M1 grass blades", "M1 grass triangles (M)", "M1 holds 60?"], height=40)
+    a = r + 1
+    if not (m0 and m1):
+        r = pending(ws, a, "bench_shots_m0_win.json / bench_shots_m1_win.json", span=12)
+        b = a
+    else:
+        before = {(x["shot"], x["time"]): x for x in m0["shots"]}
+        for i, x in enumerate(m1["shots"]):
+            q = a + i
+            y = before.get((x["shot"], x["time"]), {})
+            put(ws, q, 1, x["shot"], font=BOLD)
+            put(ws, q, 2, x["time"])
+            put(ws, q, 3, y.get("frame_ms"), "0.00", INPUT_FILL)
+            put(ws, q, 4, x["frame_ms"], "0.00", INPUT_FILL)
+            put(ws, q, 5, f"=1000/C{q}", "0.0")
+            put(ws, q, 6, f"=1000/D{q}", "0.0")
+            put(ws, q, 7, f"=C{q}/D{q}", "0.00x")
+            put(ws, q, 8, (y.get("triangles") or 0) / 1e6, "0.00", INPUT_FILL)
+            put(ws, q, 9, x["triangles"] / 1e6, "0.00", INPUT_FILL)
+            put(ws, q, 10, x.get("grass_blades"), "#,##0", INPUT_FILL)
+            put(ws, q, 11, f"=J{q}*5/1000000", "0.00")
+            put(ws, q, 12, f'=IF(F{q}>=60,"MEETS","BELOW")', font=BOLD)
+        b = a + len(m1["shots"]) - 1
+        ws.conditional_formatting.add(f"L{a}:L{b}", CellIsRule(operator="equal", formula=['"MEETS"'], fill=PASS_FILL))
+        ws.conditional_formatting.add(f"L{a}:L{b}", CellIsRule(operator="equal", formula=['"BELOW"'], fill=PENDING_FILL))
+        r = b + 2
+    _kpi(ws, [("Mean speed-up", f"=AVERAGE(G{a}:G{b})", "0.00x"), ("Min M1 FPS", f"=MIN(F{a}:F{b})", "0.0"),
+              ("Max grass tris (M)", f"=MAX(K{a}:K{b})", "0.00"), ("Shots >= 60", f'=COUNTIF(L{a}:L{b},"MEETS")', "0")])
+
+    section(ws, r, 1, "The interactive loop in the real exe (--input-script docs/v9_notes/m0/stall.txt, orbit at noon)")
+    r += 1
+    header(ws, r, ["Run", "FPS", "CPU sim (ticks)", "CPU render", "CPU vision hand-off", "Swap ms", "Limiter wait ms", "Frames"], height=30)
+    runs = [("M0: vsync 1 (old default)", "docs/v9_notes/m0/stall_vsync1.log"), ("M1: 100 Hz limiter (new default)", "docs/v9_notes/m1/loop_limiter.log"),
+            ("M1: uncapped (--fps-limit 0)", "docs/v9_notes/m1/loop_uncapped.log")]
+    for i, (lab, rel) in enumerate(runs):
+        q = r + 1 + i
+        put(ws, q, 1, lab, font=BOLD)
+        logs = _script_logs(rel)
+        if not logs:
+            put(ws, q, 2, "pending: " + rel, fill=PENDING_FILL)
+            continue
+        L = logs[-1]
+        for k, key in enumerate(["fps", "sim", "render", "vision", "swap"]):
+            put(ws, q, 2 + k, L[key], "0.00", INPUT_FILL)
+        m = re.search(r"wait ([\d.]+)", open(path(rel), encoding="utf-8", errors="replace").read().split("orbit_noon")[-1])
+        put(ws, q, 7, float(m.group(1)) if m else 0.0, "0.00", INPUT_FILL)
+        put(ws, q, 8, L["frames"], "0", INPUT_FILL)
+    r += len(runs) + 2
+    section(ws, r, 1, "Determinism: --trace (seed 7, 60 s) with the vision worker off / on")
+    r += 1
+    cmp_txt = path("docs/v9_notes/m1/trace_compare.txt")
+    put(ws, r, 1, "cmp result", font=BOLD)
+    put(ws, r, 2, open(cmp_txt).read().strip() if os.path.exists(cmp_txt) else "pending: trace_compare.txt", fill=INPUT_FILL)
+    file_link(put(ws, r, 4, None), "docs/v9_notes/m1/trace_vision_thread1.csv", "trace (worker on)")
+    r += 2
+    r, ta, tb = tests_block(ws, r, ctx, 332, 334, "M1 tests (T332-T334)")
+    section(ws, r, 1, "Captures: grass strip + LOD (day, third person) and the night forest (SSIM vs v8 in the notes)")
+    r = _images(ws, r + 1, [("M0: third person (cube blades)", "docs/v9_notes/audit/shots/play_third_person.jpg"),
+                            ("M1: third person (strip blades + LOD)", "docs/v9_notes/m1/shots/play_third_person.jpg"),
+                            ("M0: night forest", "docs/v9_notes/audit/shots/walk_forest.jpg"),
+                            ("M1: night forest", "docs/v9_notes/m1/shots/walk_forest.jpg")])
+    widths(ws, [30, 10, 12, 12, 12, 12, 10, 12, 12, 12, 12, 10])
+    finish(ws, 6, freeze="A4")
+
+
 def build_v9(wb, ctx):
     build_v8(wb, ctx)
     build_v9_audit(wb, ctx)
+    build_v9_m1(wb, ctx)

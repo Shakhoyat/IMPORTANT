@@ -15,7 +15,9 @@
 #include "rendering/FrameExplorer.h"  // v7 WP-I
 #include "rendering/ImageWriter.h"
 #include "rendering/ThermalPalette.h"
+#include "app/FramePacer.h"
 #include "scene/Director.h"
+#include "scene/TickInterp.h"
 
 namespace ts {
 
@@ -74,18 +76,33 @@ void App::updateTitle(double fps) {
 }
 
 void App::interactiveLoop() {
-    glfwSwapInterval(opt_.vsync >= 0 ? opt_.vsync : 1);
+    // v9 M1: no blocking vsync by default (under the desktop compositor the swap waited ~88 ms a frame on the test
+    // machine); the frame limiter paces the loop to the display refresh instead (--fps-limit, --vsync 1 to opt in).
+    const int swapInterval = opt_.vsync >= 0 ? opt_.vsync : 0;
+    glfwSwapInterval(swapInterval);
+    float limitHz = opt_.fpsLimit;
+    if (limitHz < 0.0f) {   // auto: the refresh rate of the monitor the window is on (primary)
+        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        limitHz = mode && mode->refreshRate > 0 ? static_cast<float>(mode->refreshRate) : 60.0f;
+    }
+    if (swapInterval > 0) limitHz = 0.0f;
+    std::printf("Frame pacing: %s, simulation %d Hz fixed tick with render interpolation\n",
+                swapInterval > 0 ? "vsync" : limitHz > 0.0f ? (std::to_string(static_cast<int>(limitHz + 0.5f)) + " fps limiter").c_str() : "uncapped",
+                static_cast<int>(1.0f / FixedStepClock::kTick + 0.5f));
+    std::fflush(stdout);
     if (!opt_.inputScript.empty() && !loadInputScript()) return;
     double last = glfwGetTime(), titleTimer = 0.0;
     int frames = 0;
+    FramePacer pacer;
     while (!glfwWindowShouldClose(window_)) {
         const double now = glfwGetTime();
+        const double frameSeconds = now - last;
         if (script_.active()) {   // v9 M0: scripted input (the clock starts at the first frame)
             if (scriptT0_ < 0.0) scriptT0_ = now;
             runScript(now - scriptT0_);
         }
         if (loopT_.start < 0.0) loopT_.start = now;
-        const float dt = static_cast<float>(std::min(now - last, 0.05));
+        const float dt = static_cast<float>(std::min(frameSeconds, 0.05));   // camera / UI easing (not the simulation)
         frameMs_[frameHead_] = static_cast<float>(1000.0 * (now - last));   // v7 WP-Q: HUD frame-time graph
         frameHead_ = (frameHead_ + 1) % kFrameHistory;
         governQuality(now);                                                  // v7 WP-Q: auto preset
@@ -202,11 +219,22 @@ void App::interactiveLoop() {
             g_nucClosed = -1.0f;
             settings_.nucShutter = 0.0f;
         }
+        // v9 M1: the world advances in fixed 1/60 s ticks (0..4 per frame); input sampled above holds for each of them,
+        // one-shot edges (jump, fire, clicks) are consumed by the first. After each tick the drawn parts and the camera
+        // pose are captured; the frame below shows the world between the last two ticks.
+        int fw = 0, fh = 0;
+        glfwGetFramebufferSize(window_, &fw, &fh);
+        const float aspect = fh > 0 ? static_cast<float>(fw) / static_cast<float>(fh) : lastAspect_;
+        const int ticks = simClock_.advance(frameSeconds);
         const double tSim = glfwGetTime();
-        stepSim(dt);           // v7 WP-Q: the UAV images are collected after the main frame (stepVision below)
-        updateGameCamera(dt);  // v7 WP-G: POV follow, blends, game feel, soldier rifle
+        for (int t = 0; t < ticks; ++t) {
+            stepSim(FixedStepClock::kTick);          // the UAV images are collected after the main frame (stepVision)
+            updateGameCamera(FixedStepClock::kTick); // v7 WP-G: POV follow, blends, game feel, soldier rifle
+            if (camera_.mode == CameraMode::Cinematic && !paused_) camera_.directorTime += FixedStepClock::kTick;
+            scene_->captureTick();
+            captureTickPose(aspect);
+        }
         loopT_.sim += glfwGetTime() - tSim;
-        if (camera_.mode == CameraMode::Cinematic && !paused_) camera_.directorTime += dt;
         // Weather: rain eases in/out over ~3 s; the ground soaks in ~20 s and dries in ~90 s.
         settings_.rain = lerpf(settings_.rain, rainTarget_, std::min(1.0f, dt / 3.0f));
         if (!paused_) {
@@ -214,12 +242,21 @@ void App::interactiveLoop() {
             scene_->wetness = lerpf(scene_->wetness, settings_.rain, std::min(1.0f, dt / tau));
         }
         applyCinematic();
-        int w, h;
-        glfwGetFramebufferSize(window_, &w, &h);
+        const int w = fw, h = fh;
         const double tRender = glfwGetTime();
         if (w > 0 && h > 0) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            // v9 M1: render interpolation (parts + camera) between the last two ticks; restored right after drawing.
+            const float alpha = simClock_.alpha();
+            RigPose shown;
+            if (tickPoseValid_[1] && !thermalFirstPerson()) {
+                if (!tickPoseValid_[0] || !blendTickPose(tickPose_[0], tickPose_[1], alpha, shown)) shown = tickPose_[1];
+                viewOverride_ = &shown;
+            }
+            blendedParts_ = scene_->interpolate(alpha);
             renderFrame(w, h, true);
+            scene_->restoreTick();
+            viewOverride_ = nullptr;
             if (!scriptShots_.empty() || !scriptLogs_.empty()) scriptAfterRender(w, h);
         }
         const double tVision = glfwGetTime();
@@ -227,7 +264,7 @@ void App::interactiveLoop() {
         stepVision();          // v7 WP-Q: CV + tracker on the CPU while the GPU draws the frame
         loopT_.vision += glfwGetTime() - tVision;
         ++frames;
-        titleTimer += dt;
+        titleTimer += frameSeconds;   // real time (the clamped dt overstated the rate of slow frames)
         if (titleTimer >= 0.25) {
             fps_ = frames / titleTimer;
             updateTitle(fps_);
@@ -236,10 +273,27 @@ void App::interactiveLoop() {
         }
         const double tSwap = glfwGetTime();
         glfwSwapBuffers(window_);
-        glfwPollEvents();
         loopT_.swap += glfwGetTime() - tSwap;
+        const double tWait = glfwGetTime();
+        pacer.wait(limitHz);   // v9 M1: frame limiter (sleeps; never spins for more than half a millisecond)
+        loopT_.wait += glfwGetTime() - tWait;
+        glfwPollEvents();
         ++loopT_.frames;
     }
+}
+
+// v9 M1: camera pose at the end of a tick (what composeView shows for this tick's state), kept with the previous one.
+void App::captureTickPose(float aspect) {
+    tickPose_[0] = tickPose_[1];
+    tickPoseValid_[0] = tickPoseValid_[1];
+    if (thermalFirstPerson()) {   // the full-screen gimbal camera is computed at the frame from the (tick) UAV pose
+        tickPoseValid_[1] = false;
+        return;
+    }
+    const CameraView v = composeView(aspect);
+    tickPose_[1] = RigPose::fromView(v.view, v.position, fovFromProjection(v.proj), v.nearZ);
+    tickFar_ = v.farZ;
+    tickPoseValid_[1] = true;
 }
 
 // ------------------------------------------------------------------------------------------- v9 M0: input script
@@ -327,11 +381,14 @@ void App::scriptAfterRender(int w, int h) {
     for (const std::string& label : scriptLogs_) {
         const double span = glfwGetTime() - loopT_.start;
         const int n = std::max(loopT_.frames, 1);
-        std::printf("script log %s | %s | %.1f fps, ms/frame: sim %.2f render %.2f vision %.2f swap %.2f (%d frames)\n",
+        std::printf("script log %s | %s | %.1f fps, ms/frame: sim %.2f render %.2f vision %.2f swap %.2f wait %.2f (%d frames, "
+                    "%lld ticks, %d parts blended)\n",
                     label.c_str(), stateLine().c_str(), loopT_.frames / std::max(span, 1e-6), 1000.0 * loopT_.sim / n,
-                    1000.0 * loopT_.render / n, 1000.0 * loopT_.vision / n, 1000.0 * loopT_.swap / n, loopT_.frames);
+                    1000.0 * loopT_.render / n, 1000.0 * loopT_.vision / n, 1000.0 * loopT_.swap / n, 1000.0 * loopT_.wait / n,
+                    loopT_.frames, simClock_.ticks() - loopT_.tick0, blendedParts_);
         loopT_ = LoopTiming{};
         loopT_.start = glfwGetTime();
+        loopT_.tick0 = simClock_.ticks();
     }
     if (!scriptShots_.empty() || !scriptLogs_.empty()) std::fflush(stdout);
     scriptShots_.clear();

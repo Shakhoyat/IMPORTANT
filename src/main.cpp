@@ -60,7 +60,8 @@ void usage() {
         "testing (v9):\n"
         "  --input-script FILE           interactive: play timed key / mouse events (scene/InputScript.h)\n"
         "  --frames DIR                  where the script's 'shot' frames go (default script_frames)\n"
-        "  --vsync 0|1                   swap interval (default: 1 interactive, 0 benchmarks)\n"
+        "  --vsync 0|1                   swap interval (default 0: the frame limiter paces the interactive loop)\n"
+        "  --fps-limit N                 interactive frame limiter (default: the display refresh; 0 = uncapped)\n"
         "  --no-garrison                 no soldiers\n");
 }
 
@@ -131,6 +132,9 @@ int main(int argc, char** argv) {
             ++i;
         } else if (arg == "--frames") {
             opt.framesDir = value;
+            ++i;
+        } else if (arg == "--fps-limit") {
+            opt.fpsLimit = static_cast<float>(std::atof(value.c_str()));
             ++i;
         } else if (arg == "--vsync") {
             opt.vsync = std::atoi(value.c_str()) != 0 ? 1 : 0;

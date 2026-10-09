@@ -1,0 +1,5 @@
+t,hour,phase,waves_allowed,event,uav,track,value,combined,x,z,note
+3.5167,23.0000,NIGHT,1,Spawn,-1,1,0,0,-5.250,-17.250,slot=1
+4.1333,23.0000,NIGHT,1,EnemySpotted,-1,1,0,0,-5.124,-17.863,
+7.0333,23.0000,NIGHT,1,Spawn,-1,2,0,0,3.349,-16.953,slot=2
+7.9167,23.0000,NIGHT,1,EnemySpotted,-1,5,0,0,3.345,-16.941,

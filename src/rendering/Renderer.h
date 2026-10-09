@@ -179,6 +179,7 @@ public:
     // then collect it after other work (the main frame) has been submitted. Same image as captureUavCamera.
     void beginUavCamera(const Scene& scene, FrameStats& stats, int uav, const Mat4* cameraOverride, int slot);
     void finishUavCamera(int slot, std::vector<uint8_t>& heat) { cvTarget_.collect(slot, heat); }
+    bool uavCameraReady(int slot) { return cvTarget_.readReady(slot); }   // v9 M1: finishUavCamera would not wait
     GLuint uavCameraTexture() const { return cvTarget_.texture(); }
     // Small rotating cube / sphere / cylinder / cone in corner viewports (diagnostic legend).
     static constexpr int kLegendCount = 4;

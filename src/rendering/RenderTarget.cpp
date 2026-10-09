@@ -19,6 +19,11 @@ void RenderTarget::release() {
             glDeleteBuffers(1, &b);
             b = 0;
         }
+    for (GLsync& f : fence_)
+        if (f) {
+            glDeleteSync(f);
+            f = nullptr;
+        }
 }
 
 bool RenderTarget::create(int width, int height, int samples, bool singleChannel) {
@@ -99,9 +104,21 @@ void RenderTarget::readAsync(int slot) {
     glReadPixels(0, 0, width_, height_, single_ ? GL_RED : GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (fence_[slot]) glDeleteSync(fence_[slot]);
+    fence_[slot] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+}
+
+bool RenderTarget::readReady(int slot) {
+    if (!fence_[slot]) return true;
+    const GLenum r = glClientWaitSync(fence_[slot], 0, 0);
+    return r == GL_ALREADY_SIGNALED || r == GL_CONDITION_SATISFIED;
 }
 
 void RenderTarget::collect(int slot, std::vector<uint8_t>& out) {
+    if (fence_[slot]) {
+        glDeleteSync(fence_[slot]);
+        fence_[slot] = nullptr;
+    }
     const GLsizeiptr bytes = static_cast<GLsizeiptr>(width_) * height_ * (single_ ? 1 : 3);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo_[slot]);
     const void* p = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, bytes, GL_MAP_READ_BIT);

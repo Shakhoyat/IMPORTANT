@@ -1,6 +1,7 @@
-// Instanced grass: every blade is the lab's unit cube (createCube), scaled thin, tapered and bent in the
-// vertex shader. One VAO: cube VBO/EBO + a per-instance buffer (root position, yaw, height, width, lean, seed).
-// Blades are sorted into an 8 x 8 grid of cells; each visible cell is one glDrawElementsInstanced call.
+// Instanced grass: every blade is a tapered 3-segment strip (v9; the unit cube before), bent in the vertex shader.
+// One VAO: strip VBO/EBO + a per-instance buffer (root position, yaw, height, width, lean, seed). Blades are sorted
+// into a grid of cells (random order inside a cell); each visible cell is one glDrawElementsInstanced call that
+// submits only the share of its blades its distance needs (v9 distance LOD).
 #pragma once
 
 #include <glad/gl.h>
@@ -21,6 +22,8 @@ public:
     void setCount(int blades);   // (re)generates the instance buffer; deterministic placement
     void setDensityMap(const GroundMap* map) { map_ = map; count_ = requested_ = -1; }
     int count() const { return count_; }
+    int submitted() const { return submitted_; }       // v9: blades submitted by the last draw (after distance LOD)
+    int trianglesPerBlade() const { return indexCount_ / 3; }
 
     struct Pusher {              // something that flattens the grass (rover, rotor wash)
         Vec3 position;
@@ -29,11 +32,11 @@ public:
     };
     // Returns the number of draw calls. 'prepare' sets the frame uniforms on the grass shader.
     template <typename Prepare>
-    int draw(const Mat4& viewProj, Prepare prepare, const Pusher& a, const Pusher& b, float time);
+    int draw(const Mat4& viewProj, const Vec3& camPos, Prepare prepare, const Pusher& a, const Pusher& b, float time);
     Shader& shader() { return *shader_; }
 
 private:
-    int drawCells(const Mat4& viewProj);
+    int drawCells(const Mat4& viewProj, const Vec3& camPos);
 
     struct Cell {
         int first = 0, count = 0;
@@ -44,13 +47,14 @@ private:
     GLuint vao_ = 0, vbo_ = 0, ebo_ = 0, instanceVbo_ = 0;
     GLsizei indexCount_ = 0;
     int count_ = -1;
-    int requested_ = -1;   // v7 WP-Q: blade budget of the last build (count_ = blades placed, usually fewer)
+    int requested_ = -1;
+    int submitted_ = 0;   // v7 WP-Q: blade budget of the last build (count_ = blades placed, usually fewer)
     std::vector<Cell> cells_;
     const GroundMap* map_ = nullptr;
 };
 
 template <typename Prepare>
-int GrassField::draw(const Mat4& viewProj, Prepare prepare, const Pusher& a, const Pusher& b, float time) {
+int GrassField::draw(const Mat4& viewProj, const Vec3& camPos, Prepare prepare, const Pusher& a, const Pusher& b, float time) {
     if (count_ <= 0) return 0;
     shader_->use();
     prepare(*shader_);
@@ -59,7 +63,7 @@ int GrassField::draw(const Mat4& viewProj, Prepare prepare, const Pusher& a, con
     shader_->set("uPusherAParams", a.radius, a.strength);
     shader_->set("uPusherB", b.position);
     shader_->set("uPusherBParams", b.radius, b.strength);
-    return drawCells(viewProj);
+    return drawCells(viewProj, camPos);
 }
 
 }  // namespace ts

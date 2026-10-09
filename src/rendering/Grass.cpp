@@ -53,6 +53,9 @@ float smoothstep01(float a, float b, float x) {
     return t * t * (3.0f - 2.0f * t);
 }
 
+// v9 M1: as grassKeep() in the vertex shader (share of a cell's blades drawn at distance d).
+float grassKeep(float d) { return lerpf(1.0f, 0.4f, smoothstep01(26.0f, 75.0f, d)) * lerpf(1.0f, 0.6f, smoothstep01(75.0f, 120.0f, d)); }
+
 // How much grass grows at (x, z): patchy meadow, none on the bunker pad, the vehicle track or the creek bed.
 float grassDensity(float x, float z) {
     const float r = std::sqrt(x * x + z * z);
@@ -83,6 +86,11 @@ out vec3 vSheen;  // moon sheen on the bent blade (shadowed per fragment)
 out vec3 vLocalD; // beacon irradiance
 out vec3 vSpotD;  // searchlight irradiance (shadowed per fragment)
 uniform float uTime;
+uniform float uCellCount;   // v9 M1: blades in the cell this draw call submits from (distance LOD rank)
+
+// Share of a cell's blades drawn at distance d: all within 26 m, 40 % at 75 m (the v3-v8 thinning curve), 24 % past
+// 120 m; the kept blades widen to cover.
+float grassKeep(float d) { return mix(1.0, 0.4, smoothstep(26.0, 75.0, d)) * mix(1.0, 0.6, smoothstep(75.0, 120.0, d)); }
 
 vec2 push(vec3 root, vec3 pos, vec2 params) {
     vec2 d = root.xz - pos.xz;
@@ -100,12 +108,17 @@ float hash12(vec2 p) {
 void main() {
     vec3 root = iRoot.xyz;
     float t = aPos.y + 0.5;                          // 0 at the root, 1 at the tip
-    // Distance LOD: beyond ~26 m blades are thinned out (by a per-blade hash) and the rest widen, so the
-    // meadow keeps its coverage without shimmering; the supervisor's TAA does the rest.
+    // v9 M1 distance LOD: the blades of a cell are stored in random order, so the first 'keep' share of them is an
+    // even thinning. The draw call submits only the share the cell's nearest point needs (GrassField::drawCells);
+    // here each blade keeps itself if its rank in the cell is below the share its own distance needs, so density
+    // falls off smoothly across cell borders. The kept blades widen by the inverse share: the meadow keeps its
+    // coverage (area per m^2) with a fraction of the blades, and TAA resolves the rest.
     float dist = length(root - uCamPos);
+    float keep = grassKeep(dist);
+    float rank = (float(gl_InstanceID) + 0.5) / uCellCount;
+    if (rank > keep) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
     float lod = smoothstep(26.0, 75.0, dist);
-    if (hash12(root.xz * 37.0 + iShape.w * 91.0) < lod * 0.6) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
-    float widen = 1.0 + lod * 1.6;
+    float widen = min(1.0 / keep, 3.0);
     // Width tapers to a point; the blade is a flat strip that faces its lean direction.
     vec3 p = vec3(aPos.x * iShape.y * widen * (1.0 - 0.96 * t), t * iShape.x, aPos.z * iShape.y * 0.3);
     float c = cos(iRoot.w + 1.5708), s = sin(iRoot.w + 1.5708);
@@ -126,8 +139,10 @@ void main() {
               + push(root, uPusherA, uPusherAParams) + push(root, uPusherB, uPusherBParams);
     float amount = min(length(bend), 1.4);
     bend = amount > 0.0 ? normalize(bend) * amount : bend;
-    p.xz += bend * t * t * iShape.x;
-    p.y -= amount * amount * t * t * iShape.x * 0.3;  // keeps the blade length roughly constant
+    // v9: a gentle curve (mostly the straight lean of the v3-v8 blade, whose cube had vertices at root and tip only)
+    float tb = mix(t, t * t, 0.3);
+    p.xz += bend * tb * iShape.x;
+    p.y -= amount * amount * tb * iShape.x * 0.3;  // keeps the blade length roughly constant
     vWorld = root + p;
     vT = t;
     vSeed = iShape.w;
@@ -135,6 +150,9 @@ void main() {
 
     // Lighting per vertex (Gouraud): the blade normal is tilted by the bend (curved blades catch the moon).
     vec3 Nf = vec3(c * aNormal.x + s * aNormal.z, aNormal.y, -s * aNormal.x + c * aNormal.z);
+    // v9 M1: one-sided strip, lit on the side the camera sees (decided by the blade's face normal, so both edges of a
+    // blade agree)
+    if (dot(vec3(s, 0.0, c), uCamPos - root) < 0.0) Nf = -Nf;
     vec3 N = normalize(mix(Nf, vec3(0.0, 1.0, 0.0), 0.55) + vec3(bend.x, 0.0, bend.y) * (0.5 + 0.8 * t));
     vec3 L = normalize(-uMoonDir);
     vec3 V = normalize(uCamPos - vWorld);
@@ -220,7 +238,20 @@ GrassField::~GrassField() {
 bool GrassField::init() {
     shader_ = std::make_unique<Shader>();
     if (!shader_->build("grass", glsl::withLighting(kGrassVert), glsl::withLightingAndOutput(kGrassFrag))) return false;
-    const MeshData cube = createCube();  // the same unit cube generator as every other part
+    // v9 M1: a curved, tapered strip (3 segments: 7 vertices, 5 triangles) instead of the unit cube (24 / 12): the
+    // blade bends along its length (the cube had vertices at the root and tip only, so it could only lean straight)
+    // and costs less than half the triangles. One-sided: the shader turns the normal to the viewer, culling is off.
+    MeshData cube;
+    {
+        // Folded blade: the edge normals tilt outwards (a midrib fold), so a blade catches the moon / sun at two
+        // angles across its width as the cube's faces did; the strip is 1.25 wide to make up for the cube's thickness.
+        const float ts[3] = {0.0f, 0.38f, 0.72f};
+        const float fold = 0.55f, k = 1.0f / std::sqrt(1.0f + fold * fold);
+        for (float t : ts)
+            for (float x : {-0.625f, 0.625f}) cube.vertices.push_back({{x, t - 0.5f, 0.0f}, {(x < 0.0f ? -fold : fold) * k, 0.0f, k}});
+        cube.vertices.push_back({{0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});   // tip
+        cube.indices = {0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4, 4, 5, 6};
+    }
     indexCount_ = static_cast<GLsizei>(cube.indices.size());
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vbo_);
@@ -320,6 +351,10 @@ void GrassField::setCount(int blades) {
                     -kGrassRadius + (static_cast<float>(i / kGrid) + 0.5f) * cellSize};
         c.radius = cellSize * 0.75f + 1.0f;
         cells_.push_back(c);
+        // v9 M1: random order inside the cell (deterministic), so any prefix of it is an even thinning.
+        Rng shuffle{0x2545F491u + static_cast<uint32_t>(i) * 7919u};
+        for (size_t k = byCell[i].size(); k > 1; --k)
+            std::swap(byCell[i][k - 1], byCell[i][static_cast<size_t>(shuffle.next() * static_cast<float>(k)) % k]);
         all.insert(all.end(), byCell[i].begin(), byCell[i].end());
     }
     count_ = placed;
@@ -327,8 +362,10 @@ void GrassField::setCount(int blades) {
     glBufferData(GL_ARRAY_BUFFER, all.size() * sizeof(Blade), all.data(), GL_STATIC_DRAW);
 }
 
-int GrassField::drawCells(const Mat4& viewProj) {
+int GrassField::drawCells(const Mat4& viewProj, const Vec3& camPos) {
     const Frustum frustum(viewProj);
+    const GLboolean cull = glIsEnabled(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);   // one-sided strips
     glBindVertexArray(vao_);
     glBindBuffer(GL_ARRAY_BUFFER, instanceVbo_);
     glEnableVertexAttribArray(2);
@@ -336,16 +373,23 @@ int GrassField::drawCells(const Mat4& viewProj) {
     glVertexAttribDivisor(2, 1);
     glVertexAttribDivisor(3, 1);
     int draws = 0;
+    submitted_ = 0;
     for (const Cell& c : cells_) {
         if (!frustum.intersects(c.centre, c.radius)) continue;
+        // v9 M1: only the share of the cell's (shuffled) blades its nearest point needs (grassKeep in the shader).
+        const float nearest = std::max(0.0f, length(Vec3{c.centre.x - camPos.x, 0.0f, c.centre.z - camPos.z}) - c.radius);
+        const int n = std::min(c.count, static_cast<int>(std::ceil(c.count * grassKeep(nearest))) + 1);
+        shader_->set("uCellCount", static_cast<float>(c.count));
         // Point the per-instance attributes at this cell's range (no base-instance draw in GL 3.3).
         const size_t offset = static_cast<size_t>(c.first) * sizeof(Blade);
         glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Blade), reinterpret_cast<void*>(offset));
         glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Blade), reinterpret_cast<void*>(offset + 4 * sizeof(float)));
-        glDrawElementsInstanced(GL_TRIANGLES, indexCount_, GL_UNSIGNED_INT, nullptr, c.count);
+        glDrawElementsInstanced(GL_TRIANGLES, indexCount_, GL_UNSIGNED_INT, nullptr, n);
+        submitted_ += n;
         ++draws;
     }
     glBindVertexArray(0);
+    if (cull) glEnable(GL_CULL_FACE);
     return draws;
 }
 

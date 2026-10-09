@@ -2,12 +2,14 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 
 #include "objects/Backdrop.h"
 #include "objects/BarracksHall.h"
 #include "objects/BaseLayout.h"
 #include "objects/Environment.h"
 #include "objects/Terrain.h"
+#include "scene/TickInterp.h"
 #if __has_include("objects/Base.h")
 #include "objects/Base.h"
 #define TS_SCENE_HAS_BASE 1
@@ -408,6 +410,33 @@ void Scene::updateWorld() {
             p.node->world = translate(p.position) * p.rotation * translate(p.centre0 * -1.0f) * p.world0;
         }
     }
+}
+
+void Scene::captureTick() {
+    restoreTick();
+    ++tick_;
+    for (SceneNode* n : leaves_) {
+        n->prevTickWorld = n->tickWorld;
+        n->prevTickStamp = n->tickStamp;
+        n->tickWorld = n->world;
+        n->tickStamp = tick_;
+    }
+}
+
+int Scene::interpolate(float alpha) {
+    restoreTick();
+    if (tick_ < 2) return 0;
+    for (SceneNode* n : leaves_) {
+        if (!n->visible || n->tickStamp != tick_ || n->prevTickStamp + 1 != tick_) continue;
+        if (std::memcmp(&n->prevTickWorld, &n->tickWorld, sizeof(Mat4)) == 0) continue;
+        if (blendTickWorld(n->prevTickWorld, n->tickWorld, alpha, n->world)) blended_.push_back(n);
+    }
+    return static_cast<int>(blended_.size());
+}
+
+void Scene::restoreTick() {
+    for (SceneNode* n : blended_) n->world = n->tickWorld;
+    blended_.clear();
 }
 
 void Scene::submitVision(int uav, const std::vector<Measurement2D>& blobs, const Mat4& camera) {

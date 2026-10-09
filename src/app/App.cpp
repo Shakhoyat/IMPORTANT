@@ -325,10 +325,12 @@ void App::gatherControl(ControlInput& in, const ControlInput*& ip, int& index) {
 void App::step(float dt) {
     stepSim(dt);
     stepVision();
+    joinVision();   // offline modes: the results are in place right after the step (the HUD feed of this frame)
 }
 
 void App::stepSim(float dt) {
     if (pendingVision_.active) stepVision();   // never two steps' images in flight
+    joinVision();   // v9 M1: the previous tick's CV results enter the world here, before this tick's update
     syncWalkWorld();
     if (!paused_) {
         ControlInput in;
@@ -402,23 +404,57 @@ void App::stepSim(float dt) {
     }
 }
 
-void App::stepVision() {
+void App::stepVision(bool collectNow) {
+    if (pendingVision_.collectLater) {
+        pendingVision_.collectLater = false;
+        pendingVision_.active = true;
+        collectNow = true;
+    }
     if (!pendingVision_.active) return;
     pendingVision_.active = false;
     // Hand the commands queued so far (the main frame, when called after renderFrame) to the GPU, so it renders
-    // while the CPU runs the sensor model and CV below (Mesa d3d12 would otherwise hold them until the swap).
+    // while the CPU runs the sensor model and CV (Mesa d3d12 would otherwise hold them until the swap).
     glFlush();
-    for (int u = 0; u < kUavCount; ++u) {
-        if (!pendingVision_.rendered[u]) continue;
-        std::vector<uint8_t>& img = u == 0 ? uavImage_ : uavImage2_;
-        renderer_->finishUavCamera(u, img);
-        if (paused_) continue;
-        sensors_[u].apply(img, kCvWidth, kCvHeight);
-        const std::vector<Measurement2D> blobs = cv::detectAll(img, kCvWidth, kCvHeight, CvConfig{}, &cvFrame_[u]);
-        scene_->submitVision(u, cv::blobsOfClass(blobs, BlobClass::Target), pendingVision_.reported[u]);
-        uavBlobs_[u] = cv::blobsOfClass(blobs, BlobClass::Person);  // HUD 'PERS' brackets
+    // v9 M1: images still on their way (GPU behind): collect them at the next tick instead of waiting here.
+    bool ready = true;
+    for (int u = 0; u < kUavCount; ++u)
+        if (pendingVision_.rendered[u] && !renderer_->uavCameraReady(u)) ready = false;
+    if (!ready && !collectNow) {
+        pendingVision_.collectLater = true;
+        return;
     }
-    if (!paused_) detection_ = tracker_.process(uavImage_, kCvWidth, kCvHeight);  // v4 single-target view (UAV 0 feed)
+    // v9 M1: read the images back here (GL thread); the sensor model, CV and tracker run on the vision worker while
+    // this thread presents and starts the next frame. joinVision applies the results at the next tick.
+    VisionJob job;
+    job.width = kCvWidth;
+    job.height = kCvHeight;
+    job.paused = paused_;
+    for (int u = 0; u < kUavCount && u < VisionJob::kUavs; ++u) {
+        if (!pendingVision_.rendered[u]) continue;
+        job.rendered[u] = true;
+        job.reported[u] = pendingVision_.reported[u];
+        renderer_->finishUavCamera(u, job.image[u]);
+    }
+    if (!visionWorker_) {
+        const char* env = std::getenv("TS_VISION_THREAD");
+        visionWorker_ = std::make_unique<VisionWorker>(sensors_, tracker_, !(env && env[0] == '0'));
+    }
+    visionWorker_->submit(std::move(job));
+}
+
+void App::joinVision() {
+    if (pendingVision_.collectLater) stepVision(true);   // the images left behind by the last frame: read them now
+    if (!visionWorker_ || !visionWorker_->inFlight()) return;
+    VisionResult r = visionWorker_->join();
+    for (int u = 0; u < kUavCount && u < VisionResult::kUavs; ++u) {
+        if (!r.valid[u]) continue;
+        (u == 0 ? uavImage_ : uavImage2_) = std::move(r.image[u]);
+        if (r.paused) continue;
+        cvFrame_[u] = r.stats[u];
+        scene_->submitVision(u, r.targets[u], r.reported[u]);
+        uavBlobs_[u] = std::move(r.persons[u]);  // HUD 'PERS' brackets
+    }
+    if (r.hasDetection) detection_ = r.detection;  // v4 single-target view (UAV 0 feed)
 }
 
 void App::updateCombatFeed() {

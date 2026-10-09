@@ -1,6 +1,7 @@
 // Scene graph node. Leaves draw one primitive; group nodes only carry a transform for their children.
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -45,6 +46,9 @@ struct SceneNode {
     SceneNode* parent = nullptr;
     std::vector<std::unique_ptr<SceneNode>> children;
     Mat4 world;  // recomputed every frame: world = parent.world * local.matrix()
+    // v9 M1: world at the latest / previous simulation tick (Scene::captureTick), for render interpolation.
+    Mat4 tickWorld, prevTickWorld;
+    uint32_t tickStamp = 0, prevTickStamp = 0;
 
     bool isLeaf() const { return primitive != PrimitiveType::None; }
 
