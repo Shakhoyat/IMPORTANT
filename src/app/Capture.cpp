@@ -13,6 +13,7 @@
 
 #include "app/App.h"
 #include "app/CaptureLab.h"
+#include "app/CaptureParts.h"
 #include "app/CaptureRT.h"
 #include "app/HeadlessGL.h"
 
@@ -574,6 +575,12 @@ add(cam(v4("motor_pool", 58.5f), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 
     add(quick(v6(cam(v4("m6_grass_close", 0.0f), {-15.5f, 0.9f, 2.0f}, {-10.0f, 0.2f, 4.5f}, 55.0f), 10.5f, 1.0f)));
     add(quick(v6(cam(v4("m6_treeline", 0.0f), {12.0f, 5.5f, 26.0f}, {26.0f, 5.0f, 36.0f}, 60.0f), 10.5f, 1.0f)));
     add(quick(v6(cam(v4("m6_forest_night", 0.0f), {9.0f, 1.7f, -6.0f}, {0.0f, 1.6f, -9.3f}, 70.0f), 23.0f, 1.0f)));
+    // ---- v10 M3 close-ups of the parts that use the new library primitives (before / after views, 10:30) ----------
+    add(quick(v6(cam(v4("m3_wire", 0.0f), {-14.0f, 4.0f, 37.5f}, {-17.5f, 2.4f, 29.6f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m3_sandbags", 0.0f), {8.6f, 2.0f, 18.4f}, {5.2f, 0.3f, 15.0f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m3_pad", 0.0f), {-0.4f, 1.5f, 0.2f}, {-2.0f, 0.1f, -2.2f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m3_ammo", 0.0f), {1.0f, 2.6f, 31.0f}, {8.0f, 0.8f, 26.2f}, 55.0f), 10.5f, 1.0f)));
+    add(quick(v6(cam(v4("m3_portal", 0.0f), {2.6f, 2.4f, 14.5f}, {0.0f, -0.8f, 5.0f}, 60.0f), 10.5f, 1.0f)));
     // ---- v5 lab figures (technique explanations rendered by the program). ./ts --capture DIR --only lab_cv,lab_materials,...
     // (an --only list made only of lab_* shots runs on a fresh simulation, independent of the other shots).
     for (const auto& [name, kind] : std::initializer_list<std::pair<const char*, const char*>>{
@@ -666,6 +673,27 @@ int App::captureMode() {
                 if (n == x.file) return &x;
             return nullptr;
         };
+        // v10 M3: parts:<object> / build:<object> / prims (app/CaptureParts.cpp): 10:30 daylight after 2 s, then only those.
+        if (partscap::handles(names)) {
+            std::error_code dirEc;
+            std::filesystem::create_directories(dir, dirEc);
+            std::ofstream plog(dir + "/capture_parts_log.txt");
+            if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                clock->setAuto(false);
+                clock->setHour(10.5f);
+            }
+            for (float k = 0.0f; k < 2.0f; k += kStep) step(kStep);
+            scene_->explode = 0.0f;
+            scene_->updateWorld();
+            partscap::Ctx pc;
+            pc.scene = scene_.get();
+            pc.renderer = renderer_.get();
+            pc.dir = dir;
+            pc.quality = opt_.quality >= 0 ? static_cast<Quality>(opt_.quality) : Quality::Ultra;
+            pc.log = &plog;
+            if (const DayCycle* clock = sa::dayCycle(*scene_)) pc.sun = DayCycle::sunDirection(clock->hour(), clock->config());
+            return partscap::run(pc, names) ? 0 : 1;
+        }
         bool allLab = !names.empty(), allV6 = !names.empty(), allHero = !names.empty(), allQuick = !names.empty();
         for (const std::string& n : names) {
             const Shot* x = find(n);
