@@ -267,6 +267,7 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uTrailExtent", HeatTrail::kHalfExtent);
     sh.set("uTrailHeat", HeatTrail::kMaxExtraHeat);
     sh.set("uWetness", scene.wetness);
+    sh.set("uLightTerms", s.lightTerms);   // v10 teaching view
     sh.set("uRain", s.rain);
     sh.set("uGroundDetail", qualityProfile(s.quality).groundDetail ? 1 : 0);
     sh.set("uBumpOff", s.bumpOn ? 0 : 1);

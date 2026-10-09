@@ -132,6 +132,10 @@ struct RenderSettings {
     // of the new lighting features (benchmark ablation, before / after figures).
     tonemap::Operator toneMap = tonemap::Operator::AgX;
     bool pcssOn = true, contactShadowsOn = true, gtaoOn = true, aerialOn = true;
+    // v10 teaching views: illumination term (0 all, 1 ambient, 2 diffuse, 3 specular; Ctrl+L) and the viewing
+    // projection (0 perspective, 1 orthographic top, 2 front, 3 side, 4 isometric; Ctrl+P, App::composeView).
+    int lightTerms = 0;
+    int projection = 0;
 };
 
 // Internal render targets that the lab figures read back (Renderer::labReadBuffer, after endFrame).

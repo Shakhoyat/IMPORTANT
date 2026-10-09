@@ -90,7 +90,28 @@ RigPose App::targetPose(float aspect) {
     return RigPose::fromView(v.view, v.position, fovFromProjection(v.proj), v.nearZ);
 }
 
+// v10: the same scene through the parallel projections of the lectures (multiview + axonometric). The camera looks
+// at the base centre along a principal axis (top / front / side) or along (1, 1, 1) (isometric: equal foreshortening
+// of x, y, z, elevation atan(1/sqrt 2) = 35.26 deg); proj = ortho(view volume of 2 x 30 m tall, aspect-wide).
 CameraView App::composeView(float aspect) {
+    CameraView v = composePerspective(aspect);
+    if (settings_.projection == 0) return v;
+    const bool elevation = settings_.projection == 2 || settings_.projection == 3;   // front / side: a horizon line
+    const Vec3 c{0.0f, elevation ? 9.0f : 1.0f, 0.0f};
+    Vec3 dir{0.0f, 1.0f, 0.0f}, up{0.0f, 0.0f, -1.0f};
+    if (settings_.projection == 2) dir = {0.0f, 0.0f, 1.0f}, up = {0.0f, 1.0f, 0.0f};        // front (from +z)
+    else if (settings_.projection == 3) dir = {1.0f, 0.0f, 0.0f}, up = {0.0f, 1.0f, 0.0f};   // side (from +x)
+    else if (settings_.projection == 4) dir = normalize(Vec3{1.0f, 1.0f, 1.0f}), up = {0.0f, 1.0f, 0.0f};   // isometric
+    const float half = elevation ? 22.0f : 30.0f, dist = 150.0f;
+    v.position = c + dir * dist;
+    v.view = lookAt(v.position, c, up);
+    v.nearZ = dist - 40.0f;   // a 80 m slab around the base: the near / far planes clip the backdrop hills away
+    v.farZ = dist + 40.0f;
+    v.proj = ortho(-half * aspect, half * aspect, -half, half, v.nearZ, v.farZ);
+    return v;
+}
+
+CameraView App::composePerspective(float aspect) {
     if (viewOverride_) {   // v9 M1: the interactive loop draws a pose interpolated between two simulation ticks
         const RigPose& p = *viewOverride_;
         shownPose_ = p;

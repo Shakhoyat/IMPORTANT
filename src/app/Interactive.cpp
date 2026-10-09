@@ -532,6 +532,17 @@ void App::onKey(int key, int action, int mods) {
         controlSelected();
         return;
     }
+    // v10 teaching views (Ctrl: every plain letter is taken): Ctrl+P viewing projection, Ctrl+L illumination term.
+    if (mods & GLFW_MOD_CONTROL) {
+        if (key == GLFW_KEY_P) {
+            settings_.projection = (settings_.projection + 1) % 5;
+            return;
+        }
+        if (key == GLFW_KEY_L) {
+            settings_.lightTerms = (settings_.lightTerms + 1) % 4;
+            return;
+        }
+    }
     // v7 WP-G: possession keys blend the camera from the view on screen (End returns to it).
     const ViewMemo before = memo();
     const RigPose from = shownPose_;

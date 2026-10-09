@@ -19,6 +19,7 @@ const char* keyCtxName(KeyCtx c);   // "ANY", "OVERVIEW", ...
 bool keyContextsOverlap(KeyCtx a, KeyCtx b);
 
 constexpr int kModShift = 1;   // GLFW_MOD_SHIFT
+constexpr int kModCtrl = 2;    // GLFW_MOD_CONTROL
 // Mouse gestures (not GLFW codes; distinct gestures of one button are distinct bindings).
 constexpr int kMouseLeftClick = 1000, kMouseLeftDouble = 1001, kMouseLeftDrag = 1002, kMouseLeftHold = 1003,
               kMouseRightHold = 1004, kMouseRightDrag = 1005, kMouseMiddle = 1006, kMouseWheel = 1007, kMouseMove = 1008;

@@ -111,6 +111,7 @@ uniform int uHdr;         // 1: linear HDR pipeline (visible view), 0: display-r
 uniform int uPbr;         // 1: GGX / Cook-Torrance, 0: classic Blinn-Phong
 uniform vec3 uSkyZenith;  uniform vec3 uGroundBounce;
 uniform float uWetness;   // 0 dry .. 1 soaked: up-facing surfaces get glossy (water film)
+uniform int uLightTerms;  // v10 teaching view: 0 all, 1 ambient only, 2 direct diffuse only, 3 specular only
 uniform float uRain;      // rain intensity (sky, fog, ripples)
 uniform int uKeyIsSun;    // v6: the key light L0 is the sun (its light heats surfaces via the solar term instead)
 uniform float uDayWeight; // 0 night .. 1 day (sky reflections, v1 fog colour, the daylight sky model below)
@@ -727,6 +728,9 @@ vec3 terrainShade(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     // Screen-space reflections: standing water mirrors the scene, wet soil only faintly.
     gReflectNormal = Nd;
     gReflectivity = max(puddle, 0.35 * wetness * (1.0 - rough));
+    if (uLightTerms == 1) return albedo * t.amb * ao * cavity;
+    if (uLightTerms == 2) return albedo * (diffuse - t.amb * ao * cavity);
+    if (uLightTerms == 3) return specular;
     return albedo * diffuse + specular;
 }
 
@@ -749,6 +753,10 @@ vec3 compose(Terms t, vec3 P, vec3 N, float sm, float ss, float ao) {
     float gloss = 1.0 - clamp(uRoughness, 0.0, 1.0);
     gReflectNormal = Nb;
     gReflectivity = max(0.45 * film, uMetalness * gloss * gloss * 0.6);
+    // v10: the three terms of the illumination model one at a time (I = Ia ka + sum Il (kd N.L + ks (N.H)^n))
+    if (uLightTerms == 1) return albedo * t.amb * ao * cavity * (1.0 - uMetalness);
+    if (uLightTerms == 2) return albedo * (t.d0 * sm * kMoon + t.d1 * cavity + t.d2 * ss * kSpot);
+    if (uLightTerms == 3) return specular;
     return albedo * diffuse + specular + albedo * uEmissive * uEmissiveScale;
 }
 

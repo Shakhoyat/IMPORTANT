@@ -135,7 +135,8 @@ private:
     };
     void updateGameCamera(float dt);            // after step(): POV follow, impact hold, blend clock, FOV kick, rifle
     RigPose targetPose(float aspect);           // the view the camera wants this frame (before blend and feel)
-    CameraView composeView(float aspect);       // targetPose -> rig blend -> FOV kick (v6 views pass through unchanged)
+    CameraView composeView(float aspect);       // composePerspective, then the v10 teaching projection (Ctrl+P)
+    CameraView composePerspective(float aspect);   // targetPose -> rig blend -> FOV kick (v6 views pass through unchanged)
     void beginJump(const RigPose& from);        // blend from 'from' to the current target
     ViewMemo memo() const;
     void restoreMemo(const ViewMemo& m);

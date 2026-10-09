@@ -99,6 +99,8 @@ struct Shot {
     bool hero = false;
     float heroFill = 0.7f;
     float exposure = 1.0f;      // RenderSettings::exposure (the hero objects alone against the bright day sky: +1 EV)
+    // v10 teaching views: RenderSettings::projection (0 perspective, 1 top, 2 front, 3 side, 4 isometric) / lightTerms
+    int projection = 0, lightTerms = 0;
 };
 
 // The scripted sequence (directorScript) starts on the simulation clock at kScriptStart: shots with
@@ -534,6 +536,31 @@ add(cam(v4("motor_pool", 58.5f), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 
         }
         add(h);
     }
+    // ---- v10 teaching views (report): one camera, five projections; one camera, the illumination terms one at a time.
+    {
+        const char* proj[] = {"v10_proj_persp", "v10_proj_top", "v10_proj_front", "v10_proj_side", "v10_proj_iso"};
+        for (int i = 0; i < 5; ++i) {
+            Shot p = v6(cam(v4(proj[i], 0.0f), {-30.0f, 17.0f, 44.0f}, {2.0f, 0.5f, 4.0f}, 56.0f), 10.5f, 2.0f);
+            p.projection = i;
+            p.hud = false;
+            p.feed = false;
+            add(p);
+        }
+        const char* terms[] = {"v10_light_all", "v10_light_ambient", "v10_light_diffuse", "v10_light_specular"};
+        for (int i = 0; i < 4; ++i) {
+            Shot l = v6(v4(terms[i], 0.0f), 10.5f, 2.0f);   // a static object alone (same pose in all four)
+            l.isolate = "Ammunition bunker";
+            l.hero = true;
+            l.exposure = 2.0f;
+            l.follow = Follow::None;
+            l.yaw = 35;
+            l.pitch = 16;
+            l.lightTerms = i;
+            l.hud = false;
+            l.feed = false;
+            add(l);
+        }
+    }
     // ---- v5 lab figures (technique explanations rendered by the program). ./ts --capture DIR --only lab_cv,lab_materials,...
     // (an --only list made only of lab_* shots runs on a fresh simulation, independent of the other shots).
     for (const auto& [name, kind] : std::initializer_list<std::pair<const char*, const char*>>{
@@ -897,6 +924,8 @@ int App::captureMode() {
         settings_.exposure = shot.exposure;
         settings_.edges = shot.edges;
         settings_.shading = shot.shading;
+        settings_.projection = shot.projection;   // v10
+        settings_.lightTerms = shot.lightTerms;
         settings_.depthTest = shot.depthTest;
         settings_.showPlan = shot.plan;
         settings_.showAxes = shot.axes;
