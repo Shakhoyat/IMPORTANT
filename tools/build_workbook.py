@@ -35,6 +35,12 @@ from wb_audit import build_audit  # noqa: E402
 from wb_v6 import build_v6  # noqa: E402
 from wb_v7 import build_v7  # noqa: E402
 from wb_v9 import V9_INFO, V9_SHEETS, build_v9  # noqa: E402
+import wb_v9_m2  # noqa: E402
+
+# v9 milestone sheets (31+), one module each: (sheet name, cover-page line, builder)
+V9_MILESTONES = [
+    (wb_v9_m2.S_V9M2, wb_v9_m2.INFO, wb_v9_m2.build_v9_m2),
+]
 from wb_v5 import build_audio_hud, build_cv, build_squad  # noqa: E402
 from wb_transforms import build_hierarchy, build_matrices  # noqa: E402
 
@@ -71,7 +77,8 @@ SHEET_INFO = {
     S_V7T: "v7 tests T240-T309 by work package (status from sheet 10)",
 }
 SHEET_INFO.update(V9_INFO)
-SHEET_ORDER = SHEET_ORDER + [s for s in V9_SHEETS if s not in SHEET_ORDER]
+SHEET_INFO.update({name: info for name, info, _ in V9_MILESTONES})
+SHEET_ORDER = SHEET_ORDER + [s for s in V9_SHEETS + [m[0] for m in V9_MILESTONES] if s not in SHEET_ORDER]
 
 
 def build_cover(wb, ctx):
@@ -269,6 +276,8 @@ def main():
     build_v6(wb, ctx)
     build_v7(wb, ctx)
     build_v9(wb, ctx)
+    for _, _, build in V9_MILESTONES:
+        build(wb, ctx)
     build_audit(wb, ctx)
     build_traceability(wb, ctx)
     build_cover(wb, ctx)
