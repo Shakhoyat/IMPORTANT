@@ -247,8 +247,8 @@ void testLowres() {
         {"torus 8x6", createTorus(0.35f, 0.15f, 8, 6), 48, 96},
         {"capsule 8x2", createCapsule(8, 2, 0.25f), static_cast<size_t>(2 * 2 * s + 2), static_cast<size_t>(4 * 2 * s)},
         {"annulus 8", createAnnulus(0.43f, 8), static_cast<size_t>(4 * s), static_cast<size_t>(4 * s)},
-        {"helix 16x6", createHelix(0.475f, 0.025f, 2.0f, 16, 6), static_cast<size_t>((16 + 1) * 6 + 2 * (6 + 1)),
-         static_cast<size_t>(2 * 16 * 6 + 2 * 6)},
+        {"helix 24x6", createHelix(0.42f, 0.07f, 2.0f, 24, 6), static_cast<size_t>((24 + 1) * 6 + 2 * (6 + 1)),
+         static_cast<size_t>(2 * 24 * 6 + 2 * 6)},
     };
     int bad = 0;
     std::string obs;
@@ -261,7 +261,7 @@ void testLowres() {
     const bool discOk = disc.vertexCount() == 1 + 3 * 8 && disc.triangleCount() <= static_cast<size_t>(8 * (2 * 3 - 1));
     record("T447", "Primitive cards: the real generators at low resolution follow the library's V / T formulas",
            "sphere 26 / 48, hemisphere 26 / 32, cylinder 34 / 32, frustum 16 / 16, cone 25 / 16, torus 48 / 96, capsule 34 / 64, "
-           "annulus 32 / 32, helix 116 / 204, terrain disc V = 1 + k s",
+           "annulus 32 / 32, helix 164 / 300, terrain disc V = 1 + k s",
            obs.empty() ? fmt("all %zu match; terrain disc V %zu T %zu", cases.size(), disc.vertexCount(), disc.triangleCount()) : obs,
            bad == 0 && discOk);
 }

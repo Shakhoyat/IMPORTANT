@@ -1329,8 +1329,9 @@ bool exportPrimsLowres(const std::string& path) {
         {"cone", "createCylinder(8, 0.5, 0, true)", "{\"s\": 8, \"rb\": 0.5, \"rt\": 0, \"capped\": true}", createCylinder(8, 0.5f, 0.0f, true)},
         {"torus", "createTorus(0.35, 0.15, 8, 6)", "{\"R\": 0.35, \"r\": 0.15, \"u\": 8, \"v\": 6}", createTorus(0.35f, 0.15f, 8, 6)},
         {"annulus", "createAnnulus(0.43, 8)", "{\"inner\": 0.43, \"n\": 8}", createAnnulus(0.43f, 8)},
-        {"helix", "createHelix(0.475, 0.025, 2, 16, 6)", "{\"R\": 0.475, \"r\": 0.025, \"turns\": 2, \"segments\": 16, \"m\": 6}",
-         createHelix(0.475f, 0.025f, 2.0f, 16, 6)},
+        // drawn with a thicker tube than the scene's (r = 0.025) so the vertices can be numbered
+        {"helix", "createHelix(0.42, 0.07, 2, 24, 6)", "{\"R\": 0.42, \"r\": 0.07, \"turns\": 2, \"segments\": 24, \"m\": 6}",
+         createHelix(0.42f, 0.07f, 2.0f, 24, 6)},
         {"terrain disc", "createTerrainDisc(3, 8)", "{\"k\": 3, \"s\": 8, \"radius\": " + num(layout::kBaseRadius) + "}", createTerrainDisc(3, 8)},
         {"grass blade", "createGrassBlade()", "{}", createGrassBlade()},
     };

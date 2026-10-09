@@ -37,7 +37,7 @@ field by field: 6 071 components identical, the 5 476 parts unchanged).
   instances, parts per instance, parts total, primitives of the first instance and over all instances, nested designs,
   per-instance root id / position / heading / scale / hidden) and `designs_unassigned` (0).
 - **`ts --export-prims-lowres FILE`** (GPU-free): the real generators at small parameters (sphere 8x4, hemisphere 8x2,
-  cylinder / frustum / cone 8, torus 8x6, capsule 8x2, annulus 8, helix 2 turns 16x6, terrain disc 3x8, flat ones and
+  cylinder / frustum / cone 8, torus 8x6, capsule 8x2, annulus 8, helix 2 turns 24x6 (tube r 0.07, thicker than the scene's 0.025 so the vertices can be numbered), terrain disc 3x8, flat ones and
   the grass blade as they are) with positions, normals and indices -> `report/data/prims_lowres.json`. The generators
   produce no texture coordinates (MeshData is position + normal), so none are exported.
 - **`--capture DIR --only shapeview:<design>[|az|el|ksub|kpart|inst|cut|w|h|fill|stage]`** (`src/app/CaptureShapes.cpp`,
@@ -86,6 +86,30 @@ boulder_01 56 558 and rock_moss_set 2 754-6 618 (boulders), fir_tree_01 76 080-4
   not scene parts, so there is nothing to decompose.
 - "Light tower" (`Base.cpp`): the builder exists but is not placed in the scene.
 - Grass blades: the GPU-instanced grass field (not scene parts); the blade is primitive 16 in Section 6.
+
+## M2: Section 6 - one card per primitive
+
+- New `tools/report/gen_prim_cards.py` -> `report/sections/gen_primcards.tex`: 14 card figures (Figs. 6.2-6.16 new;
+  cube and cuboid share one, grass blade and terrain disc share one float with two captions), two per page. Each card:
+  (a) the scene mesh rasterised in the exact key colour with its triangle edges (new `prim_NN_<name>_key.png` from
+  `ts --capture prims`; the GPU tiles shifted the key's hue through lighting and tone mapping); (b) a TikZ drawing of
+  the real generator's low-resolution mesh from `report/data/prims_lowres.json` (axes, numbered vertices, the
+  highlighted cell, normals, the seam in red, cap fans darker, parameter arcs; the flat primitives keep their corner
+  drawing and corner / face table from `gen_m3.py`); (c) that cell split into the two triangles in emission order with
+  the generator's index formula (every triangle named is looked up in the low-res index array; the script stops if one
+  is missing); (d) surface and normal formulas, V and T with a one-line derivation, the drawn and the scene parameters
+  with their V / T and instance count; (e) three part tiles of different designs (`tile:` captures; parts more than
+  12 times longer than their second side are skipped as unreadable thumbnails) with count, design and size.
+- Section text rewritten: one paragraph on the three choices every generator makes (shared vs duplicated vertices,
+  the seam, winding).
+- Fig. 6.1: (a) the 16 primitives in the key colours with chips; (b) the exploded HUD capture replaced by the camp
+  from the air made of primitives (`shapeview:@camp`) with a key legend and part counts.
+- Tables 6.1 and 6.2 kept, with a key chip before every primitive name.
+- Removed: Fig. 6.2 (workbook block repeating Table 6.1), Table 6.3 (parametric list; its content is in the cards),
+  Fig. 6.3 (corner drawings; now in the flat cards). The reference in Fig. 7.x (worked group A) points to the cube card.
+- Stated once: the "no LOD, 808 spheres x 1224 triangles" limitation is only in Section 22; Fig. 22.1 keeps only the
+  tessellation plot and refers to Fig. 16.1 for the flat / Gouraud / Phong spheres.
+- The ray tracer's approximations of the new primitives stay as Section 6's one "Limitation".
 
 # Earlier round (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
 

@@ -64,7 +64,7 @@ with open(os.path.join(SEC, "gen_tables.tex"), "w") as o:
         if p["name"] == "cuboid":
             fn = "createCube(), $S$ non-uniform"
         ins = num(p["instances"]) if p["instances"] or not p.get("gpu_instances") else f'({num(p["gpu_instances"])} GPU)'
-        o.write(f'{p["number"]} & {p["name"]} & \\code{{{fn}}} & {num(p["vertices"])} & {num(p["triangles"])} & '
+        o.write(f'{p["number"]} & \\primsq{{{p["name"].replace(" ", "")}}}~{p["name"]} & \\code{{{fn}}} & {num(p["vertices"])} & {num(p["triangles"])} & '
                 f'{fx(p["formula_V"])} & {fx(p["formula_T"])} & {ins}\\\\\n')
     o.write(f"\\midrule\\multicolumn{{7}}{{@{{}}l}}{{Primitive instances in the scene (parts)}} & {num(inst)}\\\\\\bottomrule\\end{{tabular}}}}\n")
     # object table, per unit: one row per object kind with an explicit instance count (x n). Units are the root

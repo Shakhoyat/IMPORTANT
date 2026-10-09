@@ -41,13 +41,20 @@ STAGES = {"Autonomous UAV": "", "Main battle tank": "", "Scout helicopter": "", 
 LINEUPS = ["lineup:SAM missile+MLRS rocket+UAV round+AA shell casing", "lineup:UAV round+AA shell casing"]
 
 
+def tile_friendly(c):
+    """A part that reads as a thumbnail: its longest side at most 12 times its second-longest (fence wires and ropes
+    are not; flat plates and discs are)."""
+    S = sorted(abs(v) for v in c["S_rest"])
+    return S[1] > 0 and S[2] / S[1] <= 12
+
+
 def tokens_tiles(d):
     """3 part kinds per primitive key, most frequent first, each from a different design."""
     lib_keys = [p["type"] if p["name"] != "cuboid" else "Cuboid" for p in d["primitives"]]
     by = collections.defaultdict(collections.Counter)
     first = {}
     for c in d["components"]:
-        if c["primitive"] == "Group" or c["hidden_at_export"]:
+        if c["primitive"] == "Group" or c["hidden_at_export"] or not tile_friendly(c):
             continue
         key = c["primitive"]
         if key == "Cube":

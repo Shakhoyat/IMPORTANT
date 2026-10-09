@@ -323,7 +323,7 @@ for p in d["primitives"]:
     else:
         top = u.most_common(4)
         txt = ", ".join(f"{tex(k)} {v}" for k, v in top) + (f", +{len(u) - 4} more kind" + ("s" if len(u) > 5 else "") if len(u) > 4 else "")
-    rows.append(f"{p['number']} & {p['name']} & {sum(u.values()) if u else 0} & {txt}\\\\")
+    rows.append(f"{p['number']} & \\primsq{{{p['name'].replace(' ', '')}}}~{p['name']} & {sum(u.values()) if u else 0} & {txt}\\\\")
 out.append("\\newcommand{\\primusetable}{\\begin{tabularx}{\\linewidth}{@{}rlr>{\\raggedright\\arraybackslash}X@{}}\\toprule"
            "\\# & Primitive & parts & Most frequent part kinds (count)\\\\\\midrule")
 out += rows

@@ -1,89 +1,75 @@
 \section{Primitives and geometry}
 \label{sec:prims}
 \here{1}
-\concept{Every solid object in the scene is a hierarchy of instances of a few unit meshes centred at the origin.
-A mesh is a vertex array (position + normal) and an index array; one mesh is uploaded once and drawn many times
-with different model matrices.}
+Every solid object in the scene is a hierarchy of instances of a few unit meshes centred at the origin. A mesh is a
+vertex array (position and normal) and an index array (three indices per triangle). Each mesh is uploaded once and
+drawn many times with different model matrices.
 
-\begin{gather}
-\text{sphere: } \vect{p}(\theta,\phi)=r\,(\cos\phi\cos\theta,\ \sin\phi,\ \cos\phi\sin\theta)\label{eq:param}\\
-\text{cylinder, frustum, cone: } \vect{p}(\theta,y)=\big(r(y)\cos\theta,\ y,\ r(y)\sin\theta\big),\quad r(y)=r_b+(r_t-r_b)\big(y+\tfrac12\big)\nonumber
-\end{gather}
-with $\theta\in[0,2\pi)$ sampled at $s$ slices and $\phi\in[-\tfrac{\pi}{2},\tfrac{\pi}{2}]$ at $k$ stacks; a cone is a
-frustum with $r_t=0$. Cuboids are scaled unit cubes. The library has sixteen generators (Table~\ref{tab:prims}); every
-one fits the unit cube $[-\tfrac12,\tfrac12]^3$, so a part's scale $S$ is its size in metres.
+The library has sixteen generators (Table~\ref{tab:prims}). Every one fits the unit cube $[-\tfrac12,\tfrac12]^3$,
+so a part's scale $S$ is its size in metres. Figure~\ref{fig:prims} shows the sixteen meshes and the whole camp
+coloured by primitive; the same colour key is used in every figure, legend and table of this report.
 
-\begin{figure}[H]
+\begin{figure}[tbp]
 \centering
-\begin{subfigure}{\linewidth}\centering\primgrid\caption{The unit primitives, as the program draws them (all 16, with their triangle edges; \code{ts --capture prims}).}\end{subfigure}\\[2mm]
-\begin{subfigure}{0.62\linewidth}\raw{v5/scene_primitives_exploded}{\linewidth}\caption{\key{G}: the camp exploded into primitives, coloured by type.}\end{subfigure}
-\caption{Primitives in the program. Notice in (b) that the whole camp (bunker, vehicles, towers, soldiers) is made
-of the same few meshes: the colour shows which primitive each part is.}
+\begin{subfigure}{\linewidth}\centering\primgridkey\caption{The sixteen unit primitives with their triangle edges.}\end{subfigure}\\[2mm]
+\begin{subfigure}{\linewidth}\centering\img{figures/img/primcards/camp_prims.jpg}{0.86\linewidth}\\[1mm]
+{\fontsize{7}{8.5}\selectfont\begin{minipage}{0.86\linewidth}\centering\campkey\end{minipage}}
+\caption{The camp from the air, made of primitives: \campinst{} design instances (\campparts{} parts) each moved
+outwards a little as a block.}\end{subfigure}
+\caption{Primitives in the program. In (b) every part is drawn flat in the colour of its primitive; the far backdrop,
+the sky bodies, the terrain disc and the parts hidden at the start are left out.}
 \label{fig:prims}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[tbp]
 \centering\footnotesize\setlength{\tabcolsep}{3pt}
 \resizebox{\linewidth}{!}{\primtable}
-\caption{The primitive library (\code{ts --export-docs}). Instances are counted over the whole scene. $V$ and $T$
-are given as formulas of the generator parameters ($s$ slices, $k$ stacks or rings, $u\times v$ torus grid, $c$ cap
-stacks, $n$ segments, $m$ tube sides) and as the counts of the meshes the scene uses.}
+\caption{The primitive library. Instances are counted over the whole scene. $V$ and $T$ are given as formulas of the
+generator parameters ($s$ slices, $k$ stacks or rings, $u\times v$ torus grid, $c$ cap stacks, $n$ segments, $m$ tube
+sides) and as the counts of the meshes the scene uses.}
 \label{tab:prims}
 \end{table}
 
-\begin{figure}[H]
-\centering
-{\footnotesize\textit{Counts: closed-form formulas, exported counts and instances}}\\[0.5mm]
-\wbblock{Primitives}{counts}\\[1mm]
-{\footnotesize\wbkey}
-\caption{Workbook sheet \code{Primitives}: vertex and triangle counts as formulas of the slice and stack
-parameters, checked against the counts the program exports. Notice that indexing saves the vertices shared by
-neighbouring triangles: the sphere draws 1224 triangles from 614 vertices instead of 3672. \fullsheet{Primitives}}
-\label{fig:wb-prims}
-\end{figure}
-
-\begin{table}[H]
+\begin{table}[tbp]
 \centering\footnotesize
 \primusetable
-\caption{Where each primitive is used: number of scene parts and the most frequent part kinds (\code{--export-docs}).}
+\caption{Where each primitive is used: number of scene parts and the most frequent part kinds.}
 \label{tab:primuse}
 \end{table}
 
-\subsection{The vertices of each primitive}
+\subsection{How a generator builds a mesh}
 \label{sec:primverts}
-A primitive is two arrays: vertices (position $+$ normal) and indices (three per triangle). The flat primitives are
-defined by a few corners; the curved ones by a parametric formula sampled on a grid.
+Every generator makes the same three choices; the cards that follow show where each one matters.
 
-\textbf{Flat primitives.} The cube has 8 corners $v_0..v_7$ (Figure~\ref{fig:corners}) but its mesh has 24 vertices: each
-corner belongs to three faces, and each face needs its own normal for flat shading, so the corner is stored three
-times with three normals ($6\text{ faces}\times4=24$). Each face is two counter-clockwise triangles seen from
-outside, $(0,1,2)$ and $(0,2,3)$ of its four corners. The wedge, tapered box and pyramid are built the same way from
-their corner lists.
-\begin{figure}[H]
-\centering
-\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigCube & {\scriptsize\cornersCube}\end{tabular}\\{\footnotesize (a) cube}\end{minipage}\hfill
-\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigWedge & {\scriptsize\cornersWedge}\end{tabular}\\{\footnotesize (b) wedge}\end{minipage}\\[2mm]
-\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigTaperedBox & {\scriptsize\cornersTaperedBox}\end{tabular}\\{\footnotesize (c) tapered box}\end{minipage}\hfill
-\begin{minipage}[c]{0.49\linewidth}\centering\begin{tabular}{@{}c@{\hspace{2mm}}c@{}}\cornerfigPyramid & {\scriptsize\cornersPyramid}\end{tabular}\\{\footnotesize (d) pyramid}\end{minipage}
-\caption{Corner numbering of the flat primitives in their unit cube (drawn and tabulated from the export's corner
-and face lists; dashed edges are hidden from this view). A face lists its corners counter-clockwise seen from outside.}
-\label{fig:corners}
-\end{figure}
+\textbf{Shared or duplicated vertices.} A vertex carries one normal. On a curved surface the triangles around a vertex
+should agree on that normal, so that Gouraud and Phong shading (Section~\ref{sec:shading}) interpolate a smooth
+surface. The sphere therefore shares every vertex between up to six triangles and needs only \nSphereV{} vertices for
+\nSphereTri{} triangles. At a sharp edge the two faces need different normals, so the corner is stored once per face:
+the cube's 8 corners become $6\times4=24$ vertices, and a cylinder stores its rim twice, once with the side normal and
+once with the cap normal.
 
-\textbf{Curved primitives.} The others sample a formula on a grid of parameters; Table~\ref{tab:primparam} lists the
-formula of each as the program exports it. Neighbouring grid cells share their vertices through the index array
-(smooth normals), which is why the sphere needs \nSphereV{} vertices for \nSphereTri{} triangles.
-\begin{table}[H]
-\centering\footnotesize
-\primparamtable
-\caption{How each primitive's vertices are generated (\code{--export-docs}, fields \code{axis} and \code{parametric}).}
-\label{tab:primparam}
-\end{table}
+\textbf{The seam.} A curved surface is a grid of parameters $(i,j)$ that wraps around: the column after $j=s-1$ is
+column $0$ again. The generators index the wrap as $j \bmod s$, so the first column is reused and no vertex is
+repeated along the seam (the red line in the drawings). The meshes carry no texture coordinates, so nothing forces a
+split there.
 
-\where{src/primitives/*.cpp (Cube, Sphere, Hemisphere, Cylinder, Torus, Wedge, TaperedBox, Pyramid, Capsule, Annulus, Helix, GrassBlade, Terrain; Library.h holds the scene's generator calls)}
-\critique{The brief lists eleven primitives; the library has sixteen, and each is used in the scene
-(Table~\ref{tab:primuse}). Two shortcuts remain. The ray tracer has analytic shapes only for spheres, cylinders,
-boxes and planes: it traces a hemisphere as its whole ellipsoid, a capsule, torus or annulus as a cylinder, a wedge,
-tapered box or pyramid as a box, and it leaves the helix out. And a fixed tessellation is wasteful: all
-\nSphereInst{} sphere instances use \nSphereTri{} triangles each (about \sphereTriTotal{} million triangles) even when a
-sphere covers a few pixels (Section~\ref{sec:curved}).}
+\textbf{Winding.} Every triangle is listed counter-clockwise as seen from outside, so its geometric normal
+$(\vect{b}-\vect{a})\times(\vect{c}-\vect{a})$ points outwards and back-face culling can drop the far side. Where a
+generator mirrors half a mesh (the sphere's southern half), it swaps two indices of every mirrored triangle to keep this
+order.
+
+\subsection{The primitive cards}
+\label{sec:primcards}
+Each card describes one generator. (a) is the scene mesh as the renderer draws it, with its triangle edges. (b) is
+the same generator called with small parameters so that every vertex can be numbered: the grey dashed edges face away,
+the dark cell is the one in (c), violet arrows are normals, orange arcs are the parameter angles and darker fans are
+caps with their own vertices. (c) splits that cell into its two triangles in the order the generator emits them.
+(d) gives the formulas and the vertex and triangle counts, and (e) shows three parts of the scene built on the
+primitive. The flat primitives replace (b) with their corner drawing.
+
+\primcards
+\FloatBarrier
+
+\textbf{Limitation.} The ray tracer (Section~\ref{sec:rt}) has analytic shapes only for spheres, cylinders, boxes and
+planes. It traces a hemisphere as its whole ellipsoid; a capsule, torus or annulus as a cylinder; a wedge, tapered box
+or pyramid as a box; and it leaves the helix out.

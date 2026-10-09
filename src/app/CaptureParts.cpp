@@ -64,6 +64,8 @@ RenderSettings baseSettings(const Ctx& c, const std::string& isolate) {
     s.flareOn = false;
     s.taaOn = true;
     s.autoExposureOn = false;   // one fixed exposure: every tile / stage of a set has the same background brightness
+    s.vignetteOn = false;       // report tiles: no post effects but anti-aliasing
+    s.grain = 0.0f;
     return s;
 }
 
@@ -500,13 +502,33 @@ bool prims(Ctx& c) {
             overlayWire(img, e.mesh, mvp);
         }
         ok = save(c, dir + "/" + base + "_wire.png", img) && ok;
+        {   // The same view rasterised on the CPU in the exact key colour (Lambert + triangle edges): the report's tile.
+            shape::Cam kc;
+            kc.view = cam.view;
+            kc.proj = cam.proj;
+            kc.eye = cam.position;
+            kc.fwd = normalize(target - cam.position);
+            kc.right = normalize(cross(kc.fwd, Vec3{0, 1, 0}));
+            kc.up = cross(kc.right, kc.fwd);
+            kc.w = kc.h = kPrimSize;
+            const MeshData low = e.type == PrimitiveType::TerrainDisc ? createTerrainDisc(kTerrainRings / 4, kTerrainSlices / 4) : MeshData{};
+            shape::Shaded sh;
+            sh.mesh = e.type == PrimitiveType::TerrainDisc ? &low : &e.mesh;
+            sh.world = translate(target - centre) * scale(S);
+            sh.color = primkey::srgb(primkey::colorOf(e.type, e.cuboid));
+            sh.id = 1;
+            shape::Raster R = shape::makeRaster(kPrimSize, kPrimSize);
+            shape::rasterise(R, kc, {sh}, shape::lightFor(kc));
+            shape::drawEdges(R, kc, {sh});
+            ok = save(c, dir + "/" + base + "_key.png", shape::resolve(R, {0.925f, 0.925f, 0.93f}, {0.88f, 0.88f, 0.89f})) && ok;
+        }
         json += std::string(i ? ",\n" : "") + "    {\"number\": " + std::to_string(e.number) + ", \"name\": \"" + esc(e.name) +
                 "\", \"type\": \"" + esc(e.cuboid ? std::string("Cuboid") : std::string(primitiveName(e.type))) +
                 "\", \"function\": \"" + esc(e.call) + "\", \"V\": " + std::to_string(e.mesh.vertexCount()) + ", \"T\": " +
                 std::to_string(e.mesh.triangleCount()) + ", \"formula_V\": \"" + esc(e.vFormula) + "\", \"formula_T\": \"" +
                 esc(e.tFormula) + "\", \"S\": [" + num(S.x) + ", " + num(S.y) + ", " + num(S.z) + "], \"note\": \"" + note +
                 "\", \"file\": \"" + base +
-                ".png\", \"wire\": \"" + base + "_wire.png\"}";
+                ".png\", \"wire\": \"" + base + "_wire.png\", \"key\": \"" + base + "_key.png\"}";
     }
     c.renderer->labInvalidateCaches();
     json += "\n  ]\n}\n";
