@@ -6,6 +6,7 @@
 #include "objects/BaseLayout.h"
 #include "objects/Terrain.h"
 #include "primitives/Cube.h"
+#include "primitives/GrassBlade.h"
 #include "rendering/ShaderSources.h"
 #include "assets/AssetPaths.h"
 #include "assets/Image.h"
@@ -322,17 +323,7 @@ bool GrassField::init() {
     // v9 M1: a curved, tapered strip (3 segments: 7 vertices, 5 triangles) instead of the unit cube (24 / 12): the
     // blade bends along its length (the cube had vertices at the root and tip only, so it could only lean straight)
     // and costs less than half the triangles. One-sided: the shader turns the normal to the viewer, culling is off.
-    MeshData cube;
-    {
-        // Folded blade: the edge normals tilt outwards (a midrib fold), so a blade catches the moon / sun at two
-        // angles across its width as the cube's faces did; the strip is 1.25 wide to make up for the cube's thickness.
-        const float ts[3] = {0.0f, 0.38f, 0.72f};
-        const float fold = 0.55f, k = 1.0f / std::sqrt(1.0f + fold * fold);
-        for (float t : ts)
-            for (float x : {-0.625f, 0.625f}) cube.vertices.push_back({{x, t - 0.5f, 0.0f}, {(x < 0.0f ? -fold : fold) * k, 0.0f, k}});
-        cube.vertices.push_back({{0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}});   // tip
-        cube.indices = {0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4, 4, 5, 6};
-    }
+    const MeshData cube = createGrassBlade();   // primitives/GrassBlade.cpp (library primitive 15)
     indexCount_ = static_cast<GLsizei>(cube.indices.size());
     glGenVertexArrays(1, &vao_);
     glGenBuffers(1, &vbo_);

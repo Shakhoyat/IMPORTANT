@@ -250,7 +250,7 @@ TS_TEST_GROUP(Soldiers) {
             minLeaves = std::min(minLeaves, n); maxLeaves = std::max(maxLeaves, n); minDepth = std::min(minDepth, depth);
             int rifles = 0;
             for (const SceneNode* l : leaves) {
-                if (l->primitive != PrimitiveType::Cube && l->primitive != PrimitiveType::Sphere && l->primitive != PrimitiveType::Cylinder) ++bad;
+                if (!isLibraryPartPrimitive(l->primitive)) ++bad;   // v10 M3: library primitives (tapered-box torso, hemisphere helmet)
                 ids.push_back(l->id);
                 if (l->name == "Rifle receiver" && l->visible) ++rifles;
             }

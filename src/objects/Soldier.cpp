@@ -75,7 +75,8 @@ SoldierRig buildSoldier(int index, const SoldierLook& look) {
     b.part(r.spine, "Abdomen", P::Sphere, {0.34f * wb, 0.30f, 0.24f}, {0, 0, 0}, {0, 0.12f, 0}, torso, "Ellipsoid abdomen");
     r.chest = b.group(r.spine, "Chest", {0, S::kSpineToChest, 0}, {0, 0, 0}, "Thoracic joint");
     r.chest->animation = "Twist against the pelvis (counter-rotation), head-scan follow";
-    b.part(r.chest, "Torso", P::Sphere, {0.42f * wb, 0.35f, 0.26f}, {0, 0, 0}, {0, 0.10f, 0}, torso, "Ellipsoid chest with plate carrier");
+    // v10 M3: tapered box (library primitive 10) turned upside down (roll 180): shoulders 1 x 1 of S, waist 0.8 x 0.8.
+    b.part(r.chest, "Torso", P::TaperedBox, {0.38f * wb, 0.33f, 0.23f}, {0, 0, 180}, {0, 0.10f, 0}, torso, "Chest with plate carrier (tapered box)");
     r.backpack = b.part(r.chest, "Backpack", P::Cube, {0.32f, 0.38f, 0.16f}, {0, 0, 0}, {0, 0.07f, -0.20f}, gear, "Field pack");
     SceneNode* bedroll = b.part(r.chest, "Bedroll", P::Cylinder, {0.11f, 0.11f, 0.34f}, {0, 90, 0}, {0, 0.31f, -0.21f}, gear, "Rolled mat on the pack");
     r.backpack->visible = look.backpack;
@@ -106,7 +107,10 @@ SoldierRig buildSoldier(int index, const SoldierLook& look) {
     r.head = b.group(neck, "Head", {0, S::kNeckToHead, 0}, {0, 0, 0}, "Head joint");
     r.head->animation = "Yaw scan (guard), pitch (work, duck)";
     b.part(r.head, "Head", P::Sphere, {0.18f, 0.225f, 0.205f}, {0, 0, 0}, {0, 0.08f, 0.0f}, skin, "Ellipsoid head (face: warm in the thermal image)");
-    b.part(r.head, "Helmet", P::Sphere, {0.245f, 0.19f, 0.265f}, {-6, 0, 0}, {0, 0.145f, -0.01f}, helmet, "Rounded combat helmet");
+    // v10 M3: hemisphere (library primitive 4): same width / depth as the old helmet ellipsoid, base 2.5 cm below its
+    // equator (down to the brow, where the ellipsoid showed) and the same crown height.
+    b.part(r.head, "Helmet", P::Hemisphere, {0.245f, 0.125f, 0.265f}, {-6, 0, 0}, {0, 0.12f + 0.0625f * 0.9945f, -0.01f - 0.0625f * 0.1045f},
+           helmet, "Rounded combat helmet");
     b.part(r.head, "Helmet brim", P::Cylinder, {0.255f, 0.28f, 0.022f}, {84, 0, 0}, {0, 0.138f, -0.005f}, helmetRim, "Helmet rim (low over the brow)");
 
     // ---- arms

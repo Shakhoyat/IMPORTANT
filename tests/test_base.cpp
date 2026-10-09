@@ -103,9 +103,7 @@ TS_TEST_GROUP(Base) {
         int bad = 0, total = 0;
         auto check = [&](SceneNode& n) {
             ++total;
-            const bool ok = (n.primitive == PrimitiveType::Cube || n.primitive == PrimitiveType::Sphere ||
-                             n.primitive == PrimitiveType::Cylinder || n.primitive == PrimitiveType::Cone ||
-                             n.primitive == PrimitiveType::BeamCone) && !n.name.empty() && !n.purpose.empty() && !n.id.empty();
+            const bool ok = isLibraryPartPrimitive(n.primitive) && !n.name.empty() && !n.purpose.empty() && !n.id.empty();
             if (!ok) ++bad;
         };
         forLeaves(*r.root, check);

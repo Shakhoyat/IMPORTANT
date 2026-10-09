@@ -57,7 +57,7 @@ QualityProfile qualityProfile(Quality q) {
         p.ssao = false;
         p.volumetric = false;
         p.cascadeSplit = 10.0f;
-        p.grassBlades = 14000;
+        p.grassBlades = kGrassBladesLow;
         p.rainDrops = 6000;
         p.taa = false;
         p.flare = false;
@@ -70,7 +70,7 @@ QualityProfile qualityProfile(Quality q) {
         p.ssaoSamples = 16;
         p.pcfTaps = 16;
         p.moonShafts = true;
-        p.grassBlades = 450000;
+        p.grassBlades = kGrassBladesEpic;
         p.rainDrops = 60000;
         p.fogSteps = 64;
         p.fogDivisor = 2;
@@ -96,7 +96,7 @@ QualityProfile qualityProfile(Quality q) {
         p.ssaoSamples = 16;
         p.pcfTaps = 16;
         p.moonShafts = true;
-        p.grassBlades = 140000;
+        p.grassBlades = kGrassBladesUltra;
         p.rainDrops = 36000;
         p.fogSteps = 48;
         p.fogDivisor = 2;

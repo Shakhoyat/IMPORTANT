@@ -11,6 +11,8 @@
 #include "primitives/Sphere.h"
 #include "rendering/Renderer.h"
 
+#include "primitives/Library.h"
+
 namespace ts {
 
 namespace {
@@ -72,6 +74,12 @@ void Renderer::labSphereResolution(int slices, int stacks) {
     if (slices <= 0) fresh->upload(createSphere(36, 18));
     else fresh->upload(createSphere(slices, stacks));
     meshes_[PrimitiveType::Sphere] = std::move(fresh);
+}
+
+void Renderer::labOverrideMesh(PrimitiveType key, const MeshData& mesh) {
+    auto fresh = std::make_unique<Mesh>();
+    fresh->upload(mesh.vertices.empty() ? sceneMesh(key) : mesh);
+    meshes_[key] = std::move(fresh);
 }
 
 bool Renderer::labReadBuffer(LabBuffer which, LabImage& out) {

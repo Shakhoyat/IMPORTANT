@@ -29,6 +29,10 @@
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
 #include "primitives/Sphere.h"
+#include "primitives/FlatFaces.h"
+#include "primitives/GrassBlade.h"
+#include "primitives/Library.h"
+#include "scene/PartOrder.h"
 #include "scene/DayCycle.h"
 #include "scene/Gait.h"
 #include "scene/HudMath.h"
@@ -88,27 +92,20 @@ const char* surfaceName(Surface s) {
     return (i >= 0 && i < static_cast<int>(sizeof(names) / sizeof(names[0]))) ? names[i] : "Other";
 }
 
-struct PrimInfo {
-    const char* id;
-    PrimitiveType type;
-    std::string function;
-    MeshData mesh;
+// v10 M3: the primitive table is the 16-entry library (primitives/Library.cpp) in report order. Instances partition
+// the scene's leaves: a cube-mesh part counts as "Cube" when its S is uniform and as "Cuboid" otherwise; the grass
+// blade has no scene leaves (its GPU instances are listed separately).
+struct PrimUse {
+    int instances = 0;
+    const SceneNode* example = nullptr;   // first part (export order) that uses it
 };
 
-std::vector<PrimInfo> knownPrimitives() {
-    char terrainFn[96];
-    std::snprintf(terrainFn, sizeof(terrainFn), "createTerrainDisc(%d, %d, %g)", kTerrainRings, kTerrainSlices,
-                  layout::kBaseRadius);
-    std::vector<PrimInfo> prims;
-    prims.push_back({"P01", PrimitiveType::Cube, "createCube()", createCube()});
-    prims.push_back({"P02", PrimitiveType::Sphere, "createSphere(36, 18)", createSphere(36, 18)});
-    prims.push_back({"P03", PrimitiveType::Cylinder, "createCylinder(36)", createCylinder(36)});
-    prims.push_back({"P04", PrimitiveType::BeamCone, "createCylinder(36, 0.03, 0.5, false)",
-                     createCylinder(36, 0.03f, 0.5f, false)});
-    prims.push_back({"P05", PrimitiveType::TerrainDisc, terrainFn, createTerrainDisc()});
-    prims.push_back({"P06", PrimitiveType::Cone, "createCylinder(36, 0.5, 0, true)", createCylinder(36, 0.5f, 0.0f, true)});
-    return prims;
+std::string primKey(const SceneNode& n) {
+    if (n.primitive == PrimitiveType::Cube && isCuboidScale(restScaleOf(n))) return "Cuboid";
+    return primitiveName(n.primitive);
 }
+
+std::string entryKey(const LibraryEntry& e) { return e.cuboid ? std::string("Cuboid") : std::string(primitiveName(e.type)); }
 
 // Node ids are unique in the workbook: the three intruder rovers are built by the same factory and share ids
 // (ROV-00 ...), so repeats get a "#2" / "#3" suffix (the first keeps the original id).
@@ -124,10 +121,28 @@ std::string exportId(const SceneNode& n) {
     return id;
 }
 
-void writeNode(std::ostream& o, const SceneNode& n, int depth, bool& first, std::map<PrimitiveType, int>& uses) {
+// v10 M3 per-component fields: hierarchy order (global depth-first index; leaf index inside its rig), the rest scale and
+// whether the part is hidden in the exported t = 0 state.
+int g_dfs = 0;
+std::map<const SceneNode*, int> g_rigLeafOrder;
+
+void indexRigLeaves(const SceneNode& n) {
+    if (rigRoot(n) == &n) {
+        const std::vector<const SceneNode*> leaves = rigLeavesDfs(n);
+        for (size_t i = 0; i < leaves.size(); ++i) g_rigLeafOrder[leaves[i]] = static_cast<int>(i);
+    }
+    for (const auto& c : n.children) indexRigLeaves(*c);
+}
+
+void writeNode(std::ostream& o, const SceneNode& n, int depth, bool& first, std::map<std::string, PrimUse>& uses) {
     if (!first) o << ",\n";
     first = false;
-    if (n.isLeaf()) ++uses[n.primitive];
+    if (n.isLeaf()) {
+        PrimUse& u = uses[primKey(n)];
+        ++u.instances;
+        if (!u.example) u.example = &n;
+    }
+    const auto order = g_rigLeafOrder.find(&n);
     const Material& m = n.material;
     o << "    {\"id\": \"" << esc(exportId(n)) << "\", \"object\": \"" << esc(n.object) << "\", \"name\": \"" << esc(n.name)
       << "\", \"primitive\": \"" << primitiveName(n.primitive) << "\", \"parent\": \""
@@ -143,7 +158,11 @@ void writeNode(std::ostream& o, const SceneNode& n, int depth, bool& first, std:
       << ", \"metalness\": " << m.metalness << ", \"surface\": \"" << surfaceName(m.surface)
       << "\", \"occluder\": " << (n.occluder ? "true" : "false") << ", \"obstacle\": " << (n.obstacle ? "true" : "false")
       << ", \"purpose\": \"" << esc(n.purpose)
-      << "\", \"animation\": \"" << esc(n.animation) << "\"}";
+      << "\", \"animation\": \"" << esc(n.animation) << "\", \"S_rest\": " << vecFull(restScaleOf(n))
+      << ", \"hidden_at_export\": " << (hiddenAtRest(n) ? "true" : "false") << ", \"dfs_index\": " << g_dfs++
+      << ", \"rig_root_id\": \"" << esc(exportId(*rigRoot(n))) << "\", \"rig_leaf_order\": "
+      << (order != g_rigLeafOrder.end() ? order->second : -1) << ", \"part_kind\": \""
+      << esc(n.isLeaf() ? partKindName(n.name) : std::string()) << "\"}";
     for (const auto& c : n.children) writeNode(o, *c, depth + 1, first, uses);
 }
 
@@ -164,32 +183,65 @@ void writeMeshSample(std::ostream& o, const char* key, const MeshData& mesh, siz
     o << "]}" << (last ? "\n" : ",\n");
 }
 
-void writePrimitives(std::ostream& o, const std::vector<PrimInfo>& prims, std::map<PrimitiveType, int>& uses) {
+std::string cornersJson(const MeshData& mesh) {
+    const FlatCorners fc = flatCorners(mesh);
+    std::string o = ", \"corners\": [";
+    for (size_t i = 0; i < fc.corners.size(); ++i) o += std::string(i ? ", " : "") + vecFull(fc.corners[i]);
+    o += "], \"faces\": [";
+    for (size_t f = 0; f < fc.faces.size(); ++f) {
+        o += f ? ", [" : "[";
+        for (size_t k = 0; k < fc.faces[f].size(); ++k) o += (k ? ", " : "") + std::to_string(fc.faces[f][k]);
+        o += "]";
+    }
+    return o + "]";
+}
+
+void writePrimitives(std::ostream& o, const std::vector<LibraryEntry>& prims, std::map<std::string, PrimUse>& uses) {
     o << "  \"primitives\": [\n";
     std::vector<std::string> entries;
-    std::map<PrimitiveType, bool> known;
-    for (const PrimInfo& p : prims) {
-        known[p.type] = true;
+    std::map<std::string, bool> known;
+    for (const LibraryEntry& p : prims) {
+        const std::string key = entryKey(p);
+        known[key] = true;
+        const PrimUse& u = uses[key];
+        char id[8];
+        std::snprintf(id, sizeof(id), "P%02d", p.number);
         std::ostringstream e;
-        e << "    {\"id\": \"" << p.id << "\", \"type\": \"" << primitiveName(p.type) << "\", \"function\": \""
-          << esc(p.function) << "\", \"vertices\": " << p.mesh.vertexCount() << ", \"indices\": "
-          << p.mesh.indexCount() << ", \"triangles\": " << p.mesh.triangleCount() << ", \"vertex_bytes\": "
-          << sizeof(Vertex) << ", \"bytes_indexed\": " << p.mesh.indexedBytes() << ", \"bytes_non_indexed\": "
-          << p.mesh.nonIndexedBytes() << ", \"instances\": " << uses[p.type] << "}";
+        e << "    {\"id\": \"" << id << "\", \"number\": " << p.number << ", \"name\": \"" << esc(p.name)
+          << "\", \"type\": \"" << esc(key) << "\", \"function\": \"" << esc(p.call) << "\", \"vertices\": "
+          << p.mesh.vertexCount() << ", \"indices\": " << p.mesh.indexCount() << ", \"triangles\": "
+          << p.mesh.triangleCount() << ", \"vertex_bytes\": " << sizeof(Vertex) << ", \"bytes_indexed\": "
+          << p.mesh.indexedBytes() << ", \"bytes_non_indexed\": " << p.mesh.nonIndexedBytes() << ", \"instances\": "
+          << u.instances;
+        if (p.type == PrimitiveType::Cube) e << ", \"mesh_instances\": " << uses["Cube"].instances + uses["Cuboid"].instances;
+        if (p.type == PrimitiveType::GrassBlade)
+            e << ", \"gpu_instances\": " << kGrassBladesEpic << ", \"gpu_instances_by_quality\": {\"LOW\": " << kGrassBladesLow
+              << ", \"HIGH\": " << kGrassBladesHigh << ", \"ULTRA\": " << kGrassBladesUltra << ", \"EPIC\": " << kGrassBladesEpic
+              << "}";
+        e << ", \"params\": " << p.params << ", \"formula_V\": \"" << esc(p.vFormula) << "\", \"formula_T\": \""
+          << esc(p.tFormula) << "\", \"parametric\": \"" << esc(p.parametric) << "\", \"axis\": \"" << esc(p.axis)
+          << "\", \"flat\": " << (p.flat ? "true" : "false");
+        if (u.example)
+            e << ", \"example_part\": {\"id\": \"" << esc(exportId(*u.example)) << "\", \"name\": \"" << esc(u.example->name)
+              << "\", \"object\": \"" << esc(u.example->object) << "\", \"S\": " << vecFull(restScaleOf(*u.example)) << "}";
+        else
+            e << ", \"example_part\": null";
+        if (p.flat) e << cornersJson(p.mesh);
+        e << "}";
         entries.push_back(e.str());
     }
     // Primitive types used by the scene that this exporter has no generator entry for (e.g. a newly added
     // type): listed with their instance count so the workbook never silently drops them.
     int next = static_cast<int>(prims.size()) + 1;
     for (const auto& kv : uses) {
-        if (known.count(kv.first) || kv.first == PrimitiveType::None) continue;
+        if (known.count(kv.first)) continue;
         char id[16];
         std::snprintf(id, sizeof(id), "P%02d", next++);
         std::ostringstream e;
-        e << "    {\"id\": \"" << id << "\", \"type\": \"" << primitiveName(kv.first)
+        e << "    {\"id\": \"" << id << "\", \"type\": \"" << esc(kv.first)
           << "\", \"function\": \"(not in DocExport table)\", \"vertices\": null, \"indices\": null, \"triangles\": null,"
           << " \"vertex_bytes\": " << sizeof(Vertex) << ", \"bytes_indexed\": null, \"bytes_non_indexed\": null,"
-          << " \"instances\": " << kv.second << "}";
+          << " \"instances\": " << kv.second.instances << "}";
         entries.push_back(e.str());
     }
     for (size_t i = 0; i < entries.size(); ++i) o << entries[i] << (i + 1 < entries.size() ? ",\n" : "\n");
@@ -1054,11 +1106,28 @@ void writeObjects(std::ostream& o, Scene& scene) {
         for (const auto& ch : n.children) walk(*ch);
     };
     for (SceneNode* r : scene.roots()) walk(*r);
+    // v10 M3: rigs per object tag (separate roots), families of numbered variants ("Soldier 1".."Soldier 8") and the
+    // build stages of one rig (first parts in hierarchy order).
+    std::map<std::string, std::vector<const SceneNode*>> rigs;
+    std::function<void(const SceneNode&)> findRigs = [&](const SceneNode& n) {
+        if (rigRoot(n) == &n) rigs[n.object].push_back(&n);
+        for (const auto& ch : n.children) findRigs(*ch);
+    };
+    for (SceneNode* r : scene.roots()) findRigs(*r);
+    std::map<std::string, int> familyRigs;
+    for (const std::string& ob : order) familyRigs[objectFamily(ob)] += static_cast<int>(rigs[ob].size());
     o << "  \"objects\": [\n";
     for (size_t i = 0; i < order.size(); ++i) {
         const Counts& c = perObj[order[i]];
+        const std::vector<const SceneNode*>& rr = rigs[order[i]];
+        const int rigParts = rr.empty() ? 0 : static_cast<int>(rigLeavesDfs(*rr.front()).size());
         o << "    {\"object\": \"" << esc(order[i]) << "\", \"parts\": " << c.leaves << ", \"groups\": " << c.groups
-          << ", \"animated_nodes\": " << c.animated << ", \"primitives\": " << primJson(c) << "}" << (i + 1 < order.size() ? ",\n" : "\n");
+          << ", \"animated_nodes\": " << c.animated << ", \"primitives\": " << primJson(c) << ", \"rigs\": " << rr.size()
+          << ", \"rig_parts\": " << rigParts << ", \"variant_of\": \"" << esc(objectFamily(order[i])) << "\", \"instances\": "
+          << familyRigs[objectFamily(order[i])] << ", \"build_stages\": [";
+        for (int k = 0; k < 4; ++k)
+            o << (k ? ", " : "") << "{\"pct\": " << kBuildStagePct[k] << ", \"parts\": " << buildStageCount(rigParts, kBuildStagePct[k]) << "}";
+        o << "]}" << (i + 1 < order.size() ? ",\n" : "\n");
     }
     o << "  ],\n  \"roots\": [\n";
     const auto roots = scene.roots();
@@ -1102,13 +1171,16 @@ void writePracticals(std::ostream& o, const Scene& scene) {
 bool exportSceneDocs(const std::string& path) {
     g_exportIds.clear();
     g_idSeen.clear();
+    g_dfs = 0;
+    g_rigLeafOrder.clear();
     Scene scene;  // freshly constructed = the initial (t = 0) state
     scene.updateWorld();
-    const std::vector<PrimInfo> prims = knownPrimitives();
+    const std::vector<LibraryEntry> prims = primitiveLibrary();
+    for (SceneNode* r : scene.roots()) indexRigLeaves(*r);
 
     std::ostringstream o;
-    std::map<PrimitiveType, int> uses;
-    o << "{\n  \"schema_version\": 7,\n"  // 6: + "v7" (keys); 7: + v7 raytrace / explorer / pov (WP-W)
+    std::map<std::string, PrimUse> uses;
+    o << "{\n  \"schema_version\": 8,\n"  // 6: + "v7" (keys); 7: + v7 raytrace / explorer / pov (WP-W); 8: v10 M3 library
       << "  \"matrix_convention\": \"local_matrix and world_matrix are 16 floats ROW-MAJOR (row 0 first); "
          "M = T * Ry * Rx * Rz * S (R_deg = pitch X, yaw Y, roll Z); world = parent_world * M; the code stores "
          "Mat4 column-major (m[col*4+row]); world matrices are at t = 0\",\n";
@@ -1133,9 +1205,11 @@ bool exportSceneDocs(const std::string& path) {
     writePracticals(o, scene);
     writeSimulation(o);
     o << "  \"mesh_samples\": {\n";
-    writeMeshSample(o, "Cube", prims[0].mesh, prims[0].mesh.vertexCount(), prims[0].mesh.indexCount(), false);
-    writeMeshSample(o, "Sphere", prims[1].mesh, kSampleVertices, kSampleIndices, false);
-    writeMeshSample(o, "Cylinder", prims[2].mesh, kSampleVertices, kSampleIndices, true);
+    const MeshData cube = sceneMesh(PrimitiveType::Cube), sphere = sceneMesh(PrimitiveType::Sphere),
+                   cylinder = sceneMesh(PrimitiveType::Cylinder);
+    writeMeshSample(o, "Cube", cube, cube.vertexCount(), cube.indexCount(), false);
+    writeMeshSample(o, "Sphere", sphere, kSampleVertices, kSampleIndices, false);
+    writeMeshSample(o, "Cylinder", cylinder, kSampleVertices, kSampleIndices, true);
     o << "  },\n";
     o << "  \"leaf_count\": " << scene.leaves().size() << "\n}\n";
 

@@ -66,7 +66,7 @@ void AaGun::buildRig() {
     b.part(m, "Ammo drum", P::Cylinder, {0.9f, 0.9f, 0.7f}, {90, 0, 0}, {0, 0.95f, -0.85f}, steel, "1550-round ammunition drum");
     b.part(m, "Ammo drum lid", P::Cylinder, {0.95f, 0.95f, 0.08f}, {90, 0, 0}, {0, 1.3f, -0.85f}, gunMetal, "Drum lid");
     b.part(m, "Radome mast", P::Cylinder, {0.4f, 0.4f, 0.5f}, {90, 0, 0}, {0, 1.6f, -0.85f}, steel, "Radome support");
-    b.part(m, "Radome", P::Sphere, {0.8f, 0.8f, 0.8f}, {0, 0, 0}, {0, 2.05f, -0.85f}, dome, "Search / track radar dome (white)");
+    b.part(m, "Radome", P::Hemisphere, {0.8f, 0.6f, 0.8f}, {0, 0, 0}, {0, 2.15f, -0.85f}, dome, "Search / track radar dome (white)");
     b.part(m, "Antenna mast", P::Cylinder, {0.05f, 0.05f, 0.3f}, {90, 0, 0}, {0, 2.55f, -0.85f}, steel, "Search antenna mast");
     search_ = b.group(m, "Search antenna", {0, 2.72f, -0.85f}, {0, 0, 0}, "Rotating search antenna");
     search_->animation = "Rotates 1 rev/s (3 rev/s while the gun is possessed)";
@@ -100,6 +100,7 @@ void AaGun::buildRig() {
     flash_ = b.part(c, "Muzzle flash", P::Sphere, {0.5f, 0.5f, 0.9f}, {0, 0, 0}, {0, 0, kClusterZ + kBarrelLen + 0.25f},
                     asLight(makeMaterial({1.0f, 0.7f, 0.3f}, 1.0f, Surface::Plain, 0.5f, 0.0f, 3.0f), 0.0f, 18.0f), "Muzzle flash");
     flash_->animation = "Flickers while firing";
+    flash_->restScale = flash_->local.scale;   // v10 M3: the modelled size (S_rest); hidden at zero scale until it fires
     flash_->local.scale = {0.0001f, 0.0001f, 0.0001f};
     flash_->explodable = false;
     flash_->obstacle = false;
@@ -109,6 +110,7 @@ void AaGun::buildRig() {
         n->animation = "Ballistic arc out of the ejection port, 0.7 s life";
         n->explodable = false;
         n->obstacle = false;
+        n->restScale = n->local.scale;   // v10 M3: S_rest (the pool waits at zero scale)
         n->local.scale = {0.0001f, 0.0001f, 0.0001f};
         casingNodes_.push_back(n);
     }

@@ -202,8 +202,7 @@ TS_TEST_GROUP(Bunker) {
         leaves(*rig.root, ls);
         int bad = 0, undocumented = 0, flat = 0, badOcc = 0, occluders = 0;
         for (SceneNode* n : ls) {
-            const bool lab = n->primitive == PrimitiveType::Cube || n->primitive == PrimitiveType::Sphere || n->primitive == PrimitiveType::Cylinder ||
-                             n->primitive == PrimitiveType::Cone || n->primitive == PrimitiveType::BeamCone;
+            const bool lab = isLibraryPartPrimitive(n->primitive);   // v10 M3: any library part primitive
             bad += lab ? 0 : 1;
             undocumented += (n->name.empty() || n->purpose.empty() || n->object != "Command Bunker") ? 1 : 0;
             flat += n->shading == ShadingModel::Flat ? 1 : 0;
@@ -228,7 +227,9 @@ TS_TEST_GROUP(Bunker) {
         if (ramp) {
             err = 0.0f;
             for (float u : {-0.4f, 0.0f, 0.4f}) {  // points on the top face along the slope
-                const Vec3 p = transformPoint(ramp->world, {0.0f, 0.5f, u});
+                // v10 M3: the ramp is a wedge; its walking surface is the slope face y + z = 0 of the unit wedge.
+                const Vec3 local = ramp->primitive == PrimitiveType::Wedge ? Vec3{0.0f, -u, u} : Vec3{0.0f, 0.5f, u};
+                const Vec3 p = transformPoint(ramp->world, local);
                 err = std::max(err, std::fabs(p.y - rig.walk.floorHeight(p.x, p.z, p.y)));
             }
         }

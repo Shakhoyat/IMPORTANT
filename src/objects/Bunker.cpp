@@ -255,7 +255,13 @@ BunkerRig buildBunker() {
         const Vec3 rot = alignZ({0, dy, dz});
         const Vec3 mid{0.0f, 0.5f * (kF + rampTopY), 0.5f * (kBottomZ + kTopZ)};
         const Vec3 centre = mid - Vec3{0.0f, dz / len, -dy / len} * 0.15f;
-        under(b.part(trench, "Ramp floor", P::Cube, {3.2f, 0.30f, len}, rot, centre, floorMat, "Concrete ramp from the ground down to the doors"));
+        // v10 M3: wedge (library primitive 9): the solid ramp under the walking surface, from the door floor (kF at
+        // kBottomZ) up to the ground (rampTopY at kTopZ); yaw 180 puts the wedge's high side at +Z. Its slope face is
+        // the walking surface the 0.30 m slab's top face was.
+        (void)rot;
+        (void)centre;
+        under(b.part(trench, "Ramp floor", P::Wedge, {3.2f, dy, dz}, {0, 180, 0}, {0.0f, kF + 0.5f * dy, 0.5f * (kBottomZ + kTopZ)}, floorMat,
+                     "Concrete ramp from the ground down to the doors"));
         for (int i = 0; i < 7; ++i) {
             const float z = kBottomZ + 0.7f + 1.0f * i;
             under(b.part(trench, "Ramp grip strip", P::Cube, {2.9f, 0.03f, 0.10f}, rot, {0.0f, rampY(z) + 0.02f, z}, darkMetal,
@@ -344,7 +350,7 @@ BunkerRig buildBunker() {
         const float headTop = std::max(groundBeside(kDoorZ0, kDoorZ1 + 0.4f), kRoofTop) + 0.10f;
         under(b.part(trench, "Portal head wall", P::Cube, {4.8f, headTop - kF, 0.55f}, {0, 0, 0}, {0.0f, 0.5f * (headTop + kF), 3.9f},
                      concreteOut, "Concrete head wall above the doors"));
-        under(b.part(trench, "Earth berm", P::Sphere, {5.4f, 1.0f, 2.0f}, {0, 0, 0}, {0.0f, headTop, 2.8f}, earth,
+        under(b.part(trench, "Earth berm", P::Hemisphere, {5.4f, 0.5f, 2.0f}, {0, 0, 0}, {0.0f, headTop + 0.25f, 2.8f}, earth,
                      "Earth berm camouflaging the portal head wall"));
         for (int s = -1; s <= 1; s += 2)
             under(b.part(trench, "Hazard jamb", P::Cube, {0.20f, kDoorHeight, 0.05f}, {0, 0, 0}, {s * 1.40f, kF + 0.5f * kDoorHeight, kDoorZ1 + 0.025f},
@@ -700,7 +706,7 @@ BunkerRig buildBunker() {
         for (int i = 0; i < 9; ++i) {
             const float a = 0.5f + 0.38f * i;
             const float sx = 4.55f + 1.5f * std::cos(a + 3.3f), sz = -7.55f + 1.4f * std::sin(a + 3.3f);
-            occ(b.part(surf, "Sandbag", P::Cylinder, {0.24f, 0.18f, 0.5f}, {0, 90 - degrees(a + 3.3f), 0}, {sx, G(sx, sz) + 0.07f, sz}, sand, "Sandbag"));
+            occ(b.part(surf, "Sandbag", P::Capsule, {0.24f, 0.18f, 0.5f}, {0, 90 - degrees(a + 3.3f), 0}, {sx, G(sx, sz) + 0.07f, sz}, sand, "Sandbag"));
         }
     }
 

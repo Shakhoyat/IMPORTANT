@@ -516,8 +516,9 @@ TS_TEST_GROUP(raytrace) {
                 if (p.flags & kDynamic) {
                     const SceneNode* leaf = br.leafOf(rs, static_cast<int>(&p - rs.prims.data()));
                     if (!leaf) return false;
+                    const Mat4 w = SceneBridge::tracedWorld(*leaf);   // v10 M3: = leaf->world except a hemisphere's ellipsoid
                     for (int k = 0; k < 16; ++k)
-                        if (leaf->world.m[k] != p.world.m[k]) return false;
+                        if (w.m[k] != p.world.m[k]) return false;
                 }
             (void)rebuilt;
             return true;

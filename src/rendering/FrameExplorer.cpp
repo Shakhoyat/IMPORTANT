@@ -14,6 +14,7 @@
 
 #include "math/Frustum.h"
 #include "objects/Terrain.h"
+#include "primitives/Library.h"
 #include "primitives/Cube.h"
 #include "primitives/Cylinder.h"
 #include "primitives/Sphere.h"
@@ -469,15 +470,8 @@ bool FrameExplorer::Impl::init() {
         failed = true;
         return false;
     }
-    const std::pair<PrimitiveType, MeshData> data[] = {
-        {PrimitiveType::Cube, createCube()},
-        {PrimitiveType::Sphere, createSphere(36, 18)},
-        {PrimitiveType::Cylinder, createCylinder(36)},
-        {PrimitiveType::BeamCone, createCylinder(36, 0.03f, 0.5f, false)},
-        {PrimitiveType::TerrainDisc, createTerrainDisc()},
-        {PrimitiveType::Cone, createCylinder(36, 0.5f, 0.0f, true)},
-    };
-    for (const auto& [type, mesh] : data) {
+    for (PrimitiveType type : kMeshTypes) {   // v10 M3: the same library meshes as the renderer (primitives/Library.cpp)
+        const MeshData mesh = sceneMesh(type);
         meshes[type] = std::make_unique<Mesh>();
         meshes[type]->upload(mesh);
         meshData[type] = mesh;

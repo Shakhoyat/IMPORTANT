@@ -143,9 +143,7 @@ TS_TEST_GROUP(Camp) {
             int n = 0;
             forLeaves(*o->root(), [&](SceneNode& l) {
                 ++n;
-                const bool ok = (l.primitive == PrimitiveType::Cube || l.primitive == PrimitiveType::Sphere ||
-                                 l.primitive == PrimitiveType::Cylinder || l.primitive == PrimitiveType::Cone ||
-                                 l.primitive == PrimitiveType::BeamCone) && !l.name.empty() && !l.purpose.empty() && !l.id.empty();
+                const bool ok = isLibraryPartPrimitive(l.primitive) && !l.name.empty() && !l.purpose.empty() && !l.id.empty();
                 if (!ok) ++bad;
             });
             total += n;

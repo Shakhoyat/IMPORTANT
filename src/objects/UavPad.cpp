@@ -35,7 +35,7 @@ UavPadRig buildUavPads() {
                                   "Pad of UAV-" + std::to_string(i + 1));
         flushPart(b.part(site, "Pad slab", P::Cylinder, {1.3f, 1.3f, kUavPadSlab}, {90, 0, 0}, {0, kUavPadSlab * 0.5f, 0}, slab,
                          "Flattened cylinder, 1.3 m diameter"));
-        flushPart(b.part(site, "Pad ring", P::Cylinder, {1.18f, 1.18f, 0.004f}, {90, 0, 0}, {0, kUavPadSlab + 0.002f, 0}, ring,
+        flushPart(b.part(site, "Pad ring", P::Annulus, {1.18f, 1.18f, 0.004f}, {90, 0, 0}, {0, kUavPadSlab + 0.002f, 0}, ring,
                          "Painted yellow touchdown ring"));
         flushPart(b.part(site, "Pad centre", P::Cylinder, {1.02f, 1.02f, 0.004f}, {90, 0, 0}, {0, kUavPadSlab + 0.004f, 0}, inner,
                          "Darker centre inside the ring"));

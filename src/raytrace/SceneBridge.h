@@ -41,6 +41,9 @@ public:
     // Leaf behind a primitive (ray debugger, picking); nullptr for the terrain or a synthetic primitive.
     const SceneNode* leafOf(const RtScene& rs, int prim) const;
     void invalidate() { leaves_.clear(); }
+    // v10 M3: world matrix of the analytic shape that traces a leaf (the leaf's own world matrix, except the hemisphere:
+    // its parent ellipsoid). Every prim's world equals tracedWorld(leaf) after a sync.
+    static Mat4 tracedWorld(const SceneNode& n);
 
 private:
     void rebuild(const Scene& scene, RtScene& out);
