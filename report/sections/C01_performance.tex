@@ -7,14 +7,14 @@ and the HUD. Mean and 95th-percentile frame times come from every timed frame; d
 Headless runs use the RTX\,4070 through the WSL2 d3d12 driver, which is slower than the native Windows driver
 (54--73\,fps headless against 80--101\,fps natively on the same shots).
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \benchtable
 \caption{Benchmark. Day = 10:30, no enemies, UAVs docked; night = 23:00 with intruder waves, both UAVs flying and
 searchlights on.}
 \label{tab:bench}
 \end{table}
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\plot{p_benchmark}{\linewidth}
 \caption{Frame time per configuration (bars: mean; ticks: 95th percentile; dotted line: 60\,fps).}
 \label{fig:bench}

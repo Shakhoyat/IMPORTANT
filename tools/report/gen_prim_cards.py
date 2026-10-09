@@ -270,7 +270,7 @@ def used_for(export_key):
             crop_tile(src, dst)
             S = c["S_rest"]
             out.append(("figures/img/primcards/" + os.path.basename(dst), kind, design, n,
-                        "%s\\,$\\times$\\,%s\\,$\\times$\\,%s" % tuple(("%.3g" % (v * 100)) for v in S)))
+                        "%s\\,$\\times$\\allowbreak\\,%s\\,$\\times$\\allowbreak\\,%s" % tuple(("%.3g" % (v * 100)) for v in S)))
         if len(seen) == 3:
             break
     return out
@@ -506,7 +506,7 @@ card("Grass blade", "grassblade", "Grass blade", gallery("grass blade"),
      [("surface", "three rows at $t=0,\\,0.38,\\,0.72$: $(\\pm0.625,\\ t-\\frac12,\\ 0)$, tip $(0,\\frac12,0)$"),
       ("normal", "folded: $(\\mp0.55,0,1)/\\sqrt{1.3025}$ at the edges, $+\\vect{e}_z$ at the tip"),
       ("$V$", "$2\\cdot3+1=7$"), ("$T$", "$2\\cdot2+1=5$"),
-      ("scene", "never a scene part: the grass field draws it instanced on the GPU (not counted in the 5\\,476 parts)")],
+      ("scene", "never a scene part: the grass field draws it instanced on the GPU (not counted in the %s parts)" % fmt_int(EXP["leaf_count"]))],
      "")
 
 # ---- terrain disc ---------------------------------------------------------------------------------------------

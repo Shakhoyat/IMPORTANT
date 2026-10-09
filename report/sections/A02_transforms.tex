@@ -25,13 +25,13 @@ Eq.~\eqref{eq:pivot}: each sits in a group node whose origin is the pivot.
 Mat4 matrix() const { return translate(translation) * rotateEulerYXZ(rotationDeg) * ts::scale(scale); }
 \end{lstlisting}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_trs_order.pdf}
 \caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\ref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$).}
 \label{fig:d-trs}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \raw{scene/soldier_axes}{0.72\linewidth}
 \caption{Local versus world coordinates on a soldier's joints (\key{H}): each red/green/blue triad is one local
@@ -39,7 +39,7 @@ frame, turned with its part.}
 \label{fig:axes}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 {\footnotesize\textit{Inputs (part UAV-14, parent UAV-00)}}\\[0.5mm]
 \wbblock{Transform_Trace}{inputs}\\[1mm]
@@ -69,7 +69,7 @@ holds the same groups as live formulas.
 transform is $\wgAsrt$. The scale stretches the unit cube to the panel's size, the translation places it, and the
 parent's matrix carries it into the world.
 \[\scriptsize\wgAmats\]
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize\wgA
 \caption{Group A: the cube's corners $v_0..v_7$ (Figure~\ref{fig:card-cube}) and where they land in the world.}
 \label{tab:wgA}
@@ -79,7 +79,7 @@ parent's matrix carries it into the world.
 road-wheel group (\wgBname) turns it with $R_y$ so that the tyre's axis follows the hull's side, and the tyre's own scale
 sets its radius and width: $\wgBsrt$.
 \[\scriptsize\wgBmats\]
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize\wgB
 \caption{Group B: points of the unit torus through the tyre's and wheel's matrices, then into the world; the tyre's
 axis in world space is $\wgBaxle$. The wheel group also spins about this axis as the track moves (only its local
@@ -91,7 +91,7 @@ angle changes).}
 (rotations about the joint's $x$ axis, from the gait cycle of Section~\ref{sec:dynamic}); opening the blast door
 changes one translation of the leaf group by \wgDoorSlide\,m. Every part below the changed node moves with it,
 with no other matrix touched.
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize\wgC\\[2mm]\wgCdoor
 \caption{Group C. Top: soldier 1's left leg in the exported standing pose and at the gait phase with the most knee
 bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame. Bottom: the west blast-door leaf (its
@@ -102,7 +102,7 @@ panel \wgDoorPanel) closed and open: two opposite corners of the panel.}
 \textbf{D. The UAV's camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
 groups, $\wgDchain$. Its view axis is the camera frame's $+z$ direction, $W(0,0,1,0)^\top$ (a direction: $w=0$, so
 translations do not affect it).
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize\wgD
 \caption{Group D: camera position and view axis of UAV~1 for the starting gimbal angles and two other settings; the
 pitch alone sets the angle below the horizon.}

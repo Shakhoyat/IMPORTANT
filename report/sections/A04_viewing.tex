@@ -13,13 +13,13 @@ V=\begin{bmatrix}u_x&u_y&u_z&-\vect u\cdot\vect e\\v_x&v_y&v_z&-\vect v\cdot\vec
 The code writes the same matrix with $\vect f=-\vect n$ (forward), $\vect s=\vect u$ (side) and $\vect u=\vect v$
 (\code{math/Math3D.cpp lookAt}); the camera looks down its $-z$ axis.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=0.6\linewidth]{figures/diagrams/d_view_basis.pdf}
 \caption{The camera basis of Eq.~\ref{eq:view}, seen from the side: $\mathbf{n}$ points from the target back to the eye, $\mathbf{u}$ to the side, $\mathbf{v}$ completes the frame; the camera looks along $-\mathbf{n}$.}
 \label{fig:d-view}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{play/play_first_person}{\linewidth}\caption{Soldier, first person.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Third person (spring arm).}\end{subfigure}\hfill
@@ -28,7 +28,7 @@ The code writes the same matrix with $\vect f=-\vect n$ (forward), $\vect s=\vec
 \label{fig:cams}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 {\footnotesize\textit{Inputs and the $u,v,n$ basis}}\\[0.5mm]
 \wbblock{View_Projection}{basis}\\[1mm]

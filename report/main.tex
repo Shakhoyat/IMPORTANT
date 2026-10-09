@@ -9,7 +9,7 @@
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
 \usepackage{float}
-\usepackage{placeins}
+\usepackage[section,below]{placeins}
 \usepackage{longtable}
 \usepackage{needspace}
 \usepackage{tikz}
@@ -115,7 +115,7 @@
 \addcontentsline{toc}{part}{Part B. Advanced work}
 \noindent Part B goes beyond the class material, but every topic still sits on one stage of the same pipeline.
 Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be read as a second pass along the pipeline.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[sb/.style={draw=blue!50,fill=blue!6,rounded corners=1.5pt,text width=1.5cm,align=center,
   font=\fontsize{7}{8}\selectfont,inner sep=1.5pt,minimum height=0.62cm}, up/.style={-{Latex[length=1mm]},blue!45}]

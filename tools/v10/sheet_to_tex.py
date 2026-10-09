@@ -223,7 +223,7 @@ def mats(ws, wv, items):
                 vals.append(s)
             rows.append(" & ".join(vals))
         parts.append(f"{label}=\\begin{{bmatrix}}" + "\\\\".join(rows) + "\\end{bmatrix}")
-    return "\\[\\scriptstyle " + ",\\quad ".join(parts) + "\\]"
+    return "\\[\\textstyle " + ",\\quad ".join(parts) + "\\]"
 
 
 def main():

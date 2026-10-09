@@ -14,7 +14,7 @@ c_{\text{spot}}=\Big(\mathrm{clamp}\Big(\frac{\cos\gamma-\cos\theta_o}{\cos\thet
 \label{eq:att}
 \end{equation}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}llXl@{}}
 \toprule
@@ -31,13 +31,13 @@ Ambient & hemisphere / SH & night constant; by day the irradiance of the drawn s
 \label{tab:lights}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_lighting.pdf}
 \caption{The vectors of Eq.~\ref{eq:phong} at one surface point, and how quickly the diffuse and specular terms fall off with angle (a larger exponent gives a smaller, sharper highlight).}
 \label{fig:d-light}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_all}{\linewidth}\caption{All terms.}\end{subfigure}\hfill
 \begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_ambient}{\linewidth}\caption{Ambient only.}\end{subfigure}\hfill
@@ -46,18 +46,7 @@ Ambient & hemisphere / SH & night constant; by day the irradiance of the drawn s
 \caption{The terms of Eq.~\eqref{eq:phong} one at a time on the ammunition bunker at 10:30 (\key{Ctrl+L}).}
 \label{fig:terms}
 \end{figure}
-
-Ambient light (Figure~\ref{fig:terms}b) has no direction, so the shape reads only through colour. The diffuse term
-(c) depends on $\vect N\cdot\vect L$ and darkens faces turned from the sun. The specular term (d) is small, sits on
-edges and rims, and moves with the camera because $\vect H$ depends on $\vect V$.
-\begin{figure}[H]
-\centering\plot{p_specular_falloff}{0.62\linewidth}
-\caption{The specular lobe $(\vect N\cdot\vect H)^n$ for the shininess values of the scene (2 to 64); $n=64$ gives a
-highlight eight times narrower than $n=2$.}
-\label{fig:spec}
-\end{figure}
-
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 {\footnotesize\textit{Geometry: sun, moon and searchlight at one roof point}}\\[0.5mm]
 \wbblock{Illumination}{geometry}\\[2mm]
@@ -68,6 +57,17 @@ highlight eight times narrower than $n=2$.}
 three terms for one roof point at noon, sunset, under the moon and under a UAV searchlight. \fullsheet{Illumination}}
 \label{fig:wb-illum}
 \end{figure}
+
+Ambient light (Figure~\ref{fig:terms}b) has no direction, so the shape reads only through colour. The diffuse term
+(c) depends on $\vect N\cdot\vect L$ and darkens faces turned from the sun. The specular term (d) is small, sits on
+edges and rims, and moves with the camera because $\vect H$ depends on $\vect V$.
+\begin{figure}[htbp]
+\centering\plot{p_specular_falloff}{0.62\linewidth}
+\caption{The specular lobe $(\vect N\cdot\vect H)^n$ for the shininess values of the scene (2 to 64); $n=64$ gives a
+highlight eight times narrower than $n=2$.}
+\label{fig:spec}
+\end{figure}
+
 
 At HIGH and above the renderer uses a physically based GGX/Cook--Torrance BRDF by default; \key{B} switches to the
 classic Blinn--Phong of Eq.~\eqref{eq:phong}.

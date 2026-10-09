@@ -375,7 +375,7 @@ if os.path.exists(pj):
     out.append("\\newcommand{\\primgrid}{" + grid(items, 8, "1.95cm") + "}")
 else:
     out.append("\\newcommand{\\primgrid}{\\todo{capture prims}}")
-for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 10), ("Main Battle Tank", "Tank", 0)]:
+for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 12), ("Main Battle Tank", "Tank", 0)]:
     ij = os.path.join(RAW, f"parts_{slug(obj)}", "index.json")
     if per and os.path.exists(ij):
         es = jlist(ij)
@@ -386,9 +386,9 @@ for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 10)
             return {"Cylinder (frustum)": "frustum"}.get(k, k.lower().replace(" ", ""))
         items = [(f"m3/parts_{slug(obj)}/{e['file'][:-4]}",
                   f"{tex(e['part'])}{(' $\\times$' + str(e['count'])) if e['count'] > 1 else ''}\\\\\\primsq{{{keyof(e)}}}\\,"
-                  + "$\\times$".join((f"{v:.0f}" if v >= 9.5 else f"{v:.1f}".rstrip("0").rstrip(".")) for v in e["S_cm"]))
+                  + "$\\times$\\allowbreak ".join((f"{v:.0f}" if v >= 9.5 else f"{v:.1f}".rstrip("0").rstrip(".")) for v in e["S_cm"]))
                  for e in es]
-        w = f"{(17.2 / per) - 0.12:.2f}cm"
+        w = f"{(16.9 / per) - 0.2:.2f}cm"
         out.append(f"\\newcommand{{\\partsgrid{tag}}}{{" + grid(items, per, w) + "}")
         out.append(f"\\newcommand{{\\nKinds{tag}}}{{{len(es)}}}")
     else:

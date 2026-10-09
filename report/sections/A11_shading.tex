@@ -9,7 +9,7 @@ Gouraud: at the vertices, colours interpolated. Phong: normals interpolated and 
 \label{eq:shading}
 \end{equation}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_flat}{\linewidth}\caption{UAV, flat.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_gouraud}{\linewidth}\caption{UAV, Gouraud.}\end{subfigure}\hfill
@@ -23,7 +23,7 @@ Gouraud: at the vertices, colours interpolated. Phong: normals interpolated and 
 
 Flat shading shows the facets. Gouraud shading shows Mach bands along the triangle edges: bright and dark lines that
 the eye adds where a piecewise-linear intensity changes slope. Only Phong shading keeps a round, sharp highlight.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{minipage}{0.5\linewidth}\centering\plot{p_gouraud_vs_phong}{\linewidth}\end{minipage}\hfill
 \begin{minipage}{0.48\linewidth}\centering\raw{lab/explorer_interp_gouraud_phong}{\linewidth}\end{minipage}\\[1mm]
@@ -34,7 +34,7 @@ dim vertex values and misses the peak entirely; Phong recovers it. Right: the sa
 \label{fig:gp}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXll@{}}
 \toprule

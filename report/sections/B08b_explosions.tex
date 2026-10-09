@@ -6,7 +6,7 @@ its own simple law of motion (Table~\ref{tab:explode}); every frame each one is 
 $+Z$ face of the unit cube --- turned to face the camera (puffs), stretched along its velocity (sparks, embers),
 or laid flat on the ground (shock wave, scorch). Its colour is not stored anywhere: the fragment shader computes it
 from a temperature $T$.
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize\setlength{\tabcolsep}{3pt}
 \explosiontable
 \caption{What one blast spawns (power 1 = a UAV round, 1.6 = a tank shell, 0.15 = a tracer impact), how each kind
@@ -23,7 +23,7 @@ replaced by a model of a wreck: its own primitives (Section~\ref{sec:decomp}) be
 blast with speed $\propto\sqrt{\text{power}}$, spinning about a random axis, integrated in sub-steps of
 1/\gv{debrisSub}\,s with restitution \gv{debrisRest}, sliding friction \gv{debrisFric}, and put to rest below
 \gv{debrisRestSpeed}\,m/s; their materials are charred (albedo $\times0.1$, roughness 0.95) and start hot in the thermal image.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_particles.pdf}
 \caption{The integrators of Table~\ref{tab:explode} run from the same start point (initial velocities are typical
 spawn values); (b) one debris piece bouncing to rest.}
@@ -48,13 +48,13 @@ into white towards its centre. Blending is premultiplied ($\mathrm{src}+(1-\alph
 alpha (soot, smoke) hides what is behind. Two instanced draws per frame: first the smoke and dust group, then the
 glowing group (fire, sparks, flash), each sorted back to front by distance to the camera. In the thermal
 view the same particles write heat instead of colour; smoke cools as $h=\gv{smokeHeatFloor}+(h_0-\gv{smokeHeatFloor})\,e^{-\gv{smokeHeatK}\,\mathrm{age}}$.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_blackbody.pdf}
 \caption{(a) The shader's ramp (Eq.~\ref{eq:bb}) per channel and as a colour bar; (b) the temperature a flame core
 and a spark feed into it over their lives, and the resulting emitted colour (HDR, shown tone-mapped).}
 \label{fig:bb}
 \end{figure}
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \wbblock{Explosion}{bb}\\[1.5mm]
 \wbblock{Explosion}{life}\\[1.5mm]
@@ -65,7 +65,7 @@ and a spark feed into it over their lives, and the resulting emitted colour (HDR
 flame core and a spark over their lives, one spark integrated step by step, and the debris bounce series. \fullsheet{Explosion}}
 \label{fig:wb-explosion}
 \end{figure}
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.245\linewidth}\raw{game/explosion_early}{\linewidth}\caption{Flash and fireball.}\end{subfigure}\hfill
 \begin{subfigure}{0.245\linewidth}\raw{game/explosion_mid}{\linewidth}\caption{Fire cools, sparks fall.}\end{subfigure}\hfill

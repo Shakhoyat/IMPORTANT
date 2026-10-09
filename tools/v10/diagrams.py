@@ -607,7 +607,7 @@ def particles():
     a_.set_ylim(-0.5, 22)
     a_.set_xlim(-6.5, 22)
     a_.grid(alpha=0.25)
-    a_.legend(loc="upper right", fontsize=7, frameon=True, ncol=1)
+    a_.legend(loc="upper right", fontsize=7.5, frameon=True, ncol=1)
     a_.set_title("(a) one particle of each kind (dots every 0.25 s)")
     b_ = ax[1]
     y, vy, vx, x = 1.2, 5.0, 3.0, 0.0
@@ -691,7 +691,7 @@ def floodfill():
             continue
         fc = "#9fd49a" if (x, y) in goals else cmap(0.35 + 0.6 * v / vmax)
         a_.add_patch(Rectangle((x, y), 1, 1, fc=fc, ec="white", lw=0.5))
-        a_.text(x + 0.5, y + 0.5, str(v), ha="center", va="center", fontsize=6.5, color="k")
+        a_.text(x + 0.5, y + 0.5, str(v), ha="center", va="center", fontsize=7.5, color="k")
     a_.plot(pts[:, 0], pts[:, 1], color=C["orange"], lw=1.0, ls="--")
     a_.plot(sm[:, 0], sm[:, 1], color=C["red"], lw=2.0)
     a_.plot(*pts[0], "o", color=C["red"], ms=7, mec="k")

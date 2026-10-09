@@ -10,13 +10,13 @@ fragments behind it, in any drawing order.
 \label{eq:hsr}
 \end{equation}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_hsr.pdf}
 \caption{Left: back-face culling keeps the faces whose normal points towards the eye. Right: the Z-buffer keeps the smallest depth per pixel, whatever order the wall and the crate are drawn in.}
 \label{fig:d-hsr}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_hiddenline}{\linewidth}\caption{Hidden-line wireframe (\key{X}).}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{v5/scene_xray}{\linewidth}\caption{X-ray wireframe: no depth test.}\end{subfigure}\hfill
@@ -26,7 +26,7 @@ even the underground bunker shows through.}
 \label{fig:hsr}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\raw{lab/explorer_stage_06_depth}{0.7\linewidth}
 \\[1mm]
 {\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]

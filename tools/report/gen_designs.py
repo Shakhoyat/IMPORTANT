@@ -133,7 +133,7 @@ def pattern(vals):
         if max(d) - min(d) <= 1 and d[0] > 0:
             return "%s{+}%di" % (fmtv(u[0]), d[0])
     if len(u) <= 3:
-        return "\\{" + ",".join(fmtv(x) for x in u) + "\\}"
+        return "\\{" + ",\\allowbreak ".join(fmtv(x) for x in u) + "\\}"
     return "%s..%s" % (fmtv(u[0]), fmtv(u[-1]))
 
 
@@ -145,17 +145,17 @@ def size_txt(S):
         lo, hi = min(a), max(a)
         f = (lambda x: ("%.3g" % x))
         out.append(f(lo) if hi - lo < 0.05 * max(hi, 1e-6) + 0.05 else "%s..%s" % (f(lo), f(hi)))
-    return "$" + "{\\times}".join(out) + "$"
+    return "$" + "{\\times}\\allowbreak ".join(out) + "$"
 
 
 def rot_txt(R):
     if all(abs(r) < 0.5 for rr in R for r in rr):
         return "--"
-    return "$(" + ",\\,".join(pattern([r[k] for r in R]) for k in range(3)) + ")$"
+    return "$(" + ",\\allowbreak\\,".join(pattern([r[k] for r in R]) for k in range(3)) + ")$"
 
 
 def pos_txt(T):
-    return "$(" + ",\\,".join(pattern([t[k] for t in T]) for k in range(3)) + ")$"
+    return "$(" + ",\\allowbreak\\,".join(pattern([t[k] for t in T]) for k in range(3)) + ")$"
 
 
 # ------------------------------------------------------------------------------------------------ design data
@@ -247,8 +247,8 @@ def parts_rows(d):
 
 def parts_table(d, rows):
     o = ["{\\fontsize{7}{8.2}\\selectfont\\setlength{\\tabcolsep}{2.6pt}\\renewcommand{\\arraystretch}{1.02}",
-         "\\begin{longtable}{@{}>{\\raggedright\\arraybackslash}p{3.3cm}l>{\\raggedright\\arraybackslash}p{2.7cm}"
-         ">{\\raggedright\\arraybackslash}p{4.2cm}>{\\raggedright\\arraybackslash}p{2.3cm}>{\\raggedright\\arraybackslash}p{2.4cm}@{}}",
+         "\\begin{longtable}{@{}>{\\raggedright\\arraybackslash}p{3.0cm}l>{\\raggedright\\arraybackslash}p{2.6cm}"
+         ">{\\raggedright\\arraybackslash}p{4.0cm}>{\\raggedright\\arraybackslash}p{2.2cm}>{\\raggedright\\arraybackslash}p{2.3cm}@{}}",
          "\\toprule Part ($\\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\\circ$) & Parent\\\\\\midrule\\endhead",
          "\\bottomrule\\endfoot"]
     multi = len(rows) > 1
@@ -293,7 +293,7 @@ def sentence(d):
         s += "%d instances; the first stands %s" % (n, where)
     if d["nested_in"]:
         s += ", inside the %s" % tex(d["nested_in"].lower())
-    s += (". Placement of the first: $T(%.2f,\\,%.2f,\\,%.2f)\\,R_y(%.0f^\\circ)\\,S(%g)$." %
+    s += (". Placement of the first: $T(%.2f,\\allowbreak\\,%.2f,\\allowbreak\\,%.2f)\\allowbreak\\,R_y(%.0f^\\circ)\\allowbreak\\,S(%g)$." %
           (x, y, z, inst["heading_deg"], inst["scale"]))
     return s
 
@@ -424,7 +424,7 @@ def pair(j, label_groups=False, hmax=4.2):
     """Two panels side by side, the same height, fitted to the text width."""
     am, ap = j["_am"], j["_ap"]
     lab_w = 2.4 if label_groups else 0.0
-    h = min(hmax, (16.6 - lab_w) / (am + ap))
+    h = min(hmax, (16.0 - lab_w) / (am + ap))
     left = "\\img{figures/img/shapes/%s_model.jpg}{%.2fcm}" % (j["_slug"], am * h)
     if j["design"] in SKY:
         return ("\\begin{tabular}{@{}c@{}}\\img{figures/img/shapes/%s_prims.jpg}{%.2fcm}\\\\[-0.3mm]{\\fontsize{7.5}{9}\\selectfont "
@@ -490,15 +490,15 @@ for fam in FAMILIES:
     for d in ds:
         j = shapes[d["name"]]
         which = "prims" if d["name"] in SKY else "model"
-        cells.append("\\begin{tabular}[t]{@{}c@{}}\\imgbox{figures/img/shapes/%s_%s.jpg}{1.75cm}{1.05cm}\\\\[-0.6mm]"
-                     "\\parbox[t]{1.85cm}{\\centering\\fontsize{7}{7.6}\\selectfont %s\\\\%s$\\,\\times\\,$%d}\\end{tabular}"
+        cells.append("\\begin{tabular}[t]{@{}c@{}}\\imgbox{figures/img/shapes/%s_%s.jpg}{1.6cm}{0.9cm}\\\\[-0.7mm]"
+                     "\\parbox[t]{1.85cm}{\\centering\\fontsize{7}{7.4}\\selectfont %s\\\\%s$\\,\\times\\,$%d}\\end{tabular}"
                      % (j["_slug"], which, tex(d["name"]), d["parts_first"] if len(set(d["parts_per_instance"])) == 1 else
                         "%d..%d" % (min(d["parts_per_instance"]), max(d["parts_per_instance"])), d["instances"]))
     lines = []
     for k in range(0, len(cells), 9):
         lines.append("\\noindent " + "\\hfill".join(cells[k:k + 9] + ["\\hspace{1.85cm}"] * (9 - len(cells[k:k + 9]))))
-    rows.append("{\\small\\textbf{%s}}\\\\[0.2mm]\n%s" % (fam.capitalize(), "\\\\[0.6mm]\n".join(lines)))
-out.append("\\newcommand{\\designatlas}{%s}" % "\\\\[0.8mm]\n".join(rows))
+    rows.append("{\\small\\textbf{%s}}\\\\[-0.5mm]\n%s" % (fam.capitalize(), "\\\\[0.3mm]\n".join(lines)))
+out.append("\\newcommand{\\designatlas}{%s}" % "\\\\[0.4mm]\n".join(rows))
 
 # Table 19.1
 tot = collections.Counter()
@@ -603,12 +603,12 @@ def lineup_panel(jj, which, width_cm):
     return "\n".join(tk)
 
 
-out.append("\\newcommand{\\munitionlineupfig}{\\begin{figure}[tbp]\\centering"
+out.append("\\newcommand{\\munitionlineupfig}{\\begin{figure}[H]\\centering"
            "\\begin{subfigure}{\\linewidth}\\centering %s\\caption{All four at one scale.}\\end{subfigure}\\\\[1mm]"
            "\\begin{subfigure}{0.62\\linewidth}\\centering %s\\caption{The two small rounds enlarged (their own 10\\,cm bar).}\\end{subfigure}"
            "\\caption{The munitions built from parts, side by side at one scale, made of primitives (orthographic, lengths along the "
            "axis are true; the exhaust flame of the missiles is left out).}\\label{fig:munitions}\\end{figure}}"
-           % (lineup_panel(lj, "prims", 13.0), lineup_panel(lj2, "prims", 9.0)))
+           % (lineup_panel(lj, "prims", 10.5), lineup_panel(lj2, "prims", 7.5)))
 
 # build stages in the colour key
 for nm, tag in (("Autonomous UAV", "Uav"), ("Main battle tank", "Tank"), ("Scout helicopter", "Heli"), ("Command bunker", "Bunker")):

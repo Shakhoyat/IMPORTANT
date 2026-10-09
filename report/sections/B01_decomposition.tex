@@ -17,25 +17,25 @@ $\pm a$ is a mirrored pair, $a{+}di$ counts copies $i=0,1,\dots$ spaced by $d$, 
 $a..b$ gives a range. Positions are in the design's own frame in centimetres; rotations are the part's own $R$ relative
 to its parent, in degrees. Where a builder places its parts in a loop, the rule is stated as a formula above the table.
 
-\begin{figure}[p]
+
+\designtable
+\begin{figure}[H]
 \centering
 \designatlas
 \caption{Object atlas: every design of the scene by family, labelled with its parts per instance $\times$ instances.}
 \label{fig:atlas}
 \end{figure}
 
-\designtable
-
 % ---------------------------------------------------------------------------------- extras placed inside some cards
 \newcommand{\soldierextras}{%
-\begin{table}[tbp]
+\begin{table}[H]
 \centering\footnotesize\setlength{\tabcolsep}{4pt}\variantsSoldier
 \caption{The eight soldiers are one design (\nSoldierParts{} parts) placed eight times. What differs: the root
 transform, the girth (pelvis and torso $S_x$ relative to soldier 1), the colours of skin and uniform parts, and the
 joint angles of each soldier's pose at the start (animated groups more than $0.5^\circ$ from soldier 1).}
 \label{tab:var-soldier}
 \end{table}
-\begin{figure}[tbp]
+\begin{figure}[p]
 \centering\soldiergraph
 \caption{The soldier's scene graph: the \soldierGroups{} group nodes from the pelvis down, each with its local $T$ (m),
 $R$ ($^\circ$) and the primitives of the parts attached to it. A thick border marks a joint driven by the gait or the
@@ -55,20 +55,20 @@ x=x_b+(x_f-x_b)\Big(s-\frac{\sin2\pi s}{2\pi}\Big),\quad y=y_0+h\sin\pi s+r(1-s)
 with $\kappa$ the knee bend and $\eta$ the hip angle (applied as $R_x(-\eta)$ and $R_x(\kappa)$). Walking uses
 \gait{speed}\,m/s, stride \gait{stride}\,m, stance \gait{duty} of the cycle, lift $h=\gait{lift}$\,m and a pelvis bob of
 \gait{bob}\,m (\gait{cadence_steps_per_min} steps per minute).
-\begin{figure}[tbp]
+\begin{figure}[p]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_gait.pdf}
 \caption{One walk cycle: (a) hip and knee angles of both legs; (b) the left ankle's path relative to the hip (stance
 along the bottom, swing above it).}
 \label{fig:gait}
 \end{figure}
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering\partsgridSoldier
 \caption{Every part kind of the soldier (\nKindsSoldier{} kinds), each rendered alone, with its primitive and size.}
 \label{fig:parts-soldier}
 \end{figure}}
 
 \newcommand{\tankextras}{%
-\begin{table}[tbp]
+\begin{table}[H]
 \centering\footnotesize\variantsTank
 \caption{The three tanks are one design; only the root transform differs.}
 \label{tab:main-tank}
@@ -81,7 +81,7 @@ then turret and gun.}
 \end{figure}}
 
 \newcommand{\uavextras}{%
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering\partsgridUav
 \caption{Every part kind of the UAV (\nKindsUav{} kinds, $\times n$ = parts of that kind), each rendered alone at the
 same size, with its primitive and size. Glass and rotor-blur parts are drawn opaque, the light beam as a solid.}
@@ -109,17 +109,17 @@ and the surface installations.}
 \label{fig:build-bunker}
 \end{figure}}
 
-\needspace{15cm}\subsection{People}
+\FloatBarrier\needspace{15cm}\subsection{People}
 \designcardsPeople
 
 \needspace{15cm}\subsection{Vehicles and aircraft}
 \designcardsVehiclesAndAircraft
 
-\needspace{15cm}\subsection{Weapons and munitions}
+\needspace{12cm}\subsection{Weapons and munitions}
+\designcardsWeaponsAndMunitions
 The four munitions built from parts are nested designs of their launchers; Figure~\ref{fig:munitions} compares them at
 one scale. The tank's shells and the AA gun's tracers are not scene parts: the combat code draws them as glowing slugs.
 \munitionlineupfig
-\designcardsWeaponsAndMunitions
 
 \needspace{15cm}\subsection{Buildings}
 \designcardsBuildings

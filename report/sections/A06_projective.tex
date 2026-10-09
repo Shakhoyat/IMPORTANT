@@ -14,13 +14,13 @@ z_w=\tfrac12(z_n+1)=\tfrac12\Big(\tfrac{F+N}{F-N}-\tfrac{2FN}{(F-N)\,d}+1\Big),\
 \label{eq:zres}
 \end{equation}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_frustum_ndc.pdf}
 \caption{The perspective divide squeezes the frustum into the NDC cube: slices equally spaced in depth (orange) crowd towards the far face, which is why depth precision is best near the camera (Eq.~\ref{eq:ndc}).}
 \label{fig:d-ndc}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\plot{p_depth_precision}{\linewidth}
 \caption{Depth mapping of the scene's projection ($F=600$\,m, Eq.~\eqref{eq:ndc}): (a) window depth against
 distance, (b) the smallest depth step.}
@@ -30,7 +30,7 @@ distance, (b) the smallest depth step.}
 With $N=0.05$\,m half of the depth range is used in the first 0.1\,m (Figure~\ref{fig:depth}a), and at 100\,m two
 surfaces closer than about 1\,m cannot be ordered (b). Raising $N$ to 0.5\,m gains a factor of ten everywhere; this is
 the z-fighting trade-off of Section~\ref{sec:hard}.
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{v5/scene_depth}{\linewidth}\caption{\key{F}: linearised Z-buffer view.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_stage_02_vertex}{\linewidth}\caption{Frame Explorer: vertex stage (clip space).}\end{subfigure}

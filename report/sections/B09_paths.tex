@@ -15,7 +15,7 @@ e=\frac{\sum_{i=1}^{5}w_i s_i}{\sum_i s_i},\ \ u=K_p e+K_d\dot e,\ \ v_{L,R}=v\m
 \end{equation}
 with $w_i$ the sensors' lateral offsets, $s_i\in\{0,1\}$ their readings, $K_p=3.2$, $K_d=0.25$.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_floodfill.pdf}
 \caption{The two layers on a small example grid. (a) Breadth-first distances from the hidden goal cells (green, 0);
 the rover (red dot) steps to the smaller neighbour each time (dashed) and the cell path is rounded by three Chaikin
@@ -24,7 +24,7 @@ error is positive and the rover turns left.}
 \label{fig:floodfill}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \wbblock{Line_Follower}{inputs}\\[1.5mm]
 \begin{minipage}[t]{0.48\linewidth}\centering\wbblock{Line_Follower}{sensors}\end{minipage}\hfill
@@ -75,7 +75,7 @@ rover, run every tick.
 \end{algorithmic}
 \end{algorithm}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{v5/plan_routes}{\linewidth}\caption{\key{M}: flood field, routes and guide lines.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{scene/day_patrol_spline}{\linewidth}\caption{A soldier's A* patrol spline.}\end{subfigure}
@@ -84,7 +84,7 @@ rounds the grid path's corners and keeps clear of the walls.}
 \label{fig:paths}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule

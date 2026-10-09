@@ -9,7 +9,7 @@ The squad never reads a rover's position from the scene: everything it knows com
 through the chain of Figure~\ref{fig:cvchain}, so the game is a working computer-vision system on top of the renderer.
 
 \subsection{From pixels to a target: the detection chain}
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[font=\footnotesize,
   bx/.style={draw,rounded corners=2pt,fill=#1,align=center,minimum height=11mm,text width=23.5mm,inner sep=1.5pt,font=\scriptsize},
@@ -33,7 +33,7 @@ squad's one shared track picture.}
 \label{fig:cvchain}
 \end{figure}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXl@{}}
 \toprule
@@ -63,14 +63,14 @@ midpoint of their shortest connecting segment, far more accurate than one ray hi
 \item \textbf{Life cycle}: tentative $\to$ confirmed after \gv{confirmHits} hits (event ``enemy spotted'') $\to$ coasting
 after \gv{coastAfter}\,s unseen $\to$ deleted after \gv{deleteAfter}\,s.
 \end{itemize}
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_triangulation.pdf}
 \caption{(a) two-view triangulation; (b) gating: only measurements inside the
 99\,\% ellipse of the predicted track are candidates for the assignment (drawn with an example covariance).}
 \label{fig:triang}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \wbblock{Tracking}{predict}\\[1mm]
 \wbblock{Tracking}{predict2}\\[1mm]
@@ -100,7 +100,7 @@ t_{\mathrm{launch},k}=t_0+\big(\max_j T_j-T_k\big),\qquad
 \mathbf{a}=\mathbf{x}_{\mathrm{track}}+\mathbf{v}_{\mathrm{track}}\max_j T_j
 \label{eq:tot}
 \end{equation}
-\begin{table}[H]
+\begin{table}[htbp]
 \centering\footnotesize\setlength{\tabcolsep}{3.5pt}
 \flighttimetable
 \caption{Predicted round flight time against distance.}
@@ -111,7 +111,7 @@ $\boldsymbol\omega=4\,|\mathbf{v}|\,(\hat{\mathbf{v}}\times\mathbf{r})/|\mathbf{
 clamped to \gv{kMissileTurnRate}\,rad/s, and the velocity is turned each tick by Rodrigues' rotation about
 $\hat{\boldsymbol\omega}$ --- the same axis--angle rotation as in Section~\ref{sec:trs}.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[font=\scriptsize,
   ln/.style={draw=black!40,dashed},
@@ -142,7 +142,7 @@ reads and writes of the one shared tracker; the squad logic runs once per tick f
 \label{fig:seq}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{game/uav_missile_launch}{\linewidth}\caption{Launch from the UAV's rail.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{game/combined_strike}{\linewidth}\caption{Combined strike: both rounds inbound.}\end{subfigure}\\[1mm]
@@ -153,7 +153,7 @@ the phase ``combined strike inbound''.}
 \label{fig:engage}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \tikzset{st/.style={draw,rounded corners=3pt,fill=#1,minimum width=17mm,minimum height=7mm,align=center,font=\footnotesize},
   ar/.style={-{Latex[length=1.6mm]},black!65,thick},
@@ -212,7 +212,7 @@ shift.}
 \label{fig:fsm}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{v5/thermal_fpv}{\linewidth}\caption{Detect and track (gimbal).}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{v5/tank_fire}{\linewidth}\caption{Ground fire.}\end{subfigure}\hfill
@@ -223,7 +223,7 @@ shift.}
 \label{fig:events}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering\wbblock{Duty_Cycle}{roster}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift. \fullsheet{Duty_Cycle}}

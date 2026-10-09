@@ -3,7 +3,7 @@
 Build note: this machine has no latexmk / pdftoppm, so the PDF is built with `tectonic` and pages are rasterised at
 110 dpi with PyMuPDF (same output as `pdftoppm -r 110`).
 
-Page count before this pass: 106 (body 1-78, workbook appendix 79-106).
+Page count before this pass: 106 (body 1-78, workbook appendix 79-106); after: 127 (body 1-109, appendices 110-127). See M5.
 
 ## M0: one primitive colour key
 
@@ -205,6 +205,34 @@ What changed:
 - Over-precise numbers: the day length prints as 291 s (was 290.6), the benchmark analysis to 0.1 ms / 1 fps;
   "k_s / n" no longer appears (the material columns of Section 19 were dropped in M3).
 - Cover: "parts in designs" instead of the old object count; Conclusion's O1 row likewise.
+
+## M5: consistency and layout
+
+- New `tools/report/check_counts.py` (passes): for all 62 designs the shape-view legend = parts table = export row =
+  Table 19.1 row; each primitive's instance count in Table 6.1 = the sum of its Table 19.1 column (15 primitive
+  columns, cube and cuboid separately); the scene total is 5 476 in the export, Table 6.1, Table 19.1's totals row, the
+  sum of the designs and the macros `\nLeaves` / `\sceneParts`. The one hand-typed "5 476" (grass-blade card) now comes
+  from the export.
+- Cross-references: no undefined or duplicate labels; the ToC lists the Section 19 families as subsections. The report
+  has no list of figures (it had none before this pass either).
+- Floats: body figures and tables moved from [H] to [htbp] with `placeins` barriers at every section (`[section,below]`),
+  so no float leaves its section (checked: 0 figures or tables after the start of the next section). Section 19
+  cards are in-place blocks; the soldier scene graph and gait share a float page; the munitions figure closes its family.
+- Pages scanned at 40 dpi for the largest blank band: no body page is more than 40 % blank (the largest is 38 %;
+  only the last bibliography page and the appendix openers are emptier). Every page was rasterised and looked at.
+- Smallest text: text spans below 7 pt are only sub- and superscripts (indices, exponents, degree signs, daggers).
+  Fixed on the way: workbook matrices now `\textstyle` (were `\scriptstyle` inside `\scriptsize`, 6.2 pt), the
+  particle-diagram legend and the flood-fill cell numbers 7.5 pt (were 7 / 6.5).
+- Overfull boxes: none wider than 3 pt (were up to 64 pt in the new cards: break points after commas and x in the
+  parts tables' patterns and in the placement formula, narrower table columns and panel pairs, tile grids).
+- Workbook appendix trimmed to the 12 sheets the body cites (`gen_wb_appendix.py` reads the `\fullsheet` / `app:wb-`
+  references): 14 instead of 27 landscape pages. Not printed any more: Primitives, Decomposition, Performance (their
+  content is in Tables 6.1, 19.1 and 29.1).
+
+Page count: 106 before this pass (body 1-78, appendix 79-106); 127 after (body 1-109, appendices 110-127:
+requirements coverage, source files, reproduction commands 110-112, workbook sheets 113-127). The body grew by the
+primitive cards (Section 6: 4 -> 9 pages) and above all by the design cards (Section 19: 14 -> 47 pages), which list
+every part kind of all 62 designs.
 
 # Earlier round (v10 follow-up: M1 legibility, M2 consistency, M3 adoptions)
 
