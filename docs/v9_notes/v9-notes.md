@@ -127,3 +127,41 @@ a workbook sheet, a commit.
 - Not done / open: a standing jump into the 0.85 m barrier does not clear it (needs a run-up; 0.72 m apex by design);
   looking straight down in first person shows the soldier's own chest (pre-existing; the body is not hidden);
   `stepFoot`'s snap-down is 0.32 m, so a 0.35 m drop is a short fall (landing dip) rather than a smoothed step.
+
+## M5: UAV game view, rotor blur, flight HUD, duty cycle, day ops (done)
+- **Duty FSM** (`ai/SquadDuty.cpp`, the v7.1 WP-D declarations in `Squad.h` now implemented; the `Scene::uavAirborne` /
+  `uavDutyState` stubs replaced): DOCKED -> TAKE-OFF (stagger 2.5 s, spool-up 2 s, vertical climb <= 1.6 m/s to 4 m)
+  -> PATROL (the squad) -> RETURN (flyTo the hover point 5 m over the pad) -> LANDING (descent clamp(0.5 h, 0.25, 1.4) m/s)
+  -> DOCKED; MANUAL while the player flies (released: PATROL / TAKE-OFF if wanted, else RETURN). Duty wanted = searchlights
+  allowed (sun < -2 deg) or rovers on the field or day ops. A UAV off duty is "away" for the squad like a hand-flown one;
+  its camera renders nothing (`Scene::uavVisionActive`, `App::stepSim`), its searchlight is off, the feed reads DOCKED.
+  Night-start scenes are unchanged (all 303 earlier tests pass unmodified).
+- **Pads** (`objects/UavPad.{h,cpp}`): two flush pads on the bunker roof (probe: > 2 m from every standing part), slab +
+  painted ring + two landing rails under the skids (the gimbal hangs clear) + 4 green lights (steady docked, blinking
+  during take-off / landing). Flush: no obstacle, no occluder.
+- **Rotor blur**: rotor angle = full-speed angle minus the lag accumulated while spooled down (identical at full spool);
+  blur = smoothstep(8..22 rev/s): blade opacity 1 - blur (plain alpha via the new `uBlurDisc` uniform), disc opacity
+  0.32 x blur with sweeping crescents + radial streaks; the translucent pass also runs in the thermal view.
+- **Chase camera** (`scene/UavView.{h,cpp}`, `app/AppUav.cpp`): critically damped springs (exact step) on the follow point
+  (w = 10) and the heading (w = 5), lower-third framing (drone at NDC y = -0.40), bank 0.3 deg per deg/s of turn, pitch tilt
+  1.8 deg per m/s^2, sphere-cast collision (probe 0.25 m + thin 0.08 m) against the static solids / vehicle parts / walk
+  space. FPV nose camera (92 deg, 14 deg up-tilt, rolls with the airframe) and the gimbal camera; `V` cycles
+  (`App::cycleUavView`, also for UAV-2 ridden along). The UAV game HUD replaces the possession panel in those views.
+- **Controls fix**: `D` / Right / mouse-right yawed the UAV and its gimbal LEFT (yaw grows towards +x = the airframe's left);
+  now right, as `ControlInput::turn` documents.
+- **Day ops**: `--day-ops`, `Shift+F2` (`App::setDayOps` / `dayOps` for M2's menu); waves allowed by day, the UAVs
+  scramble; off by day = the wave ends like a dawn. Trace: `FILE.duty.csv` (duty timeline), spawns checked against the
+  scene's rules (`dayRules().wavesAllowed`).
+- Tests T360-T369 (`tests/test_v9_m5.cpp`): full-day FSM, stagger / climb / touch-down, rotor blur, day ops -> confirmed
+  track by day, determinism, lower third + no overshoot, 500-pose collision, bank / tilt, FPV / gimbal / HUD math, manual
+  flight off the pad. 313 tests, 0 failed.
+- Evidence: `m5/captures/` (play_uav_*; capture log with NDC of the drone, arm length), `m5/before/` (96782ee),
+  `m5/exe/` (ThermalSense.exe, uav_night.txt / uav_day.txt: chase, FPV, gimbal, HUD, docked by day, spin-up, day ops),
+  `m5/duty.csv` (full cycle: RETURN 08:01 once the field is clear, docked 09:19, TAKE-OFF 18:01) and `m5/duty_dayops.csv`.
+- Workbook: `tools/wb_v9_m5.py`, sheet 34 "v9 UAV View & Duty" (needs the hook in build_workbook.py).
+- Open: frame times above were measured on the shared GPU; the chase HUD sits on the v5 diagnostic HUD until M2's declutter.
+- Merge with M2 (main): `V` goes through `cyclePersonView()` (UAV: chase -> FPV -> gimbal first, then soldier / vehicle /
+  ride-along); the pause menu's TIME page has a **DAY OPS** button (key `O` in the menu) next to AUTO CYCLE / SPEED, so
+  daytime enemies are a flag (`--day-ops`), a key (`Shift+F2`) and a menu toggle; `Shift+F2` and the menu `O` are in the
+  key map (still 0 conflicts). The flight HUD replaces the debug corner blocks (F3 brings them back) and the `[E]` prompt
+  sits under the heading tape in chase / FPV, clear of the reticle and lock ring. `captures/` were re-shot after the merge.

@@ -259,6 +259,10 @@ void App::cycleUnits(int dir) {
 }
 
 void App::cyclePersonView() {
+    if (int uav = -1; currentUav(uav)) {   // v9 M5: a UAV under control / ridden: chase -> FPV -> gimbal
+        cycleUavView();
+        return;
+    }
     if (controllingSoldier()) {   // first <-> third person
         setViewThirdPerson(camera_.possessSight);
         return;
@@ -267,7 +271,7 @@ void App::cyclePersonView() {
         cycleView();
         return;
     }
-    if (camera_.mode == CameraMode::Possess) {   // vehicle / UAV: chase -> sight -> alt
+    if (camera_.mode == CameraMode::Possess) {   // vehicle: chase -> sight -> alt
         const RigPose from = shownPose_;
         toggleSight();
         beginJump(from);
@@ -417,6 +421,7 @@ void App::menuAction(GuideAction a) {
         case GuideAction::CycleAuto:
             if (clock) clock->toggleAuto();
             break;
+        case GuideAction::DayOps: setDayOps(!dayOps()); break;   // v9 M5: rover waves by day, the UAVs scramble
         case GuideAction::CycleSpeed:
             if (clock) {
                 if (cycleClock_ != clock) {   // first use on this world: remember its own rates
@@ -550,7 +555,8 @@ void App::drawInteractPrompt(int w, int h) {
     // Vehicles / UAVs: above their control panel and ammo / reload bars (drawPossessHud, bottom centre).
     const bool vehiclePanel = camera_.mode == CameraMode::Possess && !controllingSoldier();
     const float x = W * 0.5f - bw * 0.5f;
-    const float y = vehiclePanel ? H - 218.0f * s : overview ? H - 140.0f * s : H * 0.5f + 64.0f * s;
+    // v9 M5 flight HUD (chase / FPV): under the heading tape, clear of the reticle / lock ring that roam the centre.
+    const float y = uavGameView() ? 160.0f * s : vehiclePanel ? H - 218.0f * s : overview ? H - 140.0f * s : H * 0.5f + 64.0f * s;
     hud.roundRect(x, y, bw, bh, 7.0f * s, Rgba{0.0f, 0.0f, 0.0f, 0.62f});
     hud.roundFrame(x, y, bw, bh, 7.0f * s, 1.2f * s, Rgba{1.0f, 1.0f, 1.0f, 0.18f});
     const float cx = x + pad, cy = y + (bh - cap) * 0.5f;
@@ -733,6 +739,7 @@ void App::drawPauseMenu(int w, int h) {
         std::string state;
         switch (b.action) {
             case GuideAction::CycleAuto: on = clock && clock->autoRun(); state = on ? "ON" : "OFF"; break;
+            case GuideAction::DayOps: on = dayOps(); state = on ? "ON" : "OFF"; break;
             case GuideAction::CycleSpeed:
                 std::snprintf(buf, sizeof(buf), "x%g", static_cast<double>(guideSpeedFactor(cycleClock_ == clock ? guideSpeed_ : 0)));
                 state = buf;

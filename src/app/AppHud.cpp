@@ -61,7 +61,7 @@ void App::drawUavFeed(int w, int h) {
     const float s = static_cast<float>(h) / 900.0f;
     const float fw = 320.0f * s, fh = 240.0f * s, x = static_cast<float>(w) - fw - 20.0f * s, y = 20.0f * s;
     hud.rect(x - 4 * s, y - 4 * s, fw + 8 * s, fh + 30 * s, kPanel);
-    hud.heatImage(x, y, fw, fh, renderer_->uavCameraTexture());
+    if (scene_->uavVisionActive(0)) hud.heatImage(x, y, fw, fh, renderer_->uavCameraTexture());   // v9 M5: no stale image while docked
     hud.frame(x, y, fw, fh, kDim);
     hud.line(x + fw / 2 - 10 * s, y + fh / 2, x + fw / 2 + 10 * s, y + fh / 2, kDim);
     hud.line(x + fw / 2, y + fh / 2 - 10 * s, x + fw / 2, y + fh / 2 + 10 * s, kDim);
@@ -73,6 +73,11 @@ void App::drawUavFeed(int w, int h) {
                   px(detection_.boxMaxU) - px(detection_.boxMinU) + 2 * pad,
                   py(detection_.boxMinV) - py(detection_.boxMaxV) + 2 * pad, kRed);
         hud.line(x + fw / 2, y + fh / 2, px(detection_.u), py(detection_.v), Rgba{1.0f, 0.3f, 0.2f, 0.6f});
+    }
+    if (!scene_->uavVisionActive(0)) {   // v9 M5: docked / taking off / landing: no picture from the camera
+        hud.rect(x, y, fw, fh, Rgba{0.02f, 0.03f, 0.04f, 0.92f});
+        const std::string title = uavFeedTitle(0, scene_->uavDutyState(0), scene_->uavAirborne(0));
+        hud.text(x + fw / 2 - hud.textWidth(title, 14 * s) / 2, y + fh / 2 - 9 * s, title, 14 * s, kDim);
     }
     char line[96];
     std::snprintf(line, sizeof(line), "UAV IR CAM %dx%d  %s  BLOBS %d", kCvWidth, kCvHeight,
@@ -659,14 +664,15 @@ void drawUavTags(Hud& hud, const Scene& sc, const CameraView& cam, int w, int h)
     for (int i = 0; i < Squad::kCount; ++i) {
         const DroneState& d = sc.droneState(i);
         const MarkerProjection m = projectMarker(vp, cam.position, d.position + Vec3{0, 0.45f, 0}, w, h);
-        if (!m.front || m.dist < 1.5f) continue;
+        if (!m.front || m.dist < 1.5f || (d.manual && m.dist < 6.0f)) continue;   // v9 M5: not over the chased drone
         const SquadRole role = sq.roles[i];
         const Rgba c = roleColor(role);
         const bool engaged = (role == SquadRole::Lead || role == SquadRole::Wing) && target;
         if (engaged && tm.front && (m.onScreen || tm.onScreen)) hud.line(m.x, m.y, tm.x, tm.y, withAlpha(c, 0.55f));
         if (!m.onScreen) continue;
         char buf[32];
-        std::snprintf(buf, sizeof(buf), "UAV-%d %s", i + 1, squadRoleName(role));
+        const char* duty = sc.uavDutyState(i);   // v9 M5: off patrol the duty state (DOCKED, TAKE-OFF, ...) is the tag
+        std::snprintf(buf, sizeof(buf), "UAV-%d %s", i + 1, std::strcmp(duty, "PATROL") == 0 ? squadRoleName(role) : duty);
         const float px = clampf(14.0f * s * (14.0f / std::max(m.dist, 14.0f)) * 1.0f + 6.0f * s, 11.0f * s, 15.0f * s);
         float ty = m.y - 30.0f * s;
         if (m.onScreen && std::fabs(m.x - prevX) < 130.0f * s && std::fabs(ty - prevY) < px * 1.4f) ty -= px * 1.5f;  // keep two close tags apart
@@ -1099,6 +1105,7 @@ void App::drawHud(const CameraView& cam, int w, int h) {
     }
     if (gameMode_) {  // v7 F11: game HUD only (no diagnostics)
         drawGameModeHud(cam, w, h);
+        if (uavGameView()) drawUavGameHud(cam, w, h);   // v9 M5
         drawPlayHud(cam, w, h);   // v8: selection / control prompts, third-person crosshair
         drawInteractPrompt(w, h);   // v9 M2
         if (paused_ && !menuOpen_) hud.text(w * 0.5f - 40 * h / 900.0f, 160.0f * h / 900.0f, "PAUSED", 20 * h / 900.0f, kAmber);
@@ -1201,11 +1208,12 @@ void App::drawHud(const CameraView& cam, int w, int h) {
             hud.line(gx, gy + gh - gh * ref / 50.0f, gx + kFrameHistory * bw, gy + gh - gh * ref / 50.0f,
                      Rgba{1.0f, 1.0f, 1.0f, 0.3f});
     }
-    } else if (!controllingSoldier()) {   // v9 M2 game HUD: one dim hint where the debug block was
+    } else if (!controllingSoldier() && !uavGameView()) {   // v9 M2 game HUD: one dim hint where the debug block was
         hud.text(22 * s, H - 26 * s, "ESC MENU   F1 HELP   F3 DEBUG HUD   TAB NEXT UNIT   E USE", 12 * s, kDim);
     }
     // v9 M2: a soldier under control gets the game HUD (crosshair, stance / rifle); the possession panel is debug.
-    if (camera_.mode == CameraMode::Possess && controllingSoldier() && !debugHud_) drawSoldierHud(w, h);
+    if (uavGameView()) drawUavGameHud(cam, w, h);   // v9 M5: UAV chase / FPV flight HUD
+    else if (camera_.mode == CameraMode::Possess && controllingSoldier() && !debugHud_) drawSoldierHud(w, h);
     else if (camera_.mode == CameraMode::Possess) drawPossessHud(cam, w, h);
     else drawPovPanel(w, h, H - 196 * s);   // v7: riding along / driving a rover / free fly camera
     if (alert_ > 0.02f) drawAlertVignette(w, h, alert_);

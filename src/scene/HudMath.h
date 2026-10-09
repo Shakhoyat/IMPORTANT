@@ -136,8 +136,8 @@ enum class GuideAction {
     None = 0,
     // TRAVEL (keys 1-9)
     RideUav1, RideUav2, SoldierFirst, SoldierThird, PickPov, FreeCam, Tank, Helicopter, Rover,
-    // TIME (Q W E R presets, the slider, T auto / manual, Y cycle speed; Left / Right nudge the slider)
-    Dawn, Noon, Dusk, Midnight, TimeSlider, CycleAuto, CycleSpeed,
+    // TIME (Q W E R presets, the slider, T auto / manual, Y cycle speed, O day ops (v9 M5); Left / Right nudge the slider)
+    Dawn, Noon, Dusk, Midnight, TimeSlider, CycleAuto, CycleSpeed, DayOps,
     // VIEW (A S D F H U)
     PersonToggle, RenderMode, FrameExplorer, Thermal, HudToggle, Feeds,
     Close,

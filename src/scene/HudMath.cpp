@@ -438,6 +438,7 @@ const char* guideActionName(GuideAction a) {
         case GuideAction::TimeSlider: return "TIME_SLIDER";
         case GuideAction::CycleAuto: return "CYCLE_AUTO";
         case GuideAction::CycleSpeed: return "CYCLE_SPEED";
+        case GuideAction::DayOps: return "DAY_OPS";
         case GuideAction::PersonToggle: return "PERSON_TOGGLE";
         case GuideAction::RenderMode: return "RENDER_MODE";
         case GuideAction::FrameExplorer: return "FRAME_EXPLORER";
@@ -457,6 +458,7 @@ const GuideKey kGuideKeys[] = {
     {GuideAction::Tank, "7", '7'},          {GuideAction::Helicopter, "8", '8'},   {GuideAction::Rover, "9", '9'},
     {GuideAction::Dawn, "Q", 'Q'},          {GuideAction::Noon, "W", 'W'},         {GuideAction::Dusk, "E", 'E'},
     {GuideAction::Midnight, "R", 'R'},      {GuideAction::CycleAuto, "T", 'T'},    {GuideAction::CycleSpeed, "Y", 'Y'},
+    {GuideAction::DayOps, "O", 'O'},
     {GuideAction::PersonToggle, "A", 'A'},  {GuideAction::RenderMode, "S", 'S'},   {GuideAction::FrameExplorer, "D", 'D'},
     {GuideAction::Thermal, "F", 'F'},       {GuideAction::HudToggle, "H", 'H'},    {GuideAction::Feeds, "U", 'U'},
     {GuideAction::Close, "G", 'G'},
@@ -535,8 +537,10 @@ GuideLayout guideLayout(int w, int h) {
     const float bw = (476.0f - 3.0f * 8.0f) / 4.0f;
     for (int i = 0; i < 4; ++i)
         add(presets[i].a, GuideSection::Time, R(760 + static_cast<float>(i) * (bw + 8), 234, bw, 46), presets[i].label, presets[i].sub);
-    add(GuideAction::CycleAuto, GuideSection::Time, R(760, 290, 234, 42), "AUTO CYCLE");
-    add(GuideAction::CycleSpeed, GuideSection::Time, R(1002, 290, 234, 42), "SPEED");
+    const float tw = (476.0f - 2.0f * 8.0f) / 3.0f;   // auto / speed / day ops (v9 M5: daytime enemies)
+    add(GuideAction::CycleAuto, GuideSection::Time, R(760, 290, tw, 42), "AUTO CYCLE");
+    add(GuideAction::CycleSpeed, GuideSection::Time, R(760 + tw + 8, 290, tw, 42), "SPEED");
+    add(GuideAction::DayOps, GuideSection::Time, R(760 + 2 * (tw + 8), 290, tw, 42), "DAY OPS");
     // VIEW: 2 x 3 buttons.
     l.viewBox = R(760, 358, 476, 174);
     const T view[6] = {{GuideAction::PersonToggle, "1ST / 3RD PERSON", ""}, {GuideAction::RenderMode, "RENDER", ""},

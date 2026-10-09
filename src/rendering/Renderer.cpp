@@ -483,8 +483,9 @@ void Renderer::drawSolids(const Scene& scene, const CameraView& cam, int w, int 
 
 void Renderer::drawTranslucent(const Scene& scene, const CameraView& cam, int w, int h, const RenderSettings& s,
                                FrameStats& st) {
-    // Rotor blur discs: blended over the opaque scene, depth-tested but not written; visible light only.
-    if (s.view != ViewMode::Visible || !s.isolate.empty() || s.hideUav) return;
+    // Rotor blur discs (and v9 M5: blades fading out as a rotor spins up): blended over the opaque scene, depth-tested
+    // but not written; visible light and (v9 M5) the thermal view, so a spinning rotor looks the same in both.
+    if ((s.view != ViewMode::Visible && s.view != ViewMode::Thermal) || !s.isolate.empty() || s.hideUav) return;
     const Frustum frustum(cam.proj * cam.view);
     Shader* bound = nullptr;
     glEnable(GL_BLEND);
@@ -500,6 +501,7 @@ void Renderer::drawTranslucent(const Scene& scene, const CameraView& cam, int w,
             bound = &sh;
         }
         setObjectUniforms(sh, *n, n->world, s);
+        sh.set("uBlurDisc", n->name == "Rotor blur disc" ? 1.0f : 0.0f);
         const Mesh& mesh = *meshes_.at(n->primitive);
         mesh.bind(s.indexed);
         mesh.draw(s.indexed);

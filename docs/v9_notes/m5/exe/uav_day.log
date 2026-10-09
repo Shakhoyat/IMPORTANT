@@ -1,0 +1,22 @@
+Run seed 1 (repeat with --seed 1)
+OpenGL 4.6.0 NVIDIA 591.86 | NVIDIA Corporation | NVIDIA GeForce RTX 4070/PCIe/SSE2
+Quality preset: EPIC
+Frame pacing: 100 fps limiter, simulation 60 Hz fixed tick with render interpolation
+Input script C:\Users\User\AppData\Local\Temp\ts_m5\uav_day.txt: 34 events, frames to C:\Users\User\AppData\Local\Temp\ts_m5\uav_day
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m5\uav_day/d0_docked_chase.png | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 0.99 -4.80
+script log docked | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 0.99 -4.80 | 64.7 fps, ms/frame: sim 1.14 render 9.70 vision 0.01 swap 2.99 wait 1.25 (238 frames, 153 ticks, 1684 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m5\uav_day/d1_spinup.png | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 0.99 -4.80
+script log spinup | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 0.99 -4.80 | 95.6 fps, ms/frame: sim 1.25 render 3.79 vision 0.02 swap 0.34 wait 5.02 (133 frames, 84 ticks, 1754 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m5\uav_day/d2_liftoff.png | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 7.38 -4.80
+script log liftoff | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 7.38 -4.80 | 97.2 fps, ms/frame: sim 2.08 render 3.51 vision 0.05 swap 0.36 wait 4.22 (243 frames, 150 ticks, 1755 parts blended)
+script log released | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 15.77 16.48 25.35 | 100.1 fps, ms/frame: sim 1.86 render 3.19 vision 0.04 swap 0.36 wait 4.64 (344 frames, 210 ticks, 1793 parts blended)
+script log returning | 10:30 DAY MANUAL cam ORBIT ctl - sel 0 eye 16.05 16.24 25.69 | 98.4 fps, ms/frame: sim 1.12 render 3.94 vision 0.01 swap 4.10 wait 0.90 (296 frames, 180 ticks, 1795 parts blended)
+script log relanded | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye 15.98 16.27 25.57 | 95.2 fps, ms/frame: sim 1.15 render 3.87 vision 0.01 swap 5.38 wait 0.01 (1523 frames, 960 ticks, 1728 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m5\uav_day/d3_relanded.png | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 0.99 -4.80
+Day ops ON: rover waves by day too, the UAVs scramble
+script log dayops_on | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 0.99 -4.80 | 95.6 fps, ms/frame: sim 1.46 render 3.89 vision 0.02 swap 0.75 wait 4.27 (144 frames, 90 ticks, 1778 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m5\uav_day/d4_dayops_scramble.png | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 1.79 -4.78
+script log dayops_flying | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 10.69 17.72 | 99.4 fps, ms/frame: sim 2.36 render 3.01 vision 0.04 swap 0.35 wait 4.24 (944 frames, 570 ticks, 1945 parts blended)
+script shot wrote C:\Users\User\AppData\Local\Temp\ts_m5\uav_day/d5_dayops_hud.png | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 10.69 18.67
+script log dayops_hud | 10:30 DAY MANUAL cam CONTROL ctl UAV-1 DRONE sel 0 eye -2.00 10.69 18.67 | 96.2 fps, ms/frame: sim 3.76 render 2.44 vision 0.09 swap 0.42 wait 3.54 (679 frames, 420 ticks, 1897 parts blended)
+script: quit at 48.51 s

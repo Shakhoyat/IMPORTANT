@@ -19,6 +19,7 @@
 #include "scene/SceneApi.h"
 #include "scene/TickInterp.h"
 #include "scene/Scene.h"
+#include "scene/UavView.h"
 #include "vision/SensorModel.h"
 #include "vision/ThermalTracker.h"
 #include "vision/VisionWorker.h"
@@ -56,6 +57,7 @@ struct AppOptions {
     float fpsLimit = -1.0f;   // --fps-limit N: interactive frame limiter (-1 = display refresh, 0 = uncapped)
     // v9 M2
     std::string iniPath;      // player settings file (interactive; main.cpp: ThermalSense.ini next to the exe, --ini FILE)
+    bool dayOps = false;      // v9 M5 --day-ops: rover waves by day too, the UAVs scramble
 };
 
 class App {
@@ -80,6 +82,12 @@ public:
     bool controllingSoldier() const;                    // a possessed soldier (open-world movement, jump, aim)
     uint32_t selectedKey() const { return selKey_; }    // PovSource::key of the selection (0 = none)
     void selectKey(uint32_t key) { selKey_ = key; }     // select programmatically (captures, tests)
+
+    // --- v9 M5 UAV game view and duty (AppUav.cpp) ---
+    void cycleUavView();                                 // V while controlling / riding a UAV: chase -> FPV -> gimbal
+    UavView uavView() const;                             // view of the UAV under control / ridden (CHASE when none)
+    void setDayOps(bool on);                             // daytime enemies (Shift+F2; M2's pause menu)
+    bool dayOps() const { return opt_.dayOps; }
 
 private:
     // Possession / control (Interactive.cpp, App.cpp).
@@ -333,6 +341,23 @@ private:
     double pressX_ = 0.0, pressY_ = 0.0;        // left button press position (a click selects, a drag orbits)
     bool pressValid_ = false;
     bool playCapture_ = false;                  // a play_* capture drives the v8 player camera (captures only)
+
+    // --- v9 M5 (AppUav.cpp) ---
+    bool currentUav(int& uav) const;            // a UAV is possessed (UAV-1) or ridden along with (its index)
+    bool uavGameView() const;                   // its chase or FPV view is on screen (not the gimbal / belly cameras)
+    void updateUavView(float dt);               // advance the chase camera springs (updateGameCamera)
+    RigPose uavGamePose();                      // targetPose of the UAV game views
+    RigPose computeUavPose(int uav, float dt);
+    void drawUavGameHud(const CameraView& cam, int w, int h);   // heading tape, pitch ladder, tapes, reticle, lock, rounds
+    int captureUav();                           // --capture DIR --only play_uav_*: v9 M5 figures
+    UavChaseCam uavChase_;
+    UavChaseParams uavChaseParams_;
+    bool uavFpv_ = false;                       // the UAV game view is the FPV nose camera (else the chase camera)
+    int uavViewKey_ = -1;                       // UAV the view state belongs to (-1 none)
+    RigPose uavPose_;
+    bool uavPoseValid_ = false;
+    bool gimbalSwitchedView_ = false;           // cycleUavView switched to the thermal view for the gimbal
+    ViewMode viewBeforeGimbal_ = ViewMode::Visible;
 
     // --- v9 M0: scripted input (scene/InputScript.h) and the fixed-shot benchmark (BenchShots.cpp) ---
     bool keyDown(int key) const;                // GLFW key held, or held by the input script

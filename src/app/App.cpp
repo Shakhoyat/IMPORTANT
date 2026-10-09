@@ -204,6 +204,8 @@ int App::run() {
     if (!initWindow(visible)) return 1;
     // v7 (WP-G): an --only list of game_* shots renders the POV / game-mode figures (AppGame.cpp).
     if (opt_.mode == AppOptions::Mode::Capture && opt_.only.find(",game_") != std::string::npos) return captureGame();
+    // v9 M5: play_uav_* shots (AppUav.cpp)
+    if (opt_.mode == AppOptions::Mode::Capture && opt_.only.find(",play_uav") != std::string::npos) return captureUav();
     if (opt_.mode == AppOptions::Mode::Capture && opt_.only.find(",play_") != std::string::npos) return capturePlay();
     if (opt_.mode == AppOptions::Mode::Capture) return captureMode();
     if (opt_.mode == AppOptions::Mode::Benchmark) return benchmarkMode();
@@ -235,6 +237,7 @@ std::unique_ptr<Scene> App::makeScene(bool nightStart) const {
     o.garrison = opt_.garrison;
     o.residents = opt_.garrison ? Garrison::kMaxResidents : 0;   // v8: the barracks hall is lived in
     o.randomRoutes = opt_.seed != 0;  // --seed 0 = the legacy v5 run (fixed seeds, legacy routes, ideal sensor)
+    o.dayOps = opt_.dayOps;           // v9 M5 --day-ops / Shift+F2
     auto scene = std::make_unique<Scene>(o);
     if (opt_.cycleSeconds > 0.0f) {
         if (DayCycle* clock = sa::dayCycle(*scene)) {
@@ -392,6 +395,12 @@ void App::stepSim(float dt) {
     pendingVision_ = PendingVision{};
     pendingVision_.active = true;
     for (int u = 0; u < kUavCount; ++u) {
+        // v9 M5: a docked (taking off, landing) UAV's camera delivers nothing: no image, no measurement, no blobs.
+        if (!scene_->uavVisionActive(u)) {
+            uavBlobs_[u].clear();
+            if (u == 0) detection_ = Detection{};
+            continue;
+        }
         if (paused_) {
             renderer_->beginUavCamera(*scene_, cvStats_, u, nullptr, u);
             pendingVision_.rendered[u] = true;

@@ -1,0 +1,32 @@
+# M5: fly UAV-1 at night (--time 23:00): chase camera, V -> FPV -> gimbal -> chase, HUD, release
+3.0   key 0 tap
+3.6   log possessed_uav1
+3.6   shot n0_chase_hover
+4.0   key PAGE_UP down
+5.0   key PAGE_UP up
+5.0   key W down
+7.0   key D down
+8.2   shot n1_chase_right_turn
+8.2   log right_turn
+8.4   key D up
+9.6   shot n2_chase_steady
+9.7   key W up
+10.5  key V tap
+11.6  shot n3_fpv
+11.6  log fpv
+12.0  key W down
+13.2  shot n4_fpv_moving
+13.3  key W up
+14.0  key V tap
+15.0  shot n5_gimbal_thermal
+15.0  log gimbal
+15.5  key V tap
+16.0  key A down
+17.0  key A up
+17.0  key W down
+19.0  key W up
+20.5  shot n6_chase_hud
+20.5  log chase_hud
+21.0  key BACKSPACE tap
+22.0  log released
+22.2  quit

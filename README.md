@@ -170,12 +170,13 @@ installs everything on a fresh Ubuntu box, builds and runs a smoke test.
 | `--fps-limit N` | interactive frame limiter (default: display refresh; 0 = uncapped) |
 | `--ini FILE\|none` | v9 M2: the settings file (default `ThermalSense.ini` next to the exe) |
 | `--export-keys FILE` | v9 M2: the key / mouse binding table as JSON (contexts, old binding, conflict check) |
-| `--trace FILE [SECONDS]` | log UAV / rover behaviour (also writes `FILE.events.csv` and a `rules:` check line) |
+| `--trace FILE [SECONDS]` | log UAV / rover behaviour (also writes `FILE.events.csv`, v9 M5 `FILE.duty.csv` = UAV duty timeline, and a `rules:` check line) |
 | `--export-docs FILE` | GPU-free export of every part, matrix and mesh (JSON for the workbook) |
 | `--seed N` | v6 run seed: rover routes, patrols, sensor noise (default: random and printed when interactive, 1 for offline modes; 0 = the fixed v5 run with an ideal sensor) |
 | `--time day\|night\|dusk\|dawn\|cycle\|HH:MM` | v6 time of day (default: automatic cycle from 16:30 interactive, night 23:00 for offline modes) |
 | `--cycle-seconds N` | length of one automatic day + night cycle |
 | `--no-garrison` | no soldiers |
+| `--day-ops` | v9 M5: daytime enemies - rover waves by day too, the docked UAVs scramble (in game: `Shift+F2`) |
 | `--help` | list all options |
 
 Environment variables: `TS_RT_CPU=1` forces the CPU ray tracer (otherwise used only without GL 4.3 compute);
@@ -314,6 +315,7 @@ withdrawals only at dawn, every kill from a vision-designated round (`docs/v7_no
 | Key (v6) | Action |
 |----------|--------|
 | `F2` | day / night cycle: automatic <-> manual clock |
+| `Shift+F2` | v9 M5: day ops on / off (rover waves by day, the UAVs scramble; off by day = the wave ends like a dawn) |
 | `,` `.` (held) | manual clock: scrub the time of day back / forward (2 h/s; a press stops the automatic cycle) |
 | `/` | jump to the next phase (dawn, day, dusk, night) |
 | `Tab` | take control of the next unit, soldiers first (v6 used `F3` = next soldier; since v9 M2 `F3` is the HUD level) |
@@ -440,6 +442,27 @@ Scripted figures of the new paths (off-screen, like the other captures):
 | mouse, left / right button (soldier) | look / fire / aim (first person: iron-sight zoom; third person: over-the-shoulder zoom) |
 | `Esc` | release control → clear selection → pause menu (v8: quit) |
 | `P`, `Pause` | pause (v8: `Space` paused when you were not a soldier; since v9 M2 `Space` only jumps) |
+
+### v9 M5: the UAV as a game
+
+By day both UAVs sit **docked** on their pads over the bunker (rotors still, no camera image; the IR feed reads
+`UAV-1 DOCKED // DAY SHIFT`). At dusk they spool up and take off one after the other, patrol through the night and at dawn,
+once the last rover has left, fly back, hover over the pad and land (duty `DOCKED -> TAKE-OFF -> PATROL -> RETURN ->
+LANDING`, `MANUAL` while you fly; `Scene::uavDutyState`). `--day-ops` / `Shift+F2` brings rover waves by day and scrambles them.
+
+| Key (v9 M5) | Action |
+|-----|--------|
+| `0` | take control of UAV-1 (also from its pad: the rotors spool up for 2 s, then `PgUp` lifts off) |
+| `V` (UAV controlled / ridden) | view: **chase** (spring-arm camera, drone on the lower third, banks into turns) -> **FPV** (nose camera) -> **gimbal** (thermal tracker camera) |
+| `W` `S` / `A` `D` / `PgUp` `PgDn` | fly forward / back, yaw left / right (D = right), climb / descend |
+| arrows, `Enter`, `\` | gimbal, launch a round at the reticle (the gimbal's aim point), gimbal assist |
+| `Backspace` | release: back to patrol at night, or return and land on the pad by day |
+| `Shift+F2` | day ops on / off |
+
+Flight HUD (chase / FPV): heading tape, pitch ladder (true horizon of the view), altitude AGL and ground-speed tapes, flight-path
+marker, reticle on the gimbal aim point, lock ring on the squad's target (progress = lock time), rounds on the rails; the IR
+picture-in-picture stays. Spinning rotors fade from blades to translucent blur discs with the rotor speed (visible and thermal).
+Captures: `ThermalSense --headless --capture DIR --only play_uav_docked_day,play_uav_rotor_still,play_uav_rotor_spinup,play_uav_rotor_blur,play_uav_dayops_chase,play_uav_chase,play_uav_chase_steady,play_uav_fpv,play_uav_gimbal,play_uav_hud`.
 
 ## Quality presets
 
