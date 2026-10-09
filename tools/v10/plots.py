@@ -21,7 +21,7 @@ plt.rcParams.update({
     "font.family": "serif", "font.serif": ["Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
     "mathtext.fontset": "stix", "font.size": 9, "axes.titlesize": 9, "axes.labelsize": 9, "legend.fontsize": 8,
     "xtick.labelsize": 8, "ytick.labelsize": 8, "axes.grid": True, "grid.alpha": 0.3, "lines.linewidth": 1.4,
-    "figure.dpi": 150, "savefig.bbox": "tight", "axes.spines.top": False, "axes.spines.right": False,
+    "figure.dpi": 150, "savefig.bbox": "tight", "figure.constrained_layout.use": True, "axes.spines.top": False, "axes.spines.right": False,
 })
 C = ["#1f4e79", "#c0504d", "#4f8a3a", "#d08c1a", "#7a4f9a", "#3a8a8a"]
 
@@ -72,7 +72,7 @@ def plot_day():
     e = elevation(h)
     sun_key = SUN_I * smoothstep(-1.0, 10.0, e)
     moon_key = MOON_I * (1.0 - smoothstep(-6.0, -1.0, e))
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.5))
+    fig, ax = plt.subplots(1, 2, figsize=(7.0, 3.0))
     a = ax[0]
     a.plot(h, e, color=C[0], label="sun elevation $e$")
     a.axhline(4, color="0.5", ls=":", lw=0.8)
@@ -84,12 +84,12 @@ def plot_day():
     a.set_xticks(range(0, 25, 3))
     a.set_xlabel("in-game hour")
     a.set_ylabel("degrees")
-    a.legend(loc="lower center", ncol=1, frameon=False)
-    a.set_title("(a) solar elevation, latitude $22.8^\\circ$, $\\delta=-4.6^\\circ$")
+    a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, frameon=False)
+    a.set_title("(a) sun elevation")
     sr, ss = h[np.argmax(e > 0)], h[len(h) - 1 - np.argmax(e[::-1] > 0)]
-    a.annotate(f"sunrise {int(sr)}:{int(round((sr % 1) * 60)):02d}", (sr, 0), (sr - 5.5, 30), fontsize=7,
+    a.annotate(f"sunrise {int(sr)}:{int(round((sr % 1) * 60)):02d}", (sr, 0), (sr - 5.5, 30), fontsize=8,
                arrowprops=dict(arrowstyle="->", lw=0.6))
-    a.annotate(f"sunset {int(ss)}:{int(round((ss % 1) * 60)):02d}", (ss, 0), (ss - 1.5, 45), fontsize=7,
+    a.annotate(f"sunset {int(ss)}:{int(round((ss % 1) * 60)):02d}", (ss, 0), (ss - 1.5, 45), fontsize=8,
                arrowprops=dict(arrowstyle="->", lw=0.6))
     b = ax[1]
     tr = transmittance(e)
@@ -100,8 +100,8 @@ def plot_day():
     b.set_xticks(range(0, 25, 3))
     b.set_xlabel("in-game hour")
     b.set_ylabel("key-light intensity")
-    b.legend(frameon=False, loc="upper left", fontsize=7)
-    b.set_title("(b) key light per channel: blue is lost first near the horizon")
+    b.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, fontsize=8)
+    b.set_title("(b) key light per channel")
     save(fig, "p_day_cycle")
 
     # time scale: hours per real second (DayCycle::hoursPerSecond), the real length of one day
@@ -115,7 +115,7 @@ def plot_depth():
     # math/Math3D.cpp perspective(): z_ndc = (f+n)/(f-n) + 2fn/((f-n) z_eye), z_eye < 0; window depth = (z_ndc+1)/2
     f = 600.0
     d = np.logspace(np.log10(0.05), np.log10(600), 600)
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.4))
+    fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.6))
     for n, col in [(0.05, C[0]), (0.5, C[1])]:
         dd = d[d >= n]
         zndc = (f + n) / (f - n) - 2 * f * n / ((f - n) * dd)
@@ -125,14 +125,14 @@ def plot_depth():
         ax[1].loglog(dd, (1 / 2 ** 24) / dw, color=col, label=f"near = {n} m")
     ax[0].set_xlabel("distance from the eye (m)")
     ax[0].set_ylabel("window depth $z_w \\in [0,1]$")
-    ax[0].set_title("(a) $z_w$ is hyperbolic in distance (far = 600 m)")
-    ax[0].legend(frameon=False)
+    ax[0].set_title("(a) window depth $z_w$")
+    ax[0].legend(frameon=False, loc="lower right")
     ax[1].axhline(0.01, color="0.5", ls=":", lw=0.8)
-    ax[1].text(0.06, 0.012, "1 cm", fontsize=7, color="0.4")
+    ax[1].text(0.06, 0.012, "1 cm", fontsize=8, color="0.4")
     ax[1].set_xlabel("distance from the eye (m)")
-    ax[1].set_ylabel("smallest depth step (m), 24-bit")
-    ax[1].set_title("(b) depth resolution: z-fighting grows as $d^2/n$")
-    ax[1].legend(frameon=False)
+    ax[1].set_ylabel("depth step (m)")
+    ax[1].set_title("(b) smallest depth step")
+    ax[1].legend(frameon=False, loc="lower right")
     save(fig, "p_depth_precision")
 
 
@@ -145,7 +145,7 @@ def plot_specular():
     ax.set_ylabel("$(N\\cdot H)^n$")
     ax.set_xlim(0, 90)
     ax.legend(frameon=False)
-    ax.set_title("Blinn-Phong lobe for the scene's shininess values")
+    ax.set_title("Blinn-Phong lobe")
     save(fig, "p_specular_falloff")
 
 
@@ -168,7 +168,7 @@ def plot_gouraud_phong():
     ax.fill_between(x, gour, ph, color=C[1], alpha=0.12, lw=0)
     ax.set_xlabel("position along the edge A $\\rightarrow$ B")
     ax.set_ylabel("intensity")
-    ax.legend(frameon=False, loc="lower center")
+    ax.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.3), ncol=1)
     ax.set_title("Gouraud misses a highlight between vertices")
     save(fig, "p_gouraud_vs_phong")
 
@@ -182,7 +182,7 @@ def plot_gaussian(sigma=1.0, size=5):
     fig = plt.figure(figsize=(3.4, 2.6))
     ax = fig.add_subplot(111, projection="3d")
     ax.bar3d(X.ravel() - 0.4, Y.ravel() - 0.4, np.zeros(K.size), 0.8, 0.8, K.ravel(), color=C[0], alpha=0.85, shade=True)
-    ax.set_title(f"{size}x{size} Gaussian, $\\sigma$ = {sigma:g} (sum = 1)")
+    ax.set_title(f"{size}x{size} Gaussian, $\\sigma$ = {sigma:g}")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_zlabel("weight")
@@ -195,7 +195,7 @@ def plot_gaussian(sigma=1.0, size=5):
     ax.set_xlabel("kernel width $k$")
     ax.set_ylabel("multiply-adds per pixel")
     ax.legend(frameon=False)
-    ax.set_title("Separable Gaussian: $O(k)$ instead of $O(k^2)$")
+    ax.set_title("Cost of a $k\\times k$ blur")
     save(fig, "p_separable_cost")
 
 
@@ -210,10 +210,10 @@ def plot_tessellation():
     for sl in (8, 16, 36, 72):
         t = 2 * sl * (sl // 2 - 1)
         e = (1 - np.cos(np.pi / sl)) * 100
-        ax.annotate(f"{sl} slices" + (" (scene)" if sl == 36 else ""), (t, e), (t * 1.3, e * 1.3), fontsize=7)
+        ax.annotate(f"{sl} slices" + (" (scene)" if sl == 36 else ""), (t, e), (t * 1.3, e * 1.3), fontsize=8)
     ax.set_xlabel("triangles per sphere")
     ax.set_ylabel("max. silhouette error (% of radius)")
-    ax.set_title("Sphere tessellation: error $\\propto$ 1/triangles")
+    ax.set_title("Sphere tessellation")
     save(fig, "p_tessellation")
 
 
@@ -229,13 +229,14 @@ def plot_histogram(png):
     c2 = np.cumsum(h2) / eq.size
     Image.fromarray(eq).save(os.path.join(OUT, "thermal_equalised.png"))
     fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.2))
-    for a, hh, cc, t in [(ax[0], hist, cdf, "(a) raw sensor frame"), (ax[1], h2, c2, "(b) after equalisation")]:
+    for a, hh, cc, t, loc in [(ax[0], hist, cdf, "(a) raw sensor frame", "center right"),
+                              (ax[1], h2, c2, "(b) after equalisation", "upper left")]:
         a.bar(np.arange(256), hh / hh.max(), width=1.0, color=C[0], lw=0)
         a.plot(np.arange(256), cc, color=C[1], label="CDF")
         a.set_xlim(0, 255)
         a.set_xlabel("grey level")
         a.set_title(t)
-        a.legend(frameon=False, loc="center right")
+        a.legend(frameon=False, loc=loc)
     ax[0].set_ylabel("count (normalised) / CDF")
     save(fig, "p_thermal_histogram")
 
@@ -252,10 +253,10 @@ def plot_bench(csv_path):
     ax.barh(y, ms, color=C[0], label="mean frame time")
     ax.scatter(p95, y, color=C[1], marker="|", s=80, label="95th percentile", zorder=3)
     ax.set_yticks(y)
-    ax.set_yticklabels(names, fontsize=7)
+    ax.set_yticklabels(names, fontsize=8)
     ax.invert_yaxis()
     ax.axvline(1000 / 60, color="0.4", ls=":", lw=0.8)
-    ax.text(1000 / 60, -0.8, " 60 fps", fontsize=7, color="0.4")
+    ax.text(1000 / 60, -0.8, " 60 fps", fontsize=8, color="0.4")
     ax.set_xlabel("ms per frame (1920x1080, EPIC, RTX 4070)")
     ax.legend(frameon=False, loc="lower right")
     save(fig, "p_benchmark")

@@ -23,8 +23,9 @@ docked; night = 23:00 with intruder waves, both UAVs flying and searchlights on.
 \input{sections/gen_bench_text}
 
 \begin{figure}[H]
-\centering\wb{Performance}{0.9\linewidth}
-\caption{Workbook sheet \code{Performance}: the same CSV imported, with a chart.}
+\centering\wbblock{Performance}{bench}\\[1mm]
+{\footnotesize\wbkey}
+\caption{Workbook sheet \code{Performance}: the same CSV imported, with a chart. \fullsheet{Performance}}
 \end{figure}
 \textbf{Per-pass costs from v9 (RTX\,4070, 1080p EPIC).} GTAO 0.53--1.71\,ms (replaced SSAO, 0.39--0.59\,ms); contact
 shadows 0.10--0.17\,ms; PCSS added 1.0--1.9\,ms to the day scene pass; vegetation 1.7--2.7\,ms in gameplay views but 6.6\,ms

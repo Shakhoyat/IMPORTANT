@@ -5,11 +5,10 @@
 The sun follows a solar-position model for the camp's latitude (Khulna, $\varphi=22.8^\circ$, early October,
 declination $\delta=-4.6^\circ$). It rises in the east, crosses the southern sky and sets in the west. Every lighting
 parameter is a function of its elevation $e$.
-\begin{equation}
-\sin e=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos H,\quad H=15^\circ(\text{hour}-12);\qquad
-T_c(e)=\exp\!\big(-\tau_c\,(m(e)-1)\big),\ \tau=(0.06,0.11,0.21)
-\label{eq:sun}
-\end{equation}
+\begin{gather}
+\sin e=\sin\varphi\sin\delta+\cos\varphi\cos\delta\cos H,\quad H=15^\circ(\text{hour}-12)\label{eq:sun}\\
+T_c(e)=\exp\!\big(-\tau_c\,(m(e)-1)\big),\quad \tau=(0.06,\,0.11,\,0.21)\nonumber
+\end{gather}
 with the Kasten--Young air mass \cite{kasten1989} $m(e)=1/\big(\sin e+0.50572\,(e+6.07995^\circ)^{-1.6364}\big)$. The sun's key light is
 $3.2\,s(e)\,T(e)$ with $s$ a smoothstep from $-1^\circ$ to $10^\circ$; blue has the largest optical depth, so it is
 removed first near the horizon and the light turns orange.

@@ -47,21 +47,25 @@ $T$, $R$, $S$ and parent (Figure~\ref{fig:wb-decomp}). Table~\ref{tab:objs} give
 \catalogue{MLRS rocket truck.}{\raw{scene/iso_mlrs}{\linewidth}}{}{\decompMlrsRocketTruck}{}
 
 \begin{figure}[H]\centering
-\begin{minipage}{0.32\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{\decompAirDefenceRadar}\end{minipage}\hfill
-\begin{minipage}{0.32\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{\decompBarracksHall}\end{minipage}\hfill
-\begin{minipage}{0.32\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{\decompAmmunitionBunker}\end{minipage}\\[2mm]
-\begin{minipage}{0.32\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{\decompFlag}\end{minipage}\hfill
-\begin{minipage}{0.32\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{\decompWindsock}\end{minipage}\hfill
-\begin{minipage}{0.32\linewidth}\centering\scriptsize\resizebox{\linewidth}{!}{\decompBoomBarrier}\end{minipage}
+\begin{minipage}[t]{0.495\linewidth}\centering{\footnotesize\textit{Air-defence radar}}\\[0.5mm]\scriptsize\setlength{\tabcolsep}{3pt}\decompAirDefenceRadar\end{minipage}\hfill
+\begin{minipage}[t]{0.495\linewidth}\centering{\footnotesize\textit{Barracks hall}}\\[0.5mm]\scriptsize\setlength{\tabcolsep}{3pt}\decompBarracksHall\end{minipage}\\[3mm]
+\begin{minipage}[t]{0.495\linewidth}\centering{\footnotesize\textit{Ammunition bunker}}\\[0.5mm]\scriptsize\setlength{\tabcolsep}{3pt}\decompAmmunitionBunker\end{minipage}\hfill
+\begin{minipage}[t]{0.495\linewidth}\centering{\footnotesize\textit{Flag}}\\[0.5mm]\scriptsize\setlength{\tabcolsep}{3pt}\decompFlag\end{minipage}\\[3mm]
+\begin{minipage}[t]{0.495\linewidth}\centering{\footnotesize\textit{Windsock}}\\[0.5mm]\scriptsize\setlength{\tabcolsep}{3pt}\decompWindsock\end{minipage}\hfill
+\begin{minipage}[t]{0.495\linewidth}\centering{\footnotesize\textit{Boom barrier (gate)}}\\[0.5mm]\scriptsize\setlength{\tabcolsep}{3pt}\decompBoomBarrier\end{minipage}\\[3mm]
 \caption{Parts tables of the radar, barracks hall, ammunition bunker, flag, windsock and gate barrier. Their
 assembled views appear in Figures~\ref{fig:hero} and \ref{fig:terms}; the whole camp exploded into primitives is
 Figure~\ref{fig:prims}b.}
 \end{figure}
 
 \begin{figure}[H]
-\centering\wb{Decomposition}{0.95\linewidth}
+\centering
+{\footnotesize\textit{UAV-1 parts (first 26 rows of block 3)}}\\[0.5mm]
+\wbblock{Decomposition}{uav}\\[1mm]
+{\footnotesize\wbkey}
 \caption{Workbook sheet \code{Decomposition}: every UAV and soldier part with primitive, dimensions, $T$/$R$/$S$,
-parent, colour and material, and \code{COUNTIFS} totals per primitive that match Table~\ref{tab:objs}.}
+parent, colour and material, and \code{COUNTIFS} totals per primitive that match Table~\ref{tab:objs}. The body shows the
+first 26 UAV parts with their transforms. \fullsheet{Decomposition}}
 \label{fig:wb-decomp}
 \end{figure}
 \where{src/objects/*.cpp (one builder per object), src/app/DocExport.cpp (export), tools/v10/gen\_decomp.py (tables)}

@@ -27,6 +27,9 @@ z-fighting trade-off of Section~\ref{sec:hard}.}
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{v5/scene_depth}{\linewidth}\caption{\key{F}: linearised Z-buffer view.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_stage_02_vertex}{\linewidth}\caption{Frame Explorer: vertex stage (clip space).}\end{subfigure}
+\\[1mm]
+{\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
+\feStageVertexInfo\hfill\feStageVertexFormula
 \caption{Depth in the program. Notice that (a) shows depth linearised ($d$ recovered from $z_w$ by inverting
 Eq.~\eqref{eq:ndc}); the raw $z_w$ would be almost white everywhere beyond a few metres.}
 \label{fig:zbuf}

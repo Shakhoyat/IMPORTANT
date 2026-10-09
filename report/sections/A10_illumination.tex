@@ -45,13 +45,22 @@ because $\vect H$ depends on $\vect V$.}
 \end{figure}
 
 \begin{figure}[H]
-\centering
-\begin{minipage}{0.45\linewidth}\centering\plot{p_specular_falloff}{\linewidth}\end{minipage}\hfill
-\begin{minipage}{0.53\linewidth}\centering\wb{Illumination}{\linewidth}\end{minipage}
-\caption{Left: the specular lobe $(\vect N\cdot\vect H)^n$ for shininess values that occur in the scene (2 to 64).
-Notice that $n=64$ gives a highlight eight times narrower than $n=2$. Right: workbook sheet \code{Illumination}: the
-three terms for one roof point at noon, sunset, under the moon and under a UAV searchlight.}
+\centering\plot{p_specular_falloff}{0.62\linewidth}
+\caption{The specular lobe $(\vect N\cdot\vect H)^n$ for shininess values that occur in the scene (2 to 64).
+Notice that $n=64$ gives a highlight eight times narrower than $n=2$.}
 \label{fig:spec}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+{\footnotesize\textit{Geometry: sun, moon and searchlight at one roof point}}\\[0.5mm]
+\wbblock{Illumination}{geometry}\\[2mm]
+{\footnotesize\textit{Per-channel ambient, diffuse and specular terms}}\\[0.5mm]
+\wbblock{Illumination}{terms}\\[1mm]
+{\footnotesize\wbkey}
+\caption{Workbook sheet \code{Illumination}: the
+three terms for one roof point at noon, sunset, under the moon and under a UAV searchlight. \fullsheet{Illumination}}
+\label{fig:wb-illum}
 \end{figure}
 \where{kLighting in src/rendering/ShaderSources.cpp (compose(), brdf()); lights in src/scene/Scene.cpp, src/scene/DayCycle.cpp}
 \critique{At HIGH and above the program uses a physically based GGX/Cook--Torrance BRDF by default; \key{B} switches to

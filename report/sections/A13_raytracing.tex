@@ -25,13 +25,25 @@ mirror reflections and shadow rays, and the path tracer adds soft indirect light
 \end{figure}
 
 \begin{figure}[H]
-\centering
-\begin{minipage}{0.5\linewidth}\centering\raw{rt/raytrace_tree}{\linewidth}\end{minipage}\hfill
-\begin{minipage}{0.48\linewidth}\centering\wb{Ray_Tracing}{\linewidth}\end{minipage}
-\caption{Left: the ray debugger (\key{'}, click a pixel) draws the ray tree of one pixel: primary ray, shadow rays to
-each light, reflection and refraction children. Right: workbook sheet \code{Ray\_Tracing}: ray--sphere and
-ray--plane intersections, reflection, Snell refraction and the contribution of each recursion level.}
+\centering\raw{rt/raytrace_tree}{\linewidth}
+\caption{The ray debugger (\key{'}, click a pixel) draws the ray tree of one pixel: primary ray, shadow rays to
+each light, reflection and refraction children.}
 \label{fig:rttree}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}[t]{0.49\linewidth}\centering{\footnotesize\textit{1. Ray--sphere}}\\[0.5mm]
+\wbblock{Ray_Tracing}{sphere}\\[2mm]{\footnotesize\textit{2. Ray--plane (ground)}}\\[0.5mm]
+\wbblock{Ray_Tracing}{plane}\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering{\footnotesize\textit{3. Snell refraction (air to glass)}}\\[0.5mm]
+\wbblock{Ray_Tracing}{snell}\\[2mm]{\footnotesize\textit{4. Total internal reflection}}\\[0.5mm]
+\wbblock{Ray_Tracing}{tir}\\[2mm]{\footnotesize\textit{5. Whitted recursion}}\\[0.5mm]
+\wbblock{Ray_Tracing}{whitted}\end{minipage}\\[1mm]
+{\footnotesize\wbkey}
+\caption{Workbook sheet \code{Ray\_Tracing}: ray--sphere and
+ray--plane intersections, reflection, Snell refraction and the contribution of each recursion level. \fullsheet{Ray_Tracing}}
+\label{fig:wb-rt}
 \end{figure}
 
 \textbf{Uses in the game.} Mouse picking casts a ray through the clicked pixel (middle click jumps into that object);

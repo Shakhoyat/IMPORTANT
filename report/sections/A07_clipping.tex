@@ -15,6 +15,9 @@ The six planes come from the rows of $PV$ (Gribb--Hartmann): left $=\text{row}_4
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{scene/v10_proj_front}{\linewidth}\caption{Near/far clipping in an orthographic front view.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_stage_03_assembly}{\linewidth}\caption{Frame Explorer: primitive assembly and the frustum.}\end{subfigure}
+\\[1mm]
+{\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
+\feStageAssemblyInfo\hfill\feStageAssemblyFormula
 \caption{Clipping in the program. In (a) the view volume is an 80\,m slab around the camp: notice that the
 backdrop hills and the far terrain are cut flat at the near and far planes, and the cut faces show the inside of
 the terrain mesh, exactly as clipping produces (no capping). (b) shows the assembled triangles of the frame.}
@@ -22,9 +25,18 @@ the terrain mesh, exactly as clipping produces (no capping). (b) shows the assem
 \end{figure}
 
 \begin{figure}[H]
-\centering\wb{Clipping}{0.95\linewidth}
+\centering
+{\footnotesize\textit{1. Cohen--Sutherland outcodes}}\\[0.5mm]
+\wbblock{Clipping}{cs}\\[2mm]
+{\footnotesize\textit{2. Liang--Barsky parameters}}\\[0.5mm]
+\wbblock{Clipping}{lb}\\[2mm]
+{\footnotesize\textit{3. Sutherland--Hodgman, stage 1 (left edge)}}\\[0.5mm]
+\wbblock{Clipping}{sh1}\\[2mm]
+{\footnotesize\textit{Stage 2 (right edge)}}\\[0.5mm]
+\wbblock{Clipping}{sh2}\\[1mm]
+{\footnotesize\wbkey}
 \caption{Workbook sheet \code{Clipping}: Cohen--Sutherland outcodes, Liang--Barsky parameters and
-Sutherland--Hodgman steps. These are worked textbook examples computed by formulas, not code in the program.}
+Sutherland--Hodgman steps. These are worked textbook examples computed by formulas, not code in the program. \fullsheet{Clipping}}
 \label{fig:wb-clip}
 \end{figure}
 

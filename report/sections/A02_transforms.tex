@@ -4,13 +4,12 @@
 \concept{Each part's local matrix places a unit primitive: scale first, then rotate, then translate. In homogeneous
 coordinates all three are $4\times4$ matrices, so one product gives the whole placement.}
 
-\begin{equation}
-M = T(\vect t)\,R_y(\psi)\,R_x(\theta)\,R_z(\varphi)\,S(\vect s),\qquad
+\begin{gather}
+M = T(\vect t)\,R_y(\psi)\,R_x(\theta)\,R_z(\varphi)\,S(\vect s)\label{eq:trs}\\
 T=\begin{bmatrix}1&0&0&t_x\\0&1&0&t_y\\0&0&1&t_z\\0&0&0&1\end{bmatrix},\
 R_y=\begin{bmatrix}\cos\psi&0&\sin\psi&0\\0&1&0&0\\-\sin\psi&0&\cos\psi&0\\0&0&0&1\end{bmatrix},\
-S=\mathrm{diag}(s_x,s_y,s_z,1)
-\label{eq:trs}
-\end{equation}
+S=\mathrm{diag}(s_x,s_y,s_z,1)\nonumber
+\end{gather}
 \begin{equation}
 \text{rotation about a pivot } \vect p:\quad M_{\text{pivot}} = T(\vect p)\,R\,T(-\vect p)
 \label{eq:pivot}
@@ -35,10 +34,21 @@ geometry is defined in its own frame, and only the product of matrices up the hi
 \end{figure}
 
 \begin{figure}[H]
-\centering\wb{Transform_Trace}{0.95\linewidth}
+\centering
+{\footnotesize\textit{Inputs exported by the program (part UAV-14, parent UAV-00)}}\\[0.5mm]
+\wbblock{Transform_Trace}{inputs}\\[1mm]
+{\footnotesize\textit{Scale and the three rotations}}\\[0.5mm]
+\wbblock{Transform_Trace}{srt}
+{\footnotesize\textit{Translation, local matrix, parent and world matrices}}\\[0.5mm]
+\wbblock{Transform_Trace}{tm}\wbblock{Transform_Trace}{tw}
+\begin{minipage}[t]{0.6\linewidth}\centering{\footnotesize\textit{The vertex through the pipeline}}\\[0.5mm]
+\wbblock{Transform_Trace}{stages}\end{minipage}\hfill
+\begin{minipage}[t]{0.38\linewidth}\centering{\footnotesize\textit{Checks}}\\[0.5mm]
+\wbblock{Transform_Trace}{checks}\end{minipage}\\[1mm]
+{\footnotesize\wbkey}
 \caption{Workbook sheet \code{Transform\_Trace}: one real vertex of one real UAV part traced through $S$, $R$, $T$,
 the parent matrix, view, projection, perspective divide, NDC and viewport, each matrix as a live $4\times4$ grid.
-Notice the check column: the world matrix computed in the sheet matches the one the program exports.}
+Notice the check column: the world matrix computed in the sheet matches the one the program exports. \fullsheet{Transform_Trace}}
 \label{fig:wb-trace}
 \end{figure}
 

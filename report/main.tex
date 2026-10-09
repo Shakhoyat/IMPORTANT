@@ -4,7 +4,8 @@
 \usepackage{newtxtext,newtxmath}
 \usepackage{graphicx}
 \usepackage{booktabs,tabularx,array,multirow}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
+\usepackage{pdflscape}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
 \usepackage{float}
@@ -41,6 +42,11 @@
 \newcommand{\raw}[2]{\img{figures/img/#1.jpg}{#2}}
 \newcommand{\plot}[2]{\img{figures/plots/#1.pdf}{#2}}
 \newcommand{\wb}[2]{\img{figures/workbook/#1.png}{#2}}
+% v10 M1: workbook blocks typeset from the recalculated workbook (tools/v10/sheet_to_tex.py); yellow = input from the code
+\definecolor{wbin}{RGB}{255,242,204}
+\newcommand{\wbblock}[2]{{\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}\input{sections/wb/#1_#2}}}
+\newcommand{\fullsheet}[1]{(full sheet: Appendix~\ref{app:wb-#1})}
+\newcommand{\wbkey}{\colorbox{wbin}{\strut input}\,=\,value copied from the code, white\,=\,formula}
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\key}[1]{\fbox{\scriptsize\ttfamily #1}}
 \newcommand{\where}[1]{\par\noindent{\raggedright\textbf{Where in the project.} {\small\ttfamily #1}\par}}
@@ -50,14 +56,14 @@
 \newcommand{\vect}[1]{\mathbf{#1}}
 
 % "You are here" marker on the graphics pipeline (Part A).
-\newcommand{\psn}[3]{\ifnum#1=#2 \node[draw,rounded corners=1.5pt,fill=orange!60,minimum width=1.52cm,minimum height=0.72cm,
-  align=center,line width=0.8pt] at (1.66*#1,0) {#3};\else \node[draw,rounded corners=1.5pt,fill=black!4,minimum width=1.52cm,
-  minimum height=0.72cm,align=center,text=black!55,draw=black!30] at (1.66*#1,0) {#3};\fi}
-\newcommand{\here}[1]{\begin{center}\begin{tikzpicture}[font=\fontsize{6}{6.8}\selectfont]
+\newcommand{\psn}[3]{\ifnum#1=#2 \node[draw,rounded corners=1.5pt,fill=orange!60,minimum width=1.56cm,text width=1.5cm,minimum height=0.8cm,
+  align=center,line width=0.9pt,font=\fontsize{7.5}{8.5}\selectfont\bfseries] at (1.7*#1,0) {#3};\else \node[draw,rounded corners=1.5pt,fill=black!6,minimum width=1.56cm,
+  text width=1.5cm,minimum height=0.8cm,align=center,text=black!80,draw=black!45,font=\fontsize{7}{8}\selectfont] at (1.7*#1,0) {#3};\fi}
+\newcommand{\here}[1]{\begin{center}\begin{tikzpicture}
  \psn{1}{#1}{vertices\\primitives}\psn{2}{#1}{model\\$T R S$}\psn{3}{#1}{view\\$u,v,n$}\psn{4}{#1}{projection\\frustum}
  \psn{5}{#1}{clip, divide\\NDC, viewport}\psn{6}{#1}{hidden\\surfaces}\psn{7}{#1}{raster\\interpolate}\psn{8}{#1}{light +\\shade}
  \psn{9}{#1}{texture\\post}\psn{10}{#1}{rays}
- \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!45] ({1.66*\x+0.76},0) -- ({1.66*\x+0.9},0);
+ \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!60] ({1.7*\x+0.78},0) -- ({1.7*\x+0.92},0);
 \end{tikzpicture}\end{center}\vspace{-2mm}}
 
 \definecolor{lstbg}{gray}{0.96}
@@ -68,6 +74,7 @@
 
 \input{sections/gen_numbers}
 \input{sections/gen_tables}
+\input{sections/gen_fecrops}
 
 \begin{document}
 \input{sections/00_cover}
@@ -115,4 +122,10 @@
 \nocite{*}
 \bibliographystyle{ieeetr}
 {\small\bibliography{refs}}
+\clearpage
+\appendix
+\begingroup\newgeometry{a4paper,left=10mm,right=10mm,top=8mm,bottom=12mm}\pagestyle{plain}
+\input{sections/gen_wb_appendix}
+\clearpage\restoregeometry\endgroup\pagestyle{fancy}
+
 \end{document}

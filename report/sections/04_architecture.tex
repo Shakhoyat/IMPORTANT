@@ -2,25 +2,33 @@
 \label{sec:arch}
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[font=\scriptsize,
-  m/.style={draw,rounded corners=2pt,fill=#1,align=center,minimum height=8mm,text width=25mm},
-  a/.style={-{Latex[length=1.6mm]},black!60}]
-\node[m=black!8] (main) at (0,0) {\textbf{main.cpp}\\command line, modes};
-\node[m=orange!20] (app) at (0,-1.35) {\textbf{app/} App\\loop, input, HUD, capture, record, replay};
-\node[m=blue!12] (scene) at (-4.6,-2.9) {\textbf{scene/}\\scene graph, day cycle, garrison, combat, mission};
-\node[m=blue!12] (objects) at (-4.6,-4.5) {\textbf{objects/}\\bunker, UAV, tank, soldier, base\dots};
-\node[m=blue!6] (prims) at (-4.6,-6.0) {\textbf{primitives/}\\cube, sphere, cylinder, terrain};
-\node[m=green!14] (render) at (0,-2.9) {\textbf{rendering/}\\passes, shaders, shadows, post, HUD};
-\node[m=green!8] (rt) at (0,-4.5) {\textbf{raytrace/}\\BVH, Whitted, path / light tracing};
-\node[m=purple!12] (vision) at (4.6,-2.9) {\textbf{vision/}\\thermal sensor model, CV pipeline};
-\node[m=purple!8] (ai) at (4.6,-4.5) {\textbf{ai/}\\UAV squad, drone control, hide planner};
-\node[m=black!6] (math) at (0,-6.0) {\textbf{math/}\\Math3D, frustum, shadow, sky, tone maps};
-\node[m=black!6] (audio) at (4.6,-6.0) {\textbf{audio/}\\procedural synthesis};
+\begin{tikzpicture}[font=\footnotesize,
+  m/.style={draw,rounded corners=2pt,fill=#1,align=center,minimum height=10mm,text width=32mm},
+  a/.style={-{Latex[length=1.8mm]},black!65,thick}]
+\node[m=black!8] (main) at (0,0) {\textbf{main.cpp}: command line, modes};
+\node[m=orange!20] (app) at (0,-1.5) {\textbf{app/}: loop, input, HUD, capture, record, replay};
+\node[m=purple!12] (vision) at (-5,-3.3) {\textbf{vision/}: thermal sensor model, CV pipeline};
+\node[m=blue!12] (scene) at (0,-3.3) {\textbf{scene/}: scene graph, day cycle, garrison, combat};
+\node[m=green!14] (render) at (5,-3.3) {\textbf{rendering/}: passes, shaders, shadows, post};
+\node[m=purple!8] (ai) at (-5,-5.1) {\textbf{ai/}: UAV squad, drone control, hide planner};
+\node[m=blue!12] (objects) at (0,-5.1) {\textbf{objects/}: bunker, UAV, tank, soldier, base};
+\node[m=green!8] (rt) at (5,-5.1) {\textbf{raytrace/}: BVH, Whitted, path / light tracing};
+\node[m=black!6] (audio) at (-5,-6.9) {\textbf{audio/}: procedural synthesis};
+\node[m=blue!6] (prims) at (0,-6.9) {\textbf{primitives/}: unit meshes};
+\node[m=black!6] (math) at (5,-6.9) {\textbf{math/}: Math3D, frustum, shadow, sky};
 \draw[a] (main) -- (app);
-\draw[a] (app) -- (scene); \draw[a] (app) -- (render); \draw[a] (app) -- (vision);
-\draw[a] (scene) -- (objects); \draw[a] (objects) -- (prims);
-\draw[a] (render) -- (rt); \draw[a] (vision) -- (ai); \draw[a] (ai.west) -- (scene.east);
-\draw[a] (render) -- (scene); \draw[a] (rt.south) -- (math); \draw[a] (prims) -- (math); \draw[a] (app.east) -| (audio.north);
+\draw[a] (app.south) -- (scene.north);
+\draw[a] (app.south west) -- (vision.north east);
+\draw[a] (app.south east) -- (render.north west);
+\draw[a] (vision) -- (ai);
+\draw[a] (ai.north east) -- (scene.south west);
+\draw[a] (render) -- (scene);
+\draw[a] (scene) -- (objects);
+\draw[a] (objects) -- (prims);
+\draw[a] (render) -- (rt);
+\draw[a] (rt) -- (math);
+\draw[a] (prims) -- (math);
+\draw[a] (app.west) -- ++(-5.6,0) |- (audio.west);
 \end{tikzpicture}
 \caption{Module architecture (directories under \code{src/}). Notice the split: \code{scene/} and \code{objects/} are
 pure CPU code, so the \nTests{} tests link them without a GPU; everything that touches OpenGL lives in
@@ -42,8 +50,9 @@ pure CPU code, so the \nTests{} tests link them without a GPU; everything that t
 \node[lab] at ({0.5+0/106.67},0.05) {to the outer gate (z = 34 m)};
 \node[lab] at ({0.5-6/106.67},{0.5+28.5/60-0.03}) {fuel depot};
 \node[lab] at ({0.5+0/106.67},{0.5+2/60}) {bunker (below ground)};
-\draw[-{Latex},thick,red] (0.06,0.08) -- ++(0.08,0) node[right,red] {$+x$ (east)};
-\draw[-{Latex},thick,blue] (0.06,0.08) -- ++(0,-0.07) node[below,blue] {$+z$ (north)};
+\fill[white,opacity=0.92,rounded corners=2pt] (0.015,0.015) rectangle (0.255,0.16);
+\draw[-{Latex},very thick,red!80!black] (0.04,0.115) -- ++(0.07,0) node[right,text=red!70!black,font=\scriptsize\bfseries] {$+x$ (east)};
+\draw[-{Latex},very thick,blue!80!black] (0.04,0.115) -- ++(0,-0.07) node[right,text=blue!70!black,font=\scriptsize\bfseries] {$+z$ (north)};
 \end{scope}
 \end{tikzpicture}
 \caption{Top-down layout: an orthographic top view rendered by the program (\key{Ctrl+P}). Labels are placed

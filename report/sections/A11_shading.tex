@@ -11,8 +11,12 @@ Gouraud: at the vertices, colours interpolated. Phong: normals interpolated and 
 
 \begin{figure}[H]
 \centering
-\raw{lab/shading_uav_compare}{\linewidth}\\[1mm]
-\raw{lab/shading_sphere_compare}{\linewidth}
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_flat}{\linewidth}\caption{UAV, flat.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_gouraud}{\linewidth}\caption{UAV, Gouraud.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_phong}{\linewidth}\caption{UAV, Phong.}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_sphere_lowpoly_flat}{\linewidth}\caption{Low-polygon sphere, flat.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_sphere_lowpoly_gouraud}{\linewidth}\caption{Sphere, Gouraud.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_sphere_lowpoly_phong}{\linewidth}\caption{Sphere, Phong.}\end{subfigure}
 \caption{The same UAV and a low-polygon sphere under flat, Gouraud and Phong shading (\key{O}, lab figure). Notice
 the facets in flat shading, the Mach bands (bright and dark lines the eye adds at the slope changes of a
 piecewise-linear intensity) along Gouraud's triangle edges, and the round, sharp highlight that only Phong keeps.}
@@ -21,8 +25,10 @@ piecewise-linear intensity) along Gouraud's triangle edges, and the round, sharp
 
 \begin{figure}[H]
 \centering
-\begin{minipage}{0.42\linewidth}\centering\plot{p_gouraud_vs_phong}{\linewidth}\end{minipage}\hfill
-\begin{minipage}{0.56\linewidth}\centering\raw{lab/explorer_interp_gouraud_phong}{\linewidth}\end{minipage}
+\begin{minipage}{0.5\linewidth}\centering\plot{p_gouraud_vs_phong}{\linewidth}\end{minipage}\hfill
+\begin{minipage}{0.48\linewidth}\centering\raw{lab/explorer_interp_gouraud_phong}{\linewidth}\end{minipage}\\[1mm]
+{\footnotesize\textit{Zoomed panel of the Frame Explorer frame (right):}}\\[0.5mm]
+\feInterpGouraudPhongInfo
 \caption{Left: intensity along one edge whose highlight peak falls between the vertices. Gouraud interpolates the two
 dim vertex values and misses the peak entirely; Phong recovers it. Right: the same comparison in the Frame Explorer.}
 \label{fig:gp}

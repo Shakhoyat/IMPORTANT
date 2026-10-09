@@ -12,10 +12,23 @@ c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.
 \end{equation}
 
 \begin{figure}[H]
-\centering\wb{Color_Interp}{0.95\linewidth}
+\centering
+{\footnotesize\textit{A. The worked triangle}}\\[0.5mm]
+\wbblock{Color_Interp}{verts}\\[2mm]
+\begin{minipage}[t]{0.6\linewidth}\centering{\footnotesize\textit{B. Barycentric weights}}\\[0.5mm]
+\wbblock{Color_Interp}{bary}\end{minipage}\hfill
+\begin{minipage}[t]{0.38\linewidth}\centering{\footnotesize\textit{D. Texture $u$: affine vs perspective-correct}}\\[0.5mm]
+\wbblock{Color_Interp}{uv}\end{minipage}\\[2mm]
+{\footnotesize\textit{C. Gouraud vs Phong at the same points}}\\[0.5mm]
+\wbblock{Color_Interp}{gp}\\[2mm]
+{\footnotesize\textit{E. sRGB vs linear blending of colours A and B}}\\[0.5mm]
+\wbblock{Color_Interp}{srgb}\\[2mm]
+{\footnotesize\textit{F. Sky zenith colour over the day}}\\[0.5mm]
+\wbblock{Color_Interp}{sky}\\[1mm]
+{\footnotesize\wbkey}
 \caption{Workbook sheet \code{Color\_Interp}: barycentric weights at sample points of one triangle, Gouraud vs Phong
 values at the same points, affine vs perspective-correct texture coordinates with $w$, sRGB vs linear blends of two
-colours, and the sky colours tabulated over the day.}
+colours, and the sky colours tabulated over the day. \fullsheet{Color_Interp}}
 \label{fig:wb-color}
 \end{figure}
 

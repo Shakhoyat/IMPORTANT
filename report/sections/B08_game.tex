@@ -9,44 +9,60 @@ intersected with every target's bounding sphere and with the static solids' boxe
 through a target between two ticks; an explosion then damages targets inside its blast radius.
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[font=\scriptsize,s/.style={draw,rounded corners=3pt,fill=#1,minimum width=15mm,minimum height=6mm,align=center},
-  a/.style={-{Latex[length=1.5mm]},black!60},node distance=6mm and 9mm]
-\node[s=blue!10] (dock) {DOCKED};
-\node[s=blue!10,right=of dock] (to) {TAKE-OFF};
-\node[s=orange!20,right=of to] (pat) {PATROL};
-\node[s=red!15,right=of pat] (trk) {TRACK};
-\node[s=red!30,right=of trk] (lock) {LOCK 1.5\,s};
-\node[s=red!45,right=of lock] (fire) {LAUNCH};
-\node[s=blue!10,below=of pat] (ret) {RETURN};
-\node[s=blue!10,left=of ret] (land) {LANDING};
-\draw[a] (dock) -- node[above]{dusk} (to);
-\draw[a] (to) -- node[above]{4\,m} (pat);
-\draw[a] (pat) -- node[above]{blob} (trk);
-\draw[a] (trk) -- node[above]{held} (lock);
-\draw[a] (lock) -- (fire);
-\draw[a] (fire.south) |- ++(0,-0.35) -| node[pos=0.25,below]{reload 6\,s} (pat.south east);
-\draw[a] (trk.north) .. controls +(0,0.5) and +(0,0.5) .. node[above]{lost} (pat.north);
-\draw[a] (pat) -- node[right]{dawn, field clear} (ret);
-\draw[a] (ret) -- (land);
-\draw[a] (land) -| (dock);
+\tikzset{st/.style={draw,rounded corners=3pt,fill=#1,minimum width=17mm,minimum height=7mm,align=center,font=\footnotesize},
+  ar/.style={-{Latex[length=1.6mm]},black!65,thick},
+  lb/.style={font=\scriptsize,fill=white,inner sep=1pt}}
+\begin{subfigure}{\linewidth}\centering
+\begin{tikzpicture}
+\node[st=blue!10] (dock) at (0,0) {DOCKED};
+\node[st=blue!10] (to) at (2.75,0) {TAKE-OFF};
+\node[st=orange!25] (pat) at (5.5,0) {PATROL};
+\node[st=red!15] (trk) at (8.25,0) {TRACK};
+\node[st=red!30] (lock) at (11,0) {LOCK\\[-1pt]1.5\,s};
+\node[st=red!45] (fire) at (13.75,0) {LAUNCH};
+\node[st=blue!10] (ret) at (5.5,-2.4) {RETURN};
+\node[st=blue!10] (land) at (2.75,-2.4) {LANDING};
+\draw[ar] (dock) -- node[lb,above=1mm]{dusk} (to);
+\draw[ar] (to) -- node[lb,above=1mm]{at 4\,m} (pat);
+\draw[ar] (pat) -- node[lb,above=1mm]{blob} (trk);
+\draw[ar] (trk) -- node[lb,above=1mm]{held} (lock);
+\draw[ar] (lock) -- (fire);
+\draw[ar] (trk.north) -- ++(0,0.55) -| node[lb,pos=0.25,above]{target lost} ($(pat.north)+(0.3,0)$);
+\draw[ar] (fire.south) -- ++(0,-0.75) -| node[lb,pos=0.25,below]{reload 6\,s} ($(pat.south)+(0.45,0)$);
+\draw[ar] ($(pat.south)+(-0.2,0)$) -- node[lb,left=1mm]{dawn, field clear} ($(ret.north)+(-0.2,0)$);
+\draw[ar] (ret) -- (land);
+\draw[ar] (land.west) -| (dock.south);
 \end{tikzpicture}
-\\[3mm]
-\begin{tikzpicture}[font=\scriptsize,s/.style={draw,rounded corners=3pt,fill=#1,minimum width=15mm,minimum height=6mm,align=center},
-  a/.style={-{Latex[length=1.5mm]},black!60},node distance=6mm and 10mm]
-\node[s=black!8] (sp) {SPAWN\\perimeter};
-\node[s=black!8,right=of sp] (ad) {ADVANCE\\route};
-\node[s=black!8,right=of ad] (hide) {HIDE\\from UAV};
-\node[s=red!20,right=of hide] (hit) {HIT /\\WRECK};
-\node[s=black!8,below=of ad] (wd) {WITHDRAW\\(dawn)};
-\draw[a] (sp)--(ad); \draw[a] (ad) -- node[above]{UAV $<5$\,m} (hide); \draw[a] (hide.south) .. controls +(0,-0.5) and +(0,-0.5) .. node[below]{after 4\,s} (ad.south east);
-\draw[a] (hide)--(hit); \draw[a] (ad)--node[left]{dawn}(wd);
-\node[s=green!12,right=22mm of hit] (duty) {ON DUTY\\post / patrol};
-\node[s=green!12,below=of duty] (sc) {SHIFT\\CHANGE};
-\node[s=green!6,left=of sc] (off) {OFF DUTY\\barracks};
-\draw[a] (duty) -- node[right]{06:24 / 17:36} (sc); \draw[a] (sc) -- (off); \draw[a] (off.north) |- (duty.west);
+\caption{UAV: duty cycle and engagement (each UAV independently).}
+\end{subfigure}\\[3mm]
+\begin{subfigure}{0.6\linewidth}\centering
+\begin{tikzpicture}
+\node[st=black!8] (sp) at (0,0) {SPAWN\\[-1pt]perimeter};
+\node[st=black!8] (ad) at (2.75,0) {ADVANCE\\[-1pt]route};
+\node[st=black!8] (hide) at (5.85,0) {HIDE\\[-1pt]in cover};
+\node[st=red!20] (hit) at (8.6,0) {HIT /\\[-1pt]WRECK};
+\node[st=black!8] (wd) at (2.75,-2.3) {WITHDRAW};
+\draw[ar] (sp) -- (ad);
+\draw[ar] (ad) -- node[lb,above=1mm]{UAV $<$5\,m} (hide);
+\draw[ar] (hide.south) -- ++(0,-0.75) -| node[lb,pos=0.25,below]{after 4\,s} ($(ad.south)+(0.45,0)$);
+\draw[ar] (hide) -- node[lb,above=1mm]{round} (hit);
+\draw[ar] ($(ad.south)+(-0.25,0)$) -- node[lb,left=1mm]{dawn} ($(wd.north)+(-0.25,0)$);
 \end{tikzpicture}
-\caption{State diagrams. Top: a UAV (duty cycle \code{ai/SquadDuty.cpp}, engagement \code{ai/Squad.cpp}); each UAV
-runs it independently. Bottom left: an intruder rover (\code{ai/HideController.cpp}); bottom right: a soldier's shift
+\caption{Intruder rover.}
+\end{subfigure}\hfill
+\begin{subfigure}{0.38\linewidth}\centering
+\begin{tikzpicture}
+\node[st=green!15] (on) at (0,0) {ON DUTY\\[-1pt]post / patrol};
+\node[st=green!8] (off) at (3.4,0) {OFF DUTY\\[-1pt]barracks};
+\node[st=green!25] (sc) at (1.7,-2.3) {SHIFT\\[-1pt]CHANGE};
+\draw[ar] (on.south) |- node[lb,pos=0.3,left=1mm]{06:24 / 17:36} (sc.west);
+\draw[ar] (sc.east) -| node[lb,pos=0.7,right=1mm]{walk} (off.south);
+\draw[ar] (off.north) -- ++(0,0.55) -| node[lb,pos=0.25,above]{next shift} (on.north);
+\end{tikzpicture}
+\caption{Soldier.}
+\end{subfigure}
+\caption{State diagrams. (a) a UAV (duty cycle \code{ai/SquadDuty.cpp}, engagement \code{ai/Squad.cpp}); each UAV
+runs it independently. (b) an intruder rover (\code{ai/HideController.cpp}); (c) a soldier's shift
 (\code{scene/Garrison.cpp}).}
 \label{fig:fsm}
 \end{figure}
@@ -63,8 +79,9 @@ runs it independently. Bottom left: an intruder rover (\code{ai/HideController.c
 \end{figure}
 
 \begin{figure}[H]
-\centering\wb{Duty_Cycle}{0.95\linewidth}
-\caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift.}
+\centering\wbblock{Duty_Cycle}{roster}\\[1mm]
+{\footnotesize\wbkey}
+\caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift. \fullsheet{Duty_Cycle}}
 \label{fig:wb-duty}
 \end{figure}
 \where{src/ai/Squad.cpp, SquadDuty.cpp, DroneController.cpp, HideController.cpp; src/scene/Combat.cpp (segmentSphere, segmentBoxT), Mission.cpp (waves, score), Garrison.cpp (shifts)}

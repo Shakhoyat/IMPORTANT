@@ -34,19 +34,33 @@ threshold-plus-despeckle; only compact hot blobs with a hot core become targets.
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_imagelab_gauss_gamma}{\linewidth}\caption{Frame Explorer image lab: Gaussian and gamma.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_imagelab_sobel}{\linewidth}\caption{Sobel gradient magnitude.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.55\linewidth}\plot{p_thermal_histogram}{\linewidth}\caption{Histogram and CDF before and after equalisation.}\end{subfigure}\hfill
-\begin{subfigure}{0.42\linewidth}\plot{p_separable_cost}{\linewidth}\caption{Separable convolution cost.}\end{subfigure}
-\caption{Image-processing stages on frames from the program (\key{`} then \key{P}: \key{K} cycles the kernel,
-\key{[} \key{]} change $\gamma$). Notice in (c) that the raw thermal frame uses a narrow band of grey levels (most pixels are
+{\footnotesize\textit{Zoomed kernel panels of (a) and (b):}}\\[0.5mm]
+\feImagelabGaussGammaKernel\\[1mm]
+\feImagelabSobelKernel\\[1mm]
+\caption{Image-processing stages on frames from the program (\key{`} then \key{P}: \key{K} cycles the kernel, \key{[} \key{]} change $\gamma$).}
+\label{fig:imglab-fe}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{\linewidth}\plot{p_thermal_histogram}{\linewidth}\caption{Histogram and CDF before and after equalisation.}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.5\linewidth}\centering\plot{p_separable_cost}{\linewidth}\caption{Separable convolution cost.}\end{subfigure}
+\caption{Histogram and convolution cost. Notice in (a) that the raw thermal frame uses a narrow band of grey levels (most pixels are
 cool ground); equalisation spreads them over the full range so the CDF becomes a straight line. Histogram
 equalisation is computed offline here (\code{tools/v10/plots.py}); it is not a switch in the program.}
 \label{fig:imglab}
 \end{figure}
 
 \begin{figure}[H]
-\centering\wb{Thermal_Kernels}{0.95\linewidth}
+\centering
+{\footnotesize\textit{Gaussian ($\sigma=1$, $5\times5$): raw and normalised}}\\[0.5mm]
+\wbblock{Thermal_Kernels}{gauss}
+{\footnotesize\textit{Thermal patch and the Sobel kernels}}\\[0.5mm]
+\wbblock{Thermal_Kernels}{patch}
+{\footnotesize\textit{Valid $3\times3$ outputs, gradient magnitude and the thresholded edge map}}\\[0.5mm]
+\wbblock{Thermal_Kernels}{out}
 \caption{Workbook sheet \code{Thermal\_Kernels}: the normalised Gaussian for the chosen $\sigma$, Sobel kernels, and a
-$5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT} shown.}
+$5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT} shown. \fullsheet{Thermal_Kernels}}
 \label{fig:wb-kernels}
 \end{figure}
 

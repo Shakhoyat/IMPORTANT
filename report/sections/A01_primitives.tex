@@ -29,10 +29,15 @@ of the same few meshes: the colour shows which primitive each part is.}
 \end{table}
 
 \begin{figure}[H]
-\centering\wb{Primitives}{0.92\linewidth}
+\centering
+{\footnotesize\textit{Counts: closed-form formulas, exported counts and instances}}\\[0.5mm]
+\wbblock{Primitives}{counts}\\[2mm]
+{\footnotesize\textit{Parametric equations}}\\[0.5mm]
+\wbblock{Primitives}{param}\\[1mm]
+{\footnotesize\wbkey}
 \caption{Workbook sheet \code{Primitives}: vertex and triangle counts as formulas of the slice and stack
 parameters, checked against the counts the program exports. Notice that indexing saves the vertices shared by
-neighbouring triangles: the sphere draws 1224 triangles from 614 vertices instead of 3672.}
+neighbouring triangles: the sphere draws 1224 triangles from 614 vertices instead of 3672. \fullsheet{Primitives}}
 \label{fig:wb-prims}
 \end{figure}
 

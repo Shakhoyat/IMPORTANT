@@ -126,16 +126,20 @@ class Sheet:
                 self.put(r + 1 + i, c + j, v, inp=inp, fmt=fmt, center=True)
         return r + 1, c
 
-    def finish(self, fit_height=1, last_col=None, last_row=None):
+    def finish(self, fit_height=1, last_col=None, last_row=None, fit=True, scale=100):
         ws = self.ws
         lc = last_col or self.maxc
         lr = last_row or self.maxr
         ws.print_area = rng(1, 1, lr, lc)
         ws.page_setup.orientation = "landscape"
         ws.page_setup.paperSize = ws.PAPERSIZE_A4
-        ws.sheet_properties.pageSetUpPr.fitToPage = True
-        ws.page_setup.fitToWidth = 1
-        ws.page_setup.fitToHeight = fit_height
+        if fit:
+            ws.sheet_properties.pageSetUpPr.fitToPage = True
+            ws.page_setup.fitToWidth = 1
+            ws.page_setup.fitToHeight = fit_height
+        else:  # v10 M1: print at 100 % (LibreOffice paginates) so the smallest text stays >= 7 pt in the report appendix
+            ws.sheet_properties.pageSetUpPr.fitToPage = False
+            ws.page_setup.scale = scale
         ws.print_options.gridLines = False
         ws.page_margins.left = ws.page_margins.right = 0.4
         ws.page_margins.top = ws.page_margins.bottom = 0.4
@@ -390,7 +394,7 @@ def sheet_decomposition(wb, exp):
                        "world = parent_world M (the export's object 'Autonomous UAV' holds 2 UAVs).", uav)
     s.ws.row_breaks.append(Break(id=end + 1))
     parts(sol_r, f"4. Soldier 1 (root SLD1-00): {len(sol)} drawn parts (joint angles live in the parent groups).", sol)
-    s.finish(fit_height=0, last_col=20)
+    s.finish(fit_height=0, last_col=20, fit=False, scale=75)
 
 
 def sheet_view_projection(wb, exp):
@@ -1036,7 +1040,7 @@ def sheet_illumination(wb, exp, vp):
         S(r, c, f"=0.2126*{A(T[('tot', 0)], c)}+0.7152*{A(T[('tot', 1)], c)}+0.0722*{A(T[('tot', 2)], c)}", bold=True)
     s.note(r + 1, 1, "Ambient Ia = night^(1-w) day^w (DayCycle mixLog); spot columns: beams on at night only "
                      "(sun below -2 deg). Linear HDR units (the sun's irradiance is 3.2).")
-    s.finish(last_col=11)
+    s.finish(last_col=11, fit=False, scale=78)
 
 
 def sheet_color_interp(wb, exp):
@@ -1653,6 +1657,10 @@ def snap():
 
     # 1. errors in the LibreOffice-recalculated copy
     calc = load_workbook(xl_dir / OUT_XLSX.name, data_only=True)
+    # the recalculated copy (formula cells carry cached values) for tools/v10/sheet_to_tex.py
+    shutil.copy(xl_dir / OUT_XLSX.name, OUT_XLSX.with_name(OUT_XLSX.stem + "_values.xlsx"))
+    # the LibreOffice PDF (vector, one page per print area page) for the report's appendix
+    shutil.copy(pdf_dir / (OUT_XLSX.stem + ".pdf"), OUT_XLSX.with_suffix(".pdf"))
     form = load_workbook(OUT_XLSX)
     problems, n_formulas = [], 0
     for ws in form.worksheets:

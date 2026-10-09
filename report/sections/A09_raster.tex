@@ -15,6 +15,9 @@ a=\frac{\sum_k\lambda_k a_k/w_k}{\sum_k\lambda_k/w_k}
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_raster_scan}{\linewidth}\caption{Frame Explorer: the raster scan of one triangle.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_interp_affine_perspective}{\linewidth}\caption{Affine (left) vs perspective-correct (right).}\end{subfigure}
+\\[1mm]
+{\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
+\feRasterScanInfo\hfill\feInterpAffinePerspectiveInfo
 \caption{Rasterisation in the Frame Explorer. Notice in (b) that the affine checker bends along the diagonal of each
 quad, because $a$ is interpolated linearly in screen space; the perspective-correct one stays straight.}
 \label{fig:raster}
@@ -26,6 +29,9 @@ jitters the projection by a Halton(2,3) sub-pixel offset every frame and blends 
 variance box of the current $3\times3$ neighbourhood in YCoCg (\code{ShadersPostFx.cpp kTaaFrag}).
 \begin{figure}[H]
 \centering\raw{lab/explorer_stage_15_taa}{0.7\linewidth}
+\\[1mm]
+{\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
+\feStageTaaInfo\hfill\feStageTaaFormula
 \caption{Frame Explorer TAA stage. Notice the thin wires and grass blades: without temporal accumulation they break
 into dotted lines; with it they are continuous, at the cost of slight blur in motion.}
 \label{fig:taa}

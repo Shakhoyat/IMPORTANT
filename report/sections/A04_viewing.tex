@@ -25,9 +25,16 @@ the camera node's world matrix.}
 \end{figure}
 
 \begin{figure}[H]
-\centering\wb{View_Projection}{0.95\linewidth}
+\centering
+{\footnotesize\textit{Inputs and the $u,v,n$ basis}}\\[0.5mm]
+\wbblock{View_Projection}{basis}\\[1mm]
+{\footnotesize\textit{View and perspective matrices}}\\[0.5mm]
+\wbblock{View_Projection}{vp}
+{\footnotesize\textit{Depth mapping (24-bit), near 0.05\,m and 0.5\,m}}\\[0.5mm]
+\wbblock{View_Projection}{depth}\\[1mm]
+{\footnotesize\wbkey}
 \caption{Workbook sheet \code{View\_Projection}: $\vect u,\vect v,\vect n$ from cross products for the default orbit
-camera, the view matrix, the perspective matrix, and the depth table used in Section~\ref{sec:projective}.}
+camera, the view matrix, the perspective matrix, and the depth table used in Section~\ref{sec:projective}. \fullsheet{View_Projection}}
 \label{fig:wb-view}
 \end{figure}
 
