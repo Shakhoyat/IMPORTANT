@@ -618,6 +618,11 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     rtBegin(scene, camIn, w, h, s);   // v7 WP-H: ray-traced modes (no-op in raster mode)
 
     // Camera cut (director cut, camera mode switch, teleport): the history no longer matches the view.
+    // A switch between the visible HDR image and the thermal sensor (UAV FPV -> gimbal) is a cut too: the adapted
+    // statistics hold log luminance in one mode and heat in the other, and the TAA history holds the other image.
+    const int postMode = frame_.hdr ? 0 : (frame_.thermalPost ? 1 : 2);
+    if (postMode != prevPostMode_) historyValid_ = adaptValid_ = false;
+    prevPostMode_ = postMode;
     const Vec3 fwd = viewForward(camIn.view);
     if (length(camIn.position - prevCamPos_) > 2.5f || dot(fwd, prevCamFwd_) < 0.85f) historyValid_ = false;
     prevCamPos_ = camIn.position;

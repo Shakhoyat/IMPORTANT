@@ -165,3 +165,13 @@ a workbook sheet, a commit.
   daytime enemies are a flag (`--day-ops`), a key (`Shift+F2`) and a menu toggle; `Shift+F2` and the menu `O` are in the
   key map (still 0 conflicts). The flight HUD replaces the debug corner blocks (F3 brings them back) and the `[E]` prompt
   sits under the heading tape in chase / FPV, clear of the reticle and lock ring. `captures/` were re-shot after the merge.
+
+### Fix after the M5 merge: thermal gimbal washed out right after FPV -> gimbal (exe)
+In the real exe the gimbal view taken 1 s after FPV was a flat, low-contrast orange (`docs/v9_notes/fixes/before_exe_uav_gimbal_mode_switch.jpg`).
+Cause: the renderer keeps one adapted-statistics texture and one TAA history; FPV fills them with the visible HDR image
+(log luminance), and the thermal AGC then blended from those values at its 0.5 s rate, so the span stayed far too wide.
+The headless capture waited long enough for the AGC to settle, which hid it. Fix (`RendererFrame.cpp` `beginFrame`): a change
+of post mode (HDR / thermal sensor / plain) is treated as a camera cut, so the history and the adaptation restart from the new
+image (`after_exe_uav_gimbal_mode_switch.jpg`). The same exe re-run (`exe_merge_rerun_log.txt`, NVIDIA 591.86, EPIC, 1080p)
+shows UAV FPV 90.2 fps and gimbal 95.6 fps with no other jobs running; the 29-47 fps seen earlier was CPU contention from
+parallel builds.

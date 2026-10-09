@@ -319,6 +319,7 @@ private:
     bool mrt_ = false;                  // the main scene target (with the surface attachment) is bound
     bool historyValid_ = false, adaptValid_ = false;
     int historyIndex_ = 0, adaptIndex_ = 0;
+    int prevPostMode_ = -1;             // 0 HDR, 1 thermal sensor, 2 plain: history / statistics of one never seed another
     unsigned frameIndex_ = 0;
     Mat4 prevViewProj_;
     Vec3 prevCamPos_, prevCamFwd_;
