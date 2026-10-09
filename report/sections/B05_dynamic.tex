@@ -14,18 +14,18 @@ x(t)=x^\ast+\big((x_0-x^\ast)+(\dot x_0+\omega(x_0-x^\ast))\,t\big)e^{-\omega t}
 
 \begin{table}[H]
 \centering\small
-\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
-Object & Motion model (measured or set in the code) & Test\\\midrule
-Soldier (player) & speed follows the input on a spring, $\omega=17$\,s$^{-1}$ accelerating, 30 braking; 90\,\% of walking speed in 0.23\,s; coyote time 0.12\,s; slope limit $40^\circ$ & T350--T359\\
-Soldier legs & gait phase advanced by distance / stride; two-link IK keeps stance feet on the ground (slip $\le$ 0.22\,cm) & T356\\
-Third-person camera & spring-arm follow, sphere cast against walls; shorter arm indoors & T354, T394\\
-UAV & duty state machine (docked, take-off, patrol, return, landing); chase camera springs $\omega=10$ (position), 5 (heading); bank $0.3^\circ$ per $^\circ$/s of turn & T360--T369\\
-Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% open in 1.13\,s; the swinging leaf is a moving collision box & T390--T395\\
-Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,EV indoor bias & T396--T397\\
+Object & Motion model (measured or set in the code)\\\midrule
+Soldier (player) & speed follows the input on a spring, $\omega=17$\,s$^{-1}$ accelerating, 30 braking; 90\,\% of walking speed in 0.23\,s; coyote time 0.12\,s; slope limit $40^\circ$\\
+Soldier legs & gait phase advanced by distance / stride; two-link IK keeps stance feet on the ground (slip $\le$ 0.22\,cm)\\
+Third-person camera & spring-arm follow, sphere cast against walls; shorter arm indoors\\
+UAV & duty state machine (docked, take-off, patrol, return, landing); chase camera springs $\omega=10$ (position), 5 (heading); bank $0.3^\circ$ per $^\circ$/s of turn\\
+Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% open in 1.13\,s; the swinging leaf is a moving collision box\\
+Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,EV indoor bias\\
 \bottomrule
 \end{tabularx}
-\caption{Dynamic objects and their motion models (\code{docs/v9\_notes/v9-notes.md}; every number is checked by the listed tests).}
+\caption{Dynamic objects and their motion models (\code{docs/v9\_notes/v9-notes.md}).}
 \label{tab:dyn}
 \end{table}
 
@@ -42,5 +42,5 @@ the exposure changed, following the slower bright-to-dark time constant.}
 \label{fig:dyn}
 \end{figure}
 \where{src/scene/CharacterMotor.cpp, Gait.cpp, CameraRig.cpp, UavView.cpp, Door.cpp, EyeAdapt.cpp, ai/SquadDuty.cpp; src/scene/TickInterp.cpp (60\,Hz tick, interpolation)}
-\critique{The fixed tick makes motion deterministic (a recorded session replays bit for bit, T404) but adds up to one tick
+\critique{The fixed tick makes motion deterministic (a recorded session replays bit for bit) but adds up to one tick
 (16.7\,ms) of input latency; render interpolation hides the stepping, not the latency.}

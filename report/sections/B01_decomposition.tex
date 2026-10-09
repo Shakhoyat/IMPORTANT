@@ -12,7 +12,8 @@ $T$, $R$, $S$ and parent (Figure~\ref{fig:wb-decomp}). Table~\ref{tab:objs} give
 \begin{table}[H]
 \centering\footnotesize
 \objtable
-\caption{Every composite object: parts, group nodes, animated nodes and primitives used (\code{--export-docs}).}
+\caption{Every composite object, per unit: parts, group nodes, animated nodes and primitives used, with the number of
+units $n$ of each design (\code{--export-docs}).}
 \label{tab:objs}
 \end{table}
 
@@ -29,10 +30,10 @@ $T$, $R$, $S$ and parent (Figure~\ref{fig:wb-decomp}). Table~\ref{tab:objs} give
 {Notice the joints in the exploded view: limbs are separate group nodes, so the gait only writes joint angles.}
 
 \catalogue{Target rover (intruder).}{\raw{v5/iso_rover_assembled}{\linewidth}}{\raw{v5/iso_rover_exploded}{\linewidth}}{\decompTargetRover}
-{Notice that 48 of its nodes are animated (wheels, sensor mast): the rover is the most articulated object per part.}
+{Notice that \roverAnim{} of its nodes are animated (wheels, sensor mast); the scene has \roverN{} rovers of this design, \roverParts{} parts each.}
 
 \catalogue{Command bunker (underground).}{\raw{v5/iso_bunker_assembled}{\linewidth}}{\raw{v5/iso_bunker_exploded}{\linewidth}}{\decompCommandBunker}
-{Notice that the bunker is the second-largest object (400 parts): its rooms below ground are modelled and walkable.}
+{Notice that the bunker is the \bunkerRank{} object (\bunkerParts{} parts, after \bunkerAbove): its rooms below ground are modelled and walkable.}
 
 \catalogue{Main battle tank.}{\raw{scene/iso_tank}{\linewidth}}{}{\decompMainBattleTank}
 {Notice that 118 of its nodes are animated (road wheels, track, turret, gun): driving only changes local matrices.}
@@ -70,5 +71,5 @@ first 26 UAV parts with their transforms. \fullsheet{Decomposition}}
 \end{figure}
 \where{src/objects/*.cpp (one builder per object), src/app/DocExport.cpp (export), tools/v10/gen\_decomp.py (tables)}
 \critique{Static scenery (base walls, camouflage nets, environment props) is listed only in Table~\ref{tab:objs}; its
-1\,286 + 741 + 679 parts are repetitive kit pieces. Exploded views exist for the UAV, rover, bunker, soldier and the
+\partsBase{} + \partsEnv{} + \partsCamp{} parts are repetitive kit pieces. Exploded views exist for the UAV, rover, bunker, soldier and the
 whole scene; the other vehicles are shown assembled.}

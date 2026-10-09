@@ -1,7 +1,7 @@
 \section{Hard problems and trade-offs}
 \label{sec:hard}
 Each problem below was met in this code. For each: why the class method alone falls short, what the program does,
-and what was measured. Numbers come from the v9 milestone notes (\code{docs/v9\_notes/v9-notes.md}), the tests, or
+and what was measured. Numbers come from the v9 milestone notes (\code{docs/v9\_notes/v9-notes.md}) or
 this report's plots; measurements on a GPU shared with other jobs are marked as such there.
 
 \subsection*{1. Depth precision and z-fighting}
@@ -33,7 +33,7 @@ shots (was 80--101), Windows exe, 1080p EPIC (v9 M1).
 A $k\times k$ convolution costs $k^2$ multiply-adds per pixel. \textbf{Solution.} The binomial kernel is separable,
 $[1\,2\,1]^\top[1\,2\,1]/16$: a row pass then a column pass, $2k$ instead of $k^2$ (Figure~\ref{fig:imglab}d); the
 whole sensor and CV chain runs on a worker thread at 320$\times$240. \textbf{Measured.} With $k=3$ the saving is $9\to6$;
-it grows to $49\to14$ for a $7\times7$ Gaussian. A threaded run is byte-identical to a serial one (test T334).
+it grows to $49\to14$ for a $7\times7$ Gaussian. A threaded run is byte-identical to a serial one.
 
 \subsection*{5. Shadow acne and peter-panning}
 \textbf{Problem.} Self-shadowing stripes on lit surfaces (acne) versus shadows detached from their casters (peter-panning).
@@ -51,7 +51,7 @@ but never hide each other. They are \emph{not} sorted back to front: two overlap
 order, which is acceptable for faint discs but would not be for stained glass; exposure adapts with two
 time constants (0.35\,s brighter, 1.1\,s darker) plus a +1.25\,EV indoor bias. When the post mode changes (visible to
 thermal) the TAA history and the adaptation restart, which fixed a washed-out thermal gimbal view found in the real
-exe. \textbf{Measured.} Tests T396--T397; Figure~\ref{fig:dyn}d--e.
+exe. \textbf{Measured.} Figure~\ref{fig:dyn}d--e.
 
 \subsection*{Summary}
 \begin{table}[H]
@@ -62,9 +62,9 @@ Problem & Solution & Result\\\midrule
 Z-fighting & decals lifted 2--4\,mm; near 0.05\,m kept for first person & quantified, Fig.~\ref{fig:depth}\\
 Light budget & 1 shadowed spot + 1 dynamic + $\le$16 practicals & bounded per-fragment cost\\
 Grass & instanced 5-tri strips, cell culling, rank LOD & 6.3--7.7\,M $\to$ $\le$1.82\,M triangles\\
-Convolution & separable PSF on a worker thread & $k^2\to2k$; T334 identical results\\
+Convolution & separable PSF on a worker thread & $k^2\to2k$; threaded = serial, byte for byte\\
 Shadow bias & slope-scaled normal offset + contact shadows & 0.10--0.17\,ms\\
-Transparency, exposure & opaque first, no depth writes (unsorted); asymmetric adaptation & T396--T397\\
+Transparency, exposure & opaque first, no depth writes (unsorted); asymmetric adaptation & 0.35\,s / 1.1\,s\\
 \bottomrule
 \end{tabularx}
 \caption{Hard problems at a glance.}

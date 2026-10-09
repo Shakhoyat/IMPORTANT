@@ -46,3 +46,27 @@ Decomposition now prints at 75 %, Illumination at 78 % instead of fit-to-page, w
 - 16.1: the two composite strips with burnt-in labels replaced by the six individual lab tiles with LaTeX subcaptions.
 - 25.2 split in two figures (it ran into the page footer): Frame Explorer frames + kernel insets; histogram + cost.
 - Equations 7.1 and 21.1 split over two lines (they ran into the margin).
+
+## M2: factual consistency (Section 19) and no test content
+
+All values from `ts --export-docs` (`report/data/scene_export_v10.json`) via `tools/v10/gen_numbers.py` and
+`tools/v10/gen_decomp.py` (macros `\bunkerRank`, `\bunkerParts`, `\bunkerAbove`, `\partsBase`, `\partsEnv`,
+`\partsCamp`, `\roverN/Parts/Anim`, ...).
+
+| Where | Old | New |
+|---|---|---|
+| Fig. 19.4 caption | "the second-largest object (400 parts)" | "the fourth-largest object (427 parts, after Base, Camp camouflage, Environment)" |
+| Section 19 critique | "1 286 + 741 + 679 parts" | "1 253 + 652 + 658 parts" (Base, Environment, Camp camouflage drawn parts; the old figures counted group nodes too) |
+| Table 19.1 | one row per export object; UAV row 158 (both UAVs), Target Rover 156 (all rovers), 3 tank rows, 8 soldier rows | one row per design, per unit, with a "x n" column: Autonomous UAV 79 parts x 2; Target Rover 26 x 6; Main Battle Tank 255 x 3; Soldier 75 x 8 |
+| Table 19.1 | no frustum column | Frustum column (UAV 1, Scout Helicopter 1) |
+| Table 19.1 | Command Bunker groups 17, animated 17 | 18, 18 (current export: the hinged doors of v9 M4) |
+| Table 19.1 caption | "Every composite object: parts, ..." | "Every composite object, per unit: parts, ..., with the number of units n of each design" |
+| Fig. 19.3 caption (rover) | "48 of its nodes are animated ... the rover is the most articulated object per part" | "8 of its nodes are animated (wheels, sensor mast); the scene has 6 rovers of this design, 26 parts each" (48 summed six rovers; per part the tank, 118 of 255, is more articulated) |
+| Rover parts table | counts summed over all six rovers (e.g. IR sensor 30) | one rover (IR sensor 5) |
+| AA gun parts table | Shell casing S = 0.0 x 0.0 x 0.0 | "hidden (dagger)", footnote "scale 1e-04 at export: invisible until fired" |
+
+Test content removed (per request): cover "Verification" row; Table 3.1 "Verification" row; Section 3 title
+"Tools, hardware and test setup" -> "Tools, hardware and setup" and its caption; Fig. 4.1 caption ("so the 365 tests
+link them without a GPU" -> "that runs without a GPU (the --export-docs path uses it)"); Section 5 ("a test checks it
+has no conflicts" -> "it has no conflicts"); Table 23.1 "Test" column and caption clause; test ids in Sections 3, 23,
+28 and Table 31.1.

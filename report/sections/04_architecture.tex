@@ -31,7 +31,7 @@
 \draw[a] (app.west) -- ++(-5.6,0) |- (audio.west);
 \end{tikzpicture}
 \caption{Module architecture (directories under \code{src/}). Notice the split: \code{scene/} and \code{objects/} are
-pure CPU code, so the \nTests{} tests link them without a GPU; everything that touches OpenGL lives in
+pure CPU code that runs without a GPU (the \code{--export-docs} path uses it); everything that touches OpenGL lives in
 \code{rendering/} and \code{app/}.}
 \label{fig:arch}
 \end{figure}

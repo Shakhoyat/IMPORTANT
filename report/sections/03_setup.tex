@@ -1,4 +1,4 @@
-\section{Tools, hardware and test setup}
+\section{Tools, hardware and setup}
 \label{sec:setup}
 \begin{table}[H]
 \centering\small
@@ -13,12 +13,11 @@ GPU & NVIDIA GeForce RTX 4070. Captures, plots and the benchmark run headless un
 same GPU); the interactive game runs natively on Windows\\
 CPU, memory & Intel Core i9-13900K (32 threads), 16 GB visible to WSL2\\
 Resolution, preset & 1920$\times$1080, EPIC preset (MSAA, TAA, GTAO, PCSS shadows, SSR, volumetric fog, bloom, AgX tone mapping), seed 1\\
-Verification & \nTests{} CPU unit tests (\code{tests/*.cpp}), all passing; each prints expected and observed values\\
 Evidence tools & \code{--capture} (named shots), \code{--benchmark}, \code{--export-docs} (every part and matrix as JSON),
 \code{--record} (2-minute director cut), F9 session recording with \code{--replay}\\
 \bottomrule
 \end{tabularx}
-\caption{Tools and test setup. Every figure in this report can be regenerated with \code{tools/v10/capture\_all.sh},
+\caption{Tools and setup. Every figure in this report can be regenerated with \code{tools/v10/capture\_all.sh},
 \code{tools/v10/plots.py} and \code{tools/v10/build\_cg\_workbook.py}.}
 \label{tab:setup}
 \end{table}
@@ -28,5 +27,5 @@ in-game hour by day, 13.3\,s per hour by night, and 1.5 times slower while the s
 (\code{DayCycleConfig}). The clock can also be set or scrubbed by hand.
 
 \textbf{Determinism.} The simulation runs at a fixed 60\,Hz tick and every random stream derives from the seed. A
-recorded session replays bit for bit: test T404 records 60\,s with random input and variable frame times, replays it
-from text, and all 60 per-second world hashes match.
+recorded session replays bit for bit: 60\,s recorded with random input and variable frame times, written to text and
+replayed, reproduce all 60 per-second world hashes.

@@ -56,24 +56,69 @@ with open(os.path.join(SEC, "gen_tables.tex"), "w") as o:
         fn = p["function"].replace("_", "\\_")
         o.write(f'{p["type"]} & \\code{{{fn}}} & {num(p["vertices"])} & {num(p["triangles"])} & {num(p["instances"])}\\\\\n')
     o.write(f"\\midrule\\multicolumn{{4}}{{@{{}}l}}{{Primitive instances in the scene}} & {num(inst)}\\\\\\bottomrule\\end{{tabular}}}}\n")
-    # object table (soldiers / tanks merged)
-    o.write("\\newcommand{\\objtable}{\\begin{tabular}{@{}lrrrrrrr@{}}\\toprule\n")
-    o.write("Object & Parts & Groups & Animated & Cube & Sphere & Cylinder & Cone\\\\\\midrule\n")
-    seen = {}
+    # object table, per unit: one row per object kind with an explicit instance count (x n). Units are the root
+    # subtrees of the export's components (the export's "Autonomous UAV" holds two UAVs, "Target Rover" six rovers;
+    # tanks and soldiers are separate objects of the same design).
+    import collections, re
+    comps = exp["components"]
+    by_obj = collections.defaultdict(list)
+    for c in comps:
+        by_obj[c["object"]].append(c)
+    units = []  # (kind, unit signature dict)
     for ob in exp["objects"]:
-        base = ob["object"].rstrip(" 0123456789")
-        seen.setdefault(base, []).append(ob)
-    for base, obs in seen.items():
-        ob = obs[0]
-        pr = ob["primitives"]
-        label = f"{base} ($\\times${len(obs)})" if len(obs) > 1 else base
-        cyl = pr.get("Cylinder", 0) + pr.get("Cylinder (frustum)", 0)
-        if base == "Terrain":
-            cells = ["--", "--", "--", "--"]
+        cs = by_obj[ob["object"]]
+        ids = {c["id"]: c for c in cs}
+        kids = collections.defaultdict(list)
+        for c in cs:
+            kids[c["parent_id"]].append(c["id"])
+        for root in [c for c in cs if c["parent_id"] not in ids]:
+            stack, sub = [root["id"]], []
+            while stack:
+                i = stack.pop()
+                sub.append(ids[i])
+                stack += kids[i]
+            leaves = [c for c in sub if c["primitive"] != "Group"]
+            prim = collections.Counter(c["primitive"] for c in leaves)
+            sig = dict(parts=len(leaves), groups=len(sub) - len(leaves), anim=sum(1 for c in sub if c.get("animation")),
+                       prim=prim)
+            units.append((re.sub(r"\s+\d+$", "", ob["object"]), sig))
+    kinds = collections.OrderedDict()
+    for kind, sig in units:
+        kinds.setdefault(kind, []).append(sig)
+    prim_cols = []
+    for p_ in exp["primitives"]:
+        t = p_["type"]
+        if t != "Terrain disc" and any(sig["prim"].get(t) for _, sig in units):
+            prim_cols.append(t)
+    short = {"Cylinder (frustum)": "Frustum"}
+    o.write("\\newcommand{\\objtable}{\\begin{tabular}{@{}lr" + "r" * 3 + "r" * len(prim_cols) + "@{}}\\toprule\n")
+    o.write("Object (per unit) & $\\times n$ & Parts & Groups & Anim. & " +
+            " & ".join(short.get(t, t) for t in prim_cols) + "\\\\\\midrule\n")
+    total_parts = 0
+    for kind, sigs in kinds.items():
+        s0 = sigs[0]
+        same = all(x == s0 for x in sigs)
+        total_parts += sum(x["parts"] for x in sigs)
+        if kind == "Terrain":
+            cells = ["--"] * len(prim_cols)
         else:
-            cells = [str(pr.get("Cube", 0)), str(pr.get("Sphere", 0)), str(cyl), str(pr.get("Cone", 0))]
-        o.write(f'{label} & {ob["parts"]} & {ob["groups"]} & {ob["animated_nodes"]} & ' + " & ".join(cells) + "\\\\\n")
-    o.write("\\bottomrule\\end{tabular}}\n")
+            cells = [str(s0["prim"].get(t, 0)) for t in prim_cols]
+        flag = "" if same else "$^\\ast$"
+        o.write(f"{kind}{flag} & {len(sigs)} & {s0['parts']} & {s0['groups']} & {s0['anim']} & " + " & ".join(cells) + "\\\\\n")
+    o.write("\\midrule\\multicolumn{2}{@{}l}{Scene total (all units)} & " + str(total_parts) + " & \\multicolumn{" +
+            str(2 + len(prim_cols)) + "}{l}{}\\\\\\bottomrule\\end{tabular}}\n")
+    rank = sorted(exp["objects"], key=lambda ob: -ob["parts"])
+    pos = [i for i, ob in enumerate(rank) if ob["object"] == "Command Bunker"][0]
+    words = ["largest", "second-largest", "third-largest", "fourth-largest", "fifth-largest", "sixth-largest"]
+    parts_of = {ob["object"]: ob["parts"] for ob in exp["objects"]}
+    o.write(f"\\newcommand{{\\bunkerParts}}{{{parts_of['Command Bunker']}}}\n\\newcommand{{\\bunkerRank}}{{{words[pos]}}}\n")
+    o.write("\\newcommand{\\bunkerAbove}{" + ", ".join(ob["object"] for ob in rank[:pos]) + "}\n")
+    for kind, tag in [("Target Rover", "rover"), ("Autonomous UAV", "uav"), ("Main Battle Tank", "tank"), ("Soldier", "soldier")]:
+        sg = kinds[kind]
+        o.write(f"\\newcommand{{\\{tag}N}}{{{len(sg)}}}\\newcommand{{\\{tag}Parts}}{{{sg[0]['parts']}}}"
+                f"\\newcommand{{\\{tag}Anim}}{{{sg[0]['anim']}}}\n")
+    for key, macro in [("Base", "partsBase"), ("Environment", "partsEnv"), ("Camp camouflage", "partsCamp")]:
+        o.write(f"\\newcommand{{\\{macro}}}{{{num(parts_of[key])}}}\n")
     # benchmark table
     o.write("\\newcommand{\\benchtable}{")
     if rows:

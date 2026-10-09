@@ -2,198 +2,200 @@
 \newcommand{\decompAutonomousUav}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
 Round fin & Cube & 16 & 0.2$\times$3.0$\times$3.0 & \textcolor[rgb]{0.200,0.210,0.200}{\rule{2.2mm}{2.2mm}} & 0.50 / 64\\
-Motor & Cylinder & 4 & 4.5$\times$4.5$\times$3.5 & \textcolor[rgb]{0.450,0.460,0.500}{\rule{2.2mm}{2.2mm}} & 0.90 / 128\\
-Prop hub & Sphere & 4 & 2.5$\times$2.5$\times$2.5 & \textcolor[rgb]{0.450,0.460,0.500}{\rule{2.2mm}{2.2mm}} & 0.90 / 128\\
-Prop blade & Cube & 4 & 20.0$\times$0.4$\times$1.8 & \textcolor[rgb]{0.100,0.100,0.110}{\rule{2.2mm}{2.2mm}} & 0.30 / 32\\
-Rotor blur disc & Cylinder & 4 & 20.5$\times$20.5$\times$0.2 & \textcolor[rgb]{0.100,0.100,0.110}{\rule{2.2mm}{2.2mm}} & 0.20 / 16\\
-Motor cooling ring & Cylinder & 4 & 5.0$\times$5.0$\times$1.0 & \textcolor[rgb]{0.120,0.120,0.130}{\rule{2.2mm}{2.2mm}} & 0.60 / 64\\
-Landing strut & Cylinder & 4 & 1.2$\times$1.2$\times$9.0 & \textcolor[rgb]{0.080,0.080,0.090}{\rule{2.2mm}{2.2mm}} & 0.60 / 64\\
-Round body & Cylinder & 4 & 2.2$\times$2.2$\times$17.0 & \textcolor[rgb]{0.320,0.340,0.280}{\rule{2.2mm}{2.2mm}} & 0.50 / 64\\
 Round nose & Cone & 4 & 2.2$\times$2.2$\times$4.0 & \textcolor[rgb]{0.050,0.050,0.060}{\rule{2.2mm}{2.2mm}} & 0.90 / 128\\
+Round body & Cylinder & 4 & 2.2$\times$2.2$\times$17.0 & \textcolor[rgb]{0.320,0.340,0.280}{\rule{2.2mm}{2.2mm}} & 0.50 / 64\\
+Landing strut & Cylinder & 4 & 1.2$\times$1.2$\times$9.0 & \textcolor[rgb]{0.080,0.080,0.090}{\rule{2.2mm}{2.2mm}} & 0.60 / 64\\
+Motor cooling ring & Cylinder & 4 & 5.0$\times$5.0$\times$1.0 & \textcolor[rgb]{0.120,0.120,0.130}{\rule{2.2mm}{2.2mm}} & 0.60 / 64\\
+Rotor blur disc & Cylinder & 4 & 20.5$\times$20.5$\times$0.2 & \textcolor[rgb]{0.100,0.100,0.110}{\rule{2.2mm}{2.2mm}} & 0.20 / 16\\
+Prop blade & Cube & 4 & 20.0$\times$0.4$\times$1.8 & \textcolor[rgb]{0.100,0.100,0.110}{\rule{2.2mm}{2.2mm}} & 0.30 / 32\\
+Prop hub & Sphere & 4 & 2.5$\times$2.5$\times$2.5 & \textcolor[rgb]{0.450,0.460,0.500}{\rule{2.2mm}{2.2mm}} & 0.90 / 128\\
+Motor & Cylinder & 4 & 4.5$\times$4.5$\times$3.5 & \textcolor[rgb]{0.450,0.460,0.500}{\rule{2.2mm}{2.2mm}} & 0.90 / 128\\
 \multicolumn{2}{@{}l}{\textit{24 more part kinds}} & 31 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{79 parts:} Cone 4, Cube 34, Cylinder 27, Frustum 1, Sphere 13}\\\bottomrule\end{tabular}}
 \newcommand{\decompSoldier}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Hip joint & Sphere & 2 & 15.0$\times$15.0$\times$15.0 & \textcolor[rgb]{0.270,0.273,0.194}{\rule{2.2mm}{2.2mm}} & 0.05 / 2\\
-Thigh & Cylinder & 2 & 15.0$\times$15.0$\times$46.0 & \textcolor[rgb]{0.270,0.273,0.194}{\rule{2.2mm}{2.2mm}} & 0.05 / 2\\
-Knee joint & Sphere & 2 & 15.0$\times$15.0$\times$15.0 & \textcolor[rgb]{0.270,0.273,0.194}{\rule{2.2mm}{2.2mm}} & 0.05 / 2\\
-Shin & Cylinder & 2 & 12.0$\times$12.0$\times$44.0 & \textcolor[rgb]{0.270,0.273,0.194}{\rule{2.2mm}{2.2mm}} & 0.05 / 2\\
-Ankle joint & Sphere & 2 & 12.0$\times$12.0$\times$12.0 & \textcolor[rgb]{0.075,0.055,0.040}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
-Boot & Sphere & 2 & 13.0$\times$11.0$\times$30.0 & \textcolor[rgb]{0.075,0.055,0.040}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
-Calf & Sphere & 2 & 13.0$\times$22.0$\times$14.0 & \textcolor[rgb]{0.270,0.273,0.194}{\rule{2.2mm}{2.2mm}} & 0.05 / 2\\
-Knee pad & Sphere & 2 & 11.5$\times$13.0$\times$6.0 & \textcolor[rgb]{0.100,0.100,0.085}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
-Thigh muscle & Sphere & 2 & 17.5$\times$31.0$\times$18.0 & \textcolor[rgb]{0.270,0.273,0.194}{\rule{2.2mm}{2.2mm}} & 0.05 / 2\\
+Deltoid & Sphere & 2 & 15.5$\times$17.0$\times$15.0 & \textcolor[rgb]{0.318,0.321,0.229}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Elbow pad & Sphere & 2 & 10.0$\times$11.0$\times$5.5 & \textcolor[rgb]{0.100,0.100,0.085}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
+Forearm muscle & Sphere & 2 & 12.0$\times$18.0$\times$12.0 & \textcolor[rgb]{0.318,0.321,0.229}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Hand & Sphere & 2 & 9.0$\times$12.0$\times$8.0 & \textcolor[rgb]{0.110,0.100,0.085}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
+Forearm & Cylinder & 2 & 11.0$\times$11.0$\times$26.0 & \textcolor[rgb]{0.318,0.321,0.229}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Elbow joint & Sphere & 2 & 13.0$\times$13.0$\times$13.0 & \textcolor[rgb]{0.318,0.321,0.229}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Upper arm & Cylinder & 2 & 13.0$\times$13.0$\times$30.0 & \textcolor[rgb]{0.318,0.321,0.229}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Shoulder joint & Sphere & 2 & 13.0$\times$13.0$\times$13.0 & \textcolor[rgb]{0.318,0.321,0.229}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Trapezius & Sphere & 2 & 20.0$\times$8.5$\times$15.0 & \textcolor[rgb]{0.300,0.303,0.216}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
 \multicolumn{2}{@{}l}{\textit{39 more part kinds}} & 57 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{75 parts:} Cube 16, Cylinder 20, Sphere 39}\\\bottomrule\end{tabular}}
 \newcommand{\decompMainBattleTank}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Tyre & Cylinder & 18 & 64.0$\times$64.0$\times$40.0 & \textcolor[rgb]{0.090,0.090,0.090}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
-Hub & Cylinder & 18 & 32.0$\times$32.0$\times$46.0 & \textcolor[rgb]{0.160,0.165,0.160}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
-Spoke & Cube & 18 & 57.6$\times$7.0$\times$48.0 & \textcolor[rgb]{0.220,0.225,0.220}{\rule{2.2mm}{2.2mm}} & 0.47 / 25\\
-Side skirt & Cube & 8 & 7.0$\times$50.0$\times$120.0 & \textcolor[rgb]{0.170,0.200,0.120}{\rule{2.2mm}{2.2mm}} & 0.14 / 7\\
+Spoke & Cube & 18 & 68.4$\times$7.0$\times$53.0 & \textcolor[rgb]{0.220,0.225,0.220}{\rule{2.2mm}{2.2mm}} & 0.47 / 25\\
+Hub & Cylinder & 18 & 38.0$\times$38.0$\times$51.0 & \textcolor[rgb]{0.160,0.165,0.160}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
+Tyre & Cylinder & 18 & 76.0$\times$76.0$\times$45.0 & \textcolor[rgb]{0.090,0.090,0.090}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
 Smoke grenade tube & Cylinder & 8 & 9.0$\times$9.0$\times$22.0 & \textcolor[rgb]{0.220,0.225,0.220}{\rule{2.2mm}{2.2mm}} & 0.47 / 25\\
+Side skirt & Cube & 8 & 7.0$\times$50.0$\times$120.0 & \textcolor[rgb]{0.170,0.200,0.120}{\rule{2.2mm}{2.2mm}} & 0.14 / 7\\
 Cupola vision block & Cube & 6 & 16.0$\times$10.0$\times$10.0 & \textcolor[rgb]{0.100,0.200,0.240}{\rule{2.2mm}{2.2mm}} & 0.33 / 194\\
-Driver periscope & Cube & 3 & 18.0$\times$8.0$\times$6.0 & \textcolor[rgb]{0.100,0.200,0.240}{\rule{2.2mm}{2.2mm}} & 0.33 / 194\\
-Return roller L & Cylinder & 3 & 18.0$\times$18.0$\times$20.0 & \textcolor[rgb]{0.090,0.090,0.090}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
 Return roller R & Cylinder & 3 & 18.0$\times$18.0$\times$20.0 & \textcolor[rgb]{0.090,0.090,0.090}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
+Return roller L & Cylinder & 3 & 18.0$\times$18.0$\times$20.0 & \textcolor[rgb]{0.090,0.090,0.090}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
+Driver periscope & Cube & 3 & 18.0$\times$8.0$\times$6.0 & \textcolor[rgb]{0.100,0.200,0.240}{\rule{2.2mm}{2.2mm}} & 0.33 / 194\\
 \multicolumn{2}{@{}l}{\textit{167 more part kinds}} & 170 & & & \\
+\multicolumn{6}{@{}l}{$^\dagger$ scale 9e-05 at export: invisible until fired}\\
 \midrule\multicolumn{6}{@{}l}{\textbf{255 parts:} Cube 170, Cylinder 80, Sphere 5}\\\bottomrule\end{tabular}}
 \newcommand{\decompScoutHelicopter}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Blade grip & Cube & 5 & 12.0$\times$8.0$\times$35.0 & \textcolor[rgb]{0.220,0.220,0.240}{\rule{2.2mm}{2.2mm}} & 0.80 / 96\\
-Blade tip cap & Cube & 5 & 23.0$\times$3.5$\times$30.0 & \textcolor[rgb]{0.550,0.500,0.100}{\rule{2.2mm}{2.2mm}} & 0.35 / 32\\
-Blade erosion strip & Cube & 5 & 3.5$\times$3.6$\times$345.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.53 / 49\\
 Pitch link & Cylinder & 5 & 3.0$\times$3.0$\times$48.7 & \textcolor[rgb]{0.220,0.220,0.240}{\rule{2.2mm}{2.2mm}} & 0.80 / 96\\
-Cabin & Sphere & 1 & 135.0$\times$145.0$\times$250.0 & \textcolor[rgb]{0.125,0.150,0.100}{\rule{2.2mm}{2.2mm}} & 0.45 / 64\\
-Canopy glass & Sphere & 1 & 122.0$\times$105.0$\times$150.0 & \textcolor[rgb]{0.050,0.080,0.100}{\rule{2.2mm}{2.2mm}} & 1.00 / 160\\
-Chin nose & Sphere & 1 & 90.0$\times$50.0$\times$90.0 & \textcolor[rgb]{0.170,0.190,0.145}{\rule{2.2mm}{2.2mm}} & 0.40 / 48\\
-Door seam left & Cube & 1 & 3.0$\times$75.0$\times$2.0 & \textcolor[rgb]{0.220,0.220,0.240}{\rule{2.2mm}{2.2mm}} & 0.80 / 96\\
-Door seam right & Cube & 1 & 3.0$\times$75.0$\times$2.0 & \textcolor[rgb]{0.220,0.220,0.240}{\rule{2.2mm}{2.2mm}} & 0.80 / 96\\
+Blade erosion strip & Cube & 5 & 3.5$\times$3.6$\times$345.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.53 / 49\\
+Blade tip cap & Cube & 5 & 23.0$\times$3.5$\times$30.0 & \textcolor[rgb]{0.550,0.500,0.100}{\rule{2.2mm}{2.2mm}} & 0.35 / 32\\
+Blade grip & Cube & 5 & 12.0$\times$8.0$\times$35.0 & \textcolor[rgb]{0.220,0.220,0.240}{\rule{2.2mm}{2.2mm}} & 0.80 / 96\\
+VHF antenna & Cube & 1 & 2.0$\times$20.0$\times$20.0 & \textcolor[rgb]{0.090,0.090,0.100}{\rule{2.2mm}{2.2mm}} & 0.50 / 48\\
+Belly antenna & Cube & 1 & 2.0$\times$18.0$\times$25.0 & \textcolor[rgb]{0.090,0.090,0.100}{\rule{2.2mm}{2.2mm}} & 0.50 / 48\\
+Drive shaft cover & Cylinder & 1 & 7.0$\times$7.0$\times$330.0 & \textcolor[rgb]{0.170,0.190,0.145}{\rule{2.2mm}{2.2mm}} & 0.40 / 48\\
+FLIR window & Sphere & 1 & 13.0$\times$13.0$\times$5.0 & \textcolor[rgb]{0.050,0.080,0.100}{\rule{2.2mm}{2.2mm}} & 1.00 / 160\\
+FLIR ball & Sphere & 1 & 24.0$\times$24.0$\times$24.0 & \textcolor[rgb]{0.090,0.090,0.100}{\rule{2.2mm}{2.2mm}} & 0.50 / 48\\
 \multicolumn{2}{@{}l}{\textit{66 more part kinds}} & 66 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{91 parts:} Cone 1, Cube 40, Cylinder 28, Frustum 1, Sphere 21}\\\bottomrule\end{tabular}}
 \newcommand{\decompTargetRover}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-IR sensor & Sphere & 30 & 2.5$\times$2.5$\times$2.5 & \textcolor[rgb]{0.900,0.150,0.120}{\rule{2.2mm}{2.2mm}} & 0.50 / 64\\
-Wheel L & Cylinder & 18 & 16.0$\times$16.0$\times$7.0 & \textcolor[rgb]{0.060,0.060,0.060}{\rule{2.2mm}{2.2mm}} & 0.05 / 8\\
-Wheel R & Cylinder & 18 & 16.0$\times$16.0$\times$7.0 & \textcolor[rgb]{0.060,0.060,0.060}{\rule{2.2mm}{2.2mm}} & 0.05 / 8\\
-Hub L & Sphere & 18 & 7.0$\times$7.0$\times$3.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
-Hub R & Sphere & 18 & 7.0$\times$7.0$\times$3.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
-Chassis & Cube & 6 & 42.0$\times$10.0$\times$62.0 & \textcolor[rgb]{0.340,0.370,0.260}{\rule{2.2mm}{2.2mm}} & 0.35 / 32\\
-Upper hull & Cube & 6 & 34.0$\times$10.0$\times$40.0 & \textcolor[rgb]{0.200,0.220,0.170}{\rule{2.2mm}{2.2mm}} & 0.30 / 32\\
-Motor + battery box & Cube & 6 & 22.0$\times$7.0$\times$16.0 & \textcolor[rgb]{0.160,0.160,0.170}{\rule{2.2mm}{2.2mm}} & 0.40 / 48\\
-Front bumper & Cube & 6 & 44.0$\times$5.0$\times$4.0 & \textcolor[rgb]{0.200,0.220,0.170}{\rule{2.2mm}{2.2mm}} & 0.30 / 32\\
-\multicolumn{2}{@{}l}{\textit{5 more part kinds}} & 30 & & & \\
-\midrule\multicolumn{6}{@{}l}{\textbf{156 parts:} Cube 36, Cylinder 48, Sphere 72}\\\bottomrule\end{tabular}}
+IR sensor & Sphere & 5 & 2.5$\times$2.5$\times$2.5 & \textcolor[rgb]{0.900,0.150,0.120}{\rule{2.2mm}{2.2mm}} & 0.50 / 64\\
+Hub R & Sphere & 3 & 7.0$\times$7.0$\times$3.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
+Hub L & Sphere & 3 & 7.0$\times$7.0$\times$3.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
+Wheel R & Cylinder & 3 & 16.0$\times$16.0$\times$7.0 & \textcolor[rgb]{0.060,0.060,0.060}{\rule{2.2mm}{2.2mm}} & 0.05 / 8\\
+Wheel L & Cylinder & 3 & 16.0$\times$16.0$\times$7.0 & \textcolor[rgb]{0.060,0.060,0.060}{\rule{2.2mm}{2.2mm}} & 0.05 / 8\\
+Whip antenna & Cylinder & 1 & 1.2$\times$1.2$\times$30.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
+Scanner window & Cube & 1 & 5.0$\times$3.0$\times$2.0 & \textcolor[rgb]{0.100,0.120,0.160}{\rule{2.2mm}{2.2mm}} & 0.90 / 96\\
+Scanner head & Sphere & 1 & 7.0$\times$7.0$\times$7.0 & \textcolor[rgb]{0.100,0.120,0.160}{\rule{2.2mm}{2.2mm}} & 0.90 / 96\\
+Sensor mast & Cylinder & 1 & 2.5$\times$2.5$\times$16.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
+\multicolumn{2}{@{}l}{\textit{5 more part kinds}} & 5 & & & \\
+\midrule\multicolumn{6}{@{}l}{\textbf{26 parts:} Cube 6, Cylinder 8, Sphere 12}\\\bottomrule\end{tabular}}
 \newcommand{\decompAaGatlingGun}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Shell casing & Cylinder & 20 & 0.0$\times$0.0$\times$0.0 & \textcolor[rgb]{0.500,0.380,0.100}{\rule{2.2mm}{2.2mm}} & 0.51 / 28\\
-Gatling barrel & Cylinder & 6 & 7.0$\times$7.0$\times$200.0 & \textcolor[rgb]{0.160,0.165,0.170}{\rule{2.2mm}{2.2mm}} & 0.49 / 25\\
+Shell casing & Cylinder & 20 & hidden$^\dagger$ & \textcolor[rgb]{0.500,0.380,0.100}{\rule{2.2mm}{2.2mm}} & 0.51 / 28\\
 Anchor bolt & Cylinder & 6 & 9.0$\times$9.0$\times$6.0 & \textcolor[rgb]{0.160,0.165,0.170}{\rule{2.2mm}{2.2mm}} & 0.49 / 25\\
-Pedestal brace & Cube & 4 & 12.0$\times$60.0$\times$12.0 & \textcolor[rgb]{0.200,0.205,0.200}{\rule{2.2mm}{2.2mm}} & 0.43 / 16\\
+Gatling barrel & Cylinder & 6 & 7.0$\times$7.0$\times$200.0 & \textcolor[rgb]{0.160,0.165,0.170}{\rule{2.2mm}{2.2mm}} & 0.49 / 25\\
 Mount body edge & Cylinder & 4 & 5.0$\times$5.0$\times$140.0 & \textcolor[rgb]{0.364,0.406,0.266}{\rule{2.2mm}{2.2mm}} & 0.32 / 21\\
+Pedestal brace & Cube & 4 & 12.0$\times$60.0$\times$12.0 & \textcolor[rgb]{0.200,0.205,0.200}{\rule{2.2mm}{2.2mm}} & 0.43 / 16\\
 Housing vent & Cube & 3 & 42.0$\times$2.5$\times$4.5 & \textcolor[rgb]{0.160,0.165,0.170}{\rule{2.2mm}{2.2mm}} & 0.49 / 25\\
-Base plate & Cylinder & 1 & 220.0$\times$220.0$\times$15.0 & \textcolor[rgb]{0.160,0.160,0.150}{\rule{2.2mm}{2.2mm}} & 0.07 / 2\\
-Pedestal column & Cylinder & 1 & 90.0$\times$90.0$\times$85.0 & \textcolor[rgb]{0.200,0.205,0.200}{\rule{2.2mm}{2.2mm}} & 0.43 / 16\\
-Pedestal collar & Cylinder & 1 & 120.0$\times$120.0$\times$12.0 & \textcolor[rgb]{0.200,0.205,0.200}{\rule{2.2mm}{2.2mm}} & 0.43 / 16\\
+Grab handle & Cylinder & 1 & 4.0$\times$4.0$\times$50.0 & \textcolor[rgb]{0.160,0.165,0.170}{\rule{2.2mm}{2.2mm}} & 0.49 / 25\\
+Danger stencil L & Cube & 1 & 1.0$\times$12.0$\times$45.0 & \textcolor[rgb]{0.700,0.580,0.120}{\rule{2.2mm}{2.2mm}} & 0.13 / 5\\
+Danger stencil R & Cube & 1 & 1.0$\times$12.0$\times$45.0 & \textcolor[rgb]{0.700,0.580,0.120}{\rule{2.2mm}{2.2mm}} & 0.13 / 5\\
 \multicolumn{2}{@{}l}{\textit{32 more part kinds}} & 32 & & & \\
+\multicolumn{6}{@{}l}{$^\dagger$ scale 1e-04 at export: invisible until fired}\\
 \midrule\multicolumn{6}{@{}l}{\textbf{78 parts:} Cube 19, Cylinder 54, Sphere 5}\\\bottomrule\end{tabular}}
 \newcommand{\decompSamLauncher}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
 Slew gear tooth & Cube & 12 & 10.0$\times$12.0$\times$10.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
 Tyre tread & Cylinder & 8 & 103.0$\times$103.0$\times$8.0 & \textcolor[rgb]{0.020,0.020,0.020}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Wheel & Cylinder & 4 & 100.0$\times$100.0$\times$40.0 & \textcolor[rgb]{0.025,0.025,0.025}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Wheel hub & Cylinder & 4 & 45.0$\times$45.0$\times$44.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
-Outrigger & Cylinder & 4 & 10.0$\times$10.0$\times$105.6 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
-Outrigger pad & Cube & 4 & 40.0$\times$6.0$\times$40.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
-Canister tube & Cube & 4 & 44.0$\times$44.0$\times$340.0 & \textcolor[rgb]{0.165,0.195,0.115}{\rule{2.2mm}{2.2mm}} & 0.16 / 4\\
-Hazard band & Cube & 4 & 46.0$\times$46.0$\times$18.0 & \textcolor[rgb]{0.300,0.240,0.040}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
+Canister stencil & Cube & 4 & 0.6$\times$12.0$\times$90.0 & \textcolor[rgb]{0.520,0.500,0.420}{\rule{2.2mm}{2.2mm}} & 0.13 / 5\\
+Canister rib & Cube & 4 & 47.0$\times$47.0$\times$7.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Rear hatch & Cube & 4 & 46.0$\times$46.0$\times$6.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Canister cap & Cube & 4 & 40.0$\times$40.0$\times$4.0 & \textcolor[rgb]{0.145,0.175,0.105}{\rule{2.2mm}{2.2mm}} & 0.26 / 9\\
 Muzzle collar & Cube & 4 & 50.0$\times$50.0$\times$6.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Hazard band & Cube & 4 & 46.0$\times$46.0$\times$18.0 & \textcolor[rgb]{0.300,0.240,0.040}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
+Canister tube & Cube & 4 & 44.0$\times$44.0$\times$340.0 & \textcolor[rgb]{0.165,0.195,0.115}{\rule{2.2mm}{2.2mm}} & 0.16 / 4\\
 \multicolumn{2}{@{}l}{\textit{38 more part kinds}} & 64 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{112 parts:} Cone 1, Cube 74, Cylinder 32, Sphere 5}\\\bottomrule\end{tabular}}
 \newcommand{\decompMlrsRocketTruck}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Tyre tread & Cylinder & 12 & 118.4$\times$118.4$\times$9.0 & \textcolor[rgb]{0.020,0.020,0.020}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Launch tube & Cylinder & 12 & 30.0$\times$30.0$\times$360.0 & \textcolor[rgb]{0.165,0.195,0.115}{\rule{2.2mm}{2.2mm}} & 0.16 / 4\\
-Muzzle ring & Cylinder & 12 & 34.0$\times$34.0$\times$8.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
 Tube cap & Cylinder & 12 & 31.0$\times$31.0$\times$4.0 & \textcolor[rgb]{0.145,0.175,0.105}{\rule{2.2mm}{2.2mm}} & 0.26 / 9\\
-Wheel & Cylinder & 6 & 115.0$\times$115.0$\times$45.0 & \textcolor[rgb]{0.025,0.025,0.025}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Wheel hub & Cylinder & 6 & 51.7$\times$51.7$\times$49.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
-Round body & Cylinder & 6 & 22.0$\times$22.0$\times$220.0 & \textcolor[rgb]{0.300,0.310,0.270}{\rule{2.2mm}{2.2mm}} & 0.29 / 16\\
-Round nose & Cone & 6 & 22.0$\times$22.0$\times$61.6 & \textcolor[rgb]{0.120,0.130,0.110}{\rule{2.2mm}{2.2mm}} & 0.26 / 16\\
+Muzzle ring & Cylinder & 12 & 34.0$\times$34.0$\times$8.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Launch tube & Cylinder & 12 & 30.0$\times$30.0$\times$360.0 & \textcolor[rgb]{0.165,0.195,0.115}{\rule{2.2mm}{2.2mm}} & 0.16 / 4\\
+Tyre tread & Cylinder & 12 & 118.4$\times$118.4$\times$9.0 & \textcolor[rgb]{0.020,0.020,0.020}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
+Round flame & Sphere & 6 & 28.6$\times$28.6$\times$132.0 & \textcolor[rgb]{1.000,0.550,0.150}{\rule{2.2mm}{2.2mm}} & 0.16 / 9\\
+Round fins B & Cube & 6 & 2.0$\times$66.0$\times$26.4 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
 Round fins A & Cube & 6 & 66.0$\times$2.0$\times$26.4 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Round nose & Cone & 6 & 22.0$\times$22.0$\times$61.6 & \textcolor[rgb]{0.120,0.130,0.110}{\rule{2.2mm}{2.2mm}} & 0.26 / 16\\
+Round body & Cylinder & 6 & 22.0$\times$22.0$\times$220.0 & \textcolor[rgb]{0.300,0.310,0.270}{\rule{2.2mm}{2.2mm}} & 0.29 / 16\\
 \multicolumn{2}{@{}l}{\textit{32 more part kinds}} & 58 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{136 parts:} Cone 6, Cube 45, Cylinder 76, Sphere 9}\\\bottomrule\end{tabular}}
 \newcommand{\decompAirDefenceRadar}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
 Antenna rib & Cube & 14 & 66.0$\times$8.0$\times$8.0 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
-Mast ring bar & Cylinder & 12 & 7.0$\times$7.0$\times$136.7 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
-Mast brace & Cylinder & 12 & 5.0$\times$5.0$\times$200.9 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
+Mast brace & Cylinder & 12 & 5.0$\times$5.0$\times$169.4 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
+Mast ring bar & Cylinder & 12 & 7.0$\times$7.0$\times$90.0 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
 IFF dipole & Cube & 6 & 4.0$\times$20.0$\times$4.0 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
 Mast leg & Cylinder & 4 & 14.0$\times$14.0$\times$408.0 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
 Shelter roof edge & Cylinder & 2 & 5.0$\times$5.0$\times$300.0 & \textcolor[rgb]{0.112,0.144,0.096}{\rule{2.2mm}{2.2mm}} & 0.37 / 21\\
-Concrete plinth & Cube & 1 & 460.0$\times$60.0$\times$460.0 & \textcolor[rgb]{0.160,0.160,0.150}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Mast platform & Cube & 1 & 150.0$\times$12.0$\times$150.0 & \textcolor[rgb]{0.300,0.310,0.320}{\rule{2.2mm}{2.2mm}} & 0.70 / 64\\
-Bearing housing & Cylinder & 1 & 100.0$\times$100.0$\times$30.0 & \textcolor[rgb]{0.130,0.140,0.150}{\rule{2.2mm}{2.2mm}} & 0.50 / 48\\
+Bearing seal & Cylinder & 1 & 104.0$\times$104.0$\times$4.0 & \textcolor[rgb]{0.078,0.084,0.090}{\rule{2.2mm}{2.2mm}} & 0.50 / 48\\
+Door placard & Cube & 1 & 1.2$\times$26.0$\times$36.0 & \textcolor[rgb]{0.800,0.650,0.100}{\rule{2.2mm}{2.2mm}} & 0.29 / 16\\
+Shelter status LED & Sphere & 1 & 5.0$\times$5.0$\times$5.0 & \textcolor[rgb]{1.000,0.500,0.050}{\rule{2.2mm}{2.2mm}} & 0.29 / 111\\
 \multicolumn{2}{@{}l}{\textit{55 more part kinds}} & 55 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{108 parts:} Cone 1, Cube 62, Cylinder 42, Sphere 3}\\\bottomrule\end{tabular}}
 \newcommand{\decompCommandBunker}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Camo net panel & Cube & 27 & 113.7$\times$3.5$\times$104.0 & \textcolor[rgb]{0.160,0.200,0.120}{\rule{2.2mm}{2.2mm}} & 0.08 / 2\\
+Camo net panel & Cube & 27 & 116.4$\times$3.5$\times$106.4 & \textcolor[rgb]{0.160,0.200,0.120}{\rule{2.2mm}{2.2mm}} & 0.08 / 2\\
 Guard rail & Cylinder & 12 & 4.0$\times$4.0$\times$230.0 & \textcolor[rgb]{0.550,0.440,0.050}{\rule{2.2mm}{2.2mm}} & 0.24 / 9\\
-Ceiling beam & Cube & 11 & 300.0$\times$20.0$\times$24.0 & \textcolor[rgb]{0.360,0.360,0.330}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Fixture housing & Cube & 10 & 130.0$\times$5.0$\times$30.0 & \textcolor[rgb]{0.500,0.520,0.550}{\rule{2.2mm}{2.2mm}} & 0.51 / 28\\
+Ceiling beam & Cube & 11 & 340.0$\times$20.0$\times$24.0 & \textcolor[rgb]{0.360,0.360,0.330}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
 Ladder rung & Cylinder & 10 & 3.0$\times$3.0$\times$50.0 & \textcolor[rgb]{0.500,0.520,0.550}{\rule{2.2mm}{2.2mm}} & 0.51 / 28\\
-Rack LED row & Cube & 9 & 3.0$\times$6.0$\times$60.0 & \textcolor[rgb]{0.200,1.000,0.300}{\rule{2.2mm}{2.2mm}} & 0.25 / 49\\
+Fixture housing & Cube & 10 & 130.0$\times$5.0$\times$30.0 & \textcolor[rgb]{0.500,0.520,0.550}{\rule{2.2mm}{2.2mm}} & 0.51 / 28\\
 Sandbag & Cylinder & 9 & 24.0$\times$18.0$\times$50.0 & \textcolor[rgb]{0.400,0.360,0.260}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
-Retaining wall W & Cube & 8 & 35.0$\times$385.7$\times$124.5 & \textcolor[rgb]{0.360,0.360,0.330}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Coping slab W & Cube & 8 & 85.0$\times$16.0$\times$126.5 & \textcolor[rgb]{0.270,0.270,0.250}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
+Rack LED row & Cube & 9 & 3.0$\times$6.0$\times$60.0 & \textcolor[rgb]{0.200,1.000,0.300}{\rule{2.2mm}{2.2mm}} & 0.25 / 49\\
+Guard rail post & Cylinder & 8 & 6.0$\times$6.0$\times$100.0 & \textcolor[rgb]{0.550,0.440,0.050}{\rule{2.2mm}{2.2mm}} & 0.24 / 9\\
+Counterfort rib & Cube & 8 & 18.0$\times$39.3$\times$30.0 & \textcolor[rgb]{0.360,0.360,0.330}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
 \multicolumn{2}{@{}l}{\textit{162 more part kinds}} & 323 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{427 parts:} Cube 309, Cylinder 99, Sphere 19}\\\bottomrule\end{tabular}}
 \newcommand{\decompBarracksHall}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Opening frame & Cube & 35 & 6.0$\times$50.0$\times$26.0 & \textcolor[rgb]{0.220,0.260,0.190}{\rule{2.2mm}{2.2mm}} & 0.15 / 8\\
-Bunk post & Cube & 12 & 5.0$\times$192.0$\times$5.0 & \textcolor[rgb]{0.240,0.270,0.220}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
-Bunk rail & Cube & 12 & 200.0$\times$6.0$\times$4.0 & \textcolor[rgb]{0.240,0.270,0.220}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
+Opening frame & Cube & 35 & 26.0$\times$5.0$\times$82.0 & \textcolor[rgb]{0.220,0.260,0.190}{\rule{2.2mm}{2.2mm}} & 0.15 / 8\\
 Ladder rung & Cylinder & 12 & 2.5$\times$2.5$\times$34.0 & \textcolor[rgb]{0.240,0.270,0.220}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
-North wall & Cube & 10 & 95.0$\times$282.0$\times$22.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
-Gable & Cube & 10 & 22.0$\times$20.0$\times$576.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
-Dumbbell & Cylinder & 8 & 11.0$\times$11.0$\times$30.0 & \textcolor[rgb]{0.070,0.070,0.075}{\rule{2.2mm}{2.2mm}} & 0.49 / 21\\
-South wall & Cube & 7 & 330.0$\times$282.0$\times$22.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
-East wall & Cube & 7 & 22.0$\times$282.0$\times$118.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
+Bunk rail & Cube & 12 & 200.0$\times$6.0$\times$4.0 & \textcolor[rgb]{0.240,0.270,0.220}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
+Bunk post & Cube & 12 & 5.0$\times$192.0$\times$5.0 & \textcolor[rgb]{0.240,0.270,0.220}{\rule{2.2mm}{2.2mm}} & 0.40 / 16\\
+Gable & Cube & 10 & 22.0$\times$20.0$\times$64.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
+North wall & Cube & 10 & 60.0$\times$282.0$\times$22.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
+Dumbbell & Cylinder & 8 & 17.0$\times$17.0$\times$30.0 & \textcolor[rgb]{0.070,0.070,0.075}{\rule{2.2mm}{2.2mm}} & 0.49 / 21\\
+West wall & Cube & 7 & 22.0$\times$282.0$\times$258.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
+East wall & Cube & 7 & 22.0$\times$282.0$\times$98.0 & \textcolor[rgb]{0.460,0.430,0.330}{\rule{2.2mm}{2.2mm}} & 0.11 / 3\\
 \multicolumn{2}{@{}l}{\textit{68 more part kinds}} & 164 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{277 parts:} Cube 225, Cylinder 50, Sphere 2}\\\bottomrule\end{tabular}}
 \newcommand{\decompAmmunitionBunker}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
 Wing sandbag & Cylinder & 8 & 28.0$\times$17.0$\times$50.0 & \textcolor[rgb]{0.520,0.470,0.360}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
 Turf clump & Sphere & 5 & 100.0$\times$40.0$\times$90.0 & \textcolor[rgb]{0.160,0.240,0.130}{\rule{2.2mm}{2.2mm}} & 0.13 / 5\\
-Crate & Cube & 3 & 60.0$\times$60.0$\times$60.0 & \textcolor[rgb]{0.420,0.330,0.200}{\rule{2.2mm}{2.2mm}} & 0.12 / 4\\
-Earth mound lobe & Sphere & 2 & 420.0$\times$240.0$\times$340.0 & \textcolor[rgb]{0.130,0.105,0.075}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
-Headwall block & Cube & 2 & 130.0$\times$190.0$\times$50.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Wing wall core & Cube & 2 & 60.0$\times$130.0$\times$240.0 & \textcolor[rgb]{0.130,0.105,0.075}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
-Wing wall slope & Cube & 2 & 40.0$\times$140.0$\times$240.0 & \textcolor[rgb]{0.130,0.105,0.075}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
-Vent pipe & Cylinder & 2 & 20.0$\times$20.0$\times$100.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Crate & Cube & 3 & 55.0$\times$45.0$\times$55.0 & \textcolor[rgb]{0.420,0.330,0.200}{\rule{2.2mm}{2.2mm}} & 0.12 / 4\\
+Fuel drum & Cylinder & 2 & 40.0$\times$40.0$\times$60.0 & \textcolor[rgb]{0.360,0.190,0.100}{\rule{2.2mm}{2.2mm}} & 0.34 / 5\\
 Vent cap & Cylinder & 2 & 34.0$\times$34.0$\times$6.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Vent pipe & Cylinder & 2 & 20.0$\times$20.0$\times$100.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Wing wall slope & Cube & 2 & 40.0$\times$140.0$\times$240.0 & \textcolor[rgb]{0.130,0.105,0.075}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Wing wall core & Cube & 2 & 60.0$\times$130.0$\times$240.0 & \textcolor[rgb]{0.130,0.105,0.075}{\rule{2.2mm}{2.2mm}} & 0.06 / 2\\
+Headwall block & Cube & 2 & 130.0$\times$190.0$\times$50.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
 \multicolumn{2}{@{}l}{\textit{14 more part kinds}} & 15 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{43 parts:} Cube 19, Cylinder 14, Sphere 10}\\\bottomrule\end{tabular}}
 \newcommand{\decompFlag}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Flag cloth & Cube & 36 & 20.0$\times$50.0$\times$2.0 & \textcolor[rgb]{0.650,0.050,0.050}{\rule{2.2mm}{2.2mm}} & 0.07 / 2\\
-Halyard & Cylinder & 2 & 1.5$\times$1.5$\times$740.0 & \textcolor[rgb]{0.300,0.300,0.310}{\rule{2.2mm}{2.2mm}} & 0.37 / 4\\
+Flag cloth & Cube & 36 & 20.0$\times$50.0$\times$2.0 & \textcolor[rgb]{0.060,0.120,0.400}{\rule{2.2mm}{2.2mm}} & 0.07 / 2\\
 Cleat & Cube & 2 & 8.0$\times$5.0$\times$5.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
-Flagpole base & Cube & 1 & 70.0$\times$20.0$\times$70.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Flagpole lower & Cylinder & 1 & 16.0$\times$16.0$\times$450.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
-Flagpole upper & Cylinder & 1 & 11.0$\times$11.0$\times$450.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
-Flagpole finial & Sphere & 1 & 24.0$\times$24.0$\times$24.0 & \textcolor[rgb]{0.600,0.450,0.120}{\rule{2.2mm}{2.2mm}} & 0.51 / 49\\
-Flag spot housing & Cylinder & 1 & 34.0$\times$34.0$\times$30.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Halyard & Cylinder & 2 & 1.5$\times$1.5$\times$740.0 & \textcolor[rgb]{0.300,0.300,0.310}{\rule{2.2mm}{2.2mm}} & 0.37 / 4\\
+Flag spot stand & Cube & 1 & 20.0$\times$12.0$\times$20.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
 Flag spot lens & Sphere & 1 & 30.0$\times$30.0$\times$5.0 & \textcolor[rgb]{0.030,0.040,0.050}{\rule{2.2mm}{2.2mm}} & 0.31 / 147\\
+Flag spot housing & Cylinder & 1 & 34.0$\times$34.0$\times$30.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Flagpole finial & Sphere & 1 & 24.0$\times$24.0$\times$24.0 & \textcolor[rgb]{0.600,0.450,0.120}{\rule{2.2mm}{2.2mm}} & 0.51 / 49\\
+Flagpole upper & Cylinder & 1 & 11.0$\times$11.0$\times$450.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
+Flagpole lower & Cylinder & 1 & 16.0$\times$16.0$\times$450.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
 \multicolumn{2}{@{}l}{\textit{1 more part kinds}} & 1 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{47 parts:} Cube 40, Cylinder 5, Sphere 2}\\\bottomrule\end{tabular}}
 \newcommand{\decompWindsock}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
 Mouth hoop & Cylinder & 6 & 2.5$\times$2.5$\times$36.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
-Sock cone & Cylinder & 5 & 72.0$\times$72.0$\times$55.0 & \textcolor[rgb]{0.620,0.160,0.030}{\rule{2.2mm}{2.2mm}} & 0.07 / 2\\
-Windsock pole & Cylinder & 2 & 14.0$\times$14.0$\times$300.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
-Windsock base & Cube & 1 & 50.0$\times$8.0$\times$50.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
+Sock cone & Cylinder & 5 & 28.0$\times$28.0$\times$55.0 & \textcolor[rgb]{0.620,0.160,0.030}{\rule{2.2mm}{2.2mm}} & 0.07 / 2\\
+Windsock pole & Cylinder & 2 & 10.0$\times$10.0$\times$310.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
 Hoop spoke & Cylinder & 1 & 2.5$\times$2.5$\times$31.0 & \textcolor[rgb]{0.550,0.560,0.580}{\rule{2.2mm}{2.2mm}} & 0.50 / 14\\
+Windsock base & Cube & 1 & 50.0$\times$8.0$\times$50.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
 \midrule\multicolumn{6}{@{}l}{\textbf{15 parts:} Cube 1, Cylinder 14}\\\bottomrule\end{tabular}}
 \newcommand{\decompBoomBarrier}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
-Boom stripe (red) & Cube & 5 & 50.0$\times$12.0$\times$10.0 & \textcolor[rgb]{0.500,0.040,0.030}{\rule{2.2mm}{2.2mm}} & 0.19 / 16\\
 Boom stripe (white) & Cube & 5 & 50.0$\times$12.0$\times$10.0 & \textcolor[rgb]{0.620,0.620,0.580}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
-Barrier foundation & Cube & 1 & 90.0$\times$12.0$\times$90.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Barrier housing & Cube & 1 & 50.0$\times$105.0$\times$50.0 & \textcolor[rgb]{0.600,0.460,0.050}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
-Housing door & Cube & 1 & 30.0$\times$50.0$\times$2.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
-Boom receiver & Cube & 1 & 30.0$\times$95.0$\times$30.0 & \textcolor[rgb]{0.600,0.460,0.050}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
-Boom cradle & Cube & 1 & 36.0$\times$8.0$\times$20.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
-Counterweight arm & Cube & 1 & 90.0$\times$8.0$\times$8.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Boom stripe (red) & Cube & 5 & 50.0$\times$12.0$\times$10.0 & \textcolor[rgb]{0.500,0.040,0.030}{\rule{2.2mm}{2.2mm}} & 0.19 / 16\\
+Warning lamp & Sphere & 1 & 22.0$\times$22.0$\times$22.0 & \textcolor[rgb]{1.000,0.150,0.030}{\rule{2.2mm}{2.2mm}} & 0.31 / 147\\
+Boom tip lamp & Sphere & 1 & 12.0$\times$12.0$\times$12.0 & \textcolor[rgb]{1.000,0.300,0.050}{\rule{2.2mm}{2.2mm}} & 0.31 / 147\\
+Pivot bolt & Cylinder & 1 & 12.0$\times$12.0$\times$60.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
 Counterweight & Cube & 1 & 30.0$\times$34.0$\times$26.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
+Counterweight arm & Cube & 1 & 90.0$\times$8.0$\times$8.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Boom cradle & Cube & 1 & 36.0$\times$8.0$\times$20.0 & \textcolor[rgb]{0.320,0.340,0.300}{\rule{2.2mm}{2.2mm}} & 0.41 / 21\\
+Boom receiver & Cube & 1 & 30.0$\times$95.0$\times$30.0 & \textcolor[rgb]{0.600,0.460,0.050}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
 \multicolumn{2}{@{}l}{\textit{3 more part kinds}} & 3 & & & \\
 \midrule\multicolumn{6}{@{}l}{\textbf{20 parts:} Cube 17, Cylinder 1, Sphere 2}\\\bottomrule\end{tabular}}
 \newcommand{\decompUavPads}{\begin{tabular}{@{}llrlcl@{}}\toprule
 Part & Primitive & n & $S$ (cm) & RGB & $k_s$ / $n$\\\midrule
 Pad light & Sphere & 8 & 5.0$\times$3.0$\times$5.0 & \textcolor[rgb]{0.250,1.000,0.350}{\rule{2.2mm}{2.2mm}} & 0.29 / 111\\
 Landing rail & Cube & 4 & 3.5$\times$2.0$\times$32.0 & \textcolor[rgb]{0.200,0.210,0.200}{\rule{2.2mm}{2.2mm}} & 0.44 / 21\\
-Pad slab & Cylinder & 2 & 130.0$\times$130.0$\times$4.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
-Pad ring & Cylinder & 2 & 118.0$\times$118.0$\times$0.4 & \textcolor[rgb]{0.600,0.460,0.050}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
 Pad centre & Cylinder & 2 & 102.0$\times$102.0$\times$0.4 & \textcolor[rgb]{0.300,0.300,0.290}{\rule{2.2mm}{2.2mm}} & 0.10 / 3\\
+Pad ring & Cylinder & 2 & 118.0$\times$118.0$\times$0.4 & \textcolor[rgb]{0.600,0.460,0.050}{\rule{2.2mm}{2.2mm}} & 0.17 / 12\\
+Pad slab & Cylinder & 2 & 130.0$\times$130.0$\times$4.0 & \textcolor[rgb]{0.440,0.430,0.400}{\rule{2.2mm}{2.2mm}} & 0.09 / 2\\
 \midrule\multicolumn{6}{@{}l}{\textbf{18 parts:} Cube 4, Cylinder 6, Sphere 8}\\\bottomrule\end{tabular}}
