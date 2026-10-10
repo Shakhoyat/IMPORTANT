@@ -19,7 +19,8 @@ import gen_maps as gm  # noqa: E402  site plan, routes and base()
 ROOT = gm.ROOT
 secs = float(sys.argv[1]) if len(sys.argv) > 1 else 8.0
 out = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "build", "film", "rover_map.mp4")
-FPS, W, H = 30, 1280, 720
+FPS = 30
+W, H = (int(v) for v in os.environ.get("ANIM_SIZE", "1280x720").split("x"))
 R = gm.routes
 rc = ["#ff5a4f", "#ffb02e", "#c18cff", "#59a7ff", "#3ad1c8", "#7bd36b"]
 tracks = [np.array(t) if t else np.zeros((0, 3)) for t in R["rover_tracks"]]
@@ -41,7 +42,8 @@ def at(track, t):
     return a[1:] + f * (b[1:] - a[1:])
 
 
-fig = plt.figure(figsize=(W / 100, H / 100), dpi=100, facecolor="#0e141b")
+DPI = 100 * H / 720
+fig = plt.figure(figsize=(W / DPI, H / DPI), dpi=DPI, facecolor="#0e141b")
 ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
 cmd = [os.path.expanduser("~/.local/bin/ffmpeg"), "-loglevel", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgba", "-s",
        "%dx%d" % (W, H), "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p", out]

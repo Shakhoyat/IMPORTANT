@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <vector>
 #include <string>
 
 #include "app/App.h"
@@ -14,6 +17,8 @@
 #include "audio/Wav.h"
 #include "scene/Camera.h"
 #include "scene/Director.h"
+#include "scene/Garrison.h"
+#include "objects/BaseLayout.h"
 #include "scene/Pov.h"
 #include "objects/Terrain.h"
 #include "rendering/FrameExplorer.h"
@@ -188,11 +193,101 @@ int App::recordMode() {
             showHud_ = false;     // a clean cinema frame: no game HUD, banners or camera feeds
             showFeed_ = false;
             scriptClock_ = -1.0f;
+            // a running clock from a daytime hour: start from a day world (UAVs docked, no wave alive), so the dusk
+            // launch happens on screen; the warm-up above started the night
+            if (std::getenv("TS_FILM_AUTO") && film[0] > 6.5f && film[0] < 19.0f) restartWorld(2.0f, false);
             if (DayCycle* clock = sa::dayCycle(*scene_)) {
                 clock->setAuto(false);
                 clock->setHour(film[0]);
+                clock->setAuto(std::getenv("TS_FILM_AUTO") != nullptr);   // let the day run: dusk launches, dawn landings
             }
             for (int k = 0; k < 120; ++k) step(kSimStep);   // 2 s: lighting and the garrison settle at the new hour
+        }
+    }
+    // TS_TOUR = route file: a soldier explores in third person, the recorder steering him like a player would (camera-
+    // relative walk, the arm easing behind). Lines: "hour H", "soldier ROSTER", "doors MASK" (1 blast, 2 hall, 4 generator),
+    // "start X Z YAW [FEETY]", then "p X Z [run]" waypoints. The garrison's own soldiers keep their duties around him.
+    struct TourPt { float x, z; bool run; };
+    std::vector<TourPt> tour;
+    std::vector<size_t> routed;   // indices of "g" points (expanded after the planner is built)
+    size_t tourK = 0;
+    float tourStuck = 0.0f, tourLastD = 1e9f;
+    bool tourOn = false;
+    if (const char* tp = std::getenv("TS_TOUR")) {
+        std::ifstream tin(tp);
+        std::string line;
+        float hour = 10.5f, sx = 0, sz = 0, syaw = 0, sfeet = -1e9f;
+        int roster = 0, doors = 0;
+        while (std::getline(tin, line)) {
+            std::istringstream ls(line);
+            std::string k;
+            ls >> k;
+            if (k == "hour") ls >> hour;
+            else if (k == "soldier") ls >> roster;
+            else if (k == "doors") ls >> doors;
+            else if (k == "start") { ls >> sx >> sz >> syaw; if (!(ls >> sfeet)) sfeet = -1e9f; }
+            else if (k == "p" || k == "g") {   // g: routed by the soldiers' A* planner (clear of every obstacle)
+                TourPt q{0, 0, false};
+                std::string r;
+                ls >> q.x >> q.z >> r;
+                q.run = r == "run";
+                if (k == "g") q.run = q.run, routed.push_back(tour.size());
+                tour.push_back(q);
+            }
+        }
+        tourOn = !tour.empty() && cut != DirectorCut::V7;
+        if (tourOn) {
+            scriptClock_ = -1.0f;
+            showHud_ = false;
+            showFeed_ = false;
+            playCapture_ = true;   // the player's camera-relative walk (shapePlayerInput)
+            if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                clock->setAuto(false);
+                clock->setHour(hour);
+            }
+            if (doors & 1) {
+                const std::vector<Controllable*> list = sa::controllables(*scene_);
+                const int i = resolveSlot(list, Slot::Doors);
+                if (i >= 0 && list[i]->status().find("OPEN") == std::string::npos) {
+                    ControlInput din;
+                    din.actionPressed = true;
+                    WorldContext wc;
+                    list[i]->update(wc, &din);
+                }
+            }
+            for (const auto& [bit, door] : {std::pair<int, DoorPortal*>{2, scene_->hallDoor()}, {4, scene_->generatorDoor()}})
+                if ((doors & bit) && door) {
+                    door->door().setTarget(true, true);
+                    door->door().snap(door->door().params().openDeg);
+                }
+            for (int k = 0; k < 300; ++k) step(kSimStep);   // 5 s: lighting, doors and the garrison settle
+            if (const Garrison* g = scene_->garrison(); g && !routed.empty()) {
+                std::vector<TourPt> out;
+                Vec3 from{sx, 0.0f, sz};
+                for (size_t i = 0; i < tour.size(); ++i) {
+                    const Vec3 to{tour[i].x, 0.0f, tour[i].z};
+                    std::vector<Vec3> cells;
+                    if (std::find(routed.begin(), routed.end(), i) != routed.end() && g->planner().gridPath(from, to, {}, cells)) {
+                        const std::vector<int> keep = g->planner().stringPull(cells, {});
+                        for (size_t k = 1; k + 1 < keep.size(); ++k)
+                            out.push_back({cells[static_cast<size_t>(keep[k])].x, cells[static_cast<size_t>(keep[k])].z, tour[i].run});
+                        std::printf("tour: routed to (%.1f, %.1f) through %zu turns\n", to.x, to.z, keep.size() > 2 ? keep.size() - 2 : 0);
+                    }
+                    out.push_back(tour[i]);
+                    from = to;
+                }
+                tour = out;
+            }
+            const int ci = sa::soldierIndex(*scene_, roster);
+            if (Garrison* g = scene_->garrison())
+                for (int u = 0; u < g->count(); ++u)
+                    if (sa::soldierIndex(*scene_, u) == ci) g->unit(u)->place(sx, sz, syaw, sfeet);
+            possess(ci);
+            camera_.possessSight = false;
+            setViewThirdPerson(true);
+            tp_.invalidate();
+            for (int k = 0; k < 60; ++k) { step(kSimStep); updateGameCamera(kSimStep); }
+            std::printf("tour: soldier %d at (%.1f, %.1f), %zu waypoints, %s\n", roster, sx, sz, tour.size(), possessedName());
         }
     }
     RenderTarget target;
@@ -356,12 +451,52 @@ int App::recordMode() {
             }
             props.ensure();
         }
+        if (tourOn) {
+            const std::vector<Controllable*> cl = sa::controllables(*scene_);
+            const int pi = possessedSoldierIndex();
+            const Soldier* me = pi >= 0 && pi < static_cast<int>(cl.size()) ? dynamic_cast<const Soldier*>(cl[pi]) : nullptr;
+            held_ = ControlInput{};
+            if (me && tourK < tour.size()) {
+                const Vec3 p = me->position();
+                float dx = tour[tourK].x - p.x, dz = tour[tourK].z - p.z, d = std::sqrt(dx * dx + dz * dz);
+                if (d < (tourK + 1 < tour.size() ? 0.9f : 0.35f)) {
+                    ++tourK;
+                    tourLastD = 1e9f;
+                    tourStuck = 0.0f;
+                }
+                if (tourK < tour.size()) {
+                    dx = tour[tourK].x - p.x;
+                    dz = tour[tourK].z - p.z;
+                    d = std::max(std::sqrt(dx * dx + dz * dz), 1e-3f);
+                    const float cy = radians(tp_.yawDeg);
+                    const float fw = (dx * std::sin(cy) + dz * std::cos(cy)) / d, rt = (-dx * std::cos(cy) + dz * std::sin(cy)) / d;
+                    held_.forward = fw;
+                    held_.turn = rt;
+                    held_.boost = tour[tourK].run;
+                    // the arm eases round behind the walk (look(): yaw -= dYaw)
+                    const float want = degrees(std::atan2(dx, dz));
+                    float diff = std::fmod(want - tp_.yawDeg + 540.0f, 360.0f) - 180.0f;
+                    tpLookYaw_ -= clampf(diff * 1.4f / static_cast<float>(fps), -2.2f, 2.2f);
+                    tourStuck = d < tourLastD - 0.02f ? 0.0f : tourStuck + 1.0f / static_cast<float>(fps);
+                    tourLastD = std::min(tourLastD, d);
+                    if (tourStuck > 3.0f) {
+                        std::printf("tour: stuck before waypoint %zu at (%.1f, %.1f) frame %d, skipping it\n", tourK, p.x, p.z, f);
+                        ++tourK;
+                        tourStuck = 0.0f;
+                        tourLastD = 1e9f;
+                    }
+                }
+            }
+        }
         for (int k = 0; k < stepsPerFrame; ++k) {
             step(kSimStep);
-            if (cut == DirectorCut::V7 && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
+            if ((cut == DirectorCut::V7 || tourOn) && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
             if (audioOn) audioEngine.pollEvents(*scene_);  // scene.events() only holds the last step's events
         }
-        if (filmCam) {
+        if (tourOn) {
+            settings_.letterbox = 0.0f;
+            settings_.fade = 1.0f;
+        } else if (filmCam) {
             const float u = frames > 1 ? static_cast<float>(f) / static_cast<float>(frames - 1) : 0.0f;
             const float e = u * u * (3.0f - 2.0f * u);   // ease in and out
             const Vec3 eye = lerp(Vec3{film[1], film[2], film[3]}, Vec3{film[7], film[8], film[9]}, e);

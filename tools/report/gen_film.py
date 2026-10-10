@@ -23,6 +23,7 @@ OUT = os.path.join(ROOT, "report", "video", "thermalsense_film_2min.mp4")
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONTB = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
 W, H, FPS, BAR = 1280, 720, 30, 88
+STYLE = "bars"   # "bars" (letterbox titles) or "lower" (lower third)
 TMP = tempfile.mkdtemp(prefix="film_")
 
 # (kind, source, start, duration, section title, caption, extra)
@@ -75,15 +76,26 @@ def card(i, section, caption, big=False, sub=""):
     from PIL import Image, ImageDraw, ImageFont
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 0, W, BAR], fill=(0, 0, 0, 255))
-    d.rectangle([0, H - BAR, W, H], fill=(0, 0, 0, 255))
+    u = H / 720.0   # type scale
+    if STYLE == "bars":
+        d.rectangle([0, 0, W, BAR], fill=(0, 0, 0, 255))
+        d.rectangle([0, H - BAR, W, H], fill=(0, 0, 0, 255))
     def centred(text, font, y, fill):
         w = d.textlength(text, font=font)
         d.text(((W - w) / 2, y), text, font=font, fill=fill)
     if big:
-        d.rectangle([0, BAR, W, H - BAR], fill=(10, 14, 20, 90))
-        centred(caption, ImageFont.truetype(FONTB, 72), H / 2 - 64, (245, 241, 234, 255))
-        centred(sub, ImageFont.truetype(FONT, 26), H / 2 + 26, (224, 160, 58, 255))
+        d.rectangle([0, 0, W, H], fill=(10, 14, 20, 110))
+        centred(caption, ImageFont.truetype(FONTB, int(72 * u)), H / 2 - 64 * u, (245, 241, 234, 255))
+        centred(sub, ImageFont.truetype(FONT, int(28 * u)), H / 2 + 26 * u, (224, 160, 58, 255))
+    elif STYLE == "lower":   # lower third over a soft gradient, the full frame stays visible
+        if caption or section:
+            for y in range(int(H * 0.72), H):
+                a = int(170 * ((y - H * 0.72) / (H * 0.28)) ** 1.2)
+                d.line([(0, y), (W, y)], fill=(6, 9, 13, a))
+        if section:
+            d.text((70 * u, H - 92 * u), section, font=ImageFont.truetype(FONT, int(19 * u)), fill=(224, 160, 58, 255))
+        if caption:
+            d.text((70 * u, H - 64 * u), caption, font=ImageFont.truetype(FONT, int(27 * u)), fill=(240, 240, 240, 255))
     else:
         if section:
             d.text((40, BAR / 2 - 13), section, font=ImageFont.truetype(FONT, 22), fill=(224, 160, 58, 255))
@@ -108,13 +120,13 @@ def segment(i, s):
     fade = "fade=t=in:st=0:d=0.25,fade=t=out:st=%.2f:d=0.25" % (dur - 0.25)
     afade = "afade=t=in:st=0:d=0.25,afade=t=out:st=%.2f:d=0.3" % (dur - 0.3)
     fit = "scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,fps=%d,setsar=1" % (W, H, W, H, FPS)
-    big = kind == "title"
-    ov = card(i, section, caption, big=big, sub=extra if isinstance(extra, str) else "")
+    big = kind == "title" or bool(ex.get("big"))
+    ov = card(i, section, caption, big=big, sub=extra if isinstance(extra, str) else ex.get("sub", ""))
     inputs, chain, audio = [], "", None
     if kind == "clip":
         speed = ex.get("speed", 1.0)
         inputs += ["-ss", str(ss), "-t", "%.3f" % (dur / speed), "-i", src]
-        v = ("setpts=PTS/%g," % speed if speed != 1.0 else "") + fit
+        v = ("setpts=PTS/%g," % speed if speed != 1.0 else "") + ("crop=%s," % ex["crop"] if ex.get("crop") else "") + fit
         if ex.get("zoom"):   # slow push-in for the impact
             v += (",scale=%d:%d,zoompan=z='1+0.18*on/%d':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)+20':d=1:s=%dx%d:fps=%d"
                   % (W * 2, H * 2, n, W, H, FPS))
