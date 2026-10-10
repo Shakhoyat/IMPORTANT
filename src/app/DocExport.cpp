@@ -628,6 +628,10 @@ void writeSimulation(std::ostream& o) {
     float launchT = 0, reloadT = 0;
     int launchOk = 0, readyBefore = sim.roundsReady(), readyAfter = -1;
     float t = 0;
+    struct P3 {
+        float t, x, z;
+    };
+    std::vector<std::vector<P3>> roverTrack(static_cast<size_t>(n)), uavTrack(static_cast<size_t>(kUavCount));
     for (int step = 0; step < static_cast<int>(130.0f / dt); ++step) {
         sim.update(dt, det);
         t += dt;
@@ -646,6 +650,15 @@ void writeSimulation(std::ostream& o) {
             reloaded = true;
             reloadT = t - launchT;
         }
+        if (step % 8 == 0) {   // tracks every 0.27 s (report route maps)
+            const std::vector<RoverState> rs = sim.rovers();
+            for (int i = 0; i < n && i < static_cast<int>(rs.size()); ++i)
+                if (sim.roverAlive(i)) roverTrack[static_cast<size_t>(i)].push_back({t, rs[static_cast<size_t>(i)].position.x, rs[static_cast<size_t>(i)].position.z});
+            for (int u = 0; u < kUavCount; ++u) {
+                const Vec3 q = transformPoint(sim.uav(u).root->world, {0, 0, 0});
+                uavTrack[static_cast<size_t>(u)].push_back({t, q.x, q.z});
+            }
+        }
         for (int i = 0; i < n; ++i) {
             const Intruder::Life l = sim.intruders()[i]->life;
             if (l != prev[i]) {
@@ -661,6 +674,17 @@ void writeSimulation(std::ostream& o) {
     for (size_t i = 0; i < ev.size(); ++i)
         o << (i ? ",\n      " : "\n      ") << "{\"t\": " << num(ev[i].t) << ", \"intruder\": " << ev[i].who << ", \"event\": \""
           << esc(ev[i].what) << "\"}";
+    auto tracks = [&](const char* key, const std::vector<std::vector<P3>>& tr) {
+        o << "],\n    \"" << key << "\": [";
+        for (size_t i = 0; i < tr.size(); ++i) {
+            o << (i ? ",\n      [" : "\n      [");
+            for (size_t k = 0; k < tr[i].size(); ++k)
+                o << (k ? ", " : "") << "[" << numShort(tr[i][k].t) << ", " << numShort(tr[i][k].x) << ", " << numShort(tr[i][k].z) << "]";
+            o << "]";
+        }
+    };
+    tracks("rover_tracks", roverTrack);
+    tracks("uav_tracks", uavTrack);
     o << "]},\n";
 }
 
@@ -818,7 +842,8 @@ void writeGarrison(std::ostream& o, Scene& scene) {
               << ", \"max_curvature\": " << numShort(maxK) << ", \"min_clearance_m\": " << numShort(g->planner().minClearance(r)) << "}";
         }
     }
-    o << "],\n      \"soldiers\": [";
+    o << "],\n      \"plan\": " << (g ? g->planJson() : std::string("null"));
+    o << ",\n      \"soldiers\": [";
     for (int i = 0; g && i < g->count(); ++i) {
         const Controllable* c = g->soldier(i);
         if (!c) continue;

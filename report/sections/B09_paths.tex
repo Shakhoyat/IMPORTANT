@@ -1,14 +1,11 @@
 \section{Line follower and MicroMouse logic}
 \label{sec:paths}
 \here{2}
-The intruder rovers are built like two classic robot-contest machines. \textbf{Planning (MicroMouse):} the
-40\,m$\times$40\,m area is divided into $80\times80$ cells of 0.5\,m; every cell hidden from the UAVs by an occluder
-is a goal; a breadth-first flood fill spreads distances out from the goals, and the rover walks ``downhill'' to the
-neighbour with the smaller value, as a MicroMouse descends its maze towards the centre. \textbf{Driving (line-follower
-robot):} the planned cell path is smoothed into a virtual guide line; five reflectance sensors in front of the rover
-report whether they are over the line, and the weighted sensor error drives a proportional--derivative (PD) controller that sets the left and
-right wheel speeds of a differential drive. The soldiers use A* on a $72\times72$ grid of 1\,m cells with 0.40\,m
-clearance, smoothed into centripetal Catmull--Rom splines.
+Each intruder rover combines two robot-contest machines. \textbf{Planning (MicroMouse):} on $80\times80$ cells of
+0.5\,m, cells hidden from the UAVs are goals; a breadth-first flood fill spreads distances from them and the rover walks
+downhill. \textbf{Driving (line follower):} the path becomes a guide line, five sensors read it, and a
+proportional--derivative (PD) controller sets the two wheel speeds. The soldiers use A* (1\,m cells, 0.40\,m clearance)
+smoothed into centripetal Catmull--Rom splines (Figures~\ref{fig:rovermap}, \ref{fig:guardmap}).
 \begin{equation}
 d(c)=1+\min_{n\in N_4(c)}d(n),\ d(\text{goal})=0;\qquad
 e=\frac{\sum_{i=1}^{5}w_i s_i}{\sum_i s_i},\ \ u=K_p e+K_d\dot e,\ \ v_{L,R}=v\mp u
@@ -35,10 +32,8 @@ error is positive and the rover turns left.}
 \label{fig:wb-lfr}
 \end{figure}
 
-When the rover is infiltrating towards an objective (instead of hiding), the plain flood fill becomes a weighted
-one (Dijkstra from the goal cell): a step costs one cell plus a penalty if either UAV can see that cell plus a little
-smooth noise, so each rover picks its own covered route. Algorithm~\ref{alg:intruder} is the whole controller of one
-rover, run every tick.
+Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a UAV can see. Algorithm~\ref{alg:intruder} is
+the whole controller of one rover.
 \begin{algorithm}[H]
 \caption{Intruder rover, one tick}
 \label{alg:intruder}
@@ -85,6 +80,25 @@ Catmull--Rom spline (overlay on).}\end{subfigure}
 \caption{Path debug view (\key{M}): flood field, routes and guide lines; the routes bend towards cover, cells the UAVs
 cannot see.}
 \label{fig:paths}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\plot{p_rover_map}{\linewidth}
+\caption{Route map of the intruder rovers in the export's 130\,s simulation (night, two UAVs): each rover's driven
+path from its spawn (circle) towards the objectives O1--O5 (stars), every life drawn (dashed: after a respawn); the
+UAVs' patrol orbits dotted. The rovers keep to cover around the buildings and stop where a UAV is overhead.}
+\label{fig:rovermap}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\plot{p_guard_map}{\linewidth}
+\caption{Guard map of the garrison: every soldier's posts and walked routes for the day and the night shift, from the
+duty roster in the program. By day the sentry holds the gate road, four soldiers work between two posts (watch, mechanic,
+logistics, technician) and three walk or run loops; at night four guards man fixed posts, the technician works in the
+command room and the off-duty crew goes down to the bunker (triangles).}
+\label{fig:guardmap}
 \end{figure}
 
 \begin{table}[htbp]

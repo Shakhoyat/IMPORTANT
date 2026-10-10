@@ -119,7 +119,7 @@
 \part*{Part B. Advanced work}
 \addcontentsline{toc}{part}{Part B. Advanced work}
 \noindent Part B goes beyond the class material, but every topic still sits on one stage of the same pipeline.
-Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be read as a second pass along the pipeline.
+Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:partb-glance} relates each one to the class method and its measured result.
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[sb/.style={draw=blue!50,fill=blue!6,rounded corners=1.5pt,text width=1.5cm,align=center,
@@ -138,6 +138,26 @@ Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be r
 \end{tikzpicture}
 \caption{Part B on the pipeline: each box is a Part B section (number and topic) under the stage it extends.}
 \label{fig:partb-map}
+\end{figure}
+\begin{figure}[p]
+\centering
+{\small\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{@{}m{2.55cm}>{\raggedright\arraybackslash}m{3.3cm}>{\raggedright\arraybackslash}m{3.0cm}>{\raggedright\arraybackslash}m{4.4cm}>{\raggedright\arraybackslash}m{3.1cm}@{}}
+\toprule & \textbf{Section} & \textbf{Class method} & \textbf{In ThermalSense} & \textbf{Measured}\\\midrule
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/annot/pal_ironbow.jpg} & \textbf{\ref{sec:color} Colour interpolation} & linear mix of two colours & 7-stop heat palettes; sky presets mixed in log space; lighting in linear space & small heat steps stay visible\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/showcase/sc_overview_dusk.jpg} & \textbf{\ref{sec:day} Day and night} & one fixed directional light & a solar model drives sun colour, sky, fog, exposure and lamps & one day = \daySeconds\,s, 4 phases\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/annot/curved_scene.jpg} & \textbf{\ref{sec:curved} Curved objects} & polygon approximation & 10 curved generators, slices chosen from the silhouette error & 0.38\,\% of $r$, 1\,224 triangles\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/play_clean/play_door_opening.jpg} & \textbf{\ref{sec:dynamic} Dynamic objects} & transform per frame & critically damped springs, fixed 60\,Hz tick, IK legs & door 95\,\% open in 1.13\,s\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/rt/raytrace_ssr.jpg} & \textbf{\ref{sec:rtadv} Reflection} & mirror ray $\mathbf r=\mathbf d-2(\mathbf d\cdot\mathbf n)\mathbf n$ & screen-space reflections in play, BVH rays for the rest & 30.0 vs 15.7\,ms\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/v5b/thermal_fpv_whitehot.jpg} & \textbf{\ref{sec:thermal} Thermal and CV} & convolution, histogram, threshold & simulated sensor, Otsu with a floor, union-find blobs & rover found at 11.4\,m\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/game/combined_strike.jpg} & \textbf{\ref{sec:game} Game mode} & state machines & Kalman tracks, Hungarian assignment, two-ray triangulation & both rounds arrive together\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/img/game/explosion_mid.jpg} & \textbf{\ref{sec:explode} Explosions} & particles, alpha blending & 7 particle kinds, premultiplied HDR, blackbody colour & few hundred particles per blast\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/plots/p_rover_map.pdf} & \textbf{\ref{sec:paths} Paths} & BFS, A*, splines & cover-seeking flood fill and Dijkstra, PD line following & Figs.~\ref{fig:rovermap}, \ref{fig:guardmap}\\[1.5mm]
+\includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/plots/p_fixes.pdf} & \textbf{\ref{sec:hard} Hard problems} & the textbook method & instancing, separable kernels, indexed meshes, biases & $3.5$--$4.5\times$ less\\[1.5mm]
+\bottomrule
+\end{tabular}}
+\caption{Part B at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result.}
+\label{fig:partb-glance}
 \end{figure}
 \input{sections/B02_color}
 \input{sections/B03_daynight}

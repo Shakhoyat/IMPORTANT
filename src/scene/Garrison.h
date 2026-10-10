@@ -216,6 +216,9 @@ public:
     int takeShiftChanges();                      // soldiers that left for a new post since the last call (ShiftChange)
     const SitePlanner& planner() const;
     const std::vector<CatmullRomPath>& routes() const;   // every planned duty route (export / figures)
+    // Report maps: per soldier and shift (0 night, 1 day) the stops (label, point, activity) and the walked routes
+    // sampled every 0.5 m (x, z), as one JSON object.
+    std::string planJson() const;
     bool dayActive() const;                      // roster currently on the day shift
 
     using Impl = GarrisonCore;

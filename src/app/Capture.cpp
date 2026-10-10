@@ -566,6 +566,16 @@ add(cam(v4("motor_pool", 58.5f), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 
         add(go);
         add(cam(day("sc_pov_generator"), {2.1f, e, 3.3f}, {4.9f, e - 1.0f, -1.2f}, 78.0f));
         add(cam(day("sc_pov_hall_look_out"), {23.3f, hf, -13.6f}, {23.5f, hf - 0.3f, -6.0f}, 72.0f));
+        // The manned posts (soldier's eye on the platform) and the other bunker rooms.
+        add(cam(day("sc_pov_guard_tower_in"), {16.45f, 5.4f, 28.55f}, {11.45f, 2.6f, 19.9f}, 72.0f));
+        add(cam(day("sc_pov_guard_tower_out"), {15.95f, 5.4f, 27.65f}, {20.9f, 2.0f, 36.3f}, 72.0f));
+        add(cam(day("sc_pov_watchtower"), {10.5f, 4.8f, 9.7f}, {6.0f, 2.0f, 25.0f}, 72.0f));
+        add(cam(day("sc_pov_guard_booth"), {5.6f, 1.45f, 31.9f}, {0.0f, 1.2f, 34.0f}, 72.0f));
+        add(cam(day("sc_pov_bunk_room"), {-5.0f, e, 3.4f}, {-2.0f, e - 1.0f, -1.6f}, 80.0f));
+        add(cam(day("sc_pov_exit_shaft"), {3.0f, e, -4.0f}, {4.6f, e - 0.2f, -7.6f}, 76.0f));
+        Shot gr = cam(day("sc_pov_generator_room"), {5.0f, e, 3.4f}, {2.2f, e - 1.0f, -1.6f}, 80.0f);
+        gr.doors = 4;
+        add(gr);
     }
     // ---- report Section 7: each design in the running scene (TS_INSITU = a file of "name ex ey ez ax ay az fov hour"
     // lines written by tools/report/insitu_cams.py from the export's part bounds). The names must outlive the list.

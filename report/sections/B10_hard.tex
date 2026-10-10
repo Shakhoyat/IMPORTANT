@@ -1,8 +1,17 @@
 \section{Hard problems and trade-offs}
 \label{sec:hard}
 \here{6}
-Six problems where the class method alone falls short in a scene of this size. Table~\ref{tab:hard} gives the
-reason, the fix and what was measured; timings marked $^\ast$ were taken on a GPU shared with other jobs.
+Six problems where the class method alone falls short in a scene of this size. Figure~\ref{fig:fixes} and
+Table~\ref{tab:hard} give the reason, the fix and what was measured; timings marked $^\ast$ were taken on a GPU shared with other jobs.
+
+\begin{figure}[htbp]
+\centering
+\plot{p_fixes}{\linewidth}
+\caption{Three of the fixes measured: grass triangles with one cube per blade vs.\ instanced blades with distance LOD,
+multiply-adds per pixel of a $7\times7$ blur vs.\ the separable version, and the EPIC day frame drawn non-indexed vs.\
+indexed (Section~\ref{sec:perf}).}
+\label{fig:fixes}
+\end{figure}
 
 \begin{table}[htbp]
 \caption{Hard problems: why the class method falls short, what the renderer does, and the measured result.}

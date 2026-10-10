@@ -11,10 +11,8 @@ moves per tick of length $\Delta t$ and how its colour is made.}\label{tab:explo
 \explosiontable
 \end{table}
 
-\paragraph{Physics.} Drag is an exact decay, $\mathbf{v}\leftarrow\mathbf{v}\,e^{-k\Delta t}$, so a puff slows the same
-at any frame rate. Fire and smoke are buoyant, smoke drifts with the wind and grows as it rises, and sparks fall under
-gravity and bounce off the terrain. A destroyed rover's own primitives become rigid debris, thrown out with speed
-$\propto\sqrt{\text{power}}$ and charred.
+\paragraph{Physics.} Drag is an exact decay, $\mathbf{v}\leftarrow\mathbf{v}\,e^{-k\Delta t}$ (frame-rate independent);
+fire and smoke rise, sparks fall and bounce, and the rover's own primitives become debris.
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_particles.pdf}
 \caption{The integrators of Table~\ref{tab:explode} run from the same start point (initial velocities are typical

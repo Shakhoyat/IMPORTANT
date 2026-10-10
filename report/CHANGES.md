@@ -499,3 +499,24 @@ Teaching drawings of each section's maths; every constant drawn from the code is
 - **Image quality:** captures are converted at the full 1920 px (ffmpeg q 4; `FORCE=1` re-encodes everything).
 - Checks: 396 tests pass; `check_counts.py` OK; no figure drifts out of its section; 2 small overfull vboxes on two
   card pages. Page count: 127. PDF: 55 MB (about 500 images).
+
+## Round 4: interiors, route maps, Part B overview
+
+- **Interiors:** a third "walking in" page in Section 2 with the manned posts and the other bunker rooms: both guard-tower
+  views, the watchtower, the bunk room at night, the generator room and the command-room corner by the exit shaft
+  (`sc_pov_*` shots). The text says which buildings are walkable (bunker, hall) and which are closed shells.
+- **Route maps (Section 28):**
+  - The export now carries the garrison's duty plan, through `Garrison::planJson`: per soldier and shift, the stops
+    (label, point, activity) and the walked routes sampled every 0.5 m.
+  - The export's 130 s simulation now also records the rover and UAV tracks.
+  - `tools/report/gen_maps.py` copies these to `report/data/routes.json` and draws a guard map (day and night shifts,
+    every post and route, coloured per soldier) and a rover route map (every life of every rover, spawns, the five
+    objectives, the UAV orbits) over a site plan built from every part's footprint.
+  - The main export used by the report numbers is unchanged.
+- **Part B:**
+  - A new "at a glance" figure: each advanced section with the class method it starts from, what ThermalSense does and
+    the measured result.
+  - A before/after chart in Section 29 (`tools/report/gen_fix_chart.py`).
+  - Prose that repeated the figures was cut in Sections 21, 24, 27 and 28.
+- **Removed:** the objectives table in the conclusion (old Table 32.1).
+- Checks: 396 tests pass; `check_counts.py` OK; no figure drift. 132 pages.

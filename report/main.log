@@ -1311,9 +1311,21 @@ File: figures/img/showcase/sc_pov_hall_look_out.jpg Graphic file (type bmp)
 <figures/img/showcase/sc_pov_hall_look_out.jpg>
 File: figures/img/play_clean/play_hall_inside.jpg Graphic file (type bmp)
 <figures/img/play_clean/play_hall_inside.jpg>
+File: figures/img/showcase/sc_pov_guard_tower_in.jpg Graphic file (type bmp)
+<figures/img/showcase/sc_pov_guard_tower_in.jpg>
+File: figures/img/showcase/sc_pov_guard_tower_out.jpg Graphic file (type bmp)
+<figures/img/showcase/sc_pov_guard_tower_out.jpg>
+File: figures/img/showcase/sc_pov_watchtower.jpg Graphic file (type bmp)
+<figures/img/showcase/sc_pov_watchtower.jpg>
+File: figures/img/scene/bunker_offduty.jpg Graphic file (type bmp)
+<figures/img/scene/bunker_offduty.jpg>
+File: figures/img/showcase/sc_pov_generator_room.jpg Graphic file (type bmp)
+<figures/img/showcase/sc_pov_generator_room.jpg>
+File: figures/img/showcase/sc_pov_exit_shaft.jpg Graphic file (type bmp)
+<figures/img/showcase/sc_pov_exit_shaft.jpg>
 ) (sections/03_setup [4
 
-] [5] [6] [7]
+] [5] [6] [7] [8]
 Requested font "[lmmono10-regular]:" at 10.95pt
  -> lmmono10-regular
 Requested font "[lmmono10-regular]:" at 10.0pt
@@ -1362,7 +1374,9 @@ Requested font "ntxsyc" at 6.2pt
  -> ntxsyc
 Requested font "ntxexa" at 6.2pt
  -> ntxexa
-) (sections/05_controls [8])
+) (sections/05_controls [9
+
+])
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
 (Font)              scaled to size 20.74pt on input line 102.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
@@ -1374,7 +1388,7 @@ Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
 num;+lnum;mapping=tex-text;" at 20.74pt
  -> TeXGyreTermesX-Bold.otf
 
-(sections/A01_primitives [9]
+(sections/A01_primitives [10]
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
 (Font)              scaled to size 7.5pt on input line 3.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
@@ -1442,7 +1456,7 @@ Requested font "ntx-Bold-tlf-ot1" at 8.0pt
  -> ntx-Bold-tlf-ot1
 Requested font "ntx-Bold-tlf-ot1" at 6.1pt
  -> ntx-Bold-tlf-ot1
- [10] [11]
+ [11] [12]
 File: figures/img/primcards/prim_02.jpg Graphic file (type bmp)
 <figures/img/primcards/prim_02.jpg>
 Requested font "ntx-Bold-tlf-ot1" at 6.2pt
@@ -1576,8 +1590,8 @@ File: figures/img/primcards/prim_15.jpg Graphic file (type bmp)
 <figures/img/primcards/prim_15.jpg>
 File: figures/img/primcards/prim_16.jpg Graphic file (type bmp)
 <figures/img/primcards/prim_16.jpg>
- [12] [13] [14] [15] [16] [17] [18]
-[19]) (sections/B01_decomposition
+ [13] [14] [15] [16] [17] [18] [19]
+[20]) (sections/B01_decomposition
 File: figures/img/shapes/atlas_soldier.jpg Graphic file (type bmp)
 <figures/img/shapes/atlas_soldier.jpg>
 File: figures/img/shapes/atlas_main_battle_tank.jpg Graphic file (type bmp)
@@ -1706,9 +1720,9 @@ File: figures/img/shapes/atlas_tyre_tracks.jpg Graphic file (type bmp)
 <figures/img/shapes/atlas_tyre_tracks.jpg>
 File: figures/img/shapes/atlas_tank_spot_marking.jpg Graphic file (type bmp)
 <figures/img/shapes/atlas_tank_spot_marking.jpg>
- [20
+ [21
 
-] [21]
+] [22]
 File: figures/img/shapes/soldier_model.jpg Graphic file (type bmp)
 <figures/img/shapes/soldier_model.jpg>
 File: figures/img/shapes/soldier_prims.jpg Graphic file (type bmp)
@@ -1721,7 +1735,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 108.
 See the caption package documentation for explanation.
 
-[22]
+[23]
 Requested font "ntx-Bold-tlf-ot1" at 9.0pt
  -> ntx-Bold-tlf-ot1
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
@@ -1842,7 +1856,7 @@ File: figures/img/m3/parts_soldier_1/47_radio.jpg Graphic file (type bmp)
 File: figures/img/m3/parts_soldier_1/48_radio_antenna.jpg Graphic file (type bm
 p)
 <figures/img/m3/parts_soldier_1/48_radio_antenna.jpg>
- [23] [24] [25]
+ [24] [25] [26]
 File: figures/img/shapes/main_battle_tank_model.jpg Graphic file (type bmp)
 <figures/img/shapes/main_battle_tank_model.jpg>
 File: figures/img/shapes/main_battle_tank_prims.jpg Graphic file (type bmp)
@@ -1855,7 +1869,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[26]
+[27]
 File: figures/img/shapes/main_battle_tank_stage12.jpg Graphic file (type bmp)
 <figures/img/shapes/main_battle_tank_stage12.jpg>
 File: figures/img/shapes/main_battle_tank_stage35.jpg Graphic file (type bmp)
@@ -1864,7 +1878,7 @@ File: figures/img/shapes/main_battle_tank_stage65.jpg Graphic file (type bmp)
 <figures/img/shapes/main_battle_tank_stage65.jpg>
 File: figures/img/shapes/main_battle_tank_stage100.jpg Graphic file (type bmp)
 <figures/img/shapes/main_battle_tank_stage100.jpg>
- [27]
+ [28]
 File: figures/img/shapes/autonomous_uav_model.jpg Graphic file (type bmp)
 <figures/img/shapes/autonomous_uav_model.jpg>
 File: figures/img/shapes/autonomous_uav_prims.jpg Graphic file (type bmp)
@@ -1881,7 +1895,7 @@ See the caption package documentation for explanation.
 Overfull \vbox (10.22604pt too high) has occurred while \output is active []
 
 
-[28]
+[29]
 File: figures/img/m3/parts_autonomous_uav/01_fuselage.jpg Graphic file (type bm
 p)
 <figures/img/m3/parts_autonomous_uav/01_fuselage.jpg>
@@ -1986,7 +2000,7 @@ File: figures/img/shapes/autonomous_uav_stage65.jpg Graphic file (type bmp)
 <figures/img/shapes/autonomous_uav_stage65.jpg>
 File: figures/img/shapes/autonomous_uav_stage100.jpg Graphic file (type bmp)
 <figures/img/shapes/autonomous_uav_stage100.jpg>
- [29]
+ [30]
 File: figures/img/shapes/uav_round_model.jpg Graphic file (type bmp)
 <figures/img/shapes/uav_round_model.jpg>
 File: figures/img/shapes/uav_round_prims.jpg Graphic file (type bmp)
@@ -1999,7 +2013,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[30]
+[31]
 File: figures/img/shapes/sam_launcher_model.jpg Graphic file (type bmp)
 <figures/img/shapes/sam_launcher_model.jpg>
 File: figures/img/shapes/sam_launcher_prims.jpg Graphic file (type bmp)
@@ -2012,7 +2026,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[31]
+[32]
 File: figures/img/shapes/sam_missile_model.jpg Graphic file (type bmp)
 <figures/img/shapes/sam_missile_model.jpg>
 File: figures/img/shapes/sam_missile_prims.jpg Graphic file (type bmp)
@@ -2025,7 +2039,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[32]
+[33]
 File: figures/img/shapes/mlrs_rocket_truck_model.jpg Graphic file (type bmp)
 <figures/img/shapes/mlrs_rocket_truck_model.jpg>
 File: figures/img/shapes/mlrs_rocket_truck_prims.jpg Graphic file (type bmp)
@@ -2038,7 +2052,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[33]
+[34]
 File: figures/img/shapes/mlrs_rocket_model.jpg Graphic file (type bmp)
 <figures/img/shapes/mlrs_rocket_model.jpg>
 File: figures/img/shapes/mlrs_rocket_prims.jpg Graphic file (type bmp)
@@ -2051,7 +2065,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[34]
+[35]
 File: figures/img/shapes/aa_gatling_gun_model.jpg Graphic file (type bmp)
 <figures/img/shapes/aa_gatling_gun_model.jpg>
 File: figures/img/shapes/aa_gatling_gun_prims.jpg Graphic file (type bmp)
@@ -2064,7 +2078,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[35]
+[36]
 File: figures/img/shapes/aa_shell_casing_model.jpg Graphic file (type bmp)
 <figures/img/shapes/aa_shell_casing_model.jpg>
 File: figures/img/shapes/aa_shell_casing_prims.jpg Graphic file (type bmp)
@@ -2077,7 +2091,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[36]
+[37]
 File: figures/img/shapes/scout_helicopter_model.jpg Graphic file (type bmp)
 <figures/img/shapes/scout_helicopter_model.jpg>
 File: figures/img/shapes/scout_helicopter_prims.jpg Graphic file (type bmp)
@@ -2090,7 +2104,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[37]
+[38]
 File: figures/img/shapes/scout_helicopter_stage12.jpg Graphic file (type bmp)
 <figures/img/shapes/scout_helicopter_stage12.jpg>
 File: figures/img/shapes/scout_helicopter_stage35.jpg Graphic file (type bmp)
@@ -2111,7 +2125,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[38]
+[39]
 File: figures/img/shapes/target_rover_model.jpg Graphic file (type bmp)
 <figures/img/shapes/target_rover_model.jpg>
 File: figures/img/shapes/target_rover_prims.jpg Graphic file (type bmp)
@@ -2124,7 +2138,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 115.
 See the caption package documentation for explanation.
 
-[39]
+[40]
 File: figures/img/shapes/lineup_sam_missile_mlrs_rocket_uav_round_aa_shell_casi
 ng_prims.jpg Graphic file (type bmp)
 <figures/img/shapes/lineup_sam_missile_mlrs_rocket_uav_round_aa_shell_casing_pr
@@ -2132,7 +2146,7 @@ ims.jpg>
 File: figures/img/shapes/lineup_uav_round_aa_shell_casing_prims.jpg Graphic fil
 e (type bmp)
 <figures/img/shapes/lineup_uav_round_aa_shell_casing_prims.jpg>
- [40]
+ [41]
 File: figures/img/shapes/command_bunker_cut_model.jpg Graphic file (type bmp)
 <figures/img/shapes/command_bunker_cut_model.jpg>
 File: figures/img/shapes/command_bunker_cut_prims.jpg Graphic file (type bmp)
@@ -2145,7 +2159,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[41] [42] [43]
+[42] [43] [44]
 File: figures/img/shapes/command_bunker_stage12.jpg Graphic file (type bmp)
 <figures/img/shapes/command_bunker_stage12.jpg>
 File: figures/img/shapes/command_bunker_stage35.jpg Graphic file (type bmp)
@@ -2154,7 +2168,7 @@ File: figures/img/shapes/command_bunker_stage65.jpg Graphic file (type bmp)
 <figures/img/shapes/command_bunker_stage65.jpg>
 File: figures/img/shapes/command_bunker_stage100.jpg Graphic file (type bmp)
 <figures/img/shapes/command_bunker_stage100.jpg>
- [44]
+ [45]
 File: figures/img/shapes/barracks_hall_cut_model.jpg Graphic file (type bmp)
 <figures/img/shapes/barracks_hall_cut_model.jpg>
 File: figures/img/shapes/barracks_hall_cut_prims.jpg Graphic file (type bmp)
@@ -2171,7 +2185,7 @@ See the caption package documentation for explanation.
 Overfull \vbox (40.45259pt too high) has occurred while \output is active []
 
 
-[45] [46]
+[46] [47]
 File: figures/img/shapes/air_defence_radar_model.jpg Graphic file (type bmp)
 <figures/img/shapes/air_defence_radar_model.jpg>
 File: figures/img/shapes/air_defence_radar_prims.jpg Graphic file (type bmp)
@@ -2184,7 +2198,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[47]
+[48]
 File: figures/img/shapes/motor_pool_model.jpg Graphic file (type bmp)
 <figures/img/shapes/motor_pool_model.jpg>
 File: figures/img/shapes/motor_pool_prims.jpg Graphic file (type bmp)
@@ -2197,7 +2211,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[48]
+[49]
 File: figures/img/shapes/helipad_model.jpg Graphic file (type bmp)
 <figures/img/shapes/helipad_model.jpg>
 File: figures/img/shapes/helipad_prims.jpg Graphic file (type bmp)
@@ -2210,7 +2224,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[49]
+[50]
 File: figures/img/shapes/ammunition_bunker_cut_model.jpg Graphic file (type bmp
 )
 <figures/img/shapes/ammunition_bunker_cut_model.jpg>
@@ -2236,7 +2250,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[50]
+[51]
 File: figures/img/shapes/watchtower_model.jpg Graphic file (type bmp)
 <figures/img/shapes/watchtower_model.jpg>
 File: figures/img/shapes/watchtower_prims.jpg Graphic file (type bmp)
@@ -2249,7 +2263,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[51]
+[52]
 File: figures/img/shapes/fuel_depot_model.jpg Graphic file (type bmp)
 <figures/img/shapes/fuel_depot_model.jpg>
 File: figures/img/shapes/fuel_depot_prims.jpg Graphic file (type bmp)
@@ -2273,7 +2287,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[52]
+[53]
 File: figures/img/shapes/radio_mast_model.jpg Graphic file (type bmp)
 <figures/img/shapes/radio_mast_model.jpg>
 File: figures/img/shapes/radio_mast_prims.jpg Graphic file (type bmp)
@@ -2297,7 +2311,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[53]
+[54]
 File: figures/img/shapes/container_model.jpg Graphic file (type bmp)
 <figures/img/shapes/container_model.jpg>
 File: figures/img/shapes/container_prims.jpg Graphic file (type bmp)
@@ -2321,7 +2335,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 119.
 See the caption package documentation for explanation.
 
-[54]
+[55]
 File: figures/img/shapes/uav_pad_model.jpg Graphic file (type bmp)
 <figures/img/shapes/uav_pad_model.jpg>
 File: figures/img/shapes/uav_pad_prims.jpg Graphic file (type bmp)
@@ -2345,7 +2359,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 122.
 See the caption package documentation for explanation.
 
-[55]
+[56]
 File: figures/img/shapes/concertina_wire_model.jpg Graphic file (type bmp)
 <figures/img/shapes/concertina_wire_model.jpg>
 File: figures/img/shapes/concertina_wire_prims.jpg Graphic file (type bmp)
@@ -2369,7 +2383,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 122.
 See the caption package documentation for explanation.
 
-[56]
+[57]
 File: figures/img/shapes/outer_gate_model.jpg Graphic file (type bmp)
 <figures/img/shapes/outer_gate_model.jpg>
 File: figures/img/shapes/outer_gate_prims.jpg Graphic file (type bmp)
@@ -2393,7 +2407,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 122.
 See the caption package documentation for explanation.
 
-[57]
+[58]
 File: figures/img/shapes/earth_revetment_model.jpg Graphic file (type bmp)
 <figures/img/shapes/earth_revetment_model.jpg>
 File: figures/img/shapes/earth_revetment_prims.jpg Graphic file (type bmp)
@@ -2417,7 +2431,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 122.
 See the caption package documentation for explanation.
 
-[58]
+[59]
 File: figures/img/shapes/aa_gun_surround_model.jpg Graphic file (type bmp)
 <figures/img/shapes/aa_gun_surround_model.jpg>
 File: figures/img/shapes/aa_gun_surround_prims.jpg Graphic file (type bmp)
@@ -2452,7 +2466,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 122.
 See the caption package documentation for explanation.
 
-[59]
+[60]
 File: figures/img/shapes/hesco_blocks_model.jpg Graphic file (type bmp)
 <figures/img/shapes/hesco_blocks_model.jpg>
 File: figures/img/shapes/hesco_blocks_prims.jpg Graphic file (type bmp)
@@ -2476,7 +2490,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 122.
 See the caption package documentation for explanation.
 
-[60]
+[61]
 File: figures/img/shapes/jersey_barrier_model.jpg Graphic file (type bmp)
 <figures/img/shapes/jersey_barrier_model.jpg>
 File: figures/img/shapes/jersey_barrier_prims.jpg Graphic file (type bmp)
@@ -2500,7 +2514,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 128.
 See the caption package documentation for explanation.
 
-[61]
+[62]
 File: figures/img/shapes/pine_model.jpg Graphic file (type bmp)
 <figures/img/shapes/pine_model.jpg>
 File: figures/img/shapes/pine_prims.jpg Graphic file (type bmp)
@@ -2524,7 +2538,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 128.
 See the caption package documentation for explanation.
 
-[62]
+[63]
 File: figures/img/shapes/bush_model.jpg Graphic file (type bmp)
 <figures/img/shapes/bush_model.jpg>
 File: figures/img/shapes/bush_prims.jpg Graphic file (type bmp)
@@ -2548,7 +2562,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 128.
 See the caption package documentation for explanation.
 
-[63]
+[64]
 File: figures/img/shapes/grass_blade.png Graphic file (type bmp)
 <figures/img/shapes/grass_blade.png>
 File: figures/img/shapes/grass_tuft.png Graphic file (type bmp)
@@ -2619,7 +2633,7 @@ Requested font "ntxexa" at 4.12502pt
  -> ntxexa
 Requested font "[lmmono8-regular]:" at 7.5pt
  -> lmmono8-regular
-[64]
+[65]
 File: figures/img/shapes/flag_model.jpg Graphic file (type bmp)
 <figures/img/shapes/flag_model.jpg>
 File: figures/img/shapes/flag_prims.jpg Graphic file (type bmp)
@@ -2643,7 +2657,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 135.
 See the caption package documentation for explanation.
 
-[65]
+[66]
 File: figures/img/shapes/supply_cache_model.jpg Graphic file (type bmp)
 <figures/img/shapes/supply_cache_model.jpg>
 File: figures/img/shapes/supply_cache_prims.jpg Graphic file (type bmp)
@@ -2667,7 +2681,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 135.
 See the caption package documentation for explanation.
 
-[66]
+[67]
 File: figures/img/shapes/lamp_post_model.jpg Graphic file (type bmp)
 <figures/img/shapes/lamp_post_model.jpg>
 File: figures/img/shapes/lamp_post_prims.jpg Graphic file (type bmp)
@@ -2691,7 +2705,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 135.
 See the caption package documentation for explanation.
 
-[67]
+[68]
 File: figures/img/shapes/fire_barrel_model.jpg Graphic file (type bmp)
 <figures/img/shapes/fire_barrel_model.jpg>
 File: figures/img/shapes/fire_barrel_prims.jpg Graphic file (type bmp)
@@ -2713,7 +2727,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 135.
 See the caption package documentation for explanation.
 
-[68]
+[69]
 File: figures/img/shapes/moon_prims.jpg Graphic file (type bmp)
 <figures/img/shapes/moon_prims.jpg>
 File: figures/img/insitu/moon.jpg Graphic file (type bmp)
@@ -2724,7 +2738,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 135.
 See the caption package documentation for explanation.
 
-[69]
+[70]
 File: figures/img/shapes/terrain_disc_model.jpg Graphic file (type bmp)
 <figures/img/shapes/terrain_disc_model.jpg>
 File: figures/img/shapes/terrain_disc_prims.jpg Graphic file (type bmp)
@@ -2759,7 +2773,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 138.
 See the caption package documentation for explanation.
 
-[70]
+[71]
 File: figures/img/shapes/far_radio_tower_model.jpg Graphic file (type bmp)
 <figures/img/shapes/far_radio_tower_model.jpg>
 File: figures/img/shapes/far_radio_tower_prims.jpg Graphic file (type bmp)
@@ -2783,7 +2797,7 @@ Package caption Warning: The option `hypcap=true' will be ignored for this
 (caption)                particular \caption on input line 138.
 See the caption package documentation for explanation.
 
-[71]
+[72]
 File: figures/img/shapes/tyre_tracks_model.jpg Graphic file (type bmp)
 <figures/img/shapes/tyre_tracks_model.jpg>
 File: figures/img/shapes/tyre_tracks_prims.jpg Graphic file (type bmp)
@@ -2813,7 +2827,7 @@ File: lstlang1.sty 2020/03/24 1.8d listings language file
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (lstmisc.sty
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
-) [72]
+) [73]
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
 nput line 20.
 Requested font "[lmmono8-regular]:" at 7.4pt
@@ -2845,21 +2859,21 @@ Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
 (sections/wb/Transform_Trace_inputs) (sections/wb/Transform_Trace_srt)
 (sections/wb/Transform_Trace_tm) (sections/wb/Transform_Trace_tw)
 (sections/wb/Transform_Trace_stages) (sections/wb/Transform_Trace_checks)
-[73] [74]
+[74] [75]
 
 LaTeX Font Warning: Command \scriptsize invalid in math mode on input line 83.
 
 
 LaTeX Font Warning: Command \scriptsize invalid in math mode on input line 92.
 
-) (sections/A03_hierarchy [75]
+) (sections/A03_hierarchy [76]
 File: figures/diagrams/d_hierarchy.pdf Graphic file (type pdf)
 <use figures/diagrams/d_hierarchy.pdf>
 File: figures/img/annot/hier_tank.jpg Graphic file (type bmp)
 <figures/img/annot/hier_tank.jpg>
 File: figures/img/annot/hier_uav.jpg Graphic file (type bmp)
 <figures/img/annot/hier_uav.jpg>
- [76] [77]) (sections/A04_viewing
+ [77] [78]) (sections/A04_viewing
 File: figures/diagrams/d_view_basis.pdf Graphic file (type pdf)
 <use figures/diagrams/d_view_basis.pdf>
 File: figures/img/insitu/insitu_command_bunker.jpg Graphic file (type bmp)
@@ -2888,16 +2902,16 @@ Underfull \hbox (badness 1158) in paragraph at lines 42--42
 /TeXGyreTermesX(0)/m/n/10 in
  []
 
-) (sections/A05_projection [78
+) (sections/A05_projection [79
 
-] [79] [80]
+] [80] [81]
 File: figures/diagrams/d_projections.pdf Graphic file (type pdf)
 <use figures/diagrams/d_projections.pdf>
 File: figures/img/scene/v10_proj_persp.jpg Graphic file (type bmp)
 <figures/img/scene/v10_proj_persp.jpg>
 File: figures/img/scene/v10_proj_iso.jpg Graphic file (type bmp)
 <figures/img/scene/v10_proj_iso.jpg>
-) (sections/A06_projective [81
+) (sections/A06_projective [82
 
 ]
 File: figures/diagrams/d_frustum_ndc.pdf Graphic file (type pdf)
@@ -2913,7 +2927,7 @@ File: figures/img/lab/explorer_stage_02_vertex.jpg Graphic file (type bmp)
 File: figures/img/lab/explorer_stage_02_vertex.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_02_vertex.jpg>
 )
-(sections/A07_clipping [82] [83]
+(sections/A07_clipping [83] [84]
 File: figures/diagrams/d_clipping.pdf Graphic file (type pdf)
 <use figures/diagrams/d_clipping.pdf>
 File: figures/img/lab/explorer_stage_03_assembly.jpg Graphic file (type bmp)
@@ -2948,7 +2962,7 @@ Underfull \hbox (badness 2865) in paragraph at lines 57--57
 []|\TU/TeXGyreTermesX(0)/m/n/10 whole object against 6 planes
  []
 
-) (sections/A08_hsr [84] [85] [86]
+) (sections/A08_hsr [85] [86] [87]
 File: figures/diagrams/d_hsr.pdf Graphic file (type pdf)
 <use figures/diagrams/d_hsr.pdf>
 File: figures/img/v5/scene_hiddenline.jpg Graphic file (type bmp)
@@ -2961,7 +2975,7 @@ File: figures/img/lab/explorer_stage_06_depth.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_06_depth.jpg>
 File: figures/img/lab/explorer_stage_06_depth.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_06_depth.jpg>
-) (sections/A09_raster [87
+) (sections/A09_raster [88
 
 ]
 File: figures/diagrams/d_raster.pdf Graphic file (type pdf)
@@ -2983,7 +2997,7 @@ File: figures/img/lab/explorer_stage_15_taa.jpg Graphic file (type bmp)
 File: figures/img/lab/explorer_stage_15_taa.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_15_taa.jpg>
 )
-(sections/A10_illumination [88] [89] [90] [91]
+(sections/A10_illumination [89] [90] [91] [92]
 Underfull \hbox (badness 1748) in paragraph at lines 30--30
 []|\TU/TeXGyreTermesX(0)/m/n/10 direction and colour from the solar
  []
@@ -3009,10 +3023,10 @@ File: figures/img/scene/v10_light_specular.jpg Graphic file (type bmp)
 (sections/wb/Illumination_geometry) (sections/wb/Illumination_terms)
 File: figures/plots/p_specular_falloff.pdf Graphic file (type pdf)
 <use figures/plots/p_specular_falloff.pdf>
- [92
+ [93
 
 ])
-(sections/A11_shading [93] [94]
+(sections/A11_shading [94] [95]
 File: figures/img/lab/shading_uav_flat.jpg Graphic file (type bmp)
 <figures/img/lab/shading_uav_flat.jpg>
 File: figures/img/lab/shading_uav_gouraud.jpg Graphic file (type bmp)
@@ -3046,7 +3060,7 @@ Underfull \hbox (badness 7595) in paragraph at lines 47--47
 
 File: figures/img/annot/shade_scene.jpg Graphic file (type bmp)
 <figures/img/annot/shade_scene.jpg>
-) (sections/A12_texture [95] [96]
+) (sections/A12_texture [96] [97]
 File: figures/diagrams/d_texture.pdf Graphic file (type pdf)
 <use figures/diagrams/d_texture.pdf>
 File: figures/img/annot/tex_scene.jpg Graphic file (type bmp)
@@ -3055,7 +3069,7 @@ File: figures/img/lab/material_grid.jpg Graphic file (type bmp)
 <figures/img/lab/material_grid.jpg>
 File: figures/img/scene/m6_tree_close.jpg Graphic file (type bmp)
 <figures/img/scene/m6_tree_close.jpg>
-) (sections/A13_raytracing [97] [98]
+) (sections/A13_raytracing [98] [99]
 File: figures/diagrams/d_raytrace.pdf Graphic file (type pdf)
 <use figures/diagrams/d_raytrace.pdf>
 File: figures/img/rt/raytrace_modes.jpg Graphic file (type bmp)
@@ -3065,8 +3079,29 @@ File: figures/img/rt/raytrace_tree.jpg Graphic file (type bmp)
 
 (sections/wb/Ray_Tracing_sphere) (sections/wb/Ray_Tracing_plane)
 (sections/wb/Ray_Tracing_snell) (sections/wb/Ray_Tracing_tir)
-(sections/wb/Ray_Tracing_whitted)) [99] (sections/B02_color [100]
-(sections/wb/Color_Interp_verts) (sections/wb/Color_Interp_bary)
+(sections/wb/Ray_Tracing_whitted)) [100]
+File: figures/img/annot/pal_ironbow.jpg Graphic file (type bmp)
+<figures/img/annot/pal_ironbow.jpg>
+File: figures/img/showcase/sc_overview_dusk.jpg Graphic file (type bmp)
+<figures/img/showcase/sc_overview_dusk.jpg>
+File: figures/img/annot/curved_scene.jpg Graphic file (type bmp)
+<figures/img/annot/curved_scene.jpg>
+File: figures/img/play_clean/play_door_opening.jpg Graphic file (type bmp)
+<figures/img/play_clean/play_door_opening.jpg>
+File: figures/img/rt/raytrace_ssr.jpg Graphic file (type bmp)
+<figures/img/rt/raytrace_ssr.jpg>
+File: figures/img/v5b/thermal_fpv_whitehot.jpg Graphic file (type bmp)
+<figures/img/v5b/thermal_fpv_whitehot.jpg>
+File: figures/img/game/combined_strike.jpg Graphic file (type bmp)
+<figures/img/game/combined_strike.jpg>
+File: figures/img/game/explosion_mid.jpg Graphic file (type bmp)
+<figures/img/game/explosion_mid.jpg>
+File: figures/plots/p_rover_map.pdf Graphic file (type pdf)
+<use figures/plots/p_rover_map.pdf>
+File: figures/plots/p_fixes.pdf Graphic file (type pdf)
+<use figures/plots/p_fixes.pdf>
+ (sections/B02_color [101] [102]
+[103] (sections/wb/Color_Interp_verts) (sections/wb/Color_Interp_bary)
 (sections/wb/Color_Interp_uv) (sections/wb/Color_Interp_gp)
 (sections/wb/Color_Interp_srgb) (sections/wb/Color_Interp_sky)
 Underfull \hbox (badness 1789) in paragraph at lines 46--46
@@ -3087,7 +3122,9 @@ File: figures/img/annot/pal_whitehot.jpg Graphic file (type bmp)
 <figures/img/annot/pal_whitehot.jpg>
 File: figures/img/annot/pal_rainbow.jpg Graphic file (type bmp)
 <figures/img/annot/pal_rainbow.jpg>
-) (sections/B03_daynight [101] [102]
+) (sections/B03_daynight [104
+
+] [105]
 File: figures/plots/p_day_cycle.pdf Graphic file (type pdf)
 <use figures/plots/p_day_cycle.pdf>
 File: figures/img/scene/day_overview.jpg Graphic file (type bmp)
@@ -3098,13 +3135,13 @@ File: figures/img/v5/base_overview.jpg Graphic file (type bmp)
 <figures/img/v5/base_overview.jpg>
 File: figures/img/scene/sky_sunset.jpg Graphic file (type bmp)
 <figures/img/scene/sky_sunset.jpg>
- [103] [104]) (sections/B04_curved
+) (sections/B04_curved [106] [107]
 File: figures/plots/p_tessellation.pdf Graphic file (type pdf)
 <use figures/plots/p_tessellation.pdf>
 File: figures/img/annot/curved_scene.jpg Graphic file (type bmp)
 <figures/img/annot/curved_scene.jpg>
 )
-(sections/B05_dynamic [105]
+(sections/B05_dynamic [108]
 File: figures/img/play_clean/play_door_closed.jpg Graphic file (type bmp)
 <figures/img/play_clean/play_door_closed.jpg>
 File: figures/img/play_clean/play_door_opening.jpg Graphic file (type bmp)
@@ -3115,15 +3152,15 @@ File: figures/img/showcase/sc_bunker_ramp_open.jpg Graphic file (type bmp)
 <figures/img/showcase/sc_bunker_ramp_open.jpg>
 File: figures/img/play_clean/play_sprint_fov.jpg Graphic file (type bmp)
 <figures/img/play_clean/play_sprint_fov.jpg>
-) (sections/B06_reflection [106]
+) (sections/B06_reflection [109]
 File: figures/img/rt/raytrace_ssr.jpg Graphic file (type bmp)
 <figures/img/rt/raytrace_ssr.jpg>
 
-Underfull \hbox (badness 4819) in paragraph at lines 40--40
+Underfull \hbox (badness 4819) in paragraph at lines 39--39
 []|\TU/TeXGyreTermesX(0)/m/n/10 exact mirrors, refraction, hard
  []
 
-) (sections/B07_thermal [107]
+) (sections/B07_thermal [110]
 File: figures/plots/p_cv_story.pdf Graphic file (type pdf)
 <use figures/plots/p_cv_story.pdf>
 File: figures/img/lab/explorer_imagelab_gauss_gamma.jpg Graphic file (type bmp)
@@ -3153,7 +3190,7 @@ File: figures/img/v5b/uav_closeup_thermal.jpg Graphic file (type bmp)
 File: figures/img/v5b/thermal_fpv_whitehot.jpg Graphic file (type bmp)
 <figures/img/v5b/thermal_fpv_whitehot.jpg>
 )
-(sections/B08_game [108] [109] [110] [111] [112]
+(sections/B08_game [111] [112] [113] [114] [115]
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
 (Font)              scaled to size 10.95pt on input line 51.
 Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
@@ -3207,9 +3244,9 @@ File: figures/diagrams/d_triangulation.pdf Graphic file (type pdf)
 acking_meas)
 (sections/wb/Tracking_d2) (sections/wb/Tracking_update)
 (sections/wb/Tracking_tri) (sections/wb/Tracking_tri2)
-(sections/wb/Tracking_tot) [113
+(sections/wb/Tracking_tot) [116
 
-] [114]
+] [117]
 File: figures/img/game/uav_missile_launch.jpg Graphic file (type bmp)
 <figures/img/game/uav_missile_launch.jpg>
 File: figures/img/game/combined_strike.jpg Graphic file (type bmp)
@@ -3219,7 +3256,7 @@ File: figures/img/game/thermal_fpv_strike.jpg Graphic file (type bmp)
 File: figures/img/game/kill_banner.jpg Graphic file (type bmp)
 <figures/img/game/kill_banner.jpg>
  (sections/wb/Duty_Cycle_roster))
-(sections/B08b_explosions [115] [116]
+(sections/B08b_explosions [118] [119]
 File: figures/diagrams/d_particles.pdf Graphic file (type pdf)
 <use figures/diagrams/d_particles.pdf>
 File: figures/diagrams/d_blackbody.pdf Graphic file (type pdf)
@@ -3235,44 +3272,51 @@ File: figures/img/game/explosion_smoke.jpg Graphic file (type bmp)
 <figures/img/game/explosion_smoke.jpg>
 File: figures/img/game/wreck_burning.jpg Graphic file (type bmp)
 <figures/img/game/wreck_burning.jpg>
-) (sections/B09_paths [117] [118] [119] [120]
+) (sections/B09_paths [120] [121] [122] [123]
 File: figures/diagrams/d_floodfill.pdf Graphic file (type pdf)
 <use figures/diagrams/d_floodfill.pdf>
 
 (sections/wb/Line_Follower_inputs) (sections/wb/Line_Follower_sensors)
 (sections/wb/Line_Follower_pd)
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 43.
+put line 38.
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/sc' will be
-(Font)              scaled to size 9.0pt on input line 52.
+(Font)              scaled to size 9.0pt on input line 47.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
 ;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;" at 9.0pt
  -> TeXGyreTermesX-Regular.otf
- [121
+ [124
 
 ]
 File: figures/img/v5/plan_routes.jpg Graphic file (type bmp)
 <figures/img/v5/plan_routes.jpg>
 File: figures/img/scene/day_patrol_spline.jpg Graphic file (type bmp)
 <figures/img/scene/day_patrol_spline.jpg>
+File: figures/plots/p_rover_map.pdf Graphic file (type pdf)
+<use figures/plots/p_rover_map.pdf>
+File: figures/plots/p_guard_map.pdf Graphic file (type pdf)
+<use figures/plots/p_guard_map.pdf>
 
-Underfull \hbox (badness 1515) in paragraph at lines 101--101
+Underfull \hbox (badness 1515) in paragraph at lines 115--115
 []|\TU/TeXGyreTermesX(0)/m/n/10 expands far fewer cells with a good
  []
 
-) (sections/B10_hard [122] [123]) (sections/C01_performance
+) (sections/B10_hard [125] [126] [127]
+File: figures/plots/p_fixes.pdf Graphic file (type pdf)
+<use figures/plots/p_fixes.pdf>
+) (sections/C01_performance [128]
 File: figures/plots/p_benchmark.pdf Graphic file (type pdf)
 <use figures/plots/p_benchmark.pdf>
 
-(sections/gen_bench_text)) (sections/C02_limits [124] [125])
-(sections/C03_conclusion) (main.bbl
+(sections/gen_bench_text) [129]) (sections/C02_limits) (sections/C03_conclusion
+) (main.bbl
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
 (Font)              scaled to size 10.0pt on input line 4.
 Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
 +tnum;+lnum;mapping=tex-text;" at 10.0pt
  -> TeXGyreTermesX-Italic.otf
-) [126] (main.aux)
+ [130]) [131] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A1857D648C8AF15EBB0BA2FC92FD985A;8864.
+(rerunfilecheck)             Checksum: 2BAC15BD4D2F176B1F84C588995148B7;8864.
  )
-Output written on main.xdv (127 pages, 3583080 bytes).
+Output written on main.xdv (132 pages, 3607924 bytes).

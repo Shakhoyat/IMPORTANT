@@ -1942,6 +1942,56 @@ int Garrison::takeShiftChanges() {
 
 const SitePlanner& Garrison::planner() const { return impl_->planner; }
 const std::vector<CatmullRomPath>& Garrison::routes() const { return impl_->allRoutes; }
+
+std::string Garrison::planJson() const {
+    const GarrisonCore& g = *impl_;
+    auto f = [](float v) {
+        char b[32];
+        std::snprintf(b, sizeof(b), "%.2f", v);
+        return std::string(b);
+    };
+    auto poly = [&](const CatmullRomPath& r) {
+        std::string o = "[";
+        if (r.empty()) return o + "]";
+        const float L = r.length();
+        const int n = std::max(2, static_cast<int>(L / 0.5f) + 1);
+        for (int k = 0; k < n; ++k) {
+            const Vec3 q = r.pointAtDistance(L * static_cast<float>(k) / static_cast<float>(n - 1));
+            o += (k ? ", [" : "[") + f(q.x) + ", " + f(q.z) + "]";
+        }
+        return o + "]";
+    };
+    std::string o = "{\"soldiers\": [";
+    for (int i = 0; i < g.count(); ++i) {
+        o += i ? ",\n        {" : "\n        {";
+        o += "\"index\": " + std::to_string(i) + ", \"shifts\": [";
+        for (int d = 0; d < 2; ++d) {
+            const Program& p = g.programs[static_cast<size_t>(i)][static_cast<size_t>(d)];
+            o += d ? ", {" : "{";
+            o += std::string("\"shift\": \"") + (d ? "day" : "night") + "\", \"loop\": " + (p.isLoop() ? "true" : "false") + ", \"stops\": [";
+            if (p.isLoop()) {
+                for (size_t k = 0; k < p.loop.size(); ++k)
+                    o += (k ? ", " : "") + std::string("{\"label\": \"\", \"p\": [") + f(p.loop[k].x) + ", " + f(p.loop[k].z) + "], \"underground\": false}";
+            } else {
+                for (size_t k = 0; k < p.stops.size(); ++k) {
+                    const Stop& st = p.stops[k];
+                    o += (k ? ", " : "") + std::string("{\"label\": \"") + st.label + "\", \"activity\": \"" + activityName(st.act) +
+                         "\", \"p\": [" + f(st.p.x) + ", " + f(st.p.z) + "], \"underground\": " + (st.branch >= 0 ? "true" : "false") + "}";
+                }
+            }
+            o += "], \"routes\": [";
+            if (p.isLoop()) {
+                o += poly(g.loopRoute[static_cast<size_t>(i)][static_cast<size_t>(d)].path);
+            } else {
+                const auto& legs = g.legRoutes[static_cast<size_t>(i)][static_cast<size_t>(d)];
+                for (size_t k = 0; k < legs.size(); ++k) o += (k ? ", " : "") + poly(legs[k].path);
+            }
+            o += "]}";
+        }
+        o += "]}";
+    }
+    return o + "]}";
+}
 bool Garrison::dayActive() const { return impl_->day; }
 
 }  // namespace ts
