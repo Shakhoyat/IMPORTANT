@@ -520,3 +520,25 @@ Teaching drawings of each section's maths; every constant drawn from the code is
   - Prose that repeated the figures was cut in Sections 21, 24, 27 and 28.
 - **Removed:** the objectives table in the conclusion (old Table 32.1).
 - Checks: 396 tests pass; `check_counts.py` OK; no figure drift. 132 pages.
+
+## Round 5: algorithms, cards, film tooling
+
+- **Algorithms:** every algorithm of the program now has pseudocode with its time (and, where relevant, space)
+  complexity, written from the source (`report/sections/algorithms.tex`, each placed in its section):
+  - frustum culling and Sutherland–Hodgman clipping;
+  - edge-function rasterisation with the Z-buffer;
+  - Whitted ray tracing over a binned-SAH BVH;
+  - the thermal CV pipeline (Otsu, despeckle, two-pass union-find, moments);
+  - the multi-target tracker (Kalman, χ² gate, Hungarian, triangulation);
+  - the UAV squad (roles, time-on-target, proportional navigation);
+  - the explosion particle system;
+  - the soldiers' route planner (A* with octile heuristic, string pulling, Catmull–Rom repair);
+  - the gait and two-link IK;
+  - the intruder rover, which now also states its complexity.
+- **Section 7 cards:**
+  - Parts hidden at the start are no longer drawn in the pulled-apart panel. The soldier's carried crate sat on the
+    held rifle in Fig. 7.2; the legend and parts table still list hidden parts.
+  - Weak in-scene panels were replaced: helicopter and tank (cinematic day frames from the showcase recording), radar,
+    UAV and UAV round (close follow on the pad), HESCO perimeter, concertina wire and road (close views).
+- **Recorder:** `TS_FILM_CAM` (a free camera gliding between two poses at a fixed hour, HUD off), for the presentation film.
+- 129 pages, no overfull boxes, no float drift.

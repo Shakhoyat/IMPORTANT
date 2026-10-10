@@ -598,6 +598,12 @@ add(cam(v4("motor_pool", 58.5f), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 
         u.yaw = 140;
         u.pitch = 20;
         add(u);
+        Shot uc = u;   // close: the rounds on the rails and the gimbal read
+        uc.file = "insitu_uav_close";
+        uc.dist = 1.45f;
+        uc.yaw = 125;
+        uc.pitch = 14;
+        add(uc);
         Shot h = v6(v4("insitu_heli_live", 0.0f), 10.5f, 1.0f);
         h.possess = static_cast<int>(Slot::Helicopter);
         h.sight = false;

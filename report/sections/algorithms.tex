@@ -1,0 +1,185 @@
+% Algorithms of the program, written from the source (file names in each caption); placed in their sections.
+% Complexity: n = items processed, as named in each caption.
+
+\newcommand{\algClip}{%
+\begin{algorithm}[htbp]
+\caption{Frustum culling (CPU) and polygon clipping against the view volume (GPU, Sutherland--Hodgman), \code{rendering/Renderer.cpp}.
+Time $O(P)$ for $P$ parts (6 plane tests each); clipping $O(6v)$ per polygon of $v$ vertices.}\label{alg:clip}
+\begin{algorithmic}[1]
+\Require frustum planes $(\vect a_i,d_i)$, $i=1..6$, from the view-projection matrix
+\For{each part with bounding sphere $(\vect c,r)$} \Comment{CPU, before submission}
+  \If{$\exists i:\ \vect a_i\cdot\vect c+d_i<-r$} \State skip the part \Comment{entirely outside one plane}\EndIf
+\EndFor
+\For{each submitted triangle, in clip space} \Comment{GPU}
+  \State $Q\gets(\vect p_0,\vect p_1,\vect p_2)$
+  \For{each plane $-w\le x,y,z\le w$}
+    \State $Q'\gets[\,]$
+    \For{each edge $(\vect s,\vect e)$ of $Q$}
+      \If{$\vect e$ inside} \If{$\vect s$ outside} \State append intersection $\vect s+t(\vect e-\vect s)$ \EndIf \State append $\vect e$
+      \ElsIf{$\vect s$ inside} \State append intersection \EndIf
+    \EndFor
+    \State $Q\gets Q'$
+  \EndFor
+  \State divide by $w$, map to the viewport, fan $Q$ into triangles
+\EndFor
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algRaster}{%
+\begin{algorithm}[htbp]
+\caption{Triangle rasterisation with edge functions and the Z-buffer (the GPU's method, replayed by the Frame Explorer,
+\code{rendering/FrameExplorer.cpp}). Time $O(A)$ per triangle for a bounding box of $A$ pixels; the Z-buffer is $O(WH)$ memory and
+makes the result independent of drawing order.}\label{alg:raster}
+\begin{algorithmic}[1]
+\Require screen vertices $\vect p_0,\vect p_1,\vect p_2$ with depths $z_k$ and $1/w_k$; depth buffer $Z\gets\infty$
+\If{$(\vect p_1-\vect p_0)\times(\vect p_2-\vect p_0)\le0$} \State \Return \Comment{back face}\EndIf
+\For{each pixel centre $\vect x$ in the triangle's bounding box}
+  \State $\lambda_k\gets E_{k}(\vect x)/\text{area}$ \Comment{barycentric weights from the three edge functions}
+  \If{all $\lambda_k\ge0$} \Comment{inside (top-left rule on shared edges)}
+    \State $z\gets\sum\lambda_k z_k$
+    \If{$z<Z[\vect x]$}
+      \State $Z[\vect x]\gets z$; \ $a\gets\big(\sum\lambda_k a_k/w_k\big)\big/\big(\sum\lambda_k/w_k\big)$ \Comment{perspective-correct}
+      \State colour$[\vect x]\gets$ shade$(a)$
+    \EndIf
+  \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algWhitted}{%
+\begin{algorithm}[htbp]
+\caption{Whitted ray tracing over a BVH (\code{raytrace/Bvh.cpp}, \code{raytrace/RayTracer.cpp}). Build: binned SAH with 16 bins,
+leaves of $\le4$ primitives, $O(N\log N)$ for $N$ primitives. Query: $O(\log N)$ expected per ray. A pixel spawns at most
+$2^{D}$ rays for depth $D=5$, each with one shadow ray per light $L$: $O(2^{D}L\log N)$ per pixel.}\label{alg:whitted}
+\begin{algorithmic}[1]
+\Function{Trace}{ray $\vect o+t\vect d$, depth}
+  \State hit $\gets$ \Call{Closest}{BVH root, ray} \Comment{slab test on boxes, nearer child first}
+  \If{no hit} \Return sky$(\vect d)$ \EndIf
+  \State $L\gets$ emitted
+  \For{each light $\ell$} \If{\Call{AnyHit}{shadow ray to $\ell$} is false} \State $L\gets L+$ direct$(\ell)$ \EndIf \EndFor
+  \If{the surface is a mirror or glass \textbf{and} depth $<D$}
+    \State $F\gets$ Fresnel$(\cos\theta_i,\eta)$; \ $\vect r\gets\vect d-2(\vect d\cdot\vect n)\vect n$
+    \State $L\gets L+F\cdot$\Call{Trace}{$\vect r$, depth$+1$}
+    \If{glass \textbf{and} no total internal reflection} \State $L\gets L+(1-F)\cdot$\Call{Trace}{refracted, depth$+1$} \EndIf
+  \EndIf
+  \State \Return $L$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algCv}{%
+\begin{algorithm}[htbp]
+\caption{Thermal computer-vision pipeline, every vision frame of each UAV (\code{vision/CvPipeline.cpp}). Time $O(WH\,\alpha(WH))$
+for a $W\times H=320\times240$ image ($\alpha$: inverse Ackermann, union-find); space $O(WH)$.}\label{alg:cv}
+\begin{algorithmic}[1]
+\Require 8-bit heat image $I$ (sensor model applied)
+\State $t_O\gets$ Otsu$(I)$: the level maximising between-class variance over the 256-bin histogram
+\State $t\gets\max(\text{floor }204,\ t_O+1)$; \ $M(x,y)\gets[I(x,y)\ge t]$
+\State despeckle: clear every $M(x,y)=1$ with fewer than 2 hot 8-neighbours
+\For{each pixel in raster order} \Comment{pass 1: provisional labels from W, NW, N, NE}
+  \If{$M(x,y)$} \State take the smallest neighbour root, or a new label; \Call{Union}{} the others \EndIf
+\EndFor
+\State pass 2: replace each label by \Call{Find}{label}, renumber $1..K$
+\For{each component $k$} \State accumulate $n,\ \sum x,\ \sum y,\ \sum x^2,\ \sum y^2,\ \sum xy$, peak, box \EndFor
+\State centroid $=\big(\sum x/n,\sum y/n\big)$; principal axis and elongation from the $2\times2$ covariance
+\State keep blobs with area, elongation and peak in range; each centroid's pixel ray hits the ground $\to$ measurement
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algTracker}{%
+\begin{algorithm}[htbp]
+\caption{Multi-target tracker shared by both UAVs (\code{vision/MultiTracker.cpp}). For $T$ tracks and $M$ measurements per camera:
+gating $O(TM)$, Hungarian assignment $O(n^3)$ with $n=\max(T,M)$, merging $O(T^2)$; $T,M\le6$ here.}\label{alg:tracker}
+\begin{algorithmic}[1]
+\Require ground measurements (point, pixel ray, $\sigma$) from cameras $s=1,2$
+\For{each track} \State predict: constant-velocity Kalman, state $(x,z,v_x,v_z)$, process noise \gv{accelNoise}\,m/s$^2$ \EndFor
+\For{each camera $s$}
+  \State $C_{tm}\gets d^2_{\text{Mahalanobis}}$ if $d^2<\gv{gateChi2}$ else $\infty$
+  \State assign $\gets$ \Call{Hungarian}{$C$} \Comment{minimum total $d^2$}
+  \State each unassigned measurement starts a tentative track
+\EndFor
+\For{each track with measurements}
+  \If{seen by both cameras \textbf{and} the rays' closest-point residual $<1.2$\,m}
+    \State update with the midpoint of the rays' shortest segment \Comment{triangulation}
+  \Else \State update with each ground point \EndIf
+\EndFor
+\State tentative $\to$ confirmed after \gv{confirmHits} hits; coasting after \gv{coastAfter}\,s unseen; deleted after \gv{deleteAfter}\,s
+\State merge tracks closer than 1\,m with velocities within 1\,m/s
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algSquad}{%
+\begin{algorithm}[htbp]
+\caption{UAV squad: roles, combined strike and the round's guidance (\code{ai/Squad.cpp}). $O(K)$ per tick for $K=2$ UAVs;
+guidance $O(1)$ per round.}\label{alg:squad}
+\begin{algorithmic}[1]
+\Require the confirmed track nearest the base; each UAV's lock time and rounds ready
+\State LEAD $\gets$ the UAV with the longest lock (ties: the nearer); WING $\gets$ the other
+\State LEAD keeps its bearing; WING flies $\approx90^\circ$ around the target at \gv{kSquadStandOff}\,m \Comment{good triangulation}
+\If{lock(LEAD) $\ge$ \gv{kSquadLeadLock}\,s \textbf{and} lock(WING) $\ge$ \gv{kSquadWingLock}\,s \textbf{and} clear shots}
+  \State $T_k\gets$ flight time$(\lVert\text{aim}-\vect p_k\rVert)$ for both
+  \State launch$_k\gets$ now $+(\max_j T_j-T_k)$ \Comment{both rounds arrive together}
+\EndIf
+\For{each round in flight, every tick}
+  \State $\boldsymbol\omega\gets4\lVert\vect v\rVert(\hat{\vect v}\times\vect r)/\lVert\vect r\rVert^2+2\,\hat{\vect v}\times\hat{\vect r}$, clamped to \gv{kMissileTurnRate}\,rad/s
+  \State rotate $\vect v$ about $\hat{\boldsymbol\omega}$ by $\lVert\boldsymbol\omega\rVert\Delta t$ (Rodrigues); move; detonate within 0.5\,m
+\EndFor
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algParticles}{%
+\begin{algorithm}[htbp]
+\caption{Particle system of an explosion (\code{scene/Combat.cpp}, \code{rendering/Effects.cpp}): update every tick and draw every frame. Time $O(P)$ per tick and
+$O(P\log P)$ per frame (sorting) for $P$ live particles.}\label{alg:particles}
+\begin{algorithmic}[1]
+\Require particles $(\vect p,\vect v,\text{age},\text{kind})$ spawned by a blast (a few hundred, seven kinds)
+\For{each particle}
+  \State $\vect v\gets\vect v\,e^{-k_{\text{kind}}\Delta t}$ \Comment{exact drag decay: frame-rate independent}
+  \State $\vect v\gets\vect v+\vect g_{\text{kind}}\Delta t$ \Comment{buoyancy for fire and smoke, gravity for sparks and embers}
+  \State $\vect p\gets\vect p+\vect v\Delta t$; \ age $\gets$ age $+\Delta t$
+  \If{below the terrain} \State reflect $v_y$ with restitution \gv{bounce}, damp tangential speed \EndIf
+  \If{age $>$ life} \State remove \EndIf
+\EndFor
+\State sort the smoke group and the glowing group back to front
+\State draw each as one instanced quad: temperature $\to$ blackbody colour, premultiplied alpha, HDR emission
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algSoldier}{%
+\begin{algorithm}[htbp]
+\caption{Soldiers' route planning (\code{scene/Garrison.cpp}): A* on a $72\times72$ grid of 1\,m cells, string pulling and a
+centripetal Catmull--Rom spline. A*: $O(C\log C)$ for $C$ free cells (binary heap), $O(C)$ memory; string pulling $O(n\,\ell)$ for
+$n$ chain points and segment length $\ell$ in 0.1\,m samples; spline check $O(L/0.1)$ per iteration.}\label{alg:soldier}
+\begin{algorithmic}[1]
+\Require start $a$, goal $b$; free cells (centre $\ge0.40$\,m from every obstacle); discs around the other posts
+\State snap $a,b$ to the nearest free cells (search rings of radius $\le6$)
+\State $g(a)\gets0$; push $a$ with $f=h(a)$ \Comment{$h$: octile distance $\max(\Delta)+0.414\min(\Delta)$}
+\While{the heap is not empty}
+  \State $c\gets$ pop the smallest $f$; \textbf{if} $c$ closed \textbf{continue}; close $c$; \textbf{if} $c=b$ \textbf{break}
+  \For{each of the 8 neighbours $n$ that is free (diagonals: both side cells free, no corner cutting)}
+    \State $g'\gets g(c)+(1\text{ or }\sqrt2)$
+    \If{$g'<g(n)$} \State $g(n)\gets g'$; from$(n)\gets c$; push $n$ with $f=g'+h(n)$ \EndIf
+  \EndFor
+\EndWhile
+\State chain $\gets$ follow from$(\cdot)$ back from $b$
+\State keep $\gets[0]$; from point $i$, jump to the farthest $j$ whose straight segment keeps the clearance \Comment{string pulling}
+\Repeat \State path $\gets$ Catmull--Rom$_{\alpha=0.5}$(kept points)
+  \State find the first sample closer than 0.28\,m to an obstacle; if any, keep the chain point nearest to it
+\Until{no sample fails}
+\end{algorithmic}
+\end{algorithm}}
+
+\newcommand{\algGait}{%
+\begin{algorithm}[htbp]
+\caption{Walking soldier, every tick (\code{scene/Gait.cpp}): gait phase, foot targets and two-link inverse kinematics.
+$O(1)$ per leg.}\label{alg:gait}
+\begin{algorithmic}[1]
+\State phase $s\gets s+\lVert\Delta\vect p\rVert/$stride \Comment{driven by distance: no foot sliding at any speed}
+\For{each leg (left at $s$, right at $s+\tfrac12$)}
+  \If{stance} \State ankle moves back relative to the hip, on the ground
+  \Else \State swing: $x=x_b+(x_f-x_b)(u-\tfrac{\sin2\pi u}{2\pi})$, \ $y=y_0+h\sin\pi u$ \EndIf
+  \State $d\gets\lVert(x,y)\rVert$; \ knee $\kappa\gets\pi-\arccos\frac{L_1^2+L_2^2-d^2}{2L_1L_2}$
+  \State hip $\eta\gets\operatorname{atan2}(x,-y)+\arccos\frac{L_1^2+d^2-L_2^2}{2L_1d}$; \ write $R_x(-\eta)$, $R_x(\kappa)$ to the joints
+\EndFor
+\end{algorithmic}
+\end{algorithm}}

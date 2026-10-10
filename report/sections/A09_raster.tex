@@ -43,6 +43,8 @@ because $a$ is interpolated linearly in screen space instead of through $a/w$.
 \label{fig:taa}
 \end{figure}
 
+\algRaster
+
 \textbf{Limitation.} TAA trades aliasing for blur and ghosting: a fast UAV leaves a faint trail for a few frames. With
 a static camera, pixels without vegetation still change by about 2.4/255 per frame from the jitter alone and vegetation
 pixels by 2.6--6.6/255, above the 1.5/255 that was the target.

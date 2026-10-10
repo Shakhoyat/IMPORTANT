@@ -242,7 +242,7 @@ bool shapeview(Ctx& c, const std::string& text) {
     auto fitPts = [&](bool exploded) {
         std::vector<Vec3> pts;
         for (const DrawPart& d : parts) {
-            if (!drawn(d) || d.prim == PrimitiveType::BeamCone || (!exploded && d.hidden && !allHidden)) continue;
+            if (!drawn(d) || d.prim == PrimitiveType::BeamCone || (d.hidden && !allHidden)) continue;
             const Mat4 w = exploded ? translate(d.offset) * d.world : d.world;
             const MeshData& m = meshFor(d.prim);
             if (m.vertices.size() > 4000) meshBoxCorners(m, w, pts);
@@ -313,6 +313,8 @@ bool shapeview(Ctx& c, const std::string& text) {
             s.world = d.world;
             itemsA.push_back(s);
         }
+        if (d.hidden && !allHidden) continue;   // parts hidden at t = 0 (a carried crate, a muzzle flash) would sit
+                                                 // inside the pulled-apart model; the legend and parts table list them
         s.world = translate(d.offset) * d.world;
         itemsB.push_back(s);
     }

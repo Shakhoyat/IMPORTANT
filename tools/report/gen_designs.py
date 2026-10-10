@@ -425,7 +425,7 @@ def legend_strip(j, d):
         extra.append("pale: " + ", ".join("%s $\\times$%d (%d parts)" % (tex(k), v, j["nested_parts"].get(k, 0)) for k, v in j["nested"].items()))
     nd = sum(1 for p in j["parts"] if p["dagger"] and not p["nested_design"])
     if nd:
-        extra.append("$^\\dagger$ %d hidden at the start, drawn at rest scale on the right" % nd)
+        extra.append("$^\\dagger$ %d hidden at the start (listed in the table, not drawn)" % nd)
     parked = sum(1 for p in j["parts"] if p["parked"])
     if parked:
         extra.append("%d parked below ground, not drawn" % parked)
@@ -437,15 +437,17 @@ def legend_strip(j, d):
 # The design in the running scene (EPIC, 10:30 unless noted): tools/report/insitu_cams.py + the live-following shots, or a
 # capture that shows it better (under the camouflage nets, backdrop seen from inside the world, sky objects, night units).
 RAWROOT = os.path.join(ROOT, "report", "figures", "raw")
-INSITU = {"Main battle tank": "scene/day_mechanic", "Autonomous UAV": "insitu/insitu_uav_live",
-          "Scout helicopter": "insitu/insitu_heli_live", "Target rover": "game/combined_strike",
-          "UAV round": "game/uav_missile_launch", "SAM missile": "insitu/insitu_sam_launcher",
+INSITU = {"Main battle tank": "showreel/tank", "Autonomous UAV": "insitu/insitu_uav_close",
+          "Scout helicopter": "showreel/heli", "Target rover": "game/combined_strike",
+          "UAV round": "insitu/insitu_uav_close", "Air-defence radar": "showcase/sc_radar",
+          "HESCO perimeter": "insitu/insitu_hesco_close", "Concertina wire": "insitu/insitu_wire_close",
+          "Road": "insitu/insitu_road_close", "SAM missile": "insitu/insitu_sam_launcher",
           "MLRS rocket": "insitu/insitu_mlrs_rocket_truck", "AA shell casing": "insitu/insitu_aa_gatling_gun",
           "Barracks hall": "showcase/sc_hall_door_closed", "Command bunker": "showcase/sc_pov_cic",
           "Tank spot marking": "insitu/insitu_motor_pool", "Terrain disc": "scene/v10_proj_iso",
           "Far ground": "scene/day_overview", "Distant hills": "showcase/sc_overview_dusk",
           "Sky clock (sun)": "scene/sky_sunset", "Moon": "scene/night_searchlights", "Soldier": "play_clean/play_third_person"}
-INSITU_NOTE = {"Target rover": "night wave", "UAV round": "night strike", "SAM missile": "in its launcher",
+INSITU_NOTE = {"Target rover": "night wave", "UAV round": "on the UAV's rail", "SAM missile": "in its launcher",
                "MLRS rocket": "in the launcher", "AA shell casing": "the gun that ejects it", "Command bunker": "the command room",
                "Tank spot marking": "under the motor-pool nets", "Moon": "night", "Sky clock (sun)": "sunset",
                "Distant hills": "dusk", "Barracks hall": "entrance"}
@@ -662,7 +664,7 @@ for fam in FAMILIES:
                "\\fcolorbox{black!30}{white}{\\begin{minipage}{0.975\\linewidth}\\centering\\vspace{0.6mm}",
                pair(j, label_groups=large, hmax=hfig),
                ("\\\\[1mm]\\begin{tabular}{@{}c@{}}\\img{%s}{%.2fcm}\\\\[-0.3mm]{\\fontsize{7.5}{9}\\selectfont %s}\\end{tabular}"
-                % (insitu(nm), 0.52 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
+                % (insitu(nm), 0.46 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
                "\\\\[0.8mm]{\\fontsize{7}{8.5}\\selectfont %s}\\vspace{0.6mm}\\end{minipage}}" % strip,
                "\\captionof{figure}{%s.%s}\\label{fig:d-%s}" % (tex(nm), cut_note, slug(nm)),
                "\\end{center}\\vspace{-3mm}"]

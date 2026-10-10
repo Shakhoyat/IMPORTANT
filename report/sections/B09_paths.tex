@@ -34,8 +34,8 @@ error is positive and the rover turns left.}
 
 Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a UAV can see. Algorithm~\ref{alg:intruder} is
 the whole controller of one rover.
-\begin{algorithm}[H]
-\caption{Intruder rover, one tick}
+\begin{algorithm}[htbp]
+\caption{Intruder rover, one tick (\code{ai/HideController.cpp}). Flood fill $O(C)$ and Dijkstra $O(C\log C)$ for $C=80^2$ cells per re-plan; Chaikin $O(3n)$ for $n$ path points; line following $O(1)$ per tick.}
 \label{alg:intruder}
 \footnotesize
 \begin{algorithmic}[1]
@@ -81,6 +81,8 @@ Catmull--Rom spline (overlay on).}\end{subfigure}
 cannot see.}
 \label{fig:paths}
 \end{figure}
+
+\algSoldier
 
 \begin{figure}[htbp]
 \centering

@@ -175,6 +175,26 @@ int App::recordMode() {
     // v7: the recorder sets the clock itself and performs the segment actions; the script stays off, otherwise its
     // (empty) inputs would override a possessed soldier's.
     scriptClock_ = cut == DirectorCut::V7 ? -1.0f : dirStart;
+    // TS_FILM_CAM = "hour  ex0 ey0 ez0 ax0 ay0 az0  ex1 ey1 ez1 ax1 ay1 az1  fov": a free camera that glides from the first
+    // pose to the second over the recording at a fixed clock, the director script off (the world runs by itself).
+    // Report film shots of places the cuts do not visit (the barracks hall, the posts). Use it with TS_DIRECTOR_CUT=v6.
+    float film[14] = {};
+    bool filmCam = false;
+    if (const char* fc = std::getenv("TS_FILM_CAM")) {
+        filmCam = std::sscanf(fc, "%f %f %f %f %f %f %f %f %f %f %f %f %f %f", &film[0], &film[1], &film[2], &film[3], &film[4],
+                              &film[5], &film[6], &film[7], &film[8], &film[9], &film[10], &film[11], &film[12], &film[13]) == 14 &&
+                  cut != DirectorCut::V7;
+        if (filmCam) {
+            showHud_ = false;     // a clean cinema frame: no game HUD, banners or camera feeds
+            showFeed_ = false;
+            scriptClock_ = -1.0f;
+            if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                clock->setAuto(false);
+                clock->setHour(film[0]);
+            }
+            for (int k = 0; k < 120; ++k) step(kSimStep);   // 2 s: lighting and the garrison settle at the new hour
+        }
+    }
     RenderTarget target;
     if (!target.create(w, h, 0, false)) return 1;  // the renderer anti-aliases (MSAA + TAA) before this target
     std::vector<uint8_t> rgb;
@@ -341,7 +361,15 @@ int App::recordMode() {
             if (cut == DirectorCut::V7 && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
             if (audioOn) audioEngine.pollEvents(*scene_);  // scene.events() only holds the last step's events
         }
-        if (cut != DirectorCut::V7 || shot.act == V7Act::Camera) {
+        if (filmCam) {
+            const float u = frames > 1 ? static_cast<float>(f) / static_cast<float>(frames - 1) : 0.0f;
+            const float e = u * u * (3.0f - 2.0f * u);   // ease in and out
+            const Vec3 eye = lerp(Vec3{film[1], film[2], film[3]}, Vec3{film[7], film[8], film[9]}, e);
+            const Vec3 aim = lerp(Vec3{film[4], film[5], film[6]}, Vec3{film[10], film[11], film[12]}, e);
+            setFree(eye, aim, film[13]);
+            settings_.letterbox = 0.0f;
+            settings_.fade = 1.0f;
+        } else         if (cut != DirectorCut::V7 || shot.act == V7Act::Camera) {
             if (cut == DirectorCut::V7) camera_.mode = CameraMode::Cinematic;
             camera_.directorTime = tDir;
             applyCinematic();

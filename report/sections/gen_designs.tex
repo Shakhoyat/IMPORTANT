@@ -137,22 +137,22 @@
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/soldier_model.jpg}{3.27cm} & \begin{tikzpicture}[font=\fontsize{7}{8}\selectfont]
-\node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=3.22cm]{figures/img/shapes/soldier_prims.jpg}};
-\node[anchor=west,inner sep=1pt] (L0) at (3.47,4.59) {Neck};
-\draw[black!70,line width=0.4pt] (L0.west) -- (1.81,4.11); \fill[black] (1.81,4.11) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L1) at (3.47,3.57) {Rifle (slung)};
-\draw[black!70,line width=0.4pt] (L1.west) -- (2.53,4.03); \fill[black] (2.53,4.03) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L2) at (3.47,2.55) {Shoulder};
-\draw[black!70,line width=0.4pt] (L2.west) -- (1.38,3.53); \fill[black] (1.38,3.53) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L2.west) -- (1.60,3.31); \fill[black] (1.60,3.31) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L3) at (3.47,1.53) {Rifle (held)};
-\draw[black!70,line width=0.4pt] (L3.west) -- (0.88,2.98); \fill[black] (0.88,2.98) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L4) at (3.47,0.51) {Hip};
-\draw[black!70,line width=0.4pt] (L4.west) -- (2.06,1.20); \fill[black] (2.06,1.20) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L4.west) -- (1.73,1.44); \fill[black] (1.73,1.44) circle (0.6pt);
+\node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=2.99cm]{figures/img/shapes/soldier_prims.jpg}};
+\node[anchor=west,inner sep=1pt] (L0) at (3.24,4.59) {Neck};
+\draw[black!70,line width=0.4pt] (L0.west) -- (1.93,4.41); \fill[black] (1.93,4.41) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L1) at (3.24,3.57) {Rifle (slung)};
+\draw[black!70,line width=0.4pt] (L1.west) -- (2.69,4.32); \fill[black] (2.69,4.32) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L2) at (3.24,2.55) {Shoulder};
+\draw[black!70,line width=0.4pt] (L2.west) -- (1.45,3.78); \fill[black] (1.45,3.78) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L2.west) -- (1.70,3.56); \fill[black] (1.70,3.56) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L3) at (3.24,1.53) {Rifle (held)};
+\draw[black!70,line width=0.4pt] (L3.west) -- (0.92,3.21); \fill[black] (0.92,3.21) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L4) at (3.24,0.51) {Hip};
+\draw[black!70,line width=0.4pt] (L4.west) -- (2.17,1.27); \fill[black] (2.17,1.27) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L4.west) -- (1.80,1.53); \fill[black] (1.80,1.53) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/soldier.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{16}\quad \primchipn{taperedbox}{1}\quad \primchipn{sphere}{37}\quad \primchipn{hemisphere}{1}\quad \primchipn{cylinder}{20}\quad \textbf{total 75}\\$^\dagger$ 8 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/soldier.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{16}\quad \primchipn{taperedbox}{1}\quad \primchipn{sphere}{37}\quad \primchipn{hemisphere}{1}\quad \primchipn{cylinder}{20}\quad \textbf{total 75}\\$^\dagger$ 8 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Soldier.}\label{fig:d-soldier}
 \end{center}\vspace{-3mm}
 \noindent\textbf{Soldier.}\label{des:soldier} On-duty soldier of the camp garrison (friendly, possessable). 8 instances; the first stands 21\,m north of the bunker. Placement of the first: $T(-0.80,\allowbreak\,-0.30,\allowbreak\,21.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
@@ -219,24 +219,24 @@ Radio antenna & \primchip{cylinder} & $0.8{\times}\allowbreak 0.8{\times}\allowb
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/main_battle_tank_model.jpg}{5.68cm} & \begin{tikzpicture}[font=\fontsize{7}{8}\selectfont]
-\node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=5.94cm]{figures/img/shapes/main_battle_tank_prims.jpg}};
-\node[anchor=west,inner sep=1pt] (L0) at (6.19,4.46) {Turret yaw};
-\draw[black!70,line width=0.4pt] (L0.west) -- (3.20,3.32); \fill[black] (3.20,3.32) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L1) at (6.19,3.19) {Drive sprocket};
-\draw[black!70,line width=0.4pt] (L1.west) -- (5.46,2.35); \fill[black] (5.46,2.35) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L2) at (6.19,1.91) {Track};
-\draw[black!70,line width=0.4pt] (L2.west) -- (3.08,2.14); \fill[black] (3.08,2.14) circle (0.6pt);
-\node[anchor=west,inner sep=1pt] (L3) at (6.19,0.64) {Road wheel};
-\draw[black!70,line width=0.4pt] (L3.west) -- (5.22,2.08); \fill[black] (5.22,2.08) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L3.west) -- (5.04,1.92); \fill[black] (5.04,1.92) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L3.west) -- (4.85,1.74); \fill[black] (4.85,1.74) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L3.west) -- (4.65,1.56); \fill[black] (4.65,1.56) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L3.west) -- (4.43,1.36); \fill[black] (4.43,1.36) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L3.west) -- (4.20,1.15); \fill[black] (4.20,1.15) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L3.west) -- (3.95,0.93); \fill[black] (3.95,0.93) circle (0.6pt);
+\node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=5.73cm]{figures/img/shapes/main_battle_tank_prims.jpg}};
+\node[anchor=west,inner sep=1pt] (L0) at (5.98,4.46) {Turret yaw};
+\draw[black!70,line width=0.4pt] (L0.west) -- (2.96,3.32); \fill[black] (2.96,3.32) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L1) at (5.98,3.19) {Drive sprocket};
+\draw[black!70,line width=0.4pt] (L1.west) -- (5.26,2.36); \fill[black] (5.26,2.36) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L2) at (5.98,1.91) {Track};
+\draw[black!70,line width=0.4pt] (L2.west) -- (2.86,2.14); \fill[black] (2.86,2.14) circle (0.6pt);
+\node[anchor=west,inner sep=1pt] (L3) at (5.98,0.64) {Road wheel};
+\draw[black!70,line width=0.4pt] (L3.west) -- (5.02,2.08); \fill[black] (5.02,2.08) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L3.west) -- (4.83,1.92); \fill[black] (4.83,1.92) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L3.west) -- (4.64,1.74); \fill[black] (4.64,1.74) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L3.west) -- (4.43,1.56); \fill[black] (4.43,1.56) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L3.west) -- (4.21,1.36); \fill[black] (4.21,1.36) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L3.west) -- (3.97,1.15); \fill[black] (3.97,1.15) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L3.west) -- (3.72,0.93); \fill[black] (3.72,0.93) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/main_battle_tank.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{168}\quad \primchipn{wedge}{1}\quad \primchipn{taperedbox}{1}\quad \primchipn{sphere}{5}\quad \primchipn{cylinder}{61}\quad \primchipn{torus}{19}\quad \textbf{total 255}\\$^\dagger$ 1 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/main_battle_tank.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{168}\quad \primchipn{wedge}{1}\quad \primchipn{taperedbox}{1}\quad \primchipn{sphere}{5}\quad \primchipn{cylinder}{61}\quad \primchipn{torus}{19}\quad \textbf{total 255}\\$^\dagger$ 1 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Main battle tank.}\label{fig:d-main_battle_tank}
 \end{center}\vspace{-3mm}
 \noindent\textbf{Main battle tank.}\label{des:main_battle_tank} User-controllable tracked tank (skid steer, stabilised turret). 3 instances; the first stands 27\,m south-west of the bunker. Placement of the first: $T(-22.00,\allowbreak\,-0.30,\allowbreak\,-16.00)\allowbreak\,R_y(45^\circ)\allowbreak\,S(1)$.
@@ -331,18 +331,18 @@ Loader hatch hinge & \primchip{cylinder} & $6{\times}\allowbreak 6{\times}\allow
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/autonomous_uav_model.jpg}{6.89cm} & \begin{tikzpicture}[font=\fontsize{7}{8}\selectfont]
 \node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=6.71cm]{figures/img/shapes/autonomous_uav_prims.jpg}};
 \node[anchor=west,inner sep=1pt] (L0) at (6.96,2.98) {Motor mount};
-\draw[black!70,line width=0.4pt] (L0.west) -- (4.02,1.04); \fill[black] (4.02,1.04) circle (0.6pt);
-\draw[black!70,line width=0.4pt] (L0.west) -- (0.96,2.04); \fill[black] (0.96,2.04) circle (0.6pt);
 \draw[black!70,line width=0.4pt] (L0.west) -- (5.79,2.37); \fill[black] (5.79,2.37) circle (0.6pt);
 \draw[black!70,line width=0.4pt] (L0.west) -- (3.09,2.99); \fill[black] (3.09,2.99) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L0.west) -- (4.02,1.04); \fill[black] (4.02,1.04) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L0.west) -- (0.96,2.04); \fill[black] (0.96,2.04) circle (0.6pt);
 \node[anchor=west,inner sep=1pt] (L1) at (6.96,1.79) {Launcher rail};
-\draw[black!70,line width=0.4pt] (L1.west) -- (2.66,1.61); \fill[black] (2.66,1.61) circle (0.6pt);
 \draw[black!70,line width=0.4pt] (L1.west) -- (4.25,1.10); \fill[black] (4.25,1.10) circle (0.6pt);
+\draw[black!70,line width=0.4pt] (L1.west) -- (2.66,1.61); \fill[black] (2.66,1.61) circle (0.6pt);
 \node[anchor=west,inner sep=1pt] (L2) at (6.96,0.60) {Gimbal yaw};
 \draw[black!70,line width=0.4pt] (L2.west) -- (2.90,0.64); \fill[black] (2.90,0.64) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/autonomous_uav.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{18}\quad \primchipn{sphere}{13}\quad \primchipn{cylinder}{19}\quad \primchipn{frustum}{1}\quad \primchipn{torus}{4}\quad \textbf{total 55}\\pale: UAV round $\times$4 (24 parts); $^\dagger$ 4 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/autonomous_uav.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{18}\quad \primchipn{sphere}{13}\quad \primchipn{cylinder}{19}\quad \primchipn{frustum}{1}\quad \primchipn{torus}{4}\quad \textbf{total 55}\\pale: UAV round $\times$4 (24 parts); $^\dagger$ 4 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Autonomous UAV.}\label{fig:d-autonomous_uav}
 \end{center}\vspace{-3mm}
 \noindent\textbf{Autonomous UAV.}\label{des:autonomous_uav} Patrol quadcopter. 2 instances; the first stands 12\,m north of the bunker. Placement of the first: $T(0.00,\allowbreak\,7.50,\allowbreak\,12.50)\allowbreak\,R_y(-180^\circ)\allowbreak\,S(1)$.
@@ -391,7 +391,7 @@ Rail strut $\times$2 & \primchip{cuboid} & $0.8{\times}\allowbreak 2{\times}\all
 \needspace{8.6cm}
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
-\begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/uav_round_model.jpg}{4.80cm} & \img{figures/img/shapes/uav_round_prims.jpg}{4.86cm} & \img{figures/img/insitu/uav_round.jpg}{5.74cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)} & {\fontsize{7.5}{9}\selectfont In the scene (night strike)}\end{tabular}
+\begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/uav_round_model.jpg}{4.80cm} & \img{figures/img/shapes/uav_round_prims.jpg}{4.86cm} & \img{figures/img/insitu/uav_round.jpg}{5.74cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)} & {\fontsize{7.5}{9}\selectfont In the scene (on the UAV's rail)}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{4}\quad \primchipn{cylinder}{1}\quad \primchipn{cone}{1}\quad \textbf{total 6}}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{UAV round.}\label{fig:d-uav_round}
 \end{center}\vspace{-3mm}
@@ -420,7 +420,7 @@ Round fin $\times$4 & \primchip{cuboid} & $0.2{\times}\allowbreak 3{\times}\allo
 \node[anchor=west,inner sep=1pt] (L2) at (6.25,0.85) {SAM round};
 \draw[black!70,line width=0.4pt] (L2.west) -- (2.75,1.49); \fill[black] (2.75,1.49) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/sam_launcher.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/sam_launcher.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cube}{1}\quad \primchipn{cuboid}{71}\quad \primchipn{sphere}{4}\quad \primchipn{cylinder}{23}\quad \primchipn{torus}{8}\quad \textbf{total 107}\\pale: SAM missile $\times$1 (5 parts)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{SAM launcher.}\label{fig:d-sam_launcher}
 \end{center}\vspace{-3mm}
@@ -481,7 +481,7 @@ Canister stencil $\times$4 & \primchip{cuboid} & $0.6{\times}\allowbreak 12{\tim
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/sam_missile_model.jpg}{4.88cm} & \img{figures/img/shapes/sam_missile_prims.jpg}{4.90cm} & \img{figures/img/insitu/sam_missile.jpg}{5.63cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)} & {\fontsize{7.5}{9}\selectfont In the scene (in its launcher)}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{2}\quad \primchipn{sphere}{1}\quad \primchipn{cylinder}{1}\quad \primchipn{cone}{1}\quad \textbf{total 5}\\$^\dagger$ 5 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{2}\quad \primchipn{sphere}{1}\quad \primchipn{cylinder}{1}\quad \primchipn{cone}{1}\quad \textbf{total 5}\\$^\dagger$ 5 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{SAM missile.}\label{fig:d-sam_missile}
 \end{center}\vspace{-3mm}
 \noindent\textbf{SAM missile.}\label{des:sam_missile} Flying round of the launch effect (hidden while in the canister). One instance, 26\,m east of the bunker, inside the SAM launcher. Placement of the first: $T(25.10,\allowbreak\,-0.30,\allowbreak\,6.70)\allowbreak\,R_y(60^\circ)\allowbreak\,S(1)$.
@@ -512,7 +512,7 @@ Round flame\,$^\dagger$ & \primchip{sphere} & $36.4{\times}\allowbreak 36.4{\tim
 \draw[black!70,line width=0.4pt] (L2.west) -- (3.08,1.32); \fill[black] (3.08,1.32) circle (0.6pt);
 \draw[black!70,line width=0.4pt] (L2.west) -- (3.08,1.32); \fill[black] (3.08,1.32) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/mlrs_rocket_truck.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/mlrs_rocket_truck.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cube}{1}\quad \primchipn{cuboid}{32}\quad \primchipn{sphere}{3}\quad \primchipn{cylinder}{46}\quad \primchipn{torus}{24}\quad \textbf{total 106}\\pale: MLRS rocket $\times$6 (30 parts)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{MLRS rocket truck.}\label{fig:d-mlrs_rocket_truck}
 \end{center}\vspace{-3mm}
@@ -567,7 +567,7 @@ Pod stencil $\times$2 & \primchip{cuboid} & $0.6{\times}\allowbreak 16{\times}\a
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/mlrs_rocket_model.jpg}{4.88cm} & \img{figures/img/shapes/mlrs_rocket_prims.jpg}{4.90cm} & \img{figures/img/insitu/mlrs_rocket.jpg}{5.62cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)} & {\fontsize{7.5}{9}\selectfont In the scene (in the launcher)}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{2}\quad \primchipn{sphere}{1}\quad \primchipn{cylinder}{1}\quad \primchipn{cone}{1}\quad \textbf{total 5}\\$^\dagger$ 5 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{2}\quad \primchipn{sphere}{1}\quad \primchipn{cylinder}{1}\quad \primchipn{cone}{1}\quad \textbf{total 5}\\$^\dagger$ 5 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{MLRS rocket.}\label{fig:d-mlrs_rocket}
 \end{center}\vspace{-3mm}
 \noindent\textbf{MLRS rocket.}\label{des:mlrs_rocket} Flying round of the launch effect (hidden while in the canister). 6 instances; the first stands 25\,m north-west of the bunker, inside the MLRS rocket truck. Placement of the first: $T(-11.50,\allowbreak\,-0.30,\allowbreak\,22.50)\allowbreak\,R_y(-15^\circ)\allowbreak\,S(1)$.
@@ -585,12 +585,12 @@ Round flame\,$^\dagger$ & \primchip{sphere} & $28.6{\times}\allowbreak 28.6{\tim
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/aa_gatling_gun_model.jpg}{5.56cm} & \begin{tikzpicture}[font=\fontsize{7}{8}\selectfont]
-\node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=6.24cm]{figures/img/shapes/aa_gatling_gun_prims.jpg}};
-\node[anchor=west,inner sep=1pt] (L0) at (6.49,2.55) {Barrel cluster};
-\draw[black!70,line width=0.4pt] (L0.west) -- (4.21,3.94); \fill[black] (4.21,3.94) circle (0.6pt);
+\node[inner sep=0,anchor=south west] at (0,0) {\includegraphics[width=5.55cm]{figures/img/shapes/aa_gatling_gun_prims.jpg}};
+\node[anchor=west,inner sep=1pt] (L0) at (5.80,2.55) {Barrel cluster};
+\draw[black!70,line width=0.4pt] (L0.west) -- (4.22,3.96); \fill[black] (4.22,3.96) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/aa_gatling_gun.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{19}\quad \primchipn{sphere}{4}\quad \primchipn{hemisphere}{1}\quad \primchipn{cylinder}{34}\quad \textbf{total 58}\\pale: AA shell casing $\times$20 (20 parts); $^\dagger$ 1 hidden at the start, drawn at rest scale on the right; 20 parked below ground, not drawn}\vspace{0.6mm}\end{minipage}}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/aa_gatling_gun.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{19}\quad \primchipn{sphere}{4}\quad \primchipn{hemisphere}{1}\quad \primchipn{cylinder}{34}\quad \textbf{total 58}\\pale: AA shell casing $\times$20 (20 parts); $^\dagger$ 1 hidden at the start (listed in the table, not drawn); 20 parked below ground, not drawn}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{AA Gatling gun.}\label{fig:d-aa_gatling_gun}
 \end{center}\vspace{-3mm}
 \noindent\textbf{AA Gatling gun.}\label{des:aa_gatling_gun} User-controllable anti-aircraft Gatling gun with radar dome. One instance, 28\,m south-east of the bunker. Placement of the first: $T(21.00,\allowbreak\,-0.30,\allowbreak\,-19.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
@@ -644,7 +644,7 @@ Grab handle & \primchip{cylinder} & $4{\times}\allowbreak 4{\times}\allowbreak 5
 \begin{center}
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{\hspace{3mm}}c@{\hspace{3mm}}c@{}}\img{figures/img/shapes/aa_shell_casing_model.jpg}{4.54cm} & \img{figures/img/shapes/aa_shell_casing_prims.jpg}{4.54cm} & \img{figures/img/insitu/aa_shell_casing.jpg}{6.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)} & {\fontsize{7.5}{9}\selectfont In the scene (the gun that ejects it)}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cylinder}{1}\quad \textbf{total 1}\\$^\dagger$ 1 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cylinder}{1}\quad \textbf{total 1}\\$^\dagger$ 1 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{AA shell casing.}\label{fig:d-aa_shell_casing}
 \end{center}\vspace{-3mm}
 \noindent\textbf{AA shell casing.}\label{des:aa_shell_casing} Ejected brass casing. 20 instances; the first stands 28\,m south-east of the bunker, inside the AA gatling gun. Placement of the first: $T(21.00,\allowbreak\,-50.30,\allowbreak\,-19.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
@@ -675,7 +675,7 @@ Shell casing\,$^\dagger$ & \primchip{cylinder} & $3{\times}\allowbreak 3{\times}
 \node[anchor=west,inner sep=1pt] (L6) at (6.86,0.32) {Searchlight pan};
 \draw[black!70,line width=0.4pt] (L6.west) -- (2.79,0.79); \fill[black] (2.79,0.79) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/scout_helicopter.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/scout_helicopter.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{40}\quad \primchipn{sphere}{21}\quad \primchipn{cylinder}{28}\quad \primchipn{frustum}{1}\quad \primchipn{cone}{1}\quad \textbf{total 91}}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Scout helicopter.}\label{fig:d-scout_helicopter}
 \end{center}\vspace{-3mm}
@@ -842,7 +842,7 @@ Scanner window & \primchip{cuboid} & $5{\times}\allowbreak 3{\times}\allowbreak 
 \node[anchor=west,inner sep=1pt] (L7) at (6.26,0.32) {Entrance trench};
 \draw[black!70,line width=0.4pt] (L7.west) -- (1.94,1.66); \fill[black] (1.94,1.66) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/command_bunker.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene (the command room)}\end{tabular}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/command_bunker.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene (the command room)}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{281}\quad \primchipn{wedge}{1}\quad \primchipn{sphere}{18}\quad \primchipn{hemisphere}{1}\quad \primchipn{capsule}{9}\quad \primchipn{cylinder}{80}\quad \textbf{total 390}\\pale: Camouflage net $\times$1 (37 parts)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Command bunker. Cutaway: roof slabs, surface installations and camouflage net are left out in both panels (78 parts) so what they cover shows.}\label{fig:d-command_bunker}
 \end{center}\vspace{-3mm}
@@ -1064,7 +1064,7 @@ Sandbag $\times$9 & \primchip{capsule} & $24{\times}\allowbreak 18{\times}\allow
 \node[anchor=west,inner sep=1pt] (L1) at (5.04,1.27) {BARRACKS DOOR hinge};
 \draw[black!70,line width=0.4pt] (L1.west) -- (1.73,2.31); \fill[black] (1.73,2.31) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/barracks_hall.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene (entrance)}\end{tabular}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/barracks_hall.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene (entrance)}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{225}\quad \primchipn{sphere}{2}\quad \primchipn{cylinder}{50}\quad \textbf{total 277}}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Barracks hall. Cutaway: roof sheet, ridge cap, ceiling and gable are left out in both panels (14 parts) so what they cover shows.}\label{fig:d-barracks_hall}
 \end{center}\vspace{-3mm}
@@ -1163,7 +1163,7 @@ Ladder rung $\times$12 & \primchip{cylinder} & $2.5{\times}\allowbreak 2.5{\time
 \node[anchor=west,inner sep=1pt] (L0) at (4.11,2.55) {Antenna array};
 \draw[black!70,line width=0.4pt] (L0.west) -- (2.52,3.23); \fill[black] (2.52,3.23) circle (0.6pt);
 \end{tikzpicture}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Full model} & {\fontsize{7.5}{9}\selectfont Made of primitives (pulled apart)}\end{tabular}
-\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/air_defence_radar.jpg}{8.32cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
+\\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/air_defence_radar.jpg}{7.36cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene}\end{tabular}
 \\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{cuboid}{62}\quad \primchipn{sphere}{3}\quad \primchipn{cylinder}{42}\quad \primchipn{cone}{1}\quad \textbf{total 108}}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Air-defence radar.}\label{fig:d-air_defence_radar}
 \end{center}\vspace{-3mm}
@@ -2033,7 +2033,7 @@ Fire embers & \primchip{sphere} & $42{\times}\allowbreak 16{\times}\allowbreak 4
 \fcolorbox{black!30}{white}{\begin{minipage}{0.975\linewidth}\centering\vspace{0.6mm}
 \begin{tabular}{@{}c@{}}\img{figures/img/shapes/sky_clock_sun_prims.jpg}{3.59cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont Made of primitives (the renderer draws it in the sky pass, not as a lit part)}\end{tabular}
 \\[1mm]\begin{tabular}{@{}c@{}}\img{figures/img/insitu/sky_clock_sun.jpg}{9.00cm}\\[-0.3mm]{\fontsize{7.5}{9}\selectfont In the scene (sunset)}\end{tabular}
-\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{sphere}{1}\quad \textbf{total 1}\\$^\dagger$ 1 hidden at the start, drawn at rest scale on the right}\vspace{0.6mm}\end{minipage}}
+\\[0.8mm]{\fontsize{7}{8.5}\selectfont \primchipn{sphere}{1}\quad \textbf{total 1}\\$^\dagger$ 1 hidden at the start (listed in the table, not drawn)}\vspace{0.6mm}\end{minipage}}
 \captionof{figure}{Sky clock (sun).}\label{fig:d-sky_clock_sun}
 \end{center}\vspace{-3mm}
 \noindent\textbf{Sky clock (sun).}\label{des:sky_clock_sun} Time of day: carries the sun along its daily path. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,0.00,\allowbreak\,0.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
