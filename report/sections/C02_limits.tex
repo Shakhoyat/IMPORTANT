@@ -6,7 +6,7 @@ sphere, cylinder or box for seven of the sixteen and leaves the helix out (Secti
 \item \textbf{Teaching views not built:} interactive clip window, vertex/face normal lines, a live back-face toggle and a
 second camera's frustum drawn in the live scene (the Frame Explorer shows the latter two on a frozen frame).
 \item \textbf{Thermal panel:} the stages exist (lab figures, Frame Explorer image lab), but there is no single live
-tile strip with threshold and equalisation sliders; histogram equalisation and the optional DFT restoration are not in the program.
+tile strip with threshold and equalisation sliders; histogram equalisation and the optional discrete Fourier transform (DFT) restoration are not in the program.
 \item \textbf{Moon:} a fixed-direction night light, not an orbiting body.
 \item \textbf{Modes and keys:} no dedicated observation/game switch: enemies follow the time of day, or \key{Shift+F2}.
 \item \textbf{AI:} two shifts instead of 6-hour shifts; AI soldiers do not fire, so ``backup fire'' exists only under player control.
@@ -18,41 +18,3 @@ not built.
 \item \textbf{Cost of the world update:} all world matrices are recomputed every tick, static buildings included
 (Section~\ref{sec:hier}).
 \end{itemize}
-
-\subsection*{Requirements coverage}
-\label{app:req}
-{\small\setlength{\tabcolsep}{4pt}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{6.3cm}l>{\raggedright\arraybackslash}p{8.2cm}@{}}
-\caption{Course requirements, the section that covers each and its status.}\label{tab:req}\\
-\toprule Requirement & Section & Status\\\midrule\endfirsthead
-\toprule Requirement & Section & Status\\\midrule\endhead
-\bottomrule\endfoot
-Observation by default, game mode with enemies & \S\ref{sec:pictures}, \ref{sec:game} & partial: enemies follow the time of day; \key{Shift+F2} gives day waves; no separate switch\\
-Free fly, third-person follow with target cycling, UAV first-person view & \S\ref{sec:view} & done\\
-Orthographic top / front / side and isometric views & \S\ref{sec:proj} & done\\
-Cinematic orbit & \S\ref{sec:view} & done\\
-Wireframe overlay & \S\ref{sec:hsr} & done\\
-Vertex and face normals drawn as lines & \S\ref{sec:raster} & partial: Frame Explorer normals buffer, no line overlay\\
-Linearised depth view & \S\ref{sec:projective} & done\\
-A second camera's frustum in the world & \S\ref{sec:clip} & partial: Frame Explorer bird's-eye stage\\
-Interactive clipping window & \S\ref{sec:clip} & not done: worked examples in the workbook\\
-Back-face culling toggle & \S\ref{sec:hsr} & partial: Frame Explorer back-face stage\\
-Flat, Gouraud and Phong shading & \S\ref{sec:shading} & done\\
-Ambient / diffuse / specular split & \S\ref{sec:illum} & done (scene objects and terrain)\\
-Local axes of the hierarchy & \S\ref{sec:trs} & done\\
-Animated day / night with keys & \S\ref{sec:day} & partial: animated and scrubbed clock; the \key{N} and \key{D} keys were already in use\\
-Sun arc and moon, lighting derived from them & \S\ref{sec:day} & partial: physical sun; the moon is a fixed night light\\
-HUD clock and time scale & \S\ref{sec:setup} & done\\
-Intruders spawn, UAVs patrol with searchlights & \S\ref{sec:game} & done\\
-UAV picture in picture, normal and thermal & \S\ref{sec:thermal} & partial: thermal feed; the gimbal view shows either\\
-UAVs detect, lock and fire; soldiers give backup fire & \S\ref{sec:game} & partial: AI soldiers do not fire\\
-Soldier shifts every 6 in-game hours & \S\ref{sec:game} & partial: two shifts with staggered changes\\
-Hit detection & \S\ref{sec:game} & done\\
-Live thermal stage panel with sliders & \S\ref{sec:thermal} & partial: Frame Explorer image lab and lab figures; no equalisation slider\\
-Noise restoration / DFT (optional) & \S-- & not done\\
-Line follower and MicroMouse logic & \S\ref{sec:paths} & done\\
-FPS, frame time, draw calls, triangles & \S\ref{sec:perf} & done\\
-Benchmark to CSV & \S\ref{sec:perf} & partial: \code{--benchmark} writes the CSV with an orbit camera, not a flown path; \key{F9} is the session clip\\
-Capture harness & \S\ref{sec:setup} & done\\
-Report: at least eleven primitives & \S\ref{sec:prims} & done: sixteen\\
-\end{longtable}}

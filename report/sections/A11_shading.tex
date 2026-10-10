@@ -40,7 +40,7 @@ dim vertex values and misses the peak entirely; Phong recovers it. Right: the sa
 \begin{tabularx}{\linewidth}{@{}lXll@{}}
 \toprule
 Method & Visual result & Cost & When to use\\\midrule
-Flat & faceted, constant per face & 1 evaluation per triangle & hard-edged boxes, CAD views\\
+Flat & faceted, constant per face & 1 evaluation per triangle & hard-edged boxes, computer-aided design (CAD) views\\
 Gouraud & smooth, but highlights smeared or lost, Mach bands & 1 per vertex & dense meshes, diffuse-only\\
 Phong & smooth, correct highlights & 1 per fragment & everything shiny; the default here\\
 \bottomrule

@@ -7,6 +7,7 @@
 // Extensibility: everything here works on PovSource (scene/Pov.h), so any new Controllable automatically becomes
 // selectable and controllable; only soldiers get the on-foot camera (first / third person), vehicles use their chase
 // hints. New on-foot entities only need to derive from Soldier-like Controllables and be listed by listPovSources.
+#include <cstdlib>
 #include <glad/gl.h>
 
 #include <algorithm>
@@ -504,7 +505,7 @@ int App::capturePlay() {
     settings_ = RenderSettings{};
     settings_.quality = opt_.quality >= 0 ? static_cast<Quality>(opt_.quality) : autoQuality();
     std::printf("play capture: %dx%d, quality %s\n", width, height, qualityName(settings_.quality));
-    showHud_ = true;
+    showHud_ = std::getenv("TS_CLEAN") == nullptr;   // TS_CLEAN=1: the report's clean frames (no HUD, no prompts)
     showFeed_ = false;
     playCapture_ = true;
     debugHud_ = false;   // v9 M2: the decluttered game HUD (F3 debug blocks off), as the interactive game starts

@@ -18,7 +18,7 @@ Light budget & Eq.~\eqref{eq:phong} loops over every light per fragment; a shado
   1 shadowed spot (UAV-1) + 1 unshadowed spot (UAV-2) + $\le$16 practicals; searchlights off by day & bounded:
   1 key + 2 spots + $\le$16 lamps per fragment\\
 Grass & one draw or one 12-triangle cube per blade: 6.3--7.7\,M triangles & instanced 5-triangle strips, culled per
-  cell, rank-based distance LOD & $\le$1.82\,M triangles; 86--121\,fps (was 80--101)\\
+  cell, rank-based distance level of detail (LOD) & $\le$1.82\,M triangles; 86--121\,fps (was 80--101)\\
 Convolution & a $k\times k$ kernel costs $k^2$ multiply-adds per pixel, twice per tick & the binomial PSF is
   separable: a row pass then a column pass, on a worker thread & $2k$ instead of $k^2$ (9$\to$6, 49$\to$14 for
   $7\times7$); threaded = serial, byte for byte\\

@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <deque>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
@@ -103,6 +104,7 @@ struct Shot {
     // v10 teaching views: RenderSettings::projection (0 perspective, 1 top, 2 front, 3 side, 4 isometric) / lightTerms
     int projection = 0, lightTerms = 0;
     bool quick = false;         // v9 M6: an --only list of quick shots runs just those (no earlier shots simulated)
+    int doors = 0;              // v10 showcase: before the settle, open 1 the blast doors, 2 the hall door, 4 the generator-room door
 };
 
 // The scripted sequence (directorScript) starts on the simulation clock at kScriptStart: shots with
@@ -519,6 +521,87 @@ add(cam(v4("motor_pool", 58.5f), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 
         bo.delay = 1.0f;
         add(bo);
     }
+    // ---- v10 showcase (report): HUD-free 1920x1080 views of the places a player can walk into, by day and night.
+    // Shots that open a door come after the ones that show it shut (a door stays open for the rest of the run).
+    {
+        auto day = [&](const char* f) { return v6(v4(f, 0.0f), 10.5f, 2.0f); };
+        auto at = [&](Shot x, float hour, float settle) { return v6(x, hour, settle); };
+        add(cam(day("sc_bunker_ramp_closed"), {0.6f, -0.8f, 9.2f}, {0.0f, -2.2f, 4.0f}, 62.0f));
+        add(cam(day("sc_hall_door_closed"), {21.2f, kApronLevel + 1.65f, -4.6f}, {23.5f, kApronLevel + 1.2f, -8.6f}, 58.0f));
+        add(cam(day("sc_helipad"), {12.0f, 3.2f, 25.0f}, {20.3f, 1.2f, 17.0f}, 50.0f));
+        add(cam(day("sc_radar"), {21.0f, 6.5f, -12.5f}, {29.0f, 5.0f, -3.0f}, 50.0f));
+        add(cam(day("sc_motor_pool"), {-14.0f, 7.5f, -6.0f}, kMotorPool + Vec3{0.0f, 0.8f, 0.0f}, 50.0f));
+        add(cam(day("sc_camp_under_nets"), {-2.0f, 4.5f, -17.0f}, {9.5f, 1.5f, -23.8f}, 60.0f));
+        add(cam(v6(v4("sc_gate", 0.0f), 15.5f, 2.0f), {7.0f, 1.9f, 46.5f}, {0.0f, 1.6f, 34.0f}, 52.0f));
+        add(cam(day("sc_camp_sam"), {16.5f, 2.0f, 1.0f}, {25.1f, 2.2f, 6.7f}, 55.0f));
+        Shot ro = cam(day("sc_bunker_ramp_open"), {0.6f, -0.8f, 9.2f}, {0.0f, -2.2f, 4.0f}, 62.0f);
+        ro.doors = 1;
+        ro.settle = 6.0f;
+        add(ro);
+        add(walkAt(day("sc_bunker_door_inside"), 0.0f, 6.6f, 180.0f, -2.0f, kBunkerFloorY));
+        add(walkAt(day("sc_bunker_tunnel"), 0.0f, 3.0f, 180.0f, -2.0f, kBunkerFloorY));
+        add(walkAt(day("sc_bunker_cic"), 0.0f, -2.0f, 160.0f, -4.0f, kBunkerFloorY));
+        add(walkAt(day("sc_bunker_look_out"), 0.0f, -1.0f, 0.0f, 4.0f, kBunkerFloorY));
+        Shot ho = cam(day("sc_hall_door_open"), {21.2f, kApronLevel + 1.65f, -4.6f}, {23.5f, kApronLevel + 1.2f, -8.6f}, 58.0f);
+        ho.doors = 2;
+        ho.settle = 9.0f;
+        add(ho);
+        add(cam(day("sc_hall_inside"), {27.0f, hall::kFloorY + 1.75f, -9.2f}, {20.5f, hall::kFloorY + 0.6f, -14.0f}, 72.0f));
+        add(cam(day("sc_hall_from_door"), {23.5f, hall::kFloorY + 1.65f, -9.1f}, {23.0f, hall::kFloorY + 0.9f, -14.6f}, 74.0f));
+        add(cam(at(v4("sc_gate_night", 0.0f), 22.5f, 4.0f), {7.0f, 1.9f, 46.5f}, {0.0f, 1.6f, 34.0f}, 52.0f));
+        add(cam(at(v4("sc_hall_inside_night", 0.0f), 22.5f, 1.0f), {27.0f, hall::kFloorY + 1.75f, -9.2f}, {20.5f, hall::kFloorY + 0.6f, -14.0f}, 72.0f));
+        add(cam(at(v4("sc_bunker_ramp_night", 0.0f), 22.5f, 1.0f), {0.6f, -0.8f, 9.2f}, {0.0f, -2.2f, 4.0f}, 62.0f));
+        add(cam(at(v4("sc_overview_dusk", 0.0f), 17.6f, 2.0f), {-30.0f, 17.0f, 44.0f}, {2.0f, 0.5f, 4.0f}, 56.0f));
+        // A soldier's eye (1.7 m above the floor) inside the bunker and the barracks hall.
+        const float e = kBunkerFloorY + 1.7f, hf = hall::kFloorY + 1.7f;
+        add(cam(day("sc_pov_tunnel"), {0.0f, e, 3.4f}, {0.0f, e - 0.4f, -4.0f}, 72.0f));
+        add(cam(day("sc_pov_gen_door_closed"), {-0.9f, e, 1.3f}, {1.8f, e - 0.5f, 1.0f}, 72.0f));
+        add(cam(day("sc_pov_bunks"), {-1.95f, e, 3.2f}, {-4.9f, e - 1.2f, -1.2f}, 78.0f));
+        add(cam(day("sc_pov_cic"), {0.0f, e, -2.4f}, {0.0f, e - 0.9f, -7.8f}, 78.0f));
+        add(cam(day("sc_pov_cic_side"), {4.8f, e, -2.5f}, {-3.0f, e - 0.9f, -7.0f}, 78.0f));
+        add(cam(day("sc_pov_hall_bunks"), {24.6f, hf, -9.3f}, {19.4f, hf - 0.8f, -13.6f}, 76.0f));
+        Shot go = cam(day("sc_pov_gen_door_open"), {-0.9f, e, 1.3f}, {1.8f, e - 0.5f, 1.0f}, 72.0f);
+        go.doors = 4 | 2;
+        go.settle = 3.0f;
+        add(go);
+        add(cam(day("sc_pov_generator"), {2.1f, e, 3.3f}, {4.9f, e - 1.0f, -1.2f}, 78.0f));
+        add(cam(day("sc_pov_hall_look_out"), {23.3f, hf, -13.6f}, {23.5f, hf - 0.3f, -6.0f}, 72.0f));
+    }
+    // ---- report Section 7: each design in the running scene (TS_INSITU = a file of "name ex ey ez ax ay az fov hour"
+    // lines written by tools/report/insitu_cams.py from the export's part bounds). The names must outlive the list.
+    if (const char* path = std::getenv("TS_INSITU")) {
+        static std::deque<std::string> names;   // never shrinks: the shots keep pointers into it
+        std::ifstream in(path);
+        std::string nm;
+        float ex, ey, ez, ax, ay, az, fov, hour;
+        while (in >> nm >> ex >> ey >> ez >> ax >> ay >> az >> fov >> hour) {
+            names.push_back(nm);
+            Shot x = cam(v6(v4(names.back().c_str(), 0.0f), hour, 0.5f), {ex, ey, ez}, {ax, ay, az}, fov);
+            add(x);
+        }
+    }
+    // In-scene views of the designs that move (their export position is not where they are by day / in a wave).
+    {
+        Shot u = v6(v4("insitu_uav_live", 0.0f), 10.5f, 1.0f);
+        u.follow = Follow::Uav;
+        u.dist = 3.2f;
+        u.yaw = 140;
+        u.pitch = 20;
+        add(u);
+        Shot h = v6(v4("insitu_heli_live", 0.0f), 10.5f, 1.0f);
+        h.possess = static_cast<int>(Slot::Helicopter);
+        h.sight = false;
+        add(h);
+        Shot r = v6(v4("insitu_rover_live", 0.0f), 23.0f, 1.0f);
+        r.trigger = Trig::Wave;
+        r.delay = 12.0f;
+        r.timeout = 120.0f;
+        r.follow = Follow::Rover;
+        r.dist = 6.0f;
+        r.yaw = 210;
+        r.pitch = 22;
+        add(r);
+    }
     // ---- v7 hero close-ups (WP-M detail; the camp nets hide it in the scene shots): each object alone, 10:30 daylight,
     // front three-quarter view filling ~70 % of the frame. soldier_front is the last shot (M's soldier pass comes later).
     for (const auto& [name, object] : std::initializer_list<std::pair<const char*, const char*>>{
@@ -841,7 +924,30 @@ int App::captureMode() {
                 clock->setHour(shot.hour);
                 clock->setAuto(shot.autoClock);
             }
+            if (shot.doors & 1) {  // the blast doors: one toggle when shut (they slide open in about 4 s of the settle)
+                const std::vector<Controllable*> list = sa::controllables(*scene_);
+                const int i = resolveSlot(list, Slot::Doors);
+                if (i >= 0 && list[i]->status().find("OPEN") == std::string::npos) {
+                    ControlInput in;
+                    in.actionPressed = true;
+                    WorldContext w;
+                    w.time = t;
+                    list[i]->update(w, &in);
+                }
+            }
+            for (const auto& [bit, door] : {std::pair<int, DoorPortal*>{2, scene_->hallDoor()}, {4, scene_->generatorDoor()}})
+                if ((shot.doors & bit) && door) {  // on its holder at once (a manual open stays open)
+                    door->door().setTarget(true, true);
+                    door->door().snap(door->door().params().openDeg);
+                }
             for (float k = 0.0f; k < shot.settle; k += kStep) stepLogged();
+            if (shot.doors) {
+                const std::vector<Controllable*> list = sa::controllables(*scene_);
+                const int i = resolveSlot(list, Slot::Doors);
+                log << shot.file << ": " << (i >= 0 ? list[i]->status() : std::string("no blast doors"));
+                if (DoorPortal* hd = scene_->hallDoor()) log << ", hall door " << hd->door().stateName();
+                log << "\n";
+            }
             shotTime = std::max(shotTime, t);
         }
         if (shot.afterImpact >= 0.0f) {

@@ -12,7 +12,7 @@ tests of each projectile's path segment per tick against target spheres and soli
 \begin{tikzpicture}[font=\footnotesize,
   bx/.style={draw,rounded corners=2pt,fill=#1,align=center,minimum height=11mm,text width=23.5mm,inner sep=1.5pt,font=\scriptsize},
   ar/.style={-{Latex[length=1.6mm]},thick,black!65}]
-\node[bx=orange!20] (r) at (0,0) {render heat\\ \gv{kCvWidth}$\times$\gv{kCvHeight}, FOV \gv{kCvFovYDeg}$^\circ$};
+\node[bx=orange!20] (r) at (0,0) {render heat\\ \gv{kCvWidth}$\times$\gv{kCvHeight}, field of view (FOV) \gv{kCvFovYDeg}$^\circ$};
 \node[bx=orange!20] (s) at (2.85,0) {sensor model\\ blur, gain, noise, 8 bit};
 \node[bx=blue!12] (t) at (5.7,0) {threshold\\ $\max(\gv{floor},\,t_{\mathrm{Otsu}}{+}1)$};
 \node[bx=blue!12] (d) at (8.55,0) {despeckle\\ $<2$ hot neighbours};

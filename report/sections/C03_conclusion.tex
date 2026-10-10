@@ -10,12 +10,12 @@ visible inside the running program. Table~\ref{tab:objectives} maps each objecti
 \toprule
 Objective & Evidence & Section\\\midrule
 O1 Modelling & 16 primitives, \nDesigns{} designs, \sceneParts{} parts, $TRS$ trace checked against the export & \ref{sec:prims}--\ref{sec:hier}, \ref{sec:decomp}\\
-O2 Pipeline stages & same scene in 5 projections, depth plots, clipping, HSR, raster, light terms, 3 shading models & \ref{sec:view}--\ref{sec:tex}\\
+O2 Pipeline stages & same scene in 5 projections, depth plots, clipping, hidden surface removal (HSR), raster, light terms, 3 shading models & \ref{sec:view}--\ref{sec:tex}\\
 O3 Ray tracing & 5 render modes, ray tree, picking and line of sight & \ref{sec:rt}, \ref{sec:rtadv}\\
 O4 Day/night & solar model, derived light, sky, fog, exposure & \ref{sec:day}\\
 O5 Thermal + vision & sensor model, CV pipeline, kernels, histograms & \ref{sec:thermal}\\
 O6 Interaction & \nControllables{} controllable units, AI state machines, flood fill + PD line follower, A* & \ref{sec:dynamic}, \ref{sec:game}, \ref{sec:paths}\\
-O7 Measurement & benchmark CSV, per-pass GPU times, six hard problems with numbers & \ref{sec:hard}, \ref{sec:perf}\\
+O7 Measurement & benchmark comma-separated values (CSV), per-pass GPU times, six hard problems with numbers & \ref{sec:hard}, \ref{sec:perf}\\
 \bottomrule
 \end{tabularx}
 \end{table}

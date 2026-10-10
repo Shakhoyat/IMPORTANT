@@ -18,11 +18,11 @@ x(t)=x^\ast+\big((x_0-x^\ast)+(\dot x_0+\omega(x_0-x^\ast))\,t\big)e^{-\omega t}
 \toprule
 Object & Motion model (measured or set in the code)\\\midrule
 Soldier (player) & speed follows the input on a spring, $\omega=17$\,s$^{-1}$ accelerating, 30 braking; 90\,\% of walking speed in 0.23\,s; coyote time 0.12\,s; slope limit $40^\circ$\\
-Soldier legs & gait phase advanced by distance / stride; two-link IK keeps stance feet on the ground (slip $\le$ 0.22\,cm)\\
+Soldier legs & gait phase advanced by distance / stride; two-link inverse kinematics (IK) keeps stance feet on the ground (slip $\le$ 0.22\,cm)\\
 Third-person camera & spring-arm follow, sphere cast against walls; shorter arm indoors\\
 UAV & duty state machine (docked, take-off, patrol, return, landing); chase camera springs $\omega=10$ (position), 5 (heading); bank $0.3^\circ$ per $^\circ$/s of turn\\
 Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% open in 1.13\,s; the swinging leaf is a moving collision box\\
-Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,EV indoor bias\\
+Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,exposure value (EV) indoor bias\\
 \bottomrule
 \end{tabularx}
 \end{table}

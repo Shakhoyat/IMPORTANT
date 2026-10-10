@@ -9,8 +9,8 @@ targets in it.
 y=Q\big(g\odot(h_{\text{PSF}}\ast x)+o+c+n\big),\quad h_{\text{PSF}}=\tfrac1{16}\begin{bmatrix}1&2&1\end{bmatrix}^{\!\top}\!\begin{bmatrix}1&2&1\end{bmatrix},\quad n\sim\mathcal N(0,2^2)
 \label{eq:sensor}
 \end{equation}
-($g$, $o$: per-pixel gain and offset (fixed pattern, partly removed by the shutter NUC), $c$: column stripes, $n$:
-temporal noise in DN, $Q$: rounding to 8 bits.) Then (following \cite{gonzalez2018}): Otsu threshold \cite{otsu1979} (with a floor at heat 0.8), despeckle (a hot pixel
+($g$, $o$: per-pixel gain and offset (fixed pattern, partly removed by the shutter non-uniformity correction (NUC)), $c$: column stripes, $n$:
+temporal noise in digital number (DN), $Q$: rounding to 8 bits.) Then (following \cite{gonzalez2018}): Otsu threshold \cite{otsu1979} (with a floor at heat 0.8), despeckle (a hot pixel
 needs 2 hot neighbours), connected components by two-pass union-find, blob features, a target filter, and a Kalman
 multi-target tracker that fuses both UAVs.
 \begin{equation}
@@ -29,7 +29,7 @@ components, overlay.}
 \end{figure}
 
 Sensor noise and warm walls survive the blur but not the threshold and despeckle steps; only compact hot blobs with a
-hot core become targets. The CV runs on the CPU at 320$\times$240 on a worker thread, and the PSF blur is separable
+hot core become targets. The CV runs on the CPU at 320$\times$240 on a worker thread, and the point spread function (PSF) blur is separable
 (two 3-tap passes instead of one 9-tap pass).
 \begin{figure}[htbp]
 \centering
@@ -51,7 +51,7 @@ hot core become targets. The CV runs on the CPU at 320$\times$240 on a worker th
 \end{figure}
 
 The raw thermal frame uses a narrow band of grey levels, because most pixels are cool ground; equalisation spreads them
-over the full range, so the CDF becomes a straight line (Figure~\ref{fig:imglab}a). The equalisation is computed
+over the full range, so the cumulative distribution function (CDF) becomes a straight line (Figure~\ref{fig:imglab}a). The equalisation is computed
 offline for the figure; it is not a switch in the renderer.
 \begin{figure}[htbp]
 \centering

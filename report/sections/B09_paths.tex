@@ -6,7 +6,7 @@ The intruder rovers are built like two classic robot-contest machines. \textbf{P
 is a goal; a breadth-first flood fill spreads distances out from the goals, and the rover walks ``downhill'' to the
 neighbour with the smaller value, as a MicroMouse descends its maze towards the centre. \textbf{Driving (line-follower
 robot):} the planned cell path is smoothed into a virtual guide line; five reflectance sensors in front of the rover
-report whether they are over the line, and the weighted sensor error drives a PD controller that sets the left and
+report whether they are over the line, and the weighted sensor error drives a proportional--derivative (PD) controller that sets the left and
 right wheel speeds of a differential drive. The soldiers use A* on a $72\times72$ grid of 1\,m cells with 0.40\,m
 clearance, smoothed into centripetal Catmull--Rom splines.
 \begin{equation}

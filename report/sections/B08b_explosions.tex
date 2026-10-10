@@ -30,7 +30,7 @@ $T=\mathrm{clamp}(1-d)\,(1-t)^{\gv{fireLife}}$, mapped by a blackbody-like ramp 
 \label{eq:bb}
 \end{equation}
 A cooling point slides from white-yellow through orange and deep red to black: interpolation along a curve through RGB
-space. The emission is HDR, so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
+space. The emission is high dynamic range (HDR), so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
 behind), with the smoke group and the glowing group each sorted back to front.
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_blackbody.pdf}

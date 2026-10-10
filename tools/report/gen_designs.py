@@ -38,8 +38,17 @@ KIDS = collections.defaultdict(list)
 for c in C:
     KIDS[c["parent_id"]].append(c)
 DESIGNS = EXP["designs"]
-FAMILIES = ["people", "vehicles and aircraft", "weapons and munitions", "buildings", "fortifications", "vegetation",
-            "props", "terrain and backdrop"]
+FAMILIES = ["people", "vehicles and their weapons", "buildings", "fortifications", "vegetation", "props",
+            "terrain and backdrop"]
+# The report groups each vehicle or launcher with the munition it fires (the export keeps two families).
+VW_ORDER = ["Main battle tank", "Autonomous UAV", "UAV round", "SAM launcher", "SAM missile", "MLRS rocket truck",
+            "MLRS rocket", "AA Gatling gun", "AA shell casing", "Scout helicopter", "Cargo truck", "Target rover"]
+FIRED_BY = {"UAV round": "Autonomous UAV", "SAM missile": "SAM launcher", "MLRS rocket": "MLRS rocket truck",
+            "AA shell casing": "AA Gatling gun"}
+for _d in EXP["designs"]:
+    if _d["family"] in ("vehicles and aircraft", "weapons and munitions"):
+        assert _d["name"] in VW_ORDER, _d["name"]
+        _d["family"] = "vehicles and their weapons"
 PRIM_COLS = [k for k in primkey.ORDER if k != "Grass blade"]
 CUT_DESIGNS = {"Command bunker", "Ammunition bunker", "Barracks hall"}
 SKY = {"Moon", "Sky clock (sun)"}   # drawn by the sky pass, not as lit parts: only the primitives panel is shown
@@ -57,6 +66,11 @@ def slug(t):
         elif o and o[-1] != "_":
             o += "_"
     return o.rstrip("_")
+
+
+def lower_name(name):
+    """A design name inside a sentence: lower case except acronyms (UAV, SAM, MLRS, AA, HESCO)."""
+    return " ".join(w if w.isupper() and len(w) > 1 else w.lower() for w in name.split())
 
 
 def macro(name):
@@ -292,7 +306,7 @@ def sentence(d):
     else:
         s += "%d instances; the first stands %s" % (n, where)
     if d["nested_in"]:
-        s += ", inside the %s" % tex(d["nested_in"].lower())
+        s += ", inside the %s" % tex(lower_name(d["nested_in"]))
     s += (". Placement of the first: $T(%.2f,\\allowbreak\\,%.2f,\\allowbreak\\,%.2f)\\allowbreak\\,R_y(%.0f^\\circ)\\allowbreak\\,S(%g)$." %
           (x, y, z, inst["heading_deg"], inst["scale"]))
     return s
@@ -420,10 +434,53 @@ def legend_strip(j, d):
     return s, leg, total
 
 
+# The design in the running scene (EPIC, 10:30 unless noted): tools/report/insitu_cams.py + the live-following shots, or a
+# capture that shows it better (under the camouflage nets, backdrop seen from inside the world, sky objects, night units).
+RAWROOT = os.path.join(ROOT, "report", "figures", "raw")
+INSITU = {"Main battle tank": "scene/day_mechanic", "Autonomous UAV": "insitu/insitu_uav_live",
+          "Scout helicopter": "insitu/insitu_heli_live", "Target rover": "game/combined_strike",
+          "UAV round": "game/uav_missile_launch", "SAM missile": "insitu/insitu_sam_launcher",
+          "MLRS rocket": "insitu/insitu_mlrs_rocket_truck", "AA shell casing": "insitu/insitu_aa_gatling_gun",
+          "Barracks hall": "showcase/sc_hall_door_closed", "Command bunker": "showcase/sc_pov_cic",
+          "Tank spot marking": "insitu/insitu_motor_pool", "Terrain disc": "scene/v10_proj_iso",
+          "Far ground": "scene/day_overview", "Distant hills": "showcase/sc_overview_dusk",
+          "Sky clock (sun)": "scene/sky_sunset", "Moon": "scene/night_searchlights", "Soldier": "play_clean/play_third_person"}
+INSITU_NOTE = {"Target rover": "night wave", "UAV round": "night strike", "SAM missile": "in its launcher",
+               "MLRS rocket": "in the launcher", "AA shell casing": "the gun that ejects it", "Command bunker": "the command room",
+               "Tank spot marking": "under the motor-pool nets", "Moon": "night", "Sky clock (sun)": "sunset",
+               "Distant hills": "dusk", "Barracks hall": "entrance"}
+
+
+def insitu(name):
+    """figures/img/insitu/<slug>.jpg (16:9, 1600 px) of the design in the scene, or None."""
+    src = os.path.join(RAWROOT, INSITU.get(name, "insitu/insitu_%s" % slug(name)) + ".png")
+    if not os.path.exists(src):
+        return None
+    dst = os.path.join(ROOT, "report", "figures", "img", "insitu", slug(name) + ".jpg")
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    if not os.path.exists(dst) or os.path.getmtime(dst) < os.path.getmtime(src):
+        im = Image.open(src).convert("RGB")
+        im.thumbnail((1600, 1600), Image.LANCZOS)
+        im.save(dst, quality=90)
+    return "figures/img/insitu/%s.jpg" % slug(name)
+
+
+def scene_caption(name):
+    return "In the scene" + (" (%s)" % INSITU_NOTE[name] if name in INSITU_NOTE else "")
+
+
 def pair(j, label_groups=False, hmax=4.2):
-    """Two panels side by side, the same height, fitted to the text width."""
+    """Two panels side by side, the same height, fitted to the text width; small cards add the in-scene view as a third."""
     am, ap = j["_am"], j["_ap"]
     lab_w = 2.4 if label_groups else 0.0
+    sc = insitu(j["design"]) if not label_groups and j["design"] not in SKY else None
+    if sc:
+        h = min(hmax, (16.0 - 0.6) / (am + ap + 16 / 9))
+        return ("\\begin{tabular}{@{}c@{\\hspace{3mm}}c@{\\hspace{3mm}}c@{}}\\img{figures/img/shapes/%s_model.jpg}{%.2fcm} & "
+                "\\img{figures/img/shapes/%s_prims.jpg}{%.2fcm} & \\img{%s}{%.2fcm}\\\\[-0.3mm]"
+                "{\\fontsize{7.5}{9}\\selectfont Full model} & {\\fontsize{7.5}{9}\\selectfont Made of primitives (pulled apart)} & "
+                "{\\fontsize{7.5}{9}\\selectfont %s}\\end{tabular}"
+                % (j["_slug"], am * h, j["_slug"], ap * h, sc, 16 / 9 * h, scene_caption(j["design"])))
     h = min(hmax, (16.0 - lab_w) / (am + ap))
     left = "\\img{figures/img/shapes/%s_model.jpg}{%.2fcm}" % (j["_slug"], am * h)
     if j["design"] in SKY:
@@ -477,7 +534,7 @@ def labelled(j, w, h):
 # ------------------------------------------------------------------------------------------------ build all
 out = ["% generated by tools/report/gen_designs.py: do not edit"]
 check = {}
-order = sorted(DESIGNS, key=lambda d: FAMILIES.index(d["family"]))
+order = sorted(DESIGNS, key=lambda d: (FAMILIES.index(d["family"]), VW_ORDER.index(d["name"]) if d["name"] in VW_ORDER else 0))
 shapes = {d["name"]: shape(d["name"]) for d in order}
 for nm in CUT_DESIGNS:
     shapes[nm + "@cut"] = shape(nm, cut=True)
@@ -523,7 +580,12 @@ def atlas_block(fams):
             atlas_thumb(os.path.join(IMG, "%s_%s.jpg" % (j["_slug"], which)), os.path.join(IMG, th))
             imgs.append("\\includegraphics[width=%.2fcm,height=%.2fcm]{figures/img/shapes/%s}" % (ATLAS_W, ATLAS_H, th))
             ppi = d["parts_first"] if len(set(d["parts_per_instance"])) == 1 else "%d..%d" % (min(d["parts_per_instance"]), max(d["parts_per_instance"]))
-            labs.append("\\textbf{%s}\\par %s$\\,\\times\\,$%d" % (tex(d["name"]), ppi, d["instances"]))
+            labs.append("\\textbf{%s}\\par %s$\\,\\times\\,$%d%s" % (tex(d["name"]), ppi, d["instances"],
+                        "\\par\\textit{fired by the %s}" % FIRED_BY[d["name"]].replace("Autonomous ", "") if d["name"] in FIRED_BY else ""))
+        if fam == "vegetation" and os.path.exists(os.path.join(IMG, "grass_field_model.jpg")):   # tools/report/gen_grass.py
+            atlas_thumb(os.path.join(IMG, "grass_field_model.jpg"), os.path.join(IMG, "atlas_grass_field.jpg"))
+            imgs.append("\\includegraphics[width=%.2fcm,height=%.2fcm]{figures/img/shapes/atlas_grass_field.jpg}" % (ATLAS_W, ATLAS_H))
+            labs.append("\\textbf{Grass field}\\par\\textit{blades instanced on the GPU}")
         rows = []
         for k in range(0, len(imgs), ATLAS_N):
             pad = [""] * (ATLAS_N - len(imgs[k:k + ATLAS_N]))
@@ -595,10 +657,12 @@ for fam in FAMILIES:
             cut_note = (" Cutaway: %s are left out in both panels (%d parts) so what they cover shows." %
                         (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0], sum(j["removed"].values())))
         hfig = 5.6 if large else 3.6
-        fig = ["\\needspace{%.1fcm}" % (hfig + 5.0),
+        fig = ["\\needspace{%.1fcm}" % (hfig + (11.0 if large else 5.0)),
                "\\begin{center}",
                "\\fcolorbox{black!30}{white}{\\begin{minipage}{0.975\\linewidth}\\centering\\vspace{0.6mm}",
                pair(j, label_groups=large, hmax=hfig),
+               ("\\\\[1mm]\\begin{tabular}{@{}c@{}}\\img{%s}{%.2fcm}\\\\[-0.3mm]{\\fontsize{7.5}{9}\\selectfont %s}\\end{tabular}"
+                % (insitu(nm), 0.62 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
                "\\\\[0.8mm]{\\fontsize{7}{8.5}\\selectfont %s}\\vspace{0.6mm}\\end{minipage}}" % strip,
                "\\captionof{figure}{%s.%s}\\label{fig:d-%s}" % (tex(nm), cut_note, slug(nm)),
                "\\end{center}\\vspace{-3mm}"]
@@ -606,7 +670,7 @@ for fam in FAMILIES:
         r = rule(d)
         if r:
             body.append(r)
-        card = "\n".join(fig) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_)
+        card = "\n".join(x for x in fig if x) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_)
         if nm == "Soldier":
             card += "\n\\soldierextras"
         if nm == "Main battle tank":
@@ -672,11 +736,12 @@ for nm, tag in (("Autonomous UAV", "Uav"), ("Main battle tank", "Tank"), ("Scout
         src = os.path.join(RAW, sj["prims"])
         dst = os.path.join(IMG, sj["prims"][:-4] + ".jpg")
         im = Image.open(src).convert("RGB").crop(stage_box)
-        im.thumbnail((900, 900))
+        im.thumbnail((1400, 1400))
         im.save(dst, quality=88)
-        cells.append("\\begin{subfigure}{0.245\\linewidth}\\img{figures/img/shapes/%s}{\\linewidth}\\caption{%d\\,\\%%: %d of %d parts}\\end{subfigure}"
+        cells.append("\\begin{subfigure}{0.49\\linewidth}\\img{figures/img/shapes/%s}{\\linewidth}\\caption{%d\\,\\%%: %d of %d parts}\\end{subfigure}"
                      % (os.path.basename(dst), pct, sj["parts"], sj["of"]))
-    out.append("\\newcommand{\\buildstripKey%s}{%s}" % (tag, "\\hfill\n".join(cells)))
+    # 2 x 2: each stage at half the text width
+    out.append("\\newcommand{\\buildstripKey%s}{%s\\hfill\n%s\\\\[1.5mm]\n%s\\hfill\n%s}" % ((tag,) + tuple(cells)))
 
 open(OUT, "w").write("\n".join(out) + "\n")
 json.dump(check, open(CHECK, "w"), indent=1)

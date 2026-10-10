@@ -54,6 +54,101 @@
   "instances": 3,
   "total": 765
  },
+ "Autonomous UAV": {
+  "legend": {
+   "Cuboid": 18,
+   "Cylinder": 19,
+   "Cylinder (frustum)": 1,
+   "Sphere": 13,
+   "Torus": 4
+  },
+  "table": {
+   "Cuboid": 18,
+   "Sphere": 13,
+   "Cylinder": 19,
+   "Torus": 4,
+   "Cylinder (frustum)": 1
+  },
+  "export": {
+   "Cuboid": 18,
+   "Cylinder": 19,
+   "Cylinder (frustum)": 1,
+   "Sphere": 13,
+   "Torus": 4
+  },
+  "parts": 55,
+  "instances": 2,
+  "total": 110
+ },
+ "UAV round": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 4,
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 1,
+   "Cuboid": 4
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 4,
+   "Cylinder": 1
+  },
+  "parts": 6,
+  "instances": 8,
+  "total": 48
+ },
+ "SAM launcher": {
+  "legend": {
+   "Cube": 1,
+   "Cuboid": 71,
+   "Cylinder": 23,
+   "Sphere": 4,
+   "Torus": 8
+  },
+  "table": {
+   "Cuboid": 71,
+   "Cylinder": 23,
+   "Sphere": 4,
+   "Torus": 8,
+   "Cube": 1
+  },
+  "export": {
+   "Cube": 1,
+   "Cuboid": 71,
+   "Cylinder": 23,
+   "Sphere": 4,
+   "Torus": 8
+  },
+  "parts": 107,
+  "instances": 1,
+  "total": 107
+ },
+ "SAM missile": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 1,
+   "Cuboid": 2,
+   "Sphere": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "parts": 5,
+  "instances": 1,
+  "total": 5
+ },
  "MLRS rocket truck": {
   "legend": {
    "Cube": 1,
@@ -80,6 +175,66 @@
   "instances": 1,
   "total": 106
  },
+ "MLRS rocket": {
+  "legend": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "table": {
+   "Cylinder": 1,
+   "Cone": 1,
+   "Cuboid": 2,
+   "Sphere": 1
+  },
+  "export": {
+   "Cone": 1,
+   "Cuboid": 2,
+   "Cylinder": 1,
+   "Sphere": 1
+  },
+  "parts": 5,
+  "instances": 6,
+  "total": 30
+ },
+ "AA Gatling gun": {
+  "legend": {
+   "Cuboid": 19,
+   "Cylinder": 34,
+   "Hemisphere": 1,
+   "Sphere": 4
+  },
+  "table": {
+   "Cylinder": 34,
+   "Cuboid": 19,
+   "Hemisphere": 1,
+   "Sphere": 4
+  },
+  "export": {
+   "Cuboid": 19,
+   "Cylinder": 34,
+   "Hemisphere": 1,
+   "Sphere": 4
+  },
+  "parts": 58,
+  "instances": 1,
+  "total": 58
+ },
+ "AA shell casing": {
+  "legend": {
+   "Cylinder": 1
+  },
+  "table": {
+   "Cylinder": 1
+  },
+  "export": {
+   "Cylinder": 1
+  },
+  "parts": 1,
+  "instances": 20,
+  "total": 20
+ },
  "Scout helicopter": {
   "legend": {
    "Cone": 1,
@@ -105,32 +260,6 @@
   "parts": 91,
   "instances": 1,
   "total": 91
- },
- "Autonomous UAV": {
-  "legend": {
-   "Cuboid": 18,
-   "Cylinder": 19,
-   "Cylinder (frustum)": 1,
-   "Sphere": 13,
-   "Torus": 4
-  },
-  "table": {
-   "Cuboid": 18,
-   "Sphere": 13,
-   "Cylinder": 19,
-   "Torus": 4,
-   "Cylinder (frustum)": 1
-  },
-  "export": {
-   "Cuboid": 18,
-   "Cylinder": 19,
-   "Cylinder (frustum)": 1,
-   "Sphere": 13,
-   "Torus": 4
-  },
-  "parts": 55,
-  "instances": 2,
-  "total": 110
  },
  "Cargo truck": {
   "legend": {
@@ -171,135 +300,6 @@
   "parts": 26,
   "instances": 6,
   "total": 156
- },
- "SAM launcher": {
-  "legend": {
-   "Cube": 1,
-   "Cuboid": 71,
-   "Cylinder": 23,
-   "Sphere": 4,
-   "Torus": 8
-  },
-  "table": {
-   "Cuboid": 71,
-   "Cylinder": 23,
-   "Sphere": 4,
-   "Torus": 8,
-   "Cube": 1
-  },
-  "export": {
-   "Cube": 1,
-   "Cuboid": 71,
-   "Cylinder": 23,
-   "Sphere": 4,
-   "Torus": 8
-  },
-  "parts": 107,
-  "instances": 1,
-  "total": 107
- },
- "AA Gatling gun": {
-  "legend": {
-   "Cuboid": 19,
-   "Cylinder": 34,
-   "Hemisphere": 1,
-   "Sphere": 4
-  },
-  "table": {
-   "Cylinder": 34,
-   "Cuboid": 19,
-   "Hemisphere": 1,
-   "Sphere": 4
-  },
-  "export": {
-   "Cuboid": 19,
-   "Cylinder": 34,
-   "Hemisphere": 1,
-   "Sphere": 4
-  },
-  "parts": 58,
-  "instances": 1,
-  "total": 58
- },
- "SAM missile": {
-  "legend": {
-   "Cone": 1,
-   "Cuboid": 2,
-   "Cylinder": 1,
-   "Sphere": 1
-  },
-  "table": {
-   "Cylinder": 1,
-   "Cone": 1,
-   "Cuboid": 2,
-   "Sphere": 1
-  },
-  "export": {
-   "Cone": 1,
-   "Cuboid": 2,
-   "Cylinder": 1,
-   "Sphere": 1
-  },
-  "parts": 5,
-  "instances": 1,
-  "total": 5
- },
- "MLRS rocket": {
-  "legend": {
-   "Cone": 1,
-   "Cuboid": 2,
-   "Cylinder": 1,
-   "Sphere": 1
-  },
-  "table": {
-   "Cylinder": 1,
-   "Cone": 1,
-   "Cuboid": 2,
-   "Sphere": 1
-  },
-  "export": {
-   "Cone": 1,
-   "Cuboid": 2,
-   "Cylinder": 1,
-   "Sphere": 1
-  },
-  "parts": 5,
-  "instances": 6,
-  "total": 30
- },
- "UAV round": {
-  "legend": {
-   "Cone": 1,
-   "Cuboid": 4,
-   "Cylinder": 1
-  },
-  "table": {
-   "Cylinder": 1,
-   "Cone": 1,
-   "Cuboid": 4
-  },
-  "export": {
-   "Cone": 1,
-   "Cuboid": 4,
-   "Cylinder": 1
-  },
-  "parts": 6,
-  "instances": 8,
-  "total": 48
- },
- "AA shell casing": {
-  "legend": {
-   "Cylinder": 1
-  },
-  "table": {
-   "Cylinder": 1
-  },
-  "export": {
-   "Cylinder": 1
-  },
-  "parts": 1,
-  "instances": 20,
-  "total": 20
  },
  "Command bunker": {
   "legend": {

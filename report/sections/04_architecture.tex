@@ -6,13 +6,13 @@
   m/.style={draw,rounded corners=2pt,fill=#1,align=center,minimum height=10mm,text width=32mm},
   a/.style={-{Latex[length=1.8mm]},black!65,thick}]
 \node[m=black!8] (main) at (0,0) {\textbf{main.cpp}: command line, modes};
-\node[m=orange!20] (app) at (0,-1.5) {\textbf{app/}: loop, input, HUD, capture, record, replay};
-\node[m=purple!12] (vision) at (-5,-3.3) {\textbf{vision/}: thermal sensor model, CV pipeline};
+\node[m=orange!20] (app) at (0,-1.5) {\textbf{app/}: loop, input, head-up display (HUD), capture, record, replay};
+\node[m=purple!12] (vision) at (-5,-3.3) {\textbf{vision/}: thermal sensor model, computer vision (CV) pipeline};
 \node[m=blue!12] (scene) at (0,-3.3) {\textbf{scene/}: scene graph, day cycle, garrison, combat};
 \node[m=green!14] (render) at (5,-3.3) {\textbf{rendering/}: passes, shaders, shadows, post};
 \node[m=purple!8] (ai) at (-5,-5.1) {\textbf{ai/}: UAV squad, drone control, hide planner};
 \node[m=blue!12] (objects) at (0,-5.1) {\textbf{objects/}: bunker, UAV, tank, soldier, base};
-\node[m=green!8] (rt) at (5,-5.1) {\textbf{raytrace/}: BVH, Whitted, path / light tracing};
+\node[m=green!8] (rt) at (5,-5.1) {\textbf{raytrace/}: bounding volume hierarchy (BVH), Whitted, path / light tracing};
 \node[m=black!6] (audio) at (-5,-6.9) {\textbf{audio/}: procedural synthesis};
 \node[m=blue!6] (prims) at (0,-6.9) {\textbf{primitives/}: unit meshes};
 \node[m=black!6] (math) at (5,-6.9) {\textbf{math/}: Math3D, frustum, shadow, sky};

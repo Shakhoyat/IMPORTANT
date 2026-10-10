@@ -25,7 +25,7 @@ Moon & directional & intensity \moonI, colour (0.55, 0.62, 0.80) & night\\
 Beacon & point & $k_l=\beaconLin$, $k_q=\beaconQuad$, pulsing 0.6--2.0 & night\\
 UAV searchlight & spot & $\theta_i=\spotInner^\circ$, $\theta_o=\spotOuter^\circ$, $k_l=\spotLin$, $k_q=\spotQuad$ & night, UAV airborne\\
 Practical lamps & point & up to 16 at once (floodlights, lamps, fire barrel) & dusk to dawn\\
-Ambient & hemisphere / SH & night constant; by day the irradiance of the drawn sky & always\\
+Ambient & hemisphere / spherical harmonics (SH) & night constant; by day the irradiance of the drawn sky & always\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -68,7 +68,7 @@ highlight eight times narrower than $n=2$.}
 \end{figure}
 
 
-At HIGH and above the renderer uses a physically based GGX/Cook--Torrance BRDF by default; \key{B} switches to the
+At HIGH and above the renderer uses a physically based GGX/Cook--Torrance bidirectional reflectance distribution function (BRDF) by default; \key{B} switches to the
 classic Blinn--Phong of Eq.~\eqref{eq:phong}.
 
 \textbf{Limitation.} The term split (\key{Ctrl+L}) covers the scene-object and terrain shaders only; grass and
