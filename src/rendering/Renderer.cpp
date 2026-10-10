@@ -543,8 +543,10 @@ void Renderer::drawBeam(const Scene& scene, const CameraView& cam, const RenderS
     if (!s.isolate.empty()) return;
     if (!s.spotOn || s.view != ViewMode::Visible || s.hideUav) return;   // an LWIR camera does not see the beam
     if (s.view == ViewMode::Visible && s.cinematic && frame_.fog) return;  // the volumetric pass draws the shaft
-    const SceneNode& beam = *scene.uav().beam;
-    if (!beam.visible || !scene.lights.spot.enabled) return;              // searchlights off by day
+    for (int u = 0; u < kUavCount; ++u) {
+    const SceneNode& beam = *scene.uav(u).beam;
+    const bool lit = u == 0 ? scene.lights.spot.enabled : scene.lights.spot2.enabled;
+    if (!beam.visible || !lit) continue;                                  // searchlights off by day, docked UAVs dark
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
     glDepthMask(GL_FALSE);
@@ -568,6 +570,7 @@ void Renderer::drawBeam(const Scene& scene, const CameraView& cam, const RenderS
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
+    }
 }
 
 void Renderer::drawWire(const Scene& scene, const CameraView& cam, const RenderSettings& s, FrameStats& st) {

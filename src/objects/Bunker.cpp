@@ -24,7 +24,9 @@ constexpr float kRoofTop = L::kBunkerRoofTopY;
 constexpr float kTopZ = L::kRampTopZ, kBottomZ = L::kRampBottomZ;
 constexpr float kDoorZ0 = 3.65f, kDoorZ1 = 4.0f;  // blast door leaf / front wall thickness 0.35 m
 constexpr float kDoorHeight = 2.6f;
-constexpr float kSlide = 1.5f;                    // leaf travel into the wall pockets
+constexpr float kDoorHalfH = 1.3f;
+constexpr float kSwingDeg = 92.0f;                // leaves swing outward into the trench, parked against its walls
+constexpr float kHingeX = 1.3f, kLeafT = 0.20f;    // hinge on the opening jamb; leaf plate in front of the wall face
 constexpr float kWallT = 0.35f;                   // trench retaining wall thickness
 
 float smooth01(float t) {
@@ -51,13 +53,21 @@ public:
     }
 
     const char* name() const override { return "BLAST DOORS"; }
-    const char* controls() const override { return "ENTER or \\  open / close the blast doors (about 4 s)"; }
+    const char* controls() const override { return "ENTER or \\  open / close the blast doors (about 4 s; they also open for soldiers)"; }
     SceneNode* root() override { return root_; }
 
     void update(const WorldContext& w, const ControlInput* in) override {
         if (in && (in->actionPressed || in->firePressed)) {
             if (state_ == State::Closed || state_ == State::Closing) state_ = State::Opening;
             else state_ = State::Closing;
+            manualUntil_ = w.time + kManualHold;   // a pressed control holds the doors as left
+        }
+        // Automatic gate: the doors slide open for a soldier coming down the trench or up the tunnel and close
+        // kCloseDelay after the last one has passed (unless the doors were operated by hand just now).
+        if (w.soldierAtBlastDoors) lastNear_ = w.time;
+        if (w.time >= manualUntil_) {
+            if (w.soldierAtBlastDoors && (state_ == State::Closed || state_ == State::Closing)) state_ = State::Opening;
+            else if (!w.soldierAtBlastDoors && state_ == State::Open && w.time - lastNear_ > kCloseDelay) state_ = State::Closing;
         }
         const float dt = std::max(w.dt, 0.0f);
         if (state_ == State::Opening) {
@@ -87,18 +97,31 @@ public:
     }
     Vec3 position() const override { return {0.0f, kF + 1.3f, 0.5f * (kDoorZ0 + kDoorZ1)}; }
     std::vector<Box> dynamicObstacles() const override {
-        const float e = smooth01(t_) * kSlide, wd = bunker::kLeafWidth;
-        return {Box{{-wd - e, kF, kDoorZ0}, {-e, kF + kDoorHeight, kDoorZ1}},
-                Box{{e, kF, kDoorZ0}, {wd + e, kF + kDoorHeight, kDoorZ1}}};
+        // Each leaf is a plan-view rectangle hinged at (+-1.3, kDoorZ1); its box is the bounds of the swept rectangle.
+        const float phi = radians(smooth01(t_) * kSwingDeg);
+        std::vector<Box> out;
+        for (int s = -1; s <= 1; s += 2) {
+            const float sx = static_cast<float>(s);
+            const float dx = -sx * std::cos(phi), dz = std::sin(phi);   // along the leaf
+            const float nx = sx * std::sin(phi), nz = std::cos(phi);    // thickness side (outer face)
+            float x0 = 1e9f, x1 = -1e9f, z0 = 1e9f, z1 = -1e9f;
+            for (float a : {0.0f, bunker::kLeafWidth})
+                for (float t : {0.0f, kLeafT}) {
+                    const float x = sx * kHingeX + dx * a + nx * t, z = kDoorZ1 + dz * a + nz * t;
+                    x0 = std::min(x0, x); x1 = std::max(x1, x); z0 = std::min(z0, z); z1 = std::max(z1, z);
+                }
+            out.push_back(Box{{x0, kF, z0}, {x1, kF + kDoorHeight, z1}});
+        }
+        return out;
     }
 
 private:
     bool moving() const { return state_ == State::Opening || state_ == State::Closing; }
 
     void apply(float time) {
-        const float e = smooth01(t_) * kSlide;
-        leafL_->local.translation.x = -0.5f * bunker::kLeafWidth - e;
-        leafR_->local.translation.x = 0.5f * bunker::kLeafWidth + e;
+        const float swing = smooth01(t_) * kSwingDeg;
+        leafL_->local.rotationDeg.y = -swing;   // the west leaf (hinge at x = -1.3) swings out to +Z
+        leafR_->local.rotationDeg.y = swing;
         for (int i = 0; i < 2; ++i) spin_[i]->local.rotationDeg.y = i == 0 ? spinDeg_ : -spinDeg_ + 90.0f;
         const float on = moving() ? 1.0f : 0.0f;
         for (SceneNode* n : beaconLamps_) n->material.emissive = on;
@@ -125,8 +148,10 @@ private:
     SceneNode* status_;
     Animated anim_;
     Vec3 eye_, target_;
-    State state_ = State::Open;
-    float t_ = 1.0f, spinDeg_ = 0.0f;
+    static constexpr float kCloseDelay = 3.0f, kManualHold = 30.0f;
+    State state_ = State::Closed;   // shut until a soldier comes (an entrance with a visible gate)
+    float t_ = 0.0f, spinDeg_ = 0.0f;
+    float lastNear_ = -1e9f, manualUntil_ = -1e9f;
 };
 
 }  // namespace
@@ -360,6 +385,18 @@ BunkerRig buildBunker() {
         under(b.part(trench, "Warning sign", P::Cube, {0.9f, 0.35f, 0.03f}, {0, 0, 0}, {0.0f, kC + 0.60f, kDoorZ1 + 0.02f}, screenAmber,
                      "Restricted area sign (lit panel)"));
         tallyScreen(trench->children.back().get(), 0.25f);
+        // Gate portal: a steel lintel standing proud of the head wall, so the opening reads as a gate whether the
+        // leaves are shut or parked; a hazard threshold; a yellow guide line down the ramp to the doors.
+        under(b.part(trench, "Gate lintel", P::Cube, {3.2f, 0.34f, 0.46f}, {0, 0, 0}, {0.0f, kF + kDoorHeight + 0.37f, kDoorZ1 + 0.23f}, paintGrey,
+                     "Steel lintel across the gate (carries the hinge pins and the lamps)"));
+        under(b.part(trench, "Gate threshold", P::Cube, {2.6f, 0.03f, 0.30f}, {0, 0, 0}, {0.0f, kF + 0.015f, kDoorZ1 + 0.30f}, hazard,
+                     "Hazard-striped threshold in front of the leaves"));
+        for (int i = 0; i < 5; ++i)
+            under(b.part(trench, "Entry guide stripe", P::Cube, {0.14f, 0.02f, 0.70f}, {0, 0, 0}, {0.0f, kF + 0.012f, kDoorZ1 + 0.9f + 0.55f * i}, paintYellow,
+                         "Yellow guide line from the ramp to the gate (the soldiers' way in)"));
+        for (int sg = -1; sg <= 1; sg += 2)
+            under(b.part(trench, "Gate lamp", P::Sphere, {0.16f, 0.16f, 0.10f}, {90, 0, 0}, {sg * 0.75f, kF + kDoorHeight + 0.15f, kDoorZ1 + 0.52f}, landingLamp,
+                         "Dim red hooded lamp over the gate (practical light)"));
     }
 
     // ---------------------------------------------------------------- blast doors (animated by BlastDoors)
@@ -369,17 +406,24 @@ BunkerRig buildBunker() {
     {
         const float zc = 0.5f * (kDoorZ0 + kDoorZ1);
         for (int s = -1; s <= 1; s += 2) {
-            SceneNode* leaf = b.group(doorGroup, s < 0 ? "Door leaf W" : "Door leaf E", {s * 0.5f * bunker::kLeafWidth, kF + 0.5f * kDoorHeight, zc},
-                                      {0, 0, 0}, "Heavy steel blast door leaf (0.35 m plate) sliding sideways into the wall pocket");
-            leaf->animation = "Slides along X by 1.50 m with ease-in/ease-out in 4 s";
+            const float sx = static_cast<float>(s);
+            // Hinged on the jamb (x = +-1.3) on the outer face of the front wall: closed it is a plate across the
+            // opening in front of the wall, open it stands out into the trench against its wall.
+            SceneNode* leaf = b.group(doorGroup, s < 0 ? "Door leaf W" : "Door leaf E", {sx * kHingeX, kF + 0.5f * kDoorHeight, kDoorZ1},
+                                      {0, 0, 0}, "Heavy steel blast door leaf (hinged on the portal jamb, swings out into the trench)");
+            leaf->animation = "Swings about its jamb hinge by 92 deg with ease-in/ease-out in 4 s";
             (s < 0 ? leafL : leafR) = leaf;
-            under(b.part(leaf, "Leaf plate", P::Cube, {bunker::kLeafWidth, kDoorHeight, 0.35f}, {0, 0, 0}, {0, 0, 0}, steelPlate, "Armoured plate"));
+            const float W = bunker::kLeafWidth;
+            under(b.part(leaf, "Leaf plate", P::Cube, {W, kDoorHeight, kLeafT}, {0, 0, 0}, {-sx * 0.5f * W, 0, 0.5f * kLeafT}, steelPlate, "Armoured plate"));
             for (int i = 0; i < 3; ++i)
                 under(b.part(leaf, "Leaf stiffener", P::Cube, {0.10f, kDoorHeight - 0.3f, 0.05f}, {0, 0, 0},
-                             {-0.45f + 0.45f * i, 0.0f, 0.195f}, steelPlate, "Vertical stiffening rib on the outer face"));
-            under(b.part(leaf, "Leaf edge stripe", P::Cube, {0.12f, kDoorHeight, 0.04f}, {0, 0, 0}, {-s * (0.5f * bunker::kLeafWidth - 0.06f), 0.0f, 0.196f},
+                             {-sx * (0.25f + 0.38f * i), 0.0f, kLeafT + 0.025f}, steelPlate, "Vertical stiffening rib on the outer face"));
+            under(b.part(leaf, "Leaf edge stripe", P::Cube, {0.12f, kDoorHeight, 0.04f}, {0, 0, 0}, {-sx * (W - 0.06f), 0.0f, kLeafT + 0.02f},
                          hazard, "Hazard stripe on the closing edge"));
-            under(b.part(leaf, "Locking bolt", P::Cylinder, {0.12f, 0.12f, 0.20f}, {0, 0, 0}, {-s * 0.55f, 0.55f, 0.20f}, darkMetal, "Locking bolt head"));
+            under(b.part(leaf, "Leaf hinge barrel", P::Cylinder, {0.14f, 0.14f, kDoorHeight}, {90, 0, 0}, {0.0f, 0.0f, 0.04f}, darkMetal, "Hinge barrel on the jamb"));
+            under(b.part(leaf, "Locking bolt", P::Cylinder, {0.12f, 0.12f, 0.12f}, {0, 0, 0}, {-sx * (W - 0.20f), 0.55f, kLeafT + 0.06f}, darkMetal, "Locking bolt head"));
+            under(b.part(leaf, "Leaf hold-open stop", P::Cube, {0.10f, 0.10f, 0.40f}, {0, 0, 0}, {-sx * (W - 0.15f), -kDoorHalfH + 0.05f, kLeafT + 0.2f}, darkMetal,
+                         "Stop on the leaf's free edge"));
         }
         // Rails and drive housings (inside, on the tunnel side of the front wall).
         under(b.part(doorGroup, "Door top rail", P::Cube, {6.4f, 0.14f, 0.20f}, {0, 0, 0}, {0.0f, kC - 0.07f, kDoorZ0 - 0.10f}, darkMetal, "Overhead guide rail"));

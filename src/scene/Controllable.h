@@ -44,6 +44,7 @@ struct WorldContext {
     float hour = 23.0f;                // time of day, 0..24
     float daylight = 0.0f;             // 0 night .. 1 full day
     bool beamsOn = true;               // searchlights / lamps allowed (night)
+    bool soldierAtBlastDoors = false;  // a soldier is in the entrance trench or the tunnel near the blast doors
 };
 
 // How the camera frames a possessed object (world space, recomputed every frame).

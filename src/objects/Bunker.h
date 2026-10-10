@@ -22,7 +22,7 @@ struct BunkerRig {
 };
 
 namespace bunker {
-constexpr float kLeafWidth = 1.45f;       // one blast door leaf
+constexpr float kLeafWidth = 1.30f;       // one blast door leaf (hinge on the jamb to the centre line)
 constexpr float kDoorOpeningHalf = 1.3f;  // clear opening 2.6 m wide, 2.6 m high
 constexpr float kDoorTravelSeconds = 4.0f;
 constexpr Vec3 kCicCentre{0.0f, -3.4f, -4.2f};  // free floor in the command room (feet position)

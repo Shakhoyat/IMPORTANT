@@ -414,6 +414,9 @@ void Renderer::renderFog(const Scene& scene, const CameraView& cam, const Render
     fog_->set("uSpotAtt", L.spot.linear, L.spot.quadratic);
     fog_->set("uSpotVP", frame_.spot.viewProj);
     fog_->set("uSpotShadowOn", frame_.shadowMode == 2 ? 1 : 0);
+    fog_->set("uSpot2Pos", L.spot2.position);
+    fog_->set("uSpot2Dir", L.spot2.direction);
+    fog_->set("uSpot2Color", L.spot2.color * (s.spotOn && L.spot2.enabled ? L.spot2.intensity * 6.0f : 0.0f));
     fog_->set("uMoonShafts", q.moonShafts && frame_.shadowMode > 0 ? 1 : 0);
     setPracticalUniforms(*fog_, s.practicalsOn);
     setIndoorUniforms(*fog_);

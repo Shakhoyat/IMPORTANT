@@ -1787,6 +1787,9 @@ void Garrison::init(const GarrisonContext& ctx) {
                     for (const Box& b : portal->door().restOpenBoxes()) doorRest.push_back(b);
                     continue;   // the leaf is never a planned (ignored) obstacle: it collides wherever it is
                 }
+                // The blast doors start shut but open for walkers: routes are planned through the gate, so a shut leaf is
+                // always a dynamic obstacle that walkers wait for (the gate opens when they arrive).
+                if (std::string(c->name()) == "BLAST DOORS") continue;
                 for (const Box& b : c->dynamicObstacles()) g.plannedBoxes.push_back(b);
             }
     if (ctx.leaves) {

@@ -57,6 +57,7 @@ struct LightRig {
     DirectionalLight moon;  // L0 key directional light: the sun by day, the moon by night
     PointLight beacon;
     SpotLight spot;
+    SpotLight spot2;        // UAV 2's searchlight: unshadowed (volumetric shaft + the dynamic light of Combat)
     Vec3 ambient{0.06f, 0.065f, 0.085f};
     Atmosphere atmo;
 };

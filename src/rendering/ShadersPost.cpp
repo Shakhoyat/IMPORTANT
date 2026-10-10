@@ -301,6 +301,7 @@ uniform vec3 uMoonDir;   uniform vec3 uMoonColor;
 uniform vec3 uBeaconPos; uniform vec3 uBeaconColor; uniform vec2 uBeaconAtt;
 uniform vec3 uSpotPos;   uniform vec3 uSpotDir;     uniform vec3 uSpotColor;
 uniform vec2 uSpotCos;   uniform vec2 uSpotAtt;
+uniform vec3 uSpot2Pos;  uniform vec3 uSpot2Dir;    uniform vec3 uSpot2Color;   // UAV 2 (unshadowed, same cone)
 uniform sampler2DArrayShadow uMoonShadow;
 uniform mat4 uMoonVP1;
 uniform sampler2DShadow uSpotShadow;
@@ -372,10 +373,10 @@ float density(vec3 p) {
 }
 
 // [t0, t1] where the ray o + t d (0 <= t <= tMax) is inside the searchlight's outer cone.
-vec2 coneInterval(vec3 o, vec3 d, float tMax) {
+vec2 coneInterval(vec3 o, vec3 d, float tMax, vec3 sp, vec3 sd) {
     float c2 = uSpotCos.y * uSpotCos.y;
-    vec3 co = o - uSpotPos;
-    float dv = dot(d, uSpotDir), cv = dot(co, uSpotDir);
+    vec3 co = o - sp;
+    float dv = dot(d, sd), cv = dot(co, sd);
     float a = dv * dv - c2, b = 2.0 * (dv * cv - dot(d, co) * c2), c = cv * cv - dot(co, co) * c2;
     float disc = b * b - 4.0 * a * c;
     if (disc < 0.0 || abs(a) < 1e-6) return vec2(0.0);
@@ -383,7 +384,7 @@ vec2 coneInterval(vec3 o, vec3 d, float tMax) {
     float t0 = (-b - sq) / (2.0 * a), t1 = (-b + sq) / (2.0 * a);
     if (t0 > t1) { float tmp = t0; t0 = t1; t1 = tmp; }
     if (a < 0.0) {             // f > 0 between the roots: one bounded piece, keep it if in front of the lamp
-        if (dot(o + d * (0.5 * (t0 + t1)) - uSpotPos, uSpotDir) < 0.0) return vec2(0.0);
+        if (dot(o + d * (0.5 * (t0 + t1)) - sp, sd) < 0.0) return vec2(0.0);
         return vec2(clamp(t0, 0.0, tMax), clamp(t1, 0.0, tMax));
     }
     // a > 0: f > 0 outside the roots; the front nappe is the piece the ray moves into along the axis
@@ -433,23 +434,27 @@ void main() {
         trans *= ext;
         sigmaSum += sigma;
     }
-    // Searchlight shaft: march only the part of the ray inside the light cone (analytic ray/cone test),
-    // so a 2 m wide beam gets 24 samples instead of one or two.
-    vec2 seg = coneInterval(uCamPos, dir, len);
-    if (seg.y > seg.x) {
-        float meanSigma = sigmaSum / float(max(uSteps, 1));
+    // Searchlight shafts (UAV 1 shadowed, UAV 2 unshadowed): march only the part of the ray inside each light cone
+    // (analytic ray/cone test), so a 2 m wide beam gets 24 samples instead of one or two.
+    float meanSigma = sigmaSum / float(max(uSteps, 1));
+    for (int s = 0; s < 2; ++s) {
+        vec3 sp = s == 0 ? uSpotPos : uSpot2Pos, sd = s == 0 ? uSpotDir : uSpot2Dir, sc = s == 0 ? uSpotColor : uSpot2Color;
+        if (dot(sc, sc) <= 0.0) continue;
+        vec2 seg = coneInterval(uCamPos, dir, len, sp, sd);
+        if (seg.y <= seg.x) continue;
         const int kShaftSteps = 24;
         float ds = (seg.y - seg.x) / float(kShaftSteps);
         for (int i = 0; i < kShaftSteps; ++i) {
             float t = seg.x + ds * (float(i) + jitter);
             vec3 p = uCamPos + dir * t;
-            vec3 toSpot = uSpotPos - p;
+            vec3 toSpot = sp - p;
             float dl = length(toSpot);
             vec3 Ls = toSpot / max(dl, 1e-3);
-            float cone = clamp((dot(-Ls, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
+            float cone = clamp((dot(-Ls, sd) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
             float att = cone * cone / (1.0 + uSpotAtt.x * dl + uSpotAtt.y * dl * dl);
             float sigma = density(p);
-            inscatter += exp(-meanSigma * t) * uSpotColor * att * spotVisibility(p) * phaseHG(dot(dir, -Ls), 0.35) * sigma * ds;
+            float vis = s == 0 ? spotVisibility(p) : 1.0;
+            inscatter += exp(-meanSigma * t) * sc * att * vis * phaseHG(dot(dir, -Ls), 0.35) * sigma * ds;
         }
     }
     Fog = vec4(inscatter, trans);

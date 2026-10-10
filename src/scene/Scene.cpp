@@ -569,6 +569,16 @@ void Scene::update(float dt, const Detection& det, const ControlInput* input, in
     w.hour = dayCycle_.hour();
     w.daylight = rules_.daylight;
     w.beamsOn = rules_.beamsOn;
+    // The blast doors open for any soldier (garrison or player) in the trench or the tunnel near them.
+    for (const auto& c : controllables_) {
+        if (!dynamic_cast<const Soldier*>(c.get())) continue;
+        const Vec3 p = c->position();
+        if (std::fabs(p.x) < layout::kRampHalfWidth + 0.7f && p.z > layout::kBlastDoorZ - 4.5f && p.z < layout::kBlastDoorZ + 6.0f &&
+            p.y < -1.2f) {
+            w.soldierAtBlastDoors = true;
+            break;
+        }
+    }
     for (size_t i = 0; i < controllables_.size(); ++i) {
         controllables_[i]->update(w, static_cast<int>(i) == possessed ? input : nullptr);
     }
@@ -778,6 +788,7 @@ void Scene::applyDayRules() {
     lights.atmo.beamsOn = rules_.beamsOn;
     lights.atmo.practicalScale = rules_.practicalScale;
     lights.spot.enabled = rules_.beamsOn && squad_.airborne(0);   // v9 M5: a docked UAV's searchlight is off
+    lights.spot2.enabled = rules_.beamsOn && squad_.airborne(1);
     lights.beacon.enabled = rules_.practicalScale >= 0.5f;
     for (int u = 0; u < kUavCount; ++u) {
         const bool beam = rules_.beamsOn && squad_.airborne(u);
@@ -1123,6 +1134,12 @@ void Scene::updateLightsAndBeam() {
             lights.spot.direction = dir;
             lights.spot.innerDeg = kSpotInnerDeg;
             lights.spot.outerDeg = kSpotOuterDeg;
+        } else if (u == 1) {   // UAV 1: the same lamp, unshadowed (its shaft in the fog, its light via Combat)
+            const bool on = lights.spot2.enabled;
+            lights.spot2 = lights.spot;
+            lights.spot2.enabled = on;
+            lights.spot2.position = pos;
+            lights.spot2.direction = dir;
         }
         // Beam length = distance from the lens to the ground along the light axis: ray march in 20 cm steps,
         // then refine the crossing by bisection (about 1 cm accuracy).

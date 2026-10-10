@@ -434,7 +434,14 @@ TS_TEST_GROUP(Soldiers) {
         toggle.actionPressed = true;
         WorldContext dw;
         dw.dt = 0.0f;
-        doors->update(dw, &toggle);   // start closing
+        if (doors->status().find("OPEN ") == std::string::npos) {   // fully open first (they start shut) ...
+            dw.dt = 0.0f;
+            doors->update(dw, &toggle);
+            dw.dt = 5.0f;
+            doors->update(dw, nullptr);
+        }
+        dw.dt = 0.0f;
+        doors->update(dw, &toggle);   // ... then start closing
         dw.dt = 5.0f;
         doors->update(dw, nullptr);   // closed
         w.hour = 18.0f;               // dusk passed: night shift

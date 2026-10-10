@@ -80,6 +80,7 @@ TS_TEST_GROUP(Bunker) {
     }
     // T62 walk from the top of the ramp to the CIC centre.
     {
+        stepDoors(*rig.doors, 4.5f, true);   // the doors start shut (a gate across the entrance): open them
         const std::vector<Box> doorBoxes = rig.doors->dynamicObstacles();
         const Vec3 pts[] = {{0, 0, L::kRampTopZ + 1.0f}, {0, 0, 3.0f}, {0, 0, -1.0f}, {0, 0, -2.2f}, bunker::kCicCentre};
         float x = 0.0f, z = pts[0].z, y = terrainHeight(x, z), maxStep = 0.0f, minClear = 1e9f;
@@ -126,27 +127,31 @@ TS_TEST_GROUP(Bunker) {
     }
     // T64 doors block / pass.
     {
-        Controllable& d = *rig.doors;
+        BunkerRig r4 = buildBunker();   // a fresh rig: the doors are shut
+        Controllable& d = *r4.doors;
         auto walkThrough = [&]() {
             float x = 0.0f, z = 5.5f;
             const float y = L::kBunkerFloorY;
             for (int i = 0; i < 400; ++i) {
                 z -= 0.02f;
-                rig.walk.collide(x, z, y, y + 1.8f, 0.3f, d.dynamicObstacles());
+                r4.walk.collide(x, z, y, y + 1.8f, 0.3f, d.dynamicObstacles());
             }
             return z;
         };
+        const float zClosed = walkThrough();   // shut at the start
+        stepDoors(d, 4.5f, true);
         const float zOpen = walkThrough();
         stepDoors(d, 4.5f, true);
-        const float zClosed = walkThrough();
+        const float zReopened = walkThrough();   // closed again
+        (void)zReopened;
         stepDoors(d, 4.5f, true);
-        const float zReopened = walkThrough();
+        const float zOpenAgain = walkThrough();
         record("T64", "A closed blast door blocks the walker, an open one lets him pass",
-               "open: z < 3.6, closed: z >= 4.2 (leaf face + radius), reopened: z < 3.6",
-               fmt("open z=%.2f, closed z=%.2f, reopened z=%.2f", zOpen, zClosed, zReopened),
-               zOpen < 3.6f && zClosed >= 4.2f && zReopened < 3.6f);
+               "shut at the start: z >= 4.2 (leaf face + radius); open: z < 3.6; closed again: z >= 4.2; open again: z < 3.6",
+               fmt("shut z=%.2f, open z=%.2f, closed again z=%.2f, open again z=%.2f", zClosed, zOpen, zReopened, zOpenAgain),
+               zClosed >= 4.2f && zOpen < 3.6f && zReopened >= 4.2f && zOpenAgain < 3.6f);
     }
-    // T65 door state machine.
+    // T65 door state machine: CLOSED at the start, ~4 s travel, reversible; automatic for a soldier at the doors.
     {
         BunkerRig r2 = buildBunker();
         Controllable& d = *r2.doors;
@@ -156,36 +161,60 @@ TS_TEST_GROUP(Bunker) {
         ControlInput in;
         in.actionPressed = true;
         d.update(w, &in);
-        const std::string sClosing = d.status();
-        float t = w.dt;
-        while (d.status().find("CLOSED") == std::string::npos && t < 10.0f) {
-            d.update(w, nullptr);
-            t += w.dt;
-        }
-        const float tClose = t;
-        const std::string sClosed = d.status();
-        in.actionPressed = false;
-        in.firePressed = true;
-        d.update(w, &in);
+        const std::string sOpening = d.status();
         float tOpen = w.dt;
         while (d.status().find("OPEN 100") == std::string::npos && tOpen < 10.0f) {
+            w.time += w.dt;
             d.update(w, nullptr);
             tOpen += w.dt;
         }
-        // Reverse in the middle of a stroke.
+        in.actionPressed = false;
         in.firePressed = true;
         d.update(w, &in);
-        for (int i = 0; i < 120; ++i) d.update(w, nullptr);  // 2 s of closing
+        const std::string sClosing = d.status();
+        float tClose = w.dt;
+        while (d.status().find("CLOSED") == std::string::npos && tClose < 10.0f) {
+            w.time += w.dt;
+            d.update(w, nullptr);
+            tClose += w.dt;
+        }
+        const std::string sClosed = d.status();
+        // Reverse in the middle of a stroke.
+        d.update(w, &in);                                     // start opening
+        for (int i = 0; i < 120; ++i) { w.time += w.dt; d.update(w, nullptr); }   // 2 s of opening
         const std::string mid = d.status();
         d.update(w, &in);                                     // reverse
         const std::string rev = d.status();
-        record("T65", "Blast door state machine OPEN/CLOSING/CLOSED/OPENING, ~4 s travel, reversible",
-               "starts 'OPEN 100%', closes in 3.9..4.1 s, opens in 3.9..4.1 s, mid-stroke input reverses",
-               fmt("%s | %s | %s in %.2f s | open again in %.2f s | mid '%s' -> '%s'", s0.c_str(), sClosing.c_str(), sClosed.c_str(), tClose, tOpen,
-                   mid.c_str(), rev.c_str()),
-               s0 == "BLAST DOORS OPEN 100%" && sClosing.find("CLOSING") != std::string::npos && sClosed == "BLAST DOORS CLOSED 0%" &&
-                   tClose > 3.9f && tClose < 4.1f && tOpen > 3.9f && tOpen < 4.1f && mid.find("CLOSING") != std::string::npos &&
-                   rev.find("OPENING") != std::string::npos && d.possessable());
+        // Automatic: a soldier in the trench opens the doors; 3 s after he is gone they close again.
+        BunkerRig r3 = buildBunker();
+        Controllable& a = *r3.doors;
+        WorldContext aw;
+        aw.dt = 1.0f / 60.0f;
+        aw.time = 100.0f;
+        aw.soldierAtBlastDoors = true;
+        float tAuto = 0.0f;
+        while (a.status().find("OPEN 100") == std::string::npos && tAuto < 10.0f) {
+            aw.time += aw.dt;
+            a.update(aw, nullptr);
+            tAuto += aw.dt;
+        }
+        aw.soldierAtBlastDoors = false;
+        float tShut = 0.0f;
+        bool stillOpenAt2 = false;
+        while (a.status().find("CLOSED") == std::string::npos && tShut < 12.0f) {
+            aw.time += aw.dt;
+            a.update(aw, nullptr);
+            tShut += aw.dt;
+            if (tShut > 1.9f && tShut < 2.0f) stillOpenAt2 = a.status().find("OPEN 100") != std::string::npos;
+        }
+        record("T65", "Blast door state machine CLOSED/OPENING/OPEN/CLOSING, ~4 s travel, reversible; opens for a soldier, closes 3 s after",
+               "starts 'CLOSED 0%', opens and closes in 3.9..4.1 s, mid-stroke input reverses; automatic: opens in 3.9..4.1 s, still open 2 s after he leaves, closed by 7.1 s",
+               fmt("%s | %s | open in %.2f s | %s | closed in %.2f s | mid '%s' -> '%s' | auto open in %.2f s, closed %.2f s after he left (open at 2 s: %d)",
+                   s0.c_str(), sOpening.c_str(), tOpen, sClosing.c_str(), tClose, mid.c_str(), rev.c_str(), tAuto, tShut, stillOpenAt2),
+               s0 == "BLAST DOORS CLOSED 0%" && sOpening.find("OPENING") != std::string::npos && sClosing.find("CLOSING") != std::string::npos &&
+                   sClosed == "BLAST DOORS CLOSED 0%" && tClose > 3.9f && tClose < 4.1f && tOpen > 3.9f && tOpen < 4.1f &&
+                   mid.find("OPENING") != std::string::npos && rev.find("CLOSING") != std::string::npos && d.possessable() &&
+                   tAuto > 3.9f && tAuto < 4.1f && stillOpenAt2 && tShut > 6.9f && tShut < 7.3f);
     }
     // T66 part budget per section.
     {
