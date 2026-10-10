@@ -11,3 +11,12 @@ __pycache__/
 # v10: rendered showcase video (232 MB, over the GitHub file limit); regenerate with --record
 report/video/*.mp4
 report/figures/raw/
+
+# LaTeX build artefacts of the report (the PDF is tracked)
+report/main.aux
+report/main.log
+report/main.out
+report/main.toc
+report/main.bbl
+report/main.blg
+report/build.log
