@@ -858,6 +858,10 @@ void Soldier::place(float x, float z, float yawDeg, float feetY) {
     planted_[0] = planted_[1] = false;
 }
 
+bool Soldier::holding() const {
+    return st_ && st_->phase == State::Phase::Hold && st_->cur.act != Activity::Sit && !st_->cur.settle && !possessed_;
+}
+
 void Soldier::setAboard(bool on) {
     if (on == aboard_) return;
     if (on) aboardScale_ = rig_.root->local.scale;
@@ -1220,6 +1224,10 @@ void Soldier::update(const WorldContext& w, const ControlInput* in) {
                     break;
                 }
                 nextStop(w.time);
+            } else if (engaging_ && s.cur.act != Activity::Sit && !s.cur.settle) {   // laid on the intruder
+                const float want = degrees(std::atan2(engageAt_.x - x_, engageAt_.z - z_));
+                yaw_ = wrapDeg(yaw_ + clampf(wrapDeg(want - yaw_), -200.0f * dt, 200.0f * dt));
+                activity_ = Activity::Guard;
             } else if (s.cur.act != Activity::Sit && !s.cur.settle) {
                 const float diff = wrapDeg(s.cur.yaw - yaw_);
                 yaw_ = wrapDeg(yaw_ + clampf(diff, -150.0f * dt, 150.0f * dt));

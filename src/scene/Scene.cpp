@@ -600,6 +600,45 @@ void Scene::update(float dt, const Detection& det, const ControlInput* input, in
     for (size_t i = 0; i < controllables_.size(); ++i) {
         controllables_[i]->update(w, static_cast<int>(i) == possessed ? input : nullptr);
     }
+    // Soldiers on duty co-operate with the UAVs: a guard at his post with a tracked intruder within rifle range and a
+    // clear line turns to it and fires short bursts (tracers; the shots are heard through RifleFire events).
+    for (size_t i = 0; i < controllables_.size(); ++i) {
+        auto* sd = dynamic_cast<Soldier*>(controllables_[i].get());
+        if (!sd) continue;
+        bool engage = false;
+        Vec3 from;
+        if (w.hasThreat && static_cast<int>(i) != possessed && !sd->aboard() && !sd->unarmed() && !sd->underground() && sd->holding()) {
+            const Vec3 p = sd->position();
+            const float dist = length(flat(w.threatPos - p));
+            from = p + Vec3{0.0f, 1.45f, 0.0f};
+            engage = dist > 2.0f && dist < kRifleRange && squad_.clearShot(from, w.threatPos + Vec3{0.0f, 0.3f, 0.0f});
+        }
+        sd->setEngage(engage, w.threatPos);
+        float& clock = rifleClock_[i % kMaxRiflemen];
+        if (!engage) {
+            clock = 0.0f;
+            continue;
+        }
+        clock += dt;
+        const float yaw = radians(sd->yawDeg());
+        const Vec3 fwd{std::sin(yaw), 0.0f, std::cos(yaw)};
+        const Vec3 toT = normalize(flat(w.threatPos - sd->position()));
+        const float phase = std::fmod(clock + 0.37f * static_cast<float>(i), 2.4f);   // 0.6 s burst every 2.4 s
+        const int shotNow = static_cast<int>(phase / 0.12f), shotPrev = static_cast<int>(std::fmax(0.0f, phase - dt) / 0.12f);
+        if (clock < 1.0f || dot(fwd, toT) < 0.97f || phase > 0.6f || (shotNow == shotPrev && phase > dt)) continue;
+        const SceneNode* rifle = sd->rig().rifle && sd->rig().rifle->visible ? sd->rig().rifle : nullptr;
+        const Vec3 muzzle = rifle ? transformPoint(rifle->world, {0.0f, 0.0f, 0.62f}) : from + fwd * 0.5f;
+        const float j1 = std::sin(91.7f * time_ + 3.1f * static_cast<float>(i)), j2 = std::sin(57.3f * time_ + 1.3f * static_cast<float>(i));
+        const Vec3 aim = w.threatPos + Vec3{0.35f * j1, 0.3f + 0.25f * j2, 0.35f * j2};
+        const Vec3 dir = normalize(aim - muzzle);
+        combat_.fireTracer(muzzle, dir, Combat::kTracerSpeed, 50 + static_cast<int>(i));
+        combat_.muzzleFlash(muzzle, dir, 0.16f);
+        GameEvent ev;
+        ev.type = GameEventType::RifleFire;
+        ev.position = muzzle;
+        ev.time = time_;
+        events_.push_back(ev);
+    }
 
     // Rail reload; manual laser spot (id 0) = UAV 0's camera centre.
     for (int u = 0; u < kUavCount; ++u) {

@@ -358,6 +358,15 @@ int App::recordMode() {
         for (const Box& b : scene_->staticSolids())
             o << b.min.x << ' ' << b.min.y << ' ' << b.min.z << ' ' << b.max.x << ' ' << b.max.y << ' ' << b.max.z << '\n';
     }
+    // TS_FILM_VIEW (with TS_FILM_CAM, which gives the hour and the fallback camera): "follow" = a slow orbit round the
+    // squad's target (the glide while there is none); "uav0" / "uav1" = that UAV's thermal gimbal view with the game HUD.
+    const char* fvEnv = std::getenv("TS_FILM_VIEW");
+    const std::string filmView = filmCam && fvEnv ? fvEnv : "";
+    const int filmUav = filmView == "uav0" ? 0 : filmView == "uav1" ? 1 : -1;
+    Vec3 followEye2{}, followAim2{};
+    float followHold = -1e9f;
+    bool followLive = false;
+    const bool filmClean = std::getenv("TS_FILM_CLEAN") != nullptr;   // v7 cut without its segment titles and letterbox
     RenderTarget target;
     if (!target.create(w, h, 0, false)) return 1;  // the renderer anti-aliases (MSAA + TAA) before this target
     std::vector<uint8_t> rgb;
@@ -483,6 +492,13 @@ int App::recordMode() {
         }
     };
 
+    // TS_FILM_EVENTS = file: every game event with the video time it happened at (cutting the film by events), plus
+    // the squad's roles once a second.
+    std::ofstream evOut;
+    if (const char* ef = std::getenv("TS_FILM_EVENTS")) evOut.open(ef);
+    const char* evNames[] = {"WaveStart", "EnemySpotted", "LockOn", "RoundLaunched", "CombinedStrike", "Explosion", "EnemyHit",
+                             "EnemyDestroyed", "Breach", "BaseLost", "CannonFire", "GatlingBurst", "DoorMoving", "Dusk",
+                             "NightFalls", "Dawn", "DayBreak", "ShiftChange", "Withdraw", "RifleFire"};
     const double start = nowSeconds();
     for (int f = 0; f < frames; ++f) {
         const float tDir = dirStart + dirSpeed * static_cast<float>(f) / static_cast<float>(fps);
@@ -675,7 +691,23 @@ int App::recordMode() {
         }
         for (int k = 0; k < stepsPerFrame; ++k) {
             step(kSimStep);
-            if ((cut == DirectorCut::V7 || tourOn) && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
+            if (evOut.is_open()) {
+                const float vt = static_cast<float>(f) / static_cast<float>(fps) + static_cast<float>(k) * kSimStep;
+                for (const GameEvent& e : scene_->events()) {
+                    const int ti = static_cast<int>(e.type);
+                    if (e.type == GameEventType::RifleFire && k != 0) continue;   // one line per frame is enough
+                    evOut << vt << ' ' << (ti >= 0 && ti < 20 ? evNames[ti] : "?") << " uav " << e.uav << " track " << e.track << " value "
+                          << e.value << " combined " << e.combined << " at " << e.position.x << ' ' << e.position.z << '\n';
+                }
+                if (k == 0 && f % fps == 0) {
+                    const Squad& sq = scene_->squad();
+                    if (const DayCycle* dc = sa::dayCycle(*scene_))
+                        evOut << vt << " STATE hour " << dc->hour() << " uav0 " << squadRoleName(sq.roles[0]) << " uav1 "
+                              << squadRoleName(sq.roles[1]) << " strike " << strikePhaseName(sq.strike().phase) << " side "
+                              << strikePhaseName(sq.sideStrike().phase) << " tracks " << sq.tracker().tracks().size() << '\n';
+                }
+            }
+            if ((cut == DirectorCut::V7 || tourOn || filmUav >= 0) && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
             if (audioOn) audioEngine.pollEvents(*scene_);  // scene.events() only holds the last step's events
         }
         if (tourOn) {
@@ -698,6 +730,47 @@ int App::recordMode() {
                 followValid = true;
                 setFree(followEye, followAim, 55.0f);
             }
+        } else if (filmCam && filmUav >= 0) {
+            // ride the UAV's thermal gimbal (the game's own first-person UAV view and HUD)
+            if (camera_.mode != CameraMode::Pov) {
+                gameMode_ = true;
+                showHud_ = true;
+                for (const PovSource& p : listPovSources(*scene_, shownPose_.eye))
+                    if (p.kind == PovKind::Uav && p.uav == filmUav) jumpToPov(p.key, static_cast<int>(PovView::First), false);
+            }
+            settings_.letterbox = 0.0f;
+            settings_.fade = 1.0f;
+        } else if (filmCam && filmView == "flir") {
+            // the thermal first-person view through UAV-1's gimbal camera with its FLIR HUD (track boxes, PERS brackets)
+            camera_.mode = CameraMode::Free;
+            settings_.view = ViewMode::Thermal;
+            thermalFpv_ = true;
+            showHud_ = true;
+            settings_.letterbox = 0.0f;
+            settings_.fade = 1.0f;
+        } else if (filmCam && filmView == "follow") {
+            const float tNow = static_cast<float>(f) / static_cast<float>(fps);
+            const Squad& sq = scene_->squad();
+            const Track* tr = sq.tracker().find(sq.targetTrack());
+            const float u = frames > 1 ? static_cast<float>(f) / static_cast<float>(frames - 1) : 0.0f;
+            Vec3 eye = lerp(Vec3{film[1], film[2], film[3]}, Vec3{film[7], film[8], film[9]}, u);
+            Vec3 aim = lerp(Vec3{film[4], film[5], film[6]}, Vec3{film[10], film[11], film[12]}, u);
+            if (tr) {
+                followHold = tNow;
+                followAim2 = tr->position() + Vec3{0.0f, 0.6f, 0.0f};
+            }
+            if (tNow - followHold < 4.0f) {   // on the target, and 4 s after it is gone (the wreck burning)
+                const float a = 0.12f * tNow + 0.8f;
+                aim = followAim2;
+                eye = followAim2 + Vec3{std::cos(a) * 10.0f, 4.2f, std::sin(a) * 10.0f};
+            }
+            const float k = followLive ? 0.045f : 1.0f;
+            followEye2 = followEye2 + (eye - followEye2) * k;
+            followAim = followAim + (aim - followAim) * (followLive ? 0.08f : 1.0f);
+            followLive = true;
+            setFree(followEye2, followAim, film[13]);
+            settings_.letterbox = 0.0f;
+            settings_.fade = 1.0f;
         } else if (filmCam) {
             const float u = frames > 1 ? static_cast<float>(f) / static_cast<float>(frames - 1) : 0.0f;
             const float e = u * u * (3.0f - 2.0f * u);   // ease in and out
@@ -710,6 +783,7 @@ int App::recordMode() {
             if (cut == DirectorCut::V7) camera_.mode = CameraMode::Cinematic;
             camera_.directorTime = tDir;
             applyCinematic();
+            if (filmClean) settings_.letterbox = 0.0f;
         } else if (shot.act == V7Act::Picker || shot.act == V7Act::RtMode || shot.act == V7Act::RtTree || shot.act == V7Act::Explorer) {
             setFree(shot.eye, shot.target, shot.fovDeg);
             settings_.letterbox = 0.0f;
@@ -761,7 +835,7 @@ int App::recordMode() {
             Hud& hud = renderer_->hud();
             const float sc = static_cast<float>(h) / 1080.0f;
             hud.begin(w, h);
-            if (a > 0.0f && shot.act != V7Act::Explorer) {  // the Explorer has its own stage header
+            if (a > 0.0f && shot.act != V7Act::Explorer && !filmClean) {  // the Explorer has its own stage header
                 const float x = 56.0f * sc, y = 150.0f * sc;
                 hud.rect(x - 18.0f * sc, y - 14.0f * sc, 6.0f * sc, 78.0f * sc, Rgba{1.0f, 0.62f, 0.15f, 0.9f * a});
                 hud.text(x, y, shot.name, 34.0f * sc, Rgba{1.0f, 1.0f, 1.0f, a});

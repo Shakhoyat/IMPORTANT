@@ -30,6 +30,7 @@ enum class GameEventType {
     DayBreak,         // sun above +4 deg: day shift starts
     ShiftChange,      // soldiers move to their next duty post (value = soldiers moving)
     Withdraw,         // a rover left the field at dawn (position)
+    RifleFire,        // a soldier on duty fired at an intruder (position = muzzle)
 };
 
 struct GameEvent {

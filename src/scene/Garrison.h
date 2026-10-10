@@ -142,6 +142,10 @@ public:
     bool onDayShift() const { return day_; }
     // Inside a vehicle (the player boarded it with this soldier): nothing of him is drawn and his duty waits.
     void setAboard(bool on);
+    // On duty at a post with an intruder in sight: the soldier turns to it and shoulders his rifle (the scene fires).
+    void setEngage(bool on, const Vec3& target = {}) { engaging_ = on; engageAt_ = target; }
+    bool engaging() const { return engaging_; }
+    bool holding() const;   // standing at a post (not on the move, not sitting)
     bool aboard() const { return aboard_; }
     int stance() const { return stance_; }          // possessed: 0 stand, 1 crouch, 2 wave
     // v7.1 WP-T: open-world movement of the possessed soldier (jump arc, strafe)
@@ -184,7 +188,8 @@ private:
     bool planted_[2] = {false, false};
     Vec3 lock_[2];
     Pose pose_;
-    bool carrying_ = false, day_ = false, possessed_ = false, aboard_ = false;
+    bool carrying_ = false, day_ = false, possessed_ = false, aboard_ = false, engaging_ = false;
+    Vec3 engageAt_{};
     Vec3 aboardScale_{1.0f, 1.0f, 1.0f};
     int stance_ = 0;
     // v7.1 WP-T (possessed only): jump state, landing dip; v9 M3: the motor drives them (cmdSpeed_ / strafe_ went

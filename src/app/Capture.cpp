@@ -48,7 +48,7 @@ enum class Trig { None, Launch, Inbound, Combined, Hit, Kill, Wave, Tracks2, Fpv
 const char* eventName(GameEventType t) {
     static const char* names[] = {"WaveStart", "EnemySpotted", "LockOn", "RoundLaunched", "CombinedStrike", "Explosion", "EnemyHit",
                                   "EnemyDestroyed", "Breach", "BaseLost", "CannonFire", "GatlingBurst", "DoorMoving", "Dusk",
-                                  "NightFalls", "Dawn", "DayBreak", "ShiftChange", "Withdraw"};
+                                  "NightFalls", "Dawn", "DayBreak", "ShiftChange", "Withdraw", "RifleFire"};
     const int k = static_cast<int>(t);
     return k >= 0 && k < static_cast<int>(sizeof(names) / sizeof(names[0])) ? names[k] : "other";
 }

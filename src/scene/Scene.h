@@ -275,6 +275,9 @@ private:
     int kills_ = 0;
     std::vector<GameEvent> events_;
     float time_ = 0.0f;
+    static constexpr int kMaxRiflemen = 32;
+    static constexpr float kRifleRange = 26.0f;   // m: guards engage tracked intruders closer than this
+    float rifleClock_[kMaxRiflemen] = {};
     float beamLength_[kUavCount] = {5.0f, 5.0f};
     int playerSlot_ = -1;                // v7: intruder driven by the player (-1 none)
     ControlInput playerIn_;

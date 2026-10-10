@@ -56,10 +56,14 @@ struct StrikeState {
 
 constexpr float kSquadLeadLock = 0.8f, kSquadWingLock = 0.5f, kSquadSoloLock = 1.3f;
 constexpr float kSquadWingWait = 2.5f;     // s the lead waits for the wing's lock before a solo strike
+constexpr float kSquadWingWaitFree = 8.0f; // ... when the wing is in the pair (not detached, not away): one intruder gets both rounds
 // Two intruders at once: a second confirmed track farther than kSquadSplitDist from the target takes one UAV away from
 // the pair (the nearer one); each UAV then strikes its own target alone. The pair re-forms when the second track is
 // destroyed or lost, or comes within kSquadRejoinDist of the first.
 constexpr float kSquadSplitDist = 14.0f, kSquadRejoinDist = 9.0f;
+// ... and only when that second intruder is itself urgent: threat() (m to the nearest protected asset, less its closing
+// speed) below this. A far one still on its way in is left for later and the pair strikes together.
+constexpr float kSquadSplitThreat = 10.0f;
 constexpr float kSquadStandOff = 6.5f, kSquadEngageAlt = 5.0f;
 constexpr float kSquadPatrolAlt = 7.5f;
 constexpr float kSquadReacquireTime = 12.0f;  // s of searching round the last known position

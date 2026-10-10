@@ -437,6 +437,7 @@ void AudioEngine::handleEvent(const GameEvent& e) {
         case GameEventType::BaseLost: playClip(Clip::Siren, e.position, true, 0.4f); break;
         case GameEventType::CannonFire: playClip(Clip::Cannon, e.position, true, 1.0f); break;
         case GameEventType::GatlingBurst: playClip(Clip::Gatling, e.position, true, 0.9f); break;
+        case GameEventType::RifleFire: gunshot(e.position, 0.85f); break;
         case GameEventType::DoorMoving: playClip(Clip::Door, e.position, true, 0.8f); break;
         // v6 day / night: soft non-spatial cues; the night siren is quieter than a wave's. v7: radio on every phase.
         case GameEventType::Dusk: playClip(Clip::ConfirmChirp, e.position, false, 0.3f); radioChatter(); break;

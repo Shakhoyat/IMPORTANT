@@ -1,5 +1,7 @@
 #include "ai/Squad.h"
 
+#include <cstdlib>
+
 #include <algorithm>
 #include <cmath>
 
@@ -142,6 +144,15 @@ float Squad::threat(const Track& t) const {
 
 Vec3 Squad::cameraPosition(int uav) const { return camPos_[uav]; }
 
+// kSquadSplitThreat (TS_SPLIT_THREAT overrides it for tuning runs).
+static float splitThreat() {
+    static const float v = [] {
+        const char* e = std::getenv("TS_SPLIT_THREAT");
+        return e && *e ? static_cast<float>(std::atof(e)) : kSquadSplitThreat;
+    }();
+    return v;
+}
+
 bool Squad::designatorValid(int uav) const {
     if (uav == detached_ && side_.phase == StrikePhase::Inbound && side_.launched[uav]) return true;
     return strike_.track >= 0 && (strike_.phase == StrikePhase::Planned || strike_.phase == StrikePhase::Inbound) &&
@@ -250,7 +261,8 @@ void Squad::planStrike(float time, const Track& t, int lead, int wing, const boo
     const bool wingOk = wing >= 0 && !manual[wing] && lock[wing] >= kSquadWingLock && ready[wing] > 0 &&
                         clearShot(drones[wing].position, t.position());
     const bool leadOk = lock[lead] >= kSquadLeadLock && ready[lead] > 0 && clearShot(drones[lead].position, t.position());
-    const bool solo = !wingOk && lock[lead] >= kSquadSoloLock && (time - strike_.started) > kSquadWingWait;
+    const float wait = wing >= 0 && !manual[wing] && ready[wing] > 0 ? kSquadWingWaitFree : kSquadWingWait;
+    const bool solo = !wingOk && lock[lead] >= kSquadSoloLock && (time - strike_.started) > wait;
     if (!leadOk || (!wingOk && !solo)) return;
     const Vec3 now = t.position();
     if (hasKeepOut_ && now.x > keepOut_.min.x && now.x < keepOut_.max.x && now.z > keepOut_.min.z && now.z < keepOut_.max.z)
@@ -378,6 +390,7 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
             for (const Track& t : tracker_.tracks()) {
                 if (t.state == TrackState::Tentative || t.id == target->id || ignored(t.position())) continue;
                 if (length(flat(t.position() - target->position())) < kSquadSplitDist) continue;
+                if (threat(t) > splitThreat()) continue;   // not urgent yet
                 if (!side || threat(t) < threat(*side)) side = &t;
             }
     }
