@@ -373,7 +373,9 @@ BunkerRig buildBunker() {
     // Portal: head wall with earth berm, hazard frame, signage.
     {
         const float headTop = std::max(groundBeside(kDoorZ0, kDoorZ1 + 0.4f), kRoofTop) + 0.10f;
-        under(b.part(trench, "Portal head wall", P::Cube, {4.8f, headTop - kF, 0.55f}, {0, 0, 0}, {0.0f, 0.5f * (headTop + kF), 3.9f},
+        // Above the opening only (kC = top of the 2.6 m doorway): from the floor it was a slab across the doorway that
+        // the soldiers walked through.
+        under(b.part(trench, "Portal head wall", P::Cube, {4.8f, headTop - kC, 0.55f}, {0, 0, 0}, {0.0f, 0.5f * (headTop + kC), 3.9f},
                      concreteOut, "Concrete head wall above the doors"));
         under(b.part(trench, "Earth berm", P::Hemisphere, {5.4f, 0.5f, 2.0f}, {0, 0, 0}, {0.0f, headTop + 0.25f, 2.8f}, earth,
                      "Earth berm camouflaging the portal head wall"));
