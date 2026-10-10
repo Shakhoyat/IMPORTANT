@@ -214,14 +214,15 @@ int App::recordMode() {
     // sight or chase camera), "fire S" (trigger held S seconds), "action" (the vehicle's secondary action) and "exit".
     // "turn YAW" pivots the tank to a heading; "cam BACK UP SIDE" films the vehicle from a low follow camera (under the
     // camp nets, where the game's own chase camera sits above the net), "cam off" gives the view back to the game.
-    enum class TourOp { Walk, Face, Use, Wait, View, Drive, Aim, AimOff, Sight, Chase, Fire, Action, Exit, Turn, Cam, CamOff, Hud };
+    // "camfix X Y Z" = a camera standing at that point, turning with the vehicle.
+    enum class TourOp { Walk, Face, Use, Wait, View, Drive, Aim, AimOff, Sight, Chase, Fire, Action, Exit, Turn, Cam, CamOff, Hud, CamFix };
     struct TourPt {
         float x, z;
         bool run;
         TourOp op = TourOp::Walk;
         float y = 0.0f, t = 0.0f;   // third parameter; time spent in the step
     };
-    bool aimOn = false, followOn = false, followValid = false;
+    bool aimOn = false, followOn = false, followValid = false, followFixed = false;
     Vec3 aimAt{}, followArm{}, followEye{}, followAim{};
     std::vector<TourPt> tour;
     std::vector<size_t> routed;   // indices of "g" points (expanded after the planner is built)
@@ -269,13 +270,13 @@ int App::recordMode() {
                 q.op = k == "wait" ? TourOp::Wait : k == "fire" ? TourOp::Fire : k == "turn" ? TourOp::Turn : TourOp::Hud;
                 ls >> q.x;
                 tour.push_back(q);
-            } else if (k == "cam") {
+            } else if (k == "cam" || k == "camfix") {
                 TourPt q{0, 0, false};
                 std::string first;
                 ls >> first;
                 if (first == "off") q.op = TourOp::CamOff;
                 else {
-                    q.op = TourOp::Cam;
+                    q.op = k == "camfix" ? TourOp::CamFix : TourOp::Cam;
                     q.x = static_cast<float>(std::atof(first.c_str()));
                     ls >> q.y >> q.z;
                 }
@@ -566,8 +567,11 @@ int App::recordMode() {
                     case TourOp::AimOff: aimOn = false; break;
                     case TourOp::Hud: showHud_ = op.x > 0.5f; break;
                     case TourOp::Cam:
+                    case TourOp::CamFix:
                         followOn = true;
                         followValid = false;
+                        followFixed = op.op == TourOp::CamFix;
+                        rig_.cancel();   // no blend from the boarding jump: the free camera does not advance its clock
                         followArm = {op.x, op.y, op.z};
                         break;
                     case TourOp::CamOff:
@@ -722,8 +726,8 @@ int App::recordMode() {
                 if (const Tank* tank = dynamic_cast<const Tank*>(v)) hd = radians(tank->yawDeg());
                 const Vec3 d{std::sin(hd), 0.0f, std::cos(hd)}, side{std::cos(hd), 0.0f, -std::sin(hd)};
                 const Vec3 c = v->position();
-                const Vec3 eye = c - d * followArm.x + side * followArm.z + Vec3{0.0f, followArm.y, 0.0f};
-                const Vec3 aim = c + d * 2.5f + Vec3{0.0f, 1.5f, 0.0f};
+                const Vec3 eye = followFixed ? followArm : c - d * followArm.x + side * followArm.z + Vec3{0.0f, followArm.y, 0.0f};
+                const Vec3 aim = followFixed ? c + Vec3{0.0f, 1.6f, 0.0f} : c + d * 2.5f + Vec3{0.0f, 1.5f, 0.0f};
                 const float k = followValid ? 0.08f : 1.0f;
                 followEye = followEye + (eye - followEye) * k;
                 followAim = followAim + (aim - followAim) * (followValid ? 0.2f : 1.0f);

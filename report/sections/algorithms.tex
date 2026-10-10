@@ -110,15 +110,22 @@ gating $O(TM)$, Hungarian assignment $O(n^3)$ with $n=\max(T,M)$, merging $O(T^2
 
 \newcommand{\algSquad}{%
 \begin{algorithm}[htbp]
-\caption{UAV squad: roles, combined strike and the round's guidance (\code{ai/Squad.cpp}). $O(K)$ per tick for $K=2$ UAVs;
+\caption{UAV (uncrewed aerial vehicle) squad: roles, the single and the combined strike and the round's guidance (\code{ai/Squad.cpp}). $O(K)$ per tick for $K=2$ UAVs;
 guidance $O(1)$ per round.}\label{alg:squad}
 \begin{algorithmic}[1]
 \Require the confirmed track nearest the base; each UAV's lock time and rounds ready
-\State LEAD $\gets$ the UAV with the longest lock (ties: the nearer); WING $\gets$ the other
-\State LEAD keeps its bearing; WING flies $\approx90^\circ$ around the target at \gv{kSquadStandOff}\,m \Comment{good triangulation}
-\If{lock(LEAD) $\ge$ \gv{kSquadLeadLock}\,s \textbf{and} lock(WING) $\ge$ \gv{kSquadWingLock}\,s \textbf{and} clear shots}
-  \State $T_k\gets$ flight time$(\lVert\text{aim}-\vect p_k\rVert)$ for both
-  \State launch$_k\gets$ now $+(\max_j T_j-T_k)$ \Comment{both rounds arrive together}
+\If{a second confirmed track is more than 14\,m from the target \textbf{and} within 10\,m of a protected point}
+  \State the UAV nearer to it leaves the pair (SOLO): it locks that track for \gv{kSquadSoloLock}\,s and launches one round
+  \State the other UAV is LEAD without a WING: after \gv{kSquadWingWait}\,s it strikes alone too \Comment{two single strikes}
+\Else
+  \State LEAD $\gets$ the UAV with the longest lock (ties: the nearer); WING $\gets$ the other
+  \State LEAD keeps its bearing; WING flies $\approx90^\circ$ around the target at \gv{kSquadStandOff}\,m \Comment{good triangulation}
+  \If{lock(LEAD) $\ge$ \gv{kSquadLeadLock}\,s \textbf{and} lock(WING) $\ge$ \gv{kSquadWingLock}\,s \textbf{and} clear shots}
+    \State $T_k\gets$ flight time$(\lVert\text{aim}-\vect p_k\rVert)$ for both
+    \State launch$_k\gets$ now $+(\max_j T_j-T_k)$ \Comment{combined strike: both rounds arrive together}
+  \ElsIf{the WING has no lock after 8\,s}
+    \State LEAD strikes alone
+  \EndIf
 \EndIf
 \For{each round in flight, every tick}
   \State $\boldsymbol\omega\gets4\lVert\vect v\rVert(\hat{\vect v}\times\vect r)/\lVert\vect r\rVert^2+2\,\hat{\vect v}\times\hat{\vect r}$, clamped to \gv{kMissileTurnRate}\,rad/s

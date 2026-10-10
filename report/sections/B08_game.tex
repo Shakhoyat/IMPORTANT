@@ -25,14 +25,14 @@ tests of each projectile's path segment per tick against target spheres and soli
 \draw[ar] (r)--(s); \draw[ar] (s)--(t); \draw[ar] (t)--(d); \draw[ar] (d)--(c); \draw[ar] (c)--(f);
 \draw[ar] (f)--(k); \draw[ar] (k)--(p); \draw[ar] (p)--(g); \draw[ar] (g)--(m);
 \end{tikzpicture}
-\caption{The detection chain of each UAV, every vision frame. Orange: image formation (Section~\ref{sec:thermal});
+\caption{The detection chain of each UAV (uncrewed aerial vehicle), every vision frame. Orange: image formation (Section~\ref{sec:thermal});
 blue: image processing on 8-bit pixels; green: back to 3D with the inverse of the camera's projection; red: the
 squad's one shared track picture.}
 \label{fig:cvchain}
 \end{figure}
 
 \begin{table}[htbp]
-\caption{Computer-vision concepts used by the UAVs.}\label{tab:cv}
+\caption{Computer-vision concepts used by the UAVs (uncrewed aerial vehicles).}\label{tab:cv}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXl@{}}
 \toprule
@@ -47,7 +47,7 @@ Back-projection & the centroid's pixel ray hits the terrain \code{0.2}\,m above 
 \end{tabularx}
 \end{table}
 
-\subsection{How the two UAVs work together}
+\subsection{How the two UAVs (uncrewed aerial vehicles) work together}
 The two UAVs do not send each other messages; they share one \emph{track picture}. Every frame, both UAVs' ground
 measurements go into one multi-target tracker; the squad logic then reads that picture and gives each UAV a role.
 \begin{itemize}[nosep,leftmargin=*]
@@ -128,18 +128,18 @@ $\hat{\boldsymbol\omega}$ --- the same axis--angle rotation as in Section~\ref{s
 \node[ev,right] at (6.3,-7.7) {kill: wreck added to the ignore list (no second strike on it)};
 \node[ev,right] at (6.3,-8.3) {track lost: both circle the last known position for \gv{kSquadReacquireTime}\,s};
 \end{tikzpicture}
-\caption{How the UAVs cooperate after a detection, as a sequence over time (top to bottom). The ``messages'' are
+\caption{How the UAVs (uncrewed aerial vehicles) cooperate after a detection, as a sequence over time (top to bottom). The ``messages'' are
 reads and writes of the one shared tracker; the squad logic runs once per tick for both.}
 \label{fig:seq}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{game/uav_missile_launch}{\linewidth}\caption{Launch from the UAV's rail.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{game/uav_missile_launch}{\linewidth}\caption{Launch from the UAV's (uncrewed aerial vehicle) rail.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{game/combined_strike}{\linewidth}\caption{Combined strike: both rounds inbound.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.49\linewidth}\raw{game/thermal_fpv_strike}{\linewidth}\caption{Hit: the HUD reports a multi-hit (combined) kill.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{game/thermal_fpv_strike}{\linewidth}\caption{Hit: the HUD (head-up display) reports a multi-hit (combined) kill.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{game/kill_banner}{\linewidth}\caption{Kill: wreck, score banner.}\end{subfigure}
-\caption{One engagement, captured while the squad plays it; in (b) the HUD marks ``UAV-1 LEAD'', ``UAV-2 WING'' and
+\caption{One engagement, captured while the squad plays it; in (b) the HUD (head-up display) marks ``UAV-1 LEAD'', ``UAV-2 WING'' and
 the phase ``combined strike inbound''.}
 \label{fig:engage}
 \end{figure}
@@ -170,7 +170,7 @@ the phase ``combined strike inbound''.}
 \draw[ar] (ret) -- (land);
 \draw[ar] (land.west) -| (dock.south);
 \end{tikzpicture}
-\caption{UAV: duty cycle and engagement (each UAV independently).}
+\caption{UAV (uncrewed aerial vehicle): duty cycle and engagement (each UAV independently).}
 \end{subfigure}\\[3mm]
 \begin{subfigure}{0.6\linewidth}\centering
 \begin{tikzpicture}
@@ -198,7 +198,7 @@ the phase ``combined strike inbound''.}
 \end{tikzpicture}
 \caption{Soldier.}
 \end{subfigure}
-\caption{State diagrams of (a) a UAV, each running it independently, (b) an intruder rover and (c) a soldier's
+\caption{State diagrams of (a) a UAV (uncrewed aerial vehicle), each running it independently, (b) an intruder rover and (c) a soldier's
 shift.}
 \label{fig:fsm}
 \end{figure}
@@ -217,5 +217,29 @@ Figures~\ref{fig:flow-tracker} and \ref{fig:flow-squad} draw the shared tracker 
 \flowSquad
 \algSquad
 
-\textbf{Limitation.} AI soldiers do not fire: ground backup fire exists only when the player controls a soldier or a
-weapon. The garrison works two shifts (day 06:24--17:36 and night) with staggered changes.
+\subsection{Single strike, combined strike and the guards}
+\label{sec:coop}
+\begin{itemize}
+\item \textbf{Combined strike.} One intruder is engaged by both UAVs: the lead waits up to 8\,s for the wing's lock,
+then both rounds are timed to arrive together.
+\item \textbf{Single strike.} A second intruder more than 14\,m from the first and within 10\,m of a protected point
+cannot wait. The UAV nearer to it leaves the pair and strikes it with one round; the other UAV strikes the first target
+alone. When the second intruder is destroyed or lost the pair forms again.
+\item \textbf{Guards.} A soldier standing at his post with a tracked intruder closer than 26\,m and a clear line turns to
+it and fires bursts of 0.6\,s every 2.4\,s. The same segment test as the UAVs' rounds decides the clear line.
+\item \textbf{Weapons on alert.} With nobody at the controls the launchers keep their canisters and pod raised through
+the apertures of their nets and sweep their sector, the helicopter's rotor turns at flight idle, and the tank and the
+anti-aircraft gun lay on the tracked intruder (\code{WorldContext::alert}, \code{threatPos}).
+\end{itemize}
+
+\subsection{Getting into the vehicles}
+\label{sec:board}
+A soldier under the player's control walks up to the tank, the anti-aircraft gun, a launcher or the helicopter and
+presses \key{E}. He is no longer drawn (\code{Soldier::setAboard}), the vehicle takes the player's input, and \key{C}
+switches between the chase camera and the gunner's sight. \key{E} or \key{Esc} puts him back on his feet at the first
+free spot beside the vehicle: eight directions on up to three rings are tested against the static boxes and the
+vehicle's own footprint (\code{App::boardVehicle}, \code{App::exitVehicle}). The vehicle then returns to its alert
+behaviour.
+
+\textbf{Limitation.} The guards fire only from their posts, not while walking a route. The garrison works two shifts
+(day 06:24--17:36 and night) with staggered changes.

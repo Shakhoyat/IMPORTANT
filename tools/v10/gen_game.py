@@ -67,7 +67,7 @@ vals["sparkCool"] = grab(r"heat \* \(1\.0 - t \* \(kind == 5 \? ([\d.]+)", eff)
 vals["smokeGlowR"], vals["smokeGlowG"], vals["smokeGlowB"] = grab(r"light \+= vec3\(([\d.]+), ([\d.]+), ([\d.]+)\) \* warm", eff, 3)
 vals["smokeGlowDecay"] = grab(r"float warm = heat \* exp\(-age \* \(kind == 1 \? ([\d.]+)", eff)
 vals["smokeHeatFloor"], vals["smokeHeatK"] = grab(r"h = ([\d.]+) \+ \(heat - [\d.]+\) \* exp\(-age \* \(kind == 2 \? [\d.]+ : ([\d.]+)\)\)", eff, 2)
-fl = re.search(r"emit = fogLit\(mix\(vec3\(([\d., ]+)\), vec3\(([\d., ]+)\), g\) \* g \* f", eff).groups()
+fl = re.search(r"emit = fogLit\(tsMix\(vec3\(([\d., ]+)\), vec3\(([\d., ]+)\), g\) \* g \* f", eff).groups()
 vals["flashOuter"], vals["flashInner"] = fl[0].replace(" ", ""), fl[1].replace(" ", "")
 deb = open(os.path.join(SRCROOT, "src", "scene", "Scene.cpp")).read() if os.path.exists(os.path.join(SRCROOT, "src", "scene", "Scene.cpp")) else ""
 for f in os.listdir(os.path.join(SRCROOT, "src", "scene")):

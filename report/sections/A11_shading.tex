@@ -16,17 +16,17 @@ Here $I(\cdot)$ is the whole illumination model of Eq.~\eqref{eq:illumcode}, eva
 \code{computeLight} in all three cases; only the shader stage that calls it differs (Listing below, Table~\ref{tab:shadecode}).
 \begin{lstlisting}[language=C++,caption={Where \code{computeLight} runs in each model (\code{src/rendering/ShaderSources.cpp}, GLSL).}]
 // Flat (geometry shader kFlatGeom): one normal per triangle from its own edges, lit once at the centroid
-vec3 cr = cross(b - a, c - a);
-vec3 N = length(cr) > 1e-12 ? normalize(cr) : vec3(0.0, 1.0, 0.0);
+vec3 cr = tsCross(b - a, c - a);
+vec3 N = tsLength(cr) > 1e-12 ? tsNormalize(cr) : vec3(0.0, 1.0, 0.0);
 Terms t = computeLight((a + b + c) / 3.0, N);          // the same terms for all three vertices ('flat' varyings)
 
 // Gouraud (vertex shader kGouraudVert): lit per VERTEX, the terms are interpolated
-vec3 N = normalize(uNormalMat * aNormal);
+vec3 N = tsNormalize(uNormalMat * aNormal);
 Terms t = computeLight(w.xyz, N);
 
 // Phong (vertex shader kPhongVert + fragment shader kPhongFrag): the NORMAL is interpolated, lit per FRAGMENT
 vNormal = uNormalMat * aNormal;                         // vertex shader
-vec3 N = normalize(vNormal);                            // fragment shader: renormalise
+vec3 N = tsNormalize(vNormal);                            // fragment shader: renormalise
 if (!gl_FrontFacing) N = -N;
 FragColor = shadeFragment(computeLight(vWorld, N), vWorld, N);
 \end{lstlisting}
@@ -50,13 +50,13 @@ terms of Eq.~\eqref{eq:illumcode} follow the model.
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_flat}{\linewidth}\caption{UAV, flat.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_gouraud}{\linewidth}\caption{UAV, Gouraud.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_phong}{\linewidth}\caption{UAV, Phong.}\end{subfigure}\\[1mm]
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_flat}{\linewidth}\caption{UAV (uncrewed aerial vehicle), flat.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_gouraud}{\linewidth}\caption{UAV (uncrewed aerial vehicle), Gouraud.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{lab/shading_uav_phong}{\linewidth}\caption{UAV (uncrewed aerial vehicle), Phong.}\end{subfigure}\\[1mm]
 \begin{subfigure}{0.325\linewidth}\raw{lab/shading_sphere_lowpoly_flat}{\linewidth}\caption{Low-polygon sphere, flat.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{lab/shading_sphere_lowpoly_gouraud}{\linewidth}\caption{Sphere, Gouraud.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{lab/shading_sphere_lowpoly_phong}{\linewidth}\caption{Sphere, Phong.}\end{subfigure}
-\caption{The same UAV and a low-polygon sphere under flat, Gouraud and Phong shading (\key{O}).}
+\caption{The same UAV (uncrewed aerial vehicle) and a low-polygon sphere under flat, Gouraud and Phong shading (\key{O}).}
 \label{fig:shading}
 \end{figure}
 
@@ -90,7 +90,7 @@ Phong & smooth, correct highlights & 1 per fragment & everything shiny; the defa
 \centering
 \img{figures/img/annot/shade_scene.jpg}{\linewidth}
 \caption{The three shading models side by side in the scene (each part's model is the export's \code{shading} field):
-796 parts are flat (bunker shell, HESCO walls, wire), 2\,212 Gouraud (nets, revetments, towers, sandbags, trees) and
+796 parts are flat (bunker shell, HESCO (wire-mesh gabion) walls, wire), 2\,197 Gouraud (nets, revetments, towers, sandbags, trees) and
 2\,478 Phong (people, vehicles, the barracks hall). Grass blades are lit per vertex in their own shader.}
 \label{fig:shade-scene}
 \end{figure}

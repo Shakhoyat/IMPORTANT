@@ -42,16 +42,16 @@ $a$: ambient occlusion (Section~\ref{sec:post}); $v_l$: shadow visibility of the
 \begin{lstlisting}[language=C++,caption={The per-light reflectance, Blinn--Phong and Cook--Torrance (\code{src/rendering/ShaderSources.cpp: brdf}, GLSL).}]
 void brdf(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 F0, float rough, out vec3 diff, out vec3 spec) {
     diff = vec3(0.0);  spec = vec3(0.0);
-    float nl = max(dot(N, L), 0.0);
+    float nl = max(tsDot(N, L), 0.0);
     if (nl <= 0.0) return;
-    vec3 H = normalize(L + V);
+    vec3 H = tsNormalize(L + V);
     if (uPbr == 0) {  // Blinn-Phong: k_d (N.L) + k_s (N.H)^n
         diff = radiance * nl;
-        spec = radiance * uSpecular * pow(max(dot(N, H), 0.0), uShininess);
+        spec = radiance * uSpecular * pow(max(tsDot(N, H), 0.0), uShininess);
         return;
     }
     // Cook-Torrance: D (GGX) * G (Smith-Schlick) * F (Schlick) / (4 N.V N.L)
-    float nv = max(dot(N, V), 1e-3), nh = max(dot(N, H), 0.0), vh = max(dot(V, H), 0.0);
+    float nv = max(tsDot(N, V), 1e-3), nh = max(tsDot(N, H), 0.0), vh = max(tsDot(V, H), 0.0);
     float a = rough * rough, a2 = a * a;
     float dd = nh * nh * (a2 - 1.0) + 1.0;
     float D = a2 / (PI * dd * dd);
@@ -133,7 +133,7 @@ Ambient & hemisphere / spherical harmonics (SH) & night constant; by day the irr
 fragment, so all shadows are parallel.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, practical lamps (point)
 and the red beacon.}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.49\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{UAV searchlights (spot): a cone with a
+\begin{subfigure}{0.49\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{UAV (uncrewed aerial vehicle) searchlights (spot): a cone with a
 soft edge between $\theta_i$ and $\theta_o$.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{showcase/sc_hall_inside_night}{\linewidth}\caption{Indoors at night: the tube lights
 (point lights with distance attenuation, Eq.~\ref{eq:att}).}\end{subfigure}
@@ -164,7 +164,7 @@ soft edge between $\theta_i$ and $\theta_o$.}\end{subfigure}\hfill
 \wbblock{Illumination}{terms}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Illumination}: the
-three terms for one roof point at noon, sunset, under the moon and under a UAV searchlight. \fullsheet{Illumination}}
+three terms for one roof point at noon, sunset, under the moon and under a UAV (uncrewed aerial vehicle) searchlight. \fullsheet{Illumination}}
 \label{fig:wb-illum}
 \end{figure}
 
@@ -181,6 +181,69 @@ highlight eight times narrower than $n=2$.}
 
 In the HDR pipeline (the default) the renderer uses the GGX / Cook--Torrance model of Eq.~\eqref{eq:ggx}; \key{B}
 switches to the Blinn--Phong of Eq.~\eqref{eq:phong}, which the display-referred path (\key{N}) always uses.
+
+\subsection{Vector maths written by hand}
+\label{sec:manualmath}
+No shader of the program calls a built-in vector function of the shading language. The dot product, length,
+normalisation, cross product, reflection, refraction, clamp, linear interpolation, step and smooth step are written out
+from their definitions in \code{src/rendering/ShaderMath.cpp} (\code{tsDot}, \code{tsNormalize}, \code{tsReflect}, \dots),
+and every lighting equation of this section is built from them. The source of these functions is placed in front of
+every vertex, fragment, geometry and compute shader before it is compiled, and the compile step refuses a shader that
+still calls a built-in one (\code{Shader.cpp: compile}, \code{builtinVectorCall}). Table~\ref{tab:manualmath} lists the
+functions with the number of calls in the shaders; Eqs.~\eqref{eq:mm-dot}--\eqref{eq:mm-smooth} are their definitions.
+\begin{gather}
+\vect a\cdot\vect b=\sum_i a_i b_i,\qquad \lVert\vect a\rVert=\sqrt{\vect a\cdot\vect a},\qquad
+\hat{\vect a}=\frac{\vect a}{\lVert\vect a\rVert}\label{eq:mm-dot}\\
+\vect a\times\vect b=\big(a_y b_z-a_z b_y,\ a_z b_x-a_x b_z,\ a_x b_y-a_y b_x\big)\label{eq:mm-cross}\\
+\text{reflection: } \vect r=\vect d-2(\vect n\cdot\vect d)\,\vect n\label{eq:mm-reflect}\\
+\text{refraction: } k=1-\eta^2\big(1-(\vect n\cdot\vect d)^2\big),\qquad
+\vect t=\begin{cases}\eta\,\vect d-\big(\eta\,(\vect n\cdot\vect d)+\sqrt k\big)\vect n & k\ge 0\\ \vect 0\ \text{(total internal reflection)} & k<0\end{cases}\label{eq:mm-refract}\\
+\operatorname{clamp}(x,a,b)=\min(\max(x,a),b),\qquad \operatorname{mix}(\vect a,\vect b,t)=(1-t)\,\vect a+t\,\vect b,\qquad
+\operatorname{step}(e,x)=\begin{cases}0 & x<e\\ 1 & x\ge e\end{cases}\label{eq:mm-mix}\\
+\operatorname{smoothstep}(e_0,e_1,x)=t^2(3-2t),\qquad t=\operatorname{clamp}\Big(\frac{x-e_0}{e_1-e_0},0,1\Big)\label{eq:mm-smooth}
+\end{gather}
+\begin{lstlisting}[language=C++,caption={The hand-written vector functions used by every shader (\code{src/rendering/ShaderMath.cpp}, GLSL; the \code{vec2} and \code{vec4} overloads are left out).}]
+float tsDot(vec3 a, vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+float tsLength(vec3 a) { return sqrt(tsDot(a, a)); }
+vec3 tsNormalize(vec3 a) { return a / tsLength(a); }
+vec3 tsCross(vec3 a, vec3 b) { return vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x); }
+vec3 tsReflect(vec3 d, vec3 n) { return d - 2.0 * tsDot(n, d) * n; }
+vec3 tsRefract(vec3 d, vec3 n, float eta) {
+    float c = tsDot(n, d);
+    float k = 1.0 - eta * eta * (1.0 - c * c);
+    if (k < 0.0) return vec3(0.0);
+    return eta * d - (eta * c + sqrt(k)) * n;
+}
+float tsClamp(float x, float lo, float hi) { return min(max(x, lo), hi); }
+vec3 tsMix(vec3 a, vec3 b, float t) { return a * (1.0 - t) + b * t; }
+float tsStep(float edge, float x) { return x < edge ? 0.0 : 1.0; }
+float tsSmoothstep(float e0, float e1, float x) { float t = tsClamp((x - e0) / (e1 - e0), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
+\end{lstlisting}
+\begin{table}[htbp]
+\caption{The vector functions written by hand, the built-in function each one replaces, and how often the shaders call it
+(905 calls in 13 shader source files).}\label{tab:manualmath}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l l r >{\raggedright\arraybackslash}X@{}}
+\toprule
+Own function & Replaces & Calls & Used for\\\midrule
+\code{tsDot} & \code{dot} & 218 & $\vect N\cdot\vect L$, $\vect N\cdot\vect H$, $\vect N\cdot\vect V$ of Eqs.~\eqref{eq:phong}, \eqref{eq:illumcode}; ray--plane tests\\
+\code{tsMix} & \code{mix} & 173 & colour interpolation, palettes, fog, wet and dry surface\\
+\code{tsSmoothstep} & \code{smoothstep} & 146 & spot and lamp cones (Eq.~\eqref{eq:lampatt}), soft edges, shadow blending\\
+\code{tsNormalize} & \code{normalize} & 129 & $\vect N$, $\vect L$, $\vect V$, $\vect H$ of every light\\
+\code{tsClamp} & \code{clamp} & 104 & attenuation windows, exposure, texture coordinates\\
+\code{tsLength} & \code{length} & 75 & light distance $d$ of Eq.~\eqref{eq:att}, fog depth\\
+\code{tsCross} & \code{cross} & 26 & face normals of the flat shader, tangent frames, billboards\\
+\code{tsStep} & \code{step} & 21 & hard masks (heat thresholds, checker patterns)\\
+\code{tsReflect} & \code{reflect} & 9 & mirror direction of sky and ray-traced reflections\\
+\code{tsRefract} & \code{refract} & 2 & glass in the ray tracer (Section~\ref{sec:rt})\\
+\code{tsTranspose} & \code{transpose} & 2 & inverse of a rotation in the vegetation impostors\\
+\bottomrule
+\end{tabularx}
+\end{table}
+What is still left to the hardware or the language: the scalar functions $\sin$, $\cos$, power, exponential, square root,
+absolute value, minimum, maximum, floor and fraction; texture look-ups; and the fixed stages of
+Table~\ref{tab:fixedfn}. On the C++ side every vector and matrix operation was already the project's own
+(\code{math/Math3D.cpp}, Sections~\ref{sec:trs}--\ref{sec:proj}); no mathematics library is linked.
 
 \subsection{Shadows}
 \label{sec:shadows}

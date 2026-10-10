@@ -728,7 +728,7 @@
   },
   "parts": 52,
   "instances": 5,
-  "total": 264
+  "total": 246
  },
  "Radar surround": {
   "legend": {
@@ -1094,17 +1094,17 @@
  },
  "Far ground": {
   "legend": {
-   "Cylinder": 1
+   "Cuboid": 1
   },
   "table": {
-   "Cylinder": 1
+   "Cuboid": 1
   },
   "export": {
-   "Cylinder": 1
+   "Cuboid": 1
   },
   "parts": 1,
-  "instances": 1,
-  "total": 1
+  "instances": 4,
+  "total": 4
  },
  "Distant hills": {
   "legend": {

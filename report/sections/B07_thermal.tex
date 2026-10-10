@@ -38,7 +38,7 @@ a column pass (Section~\ref{sec:hard}).
 \centering
 \plot{p_cv_story}{\linewidth}
 \caption{One frame of the CV pipeline, followed from the scene to a target. (a) an intruder rover at night; (b) the
-heat image UAV 2 renders of it; (c) its histogram: Otsu's threshold would cut into the warm ground, so the floor (204)
+heat image UAV (uncrewed aerial vehicle) 2 renders of it; (c) its histogram: Otsu's threshold would cut into the warm ground, so the floor (204)
 decides; (d)--(h) the green window of (b) through each stage: threshold, despeckle, connected components, and the
 target with its box, principal axis, range and track. All images are the program's own stage outputs.}
 \label{fig:cv}
@@ -82,8 +82,8 @@ $5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT
 \begin{figure}[htbp]
 \centering
 \begin{subfigure}{\linewidth}\raw{v5b/uav_closeup_thermal}{\linewidth}\caption{External thermal view (ironbow): soldiers, the
-UAV's motors and the lamps are hot; sun-warmed roofs warm; ground cool.}\end{subfigure}\\[1.5mm]
-\begin{subfigure}{\linewidth}\raw{v5b/thermal_fpv_whitehot}{\linewidth}\caption{Through the UAV gimbal camera (white-hot), as the
+UAV's (uncrewed aerial vehicle) motors and the lamps are hot; sun-warmed roofs warm; ground cool.}\end{subfigure}\\[1.5mm]
+\begin{subfigure}{\linewidth}\raw{v5b/thermal_fpv_whitehot}{\linewidth}\caption{Through the UAV (uncrewed aerial vehicle) gimbal camera (white-hot), as the
 operator sees it in the game.}\end{subfigure}
 \caption{The simulated sensor in the running game.}
 \label{fig:thermal}

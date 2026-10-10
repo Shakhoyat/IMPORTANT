@@ -23,6 +23,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(__file__))
 import primkey  # noqa: E402
 import abbrev  # noqa: E402  (ABBR and the first-use expansion; Section 7 writes its own)
+import coord_sheet as cs  # noqa: E402  (spreadsheet-style table of every component in the design frame)
 
 SEEN = set()   # short forms already written out in Section 7, in document order
 
@@ -806,7 +807,7 @@ for fam in FAMILIES:
         if r:
             body.append(r)
         body.append(chain_block(d))
-        card = "\n".join(x for x in fig if x) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_)
+        card = "\n".join(x for x in fig if x) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_) + "\n" + cs.coord_sheet(d, own, d["instance_list"][0]["root_id"], BY_ID, mat, tex, lower_name(nm))[0]
         if nm == "Soldier":
             card += "\n\\soldierextras"
         if nm == "Main battle tank":

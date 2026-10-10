@@ -36,7 +36,7 @@ float valueNoise(vec2 p) {
     vec2 i = floor(p), f = fract(p);
     f = f * f * (3.0 - 2.0 * f);                       // smoothstep fade
     float a = latticeHash(i), b = latticeHash(i + vec2(1, 0)), c = latticeHash(i + vec2(0, 1)), d = latticeHash(i + vec2(1, 1));
-    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);   // bilinear blend of the four corners
+    return tsMix(tsMix(a, b, f.x), tsMix(c, d, f.x), f.y);   // bilinear blend of the four corners
 }
 float fbm(vec2 p) {
     float s = 0.0, a = 0.5;

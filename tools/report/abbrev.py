@@ -141,6 +141,60 @@ def expand_first(text, seen):
     return text
 
 
+# Objects of the scene named by a short form: every title that names one (section headings, figure and table captions,
+# Section 7 card titles) carries the full form in brackets after its first use in that title.
+OBJECTS = ["UAV", "SAM", "MLRS", "AA", "MG", "HESCO", "CIC", "NVG", "LED", "VHF", "IR", "FLIR", "HUD", "FPV"]
+TITLE = re.compile(r"\\(section|subsection|subsubsection|paragraph|caption)\*?(\[[^\]]*\])?\{")
+INNER = re.compile(r"\\(code|key|label|ref|eqref|cite|texttt|url|lstinline|gv|includegraphics|hyperref|primchipn?|primsq|fullsheet)(\[[^\]]*\])?\{")
+
+
+def title_form(a, plural):
+    full = PLURAL.get(a, ABBR[a][0] + "s") if plural else ABBR[a][0]
+    return "%s%s (%s)" % (a, "s" if plural else "", full)
+
+
+def expand_title(arg):
+    """One title: the first bare use of every object short form gets its full form in brackets (idempotent)."""
+    for a in OBJECTS:
+        if ABBR[a][0] in arg or PLURAL.get(a, "\0") in arg:
+            continue
+        spans = []
+        for m in INNER.finditer(arg):
+            depth, i = 1, m.end()
+            while i < len(arg) and depth:
+                depth += {"{": 1, "}": -1}.get(arg[i], 0)
+                i += 1
+            spans.append((m.start(), i))
+        for m in re.finditer(r"\$[^$]*\$", arg):
+            spans.append((m.start(), m.end()))
+        for m in re.finditer(r"(?<![A-Za-z\\{/_-])%s(s)?(?![A-Za-z0-9}_(-])" % re.escape(a), arg):
+            if any(s <= m.start() < e for s, e in spans) or arg[m.end():m.end() + 2] == " (":
+                continue
+            end = m.end() + (2 if arg[m.end():m.end() + 2] == "'s" else 0)   # "UAV's rail" -> "UAV's (...) rail"
+            form = title_form(a, m.group(1) == "s")
+            if end != m.end():
+                form = form.replace(" (", "'s (", 1)
+            arg = arg[:m.start()] + form + arg[end:]
+            break
+    return arg
+
+
+def expand_titles(text):
+    out, pos = [], 0
+    for m in TITLE.finditer(text):
+        if m.start() < pos:
+            continue
+        depth, i = 1, m.end()
+        while i < len(text) and depth:
+            depth += {"{": 1, "}": -1}.get(text[i], 0) if text[i - 1] != "\\" else 0
+            i += 1
+        out.append(text[pos:m.end()])
+        out.append(expand_title(text[m.end():i - 1]))
+        pos = i - 1
+    out.append(text[pos:])
+    return "".join(out)
+
+
 def main():
     order = [f for f in re.findall(r"\\input\{sections/([^}]+)\}", open(os.path.join(REP, "main.tex")).read()) if "#" not in f]
     skip = {"algorithms", "flows", "B01_decomposition"}
@@ -154,6 +208,18 @@ def main():
         if new != text:
             open(p, "w").write(new)
             print("expanded %-30s in %s" % (" ".join(sorted(seen - before)), f))
+    # titles: every .tex of the report, generated files included (run again after regenerating them)
+    changed = 0
+    for f in sorted(os.listdir(os.path.join(REP, "sections"))):
+        if not f.endswith(".tex"):
+            continue
+        p = os.path.join(REP, "sections", f)
+        text = open(p).read()
+        new = expand_titles(text)
+        if new != text:
+            open(p, "w").write(new)
+            changed += 1
+    print("titles: full forms added in %d files" % changed)
     rest = [a for a in ABBR if a not in seen and a not in NO_EXPAND]
     print("not used in the prose (generated text or not at all):", rest)
 

@@ -72,15 +72,43 @@ Algorithm~\ref{alg:intruder} give the whole controller of one rover.
 \end{algorithmic}
 \end{algorithm}
 
+\subsection{The motion over the whole base}
+\label{sec:motion}
+Three motions run at once and react to each other.
+\begin{itemize}
+\item \textbf{UAV patrol.} Each UAV flies a breathing orbit round the bunker, the two half a turn apart, and its camera
+sweeps a ground point ahead of it:
+\begin{equation}
+\vect g_i(t)=r_i(t)\,\big(\cos\theta_i(t),\ \sin\theta_i(t)\big),\qquad
+r_i(t)=r_0+A\sin(\omega_r t+\varphi_i),\qquad \theta_i(t)=\omega_\theta t+\varphi_i,\qquad \varphi_2=\varphi_1+\pi
+\label{eq:orbit}
+\end{equation}
+\item \textbf{Rover route.} Every re-plan the rover solves Eq.~\eqref{eq:paths} again with the UAV positions of that
+moment, so the route changes while it is driven; a UAV overhead makes the rover stop in cover.
+\item \textbf{Strike.} A confirmed track pulls the UAVs off the orbit. One intruder gets both UAVs (combined strike);
+a second intruder that is far away (more than 14\,m from the first) and close to a protected point
+takes the nearer UAV, and each UAV then strikes its own target alone (Section~\ref{sec:game}).
+\end{itemize}
+Figure~\ref{fig:paths} shows six moments of one night over the whole camp; Figure~\ref{fig:motionseries} follows one
+rover through the same night.
+
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{\linewidth}\raw{v5/plan_routes}{\linewidth}\caption{Top view at night: the intruders' routes over
-the flood field.}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{\linewidth}\raw{scene/day_patrol_spline}{\linewidth}\caption{By day: a soldier patrol on its
-Catmull--Rom spline (overlay on).}\end{subfigure}
-\caption{Path debug view (\key{M}): flood field, routes and guide lines; the routes bend towards cover, cells the UAVs
-cannot see.}
+\plot{p_motion_steps}{\linewidth}
+\caption{Six moments of one night over the whole base, from the simulation tracks of the export. Each UAV (uncrewed aerial vehicle)
+is drawn with the last 12\,s of its path and the ground its camera covers; each rover with the path it has driven so far.
+The rovers move along the buildings and trees, turn away as an orbit comes round, and are destroyed (crosses) where a
+UAV caught them in the open.}
 \label{fig:paths}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\plot{p_motion_series}{\linewidth}
+\caption{One rover through the night of Figure~\ref{fig:paths}: its distance to the nearest UAV (uncrewed aerial vehicle), its speed and
+how fast its heading turns. The shaded seconds are those with a UAV overhead; the turn-rate peaks are re-plans, where the
+route computed from the new UAV positions leaves the old one.}
+\label{fig:motionseries}
 \end{figure}
 
 Figure~\ref{fig:flow-soldier} and Algorithm~\ref{alg:soldier} plan one soldier route.
@@ -90,7 +118,7 @@ Figure~\ref{fig:flow-soldier} and Algorithm~\ref{alg:soldier} plan one soldier r
 \begin{figure}[htbp]
 \centering
 \plot{p_rover_map}{\linewidth}
-\caption{Route map of the intruder rovers in the export's 130\,s simulation (night, two UAVs): each rover's driven
+\caption{Route map of the intruder rovers in the export's 130\,s simulation (night, two UAVs (uncrewed aerial vehicles)): each rover's driven
 path from its spawn (circle) towards the objectives O1--O5 (stars), every life drawn (dashed: after a respawn); the
 UAVs' patrol orbits dotted. The rovers keep to cover around the buildings and stop where a UAV is overhead.}
 \label{fig:rovermap}

@@ -52,6 +52,7 @@
 \newcommand{\wb}[2]{\img{figures/workbook/#1.png}{#2}}
 % v10 M1: workbook blocks typeset from the recalculated workbook (tools/v10/sheet_to_tex.py); yellow = input from the code
 \definecolor{wbin}{RGB}{255,242,204}
+\definecolor{sheethead}{RGB}{226,231,238}   % coordinate sheets (Section 7): column letters and row numbers
 \newcommand{\wbblock}[2]{{\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}\input{sections/wb/#1_#2}}}
 \newcommand{\fullsheet}[1]{(full sheet: \code{\detokenize{#1}} in \code{report/workbooks/cg\_workbook.xlsx})}
 \newcommand{\wbkey}{\colorbox{wbin}{\strut input}\,=\,value copied from the code, white\,=\,formula}

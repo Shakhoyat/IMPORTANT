@@ -31,7 +31,8 @@ the visible volume is the cube $[-1,1]^3$ (NDC).
 
 \textbf{What the GPU does in fixed function, and where the project computes the same maths itself.} OpenGL 3.3 core
 has no fixed-function lighting, shading or matrix stack: every transform and every lighting equation of this report is
-the project's own C++ or GLSL. The stages between the vertex and the fragment shader are fixed hardware.
+the project's own C++ or GLSL, and the shaders call no built-in vector function either
+(Section~\ref{sec:manualmath}). The stages between the vertex and the fragment shader are fixed hardware.
 Table~\ref{tab:fixedfn} lists them with the project's own implementation of the same equation (Frame Explorer,
 \code{math/ExplorerMath.cpp}, unit-tested).
 \begin{table}[htbp]
