@@ -311,9 +311,7 @@ def sentence(d):
         s += "%d instances; the first stands %s" % (n, where)
     if d["nested_in"]:
         s += ", inside the %s" % tex(lower_name(d["nested_in"]))
-    s += (". Placement of the first: $T(%.2f,\\allowbreak\\,%.2f,\\allowbreak\\,%.2f)\\allowbreak\\,R_y(%.0f^\\circ)\\allowbreak\\,S(%g)$." %
-          (x, y, z, inst["heading_deg"], inst["scale"]))
-    return s
+    return s + "."   # (the root placement itself is the first equation of the card's chain)
 
 
 # ------------------------------------------------------------------------------------------------ generation rules
@@ -494,7 +492,8 @@ def chain_block(d):
     chain_check(part)
     par = BY_ID.get(root["parent_id"])
     sl = slug(d["name"])
-    rootf = ("W_{\\text{%s}}\\," % tex(par["name"]) if par else "") + factors(root)
+    rootf = ("W_{\\text{parent}}\\," if par else "") + factors(root)
+    under = " (parent: %s)" % tex(par["name"]) if par else ""
 
     def line(lhs, rhs_sym, M, label):
         plain = re.sub(r"\\\\[a-zA-Z]+|[{}^_]", "", rhs_sym)
@@ -504,8 +503,7 @@ def chain_block(d):
 
     eqs = line("W_{\\text{root}}", rootf, mat(root["world_matrix"]), "eq:ch-%s" % sl)
     if part is root:
-        txt = ("\\textbf{Transformation chain.} The design is one part, placed by Eq.~\\eqref{eq:ch-%s} (instance 1, %s; "
-               "lengths in metres); its world matrix is the root's." % (sl, tex(inst["root_name"])))
+        txt = "\\textbf{Chain.} One part%s: its world matrix is the root's, Eq.~\\eqref{eq:ch-%s}." % (under, sl)
     else:
         path = ancestors(part)
         groups = path[path.index(root) + 1:-1]
@@ -516,10 +514,9 @@ def chain_block(d):
         for r in rows[1:]:
             eqs.append("&\\quad\\,%s\\nonumber" % "\\,".join(r))
         eqs.append("&=%s\\label{eq:chw-%s}" % (bmat(mat(part["world_matrix"])), sl))
-        txt = ("\\textbf{Transformation chain.} Instance 1 (%s) is placed in the world by Eq.~\\eqref{eq:ch-%s}. The part %s (%s) "
-               "has the local matrix $M$ of Eq.~\\eqref{eq:chm-%s} and reaches the world through %s, Eq.~\\eqref{eq:chw-%s}. "
-               "Lengths in metres; the products are checked against the exported world matrices."
-               % (tex(inst["root_name"]), sl, tex(part["name"]), prim_key(part).lower(), sl,
+        txt = ("\\textbf{Chain.} Root%s: Eq.~\\eqref{eq:ch-%s}. Part %s (%s): local $M$, Eq.~\\eqref{eq:chm-%s}; world through %s, "
+               "Eq.~\\eqref{eq:chw-%s}."
+               % (under, sl, tex(part["name"]), prim_key(part).lower(), sl,
                   "%d group%s" % (len(groups), "" if len(groups) == 1 else "s") if groups else "the root alone", sl))
     return txt + "\n\\begin{align}\n" + "\\\\\n".join(eqs) + "\n\\end{align}"
 

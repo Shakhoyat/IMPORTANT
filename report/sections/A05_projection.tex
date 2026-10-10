@@ -48,7 +48,7 @@ Mat4 ortho(float l, float r, float b, float t, float n, float f) {
 }
 \end{lstlisting}
 \begin{table}[htbp]
-\caption{Every projection matrix ThermalSense builds, with its parameters.}\label{tab:projs}
+\caption{Every projection matrix ThermalSense builds, with its parameters. Short forms: UAV: uncrewed aerial vehicle.}\label{tab:projs}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.3cm}lX>{\raggedright\arraybackslash}p{3.2cm}@{}}
 \toprule
@@ -92,6 +92,6 @@ Isometric & three faces visible, equal foreshortening & same; linear depth & lay
 \end{tabularx}
 \end{table}
 
-\textbf{Limitation.} The screen-space effects (screen-space ambient occlusion (SSAO)/GTAO, SSR, fog, TAA) reconstruct positions assuming a perspective
+\textbf{Limitation.} The screen-space effects (\ab{491}{SSAO}/GTAO, \ab{492}{SSR}, fog, \ab{493}{TAA}) reconstruct positions assuming a perspective
 projection. In the orthographic views they still run, so fog and reflections in (d) and (e) are not physically
 meaningful; the views are for geometry, not for lighting.

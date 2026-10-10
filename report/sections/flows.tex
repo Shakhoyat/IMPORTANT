@@ -31,7 +31,7 @@
 \node[fs] (b) at (5.47,-1.75) {skip the part};
 \draw[fa] (n2)--node[yes,right]{yes}(b);
 \end{tikzpicture}
-\caption{Flow of Algorithm~\ref{alg:clip}: whole parts are culled on the CPU (\code{math/Frustum.cpp}); the GPU clips the triangles of the parts that remain.}
+\caption{Flow of Algorithm~\ref{alg:clip}: whole parts are culled on the CPU (central processing unit) (\code{math/Frustum.cpp}); the GPU (graphics processing unit) clips the triangles of the parts that remain.}
 \label{fig:flow-clip}
 \end{figure}}
 
@@ -235,6 +235,6 @@
 \draw[fa] (n3)--node[yes,right]{yes}(b);
 \draw[fa] (b.west) -| (n1.south);
 \end{tikzpicture}
-\caption{Flow of Algorithm~\ref{alg:intruder}: one tick of an intruder rover, planner (MicroMouse) first, line follower after it.}
+\caption{Flow of Algorithm~\ref{alg:intruder}: one tick of an intruder rover hiding from the UAVs (uncrewed aerial vehicles): planner first, line follower after it. Short forms: PD: proportional--derivative.}
 \label{fig:flow-rover}
 \end{figure}}

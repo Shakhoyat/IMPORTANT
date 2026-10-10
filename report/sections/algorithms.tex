@@ -3,8 +3,7 @@
 
 \newcommand{\algClip}{%
 \begin{algorithm}[htbp]
-\caption{Frustum culling (CPU) and polygon clipping against the view volume (GPU, Sutherland--Hodgman), \code{rendering/Renderer.cpp}.
-Time $O(P)$ for $P$ parts (6 plane tests each); clipping $O(6v)$ per polygon of $v$ vertices.}\label{alg:clip}
+\caption{Frustum culling (CPU (central processing unit)) and polygon clipping against the view volume (GPU (graphics processing unit), Sutherland--Hodgman), \code{rendering/Renderer.cpp}.}\label{alg:clip}
 \begin{algorithmic}[1]
 \Require frustum planes $(\vect a_i,d_i)$, $i=1..6$, from the view-projection matrix
 \For{each part with bounding sphere $(\vect c,r)$} \Comment{CPU, before submission}
@@ -27,9 +26,8 @@ Time $O(P)$ for $P$ parts (6 plane tests each); clipping $O(6v)$ per polygon of 
 
 \newcommand{\algRaster}{%
 \begin{algorithm}[htbp]
-\caption{Triangle rasterisation with edge functions and the Z-buffer (the GPU's method, replayed by the Frame Explorer,
-\code{rendering/FrameExplorer.cpp}). Time $O(A)$ per triangle for a bounding box of $A$ pixels; the Z-buffer is $O(WH)$ memory and
-makes the result independent of drawing order.}\label{alg:raster}
+\caption{Triangle rasterisation with edge functions and the Z-buffer (the GPU's (graphics processing unit) method, replayed by the Frame Explorer,
+\code{rendering/FrameExplorer.cpp}).}\label{alg:raster}
 \begin{algorithmic}[1]
 \Require screen vertices $\vect p_0,\vect p_1,\vect p_2$ with depths $z_k$ and $1/w_k$; depth buffer $Z\gets\infty$
 \If{$(\vect p_1-\vect p_0)\times(\vect p_2-\vect p_0)\le0$} \State \Return \Comment{back face}\EndIf
@@ -48,9 +46,7 @@ makes the result independent of drawing order.}\label{alg:raster}
 
 \newcommand{\algWhitted}{%
 \begin{algorithm}[htbp]
-\caption{Whitted ray tracing over a BVH (\code{raytrace/Bvh.cpp}, \code{raytrace/RayTracer.cpp}). Build: binned SAH with 16 bins,
-leaves of $\le4$ primitives, $O(N\log N)$ for $N$ primitives. Query: $O(\log N)$ expected per ray. A pixel spawns at most
-$2^{D}$ rays for depth $D=5$, each with one shadow ray per light $L$: $O(2^{D}L\log N)$ per pixel.}\label{alg:whitted}
+\caption{Whitted ray tracing over a BVH (bounding volume hierarchy) (\code{raytrace/Bvh.cpp}, \code{raytrace/RayTracer.cpp}).}\label{alg:whitted}
 \begin{algorithmic}[1]
 \Function{Trace}{ray $\vect o+t\vect d$, depth}
   \State hit $\gets$ \Call{Closest}{BVH root, ray} \Comment{slab test on boxes, nearer child first}
@@ -69,8 +65,7 @@ $2^{D}$ rays for depth $D=5$, each with one shadow ray per light $L$: $O(2^{D}L\
 
 \newcommand{\algCv}{%
 \begin{algorithm}[htbp]
-\caption{Thermal computer-vision pipeline, every vision frame of each UAV (\code{vision/CvPipeline.cpp}). Time $O(WH\,\alpha(WH))$
-for a $W\times H=320\times240$ image ($\alpha$: inverse Ackermann, union-find); space $O(WH)$.}\label{alg:cv}
+\caption{Thermal computer-vision pipeline, every vision frame of each UAV (uncrewed aerial vehicle) (\code{vision/CvPipeline.cpp}).}\label{alg:cv}
 \begin{algorithmic}[1]
 \Require 8-bit heat image $I$ (sensor model applied)
 \State $t_O\gets$ Otsu$(I)$: the level maximising between-class variance over the 256-bin histogram
@@ -88,8 +83,7 @@ for a $W\times H=320\times240$ image ($\alpha$: inverse Ackermann, union-find); 
 
 \newcommand{\algTracker}{%
 \begin{algorithm}[htbp]
-\caption{Multi-target tracker shared by both UAVs (\code{vision/MultiTracker.cpp}). For $T$ tracks and $M$ measurements per camera:
-gating $O(TM)$, Hungarian assignment $O(n^3)$ with $n=\max(T,M)$, merging $O(T^2)$; $T,M\le6$ here.}\label{alg:tracker}
+\caption{Multi-target tracker shared by both UAVs (uncrewed aerial vehicles) (\code{vision/MultiTracker.cpp}).}\label{alg:tracker}
 \begin{algorithmic}[1]
 \Require ground measurements (point, pixel ray, $\sigma$) from cameras $s=1,2$
 \For{each track} \State predict: constant-velocity Kalman, state $(x,z,v_x,v_z)$, process noise \gv{accelNoise}\,m/s$^2$ \EndFor
@@ -110,8 +104,7 @@ gating $O(TM)$, Hungarian assignment $O(n^3)$ with $n=\max(T,M)$, merging $O(T^2
 
 \newcommand{\algSquad}{%
 \begin{algorithm}[htbp]
-\caption{UAV (uncrewed aerial vehicle) squad: roles, the single and the combined strike and the round's guidance (\code{ai/Squad.cpp}). $O(K)$ per tick for $K=2$ UAVs;
-guidance $O(1)$ per round.}\label{alg:squad}
+\caption{UAV (uncrewed aerial vehicle) squad: roles, the single and the combined strike and the round's guidance (\code{ai/Squad.cpp}).}\label{alg:squad}
 \begin{algorithmic}[1]
 \Require the confirmed track nearest the base; each UAV's lock time and rounds ready
 \If{a second confirmed track is more than 14\,m from the target \textbf{and} within 10\,m of a protected point}
@@ -136,8 +129,7 @@ guidance $O(1)$ per round.}\label{alg:squad}
 
 \newcommand{\algParticles}{%
 \begin{algorithm}[htbp]
-\caption{Particle system of an explosion (\code{scene/Combat.cpp}, \code{rendering/Effects.cpp}): update every tick and draw every frame. Time $O(P)$ per tick and
-$O(P\log P)$ per frame (sorting) for $P$ live particles.}\label{alg:particles}
+\caption{Particle system of an explosion (\code{scene/Combat.cpp}, \code{rendering/Effects.cpp}): update every tick and draw every frame. Short forms: HDR: high dynamic range.}\label{alg:particles}
 \begin{algorithmic}[1]
 \Require particles $(\vect p,\vect v,\text{age},\text{kind})$ spawned by a blast (a few hundred, seven kinds)
 \For{each particle}
@@ -155,8 +147,7 @@ $O(P\log P)$ per frame (sorting) for $P$ live particles.}\label{alg:particles}
 \newcommand{\algSoldier}{%
 \begin{algorithm}[htbp]
 \caption{Soldiers' route planning (\code{scene/Garrison.cpp}): A* on a $72\times72$ grid of 1\,m cells, string pulling and a
-centripetal Catmull--Rom spline. A*: $O(C\log C)$ for $C$ free cells (binary heap), $O(C)$ memory; string pulling $O(n\,\ell)$ for
-$n$ chain points and segment length $\ell$ in 0.1\,m samples; spline check $O(L/0.1)$ per iteration.}\label{alg:soldier}
+centripetal Catmull--Rom spline.}\label{alg:soldier}
 \begin{algorithmic}[1]
 \Require start $a$, goal $b$; free cells (centre $\ge0.40$\,m from every obstacle); discs around the other posts
 \State snap $a,b$ to the nearest free cells (search rings of radius $\le6$)
@@ -178,8 +169,7 @@ $n$ chain points and segment length $\ell$ in 0.1\,m samples; spline check $O(L/
 
 \newcommand{\algGait}{%
 \begin{algorithm}[htbp]
-\caption{Walking soldier, every tick (\code{scene/Gait.cpp}): gait phase, foot targets and two-link inverse kinematics.
-$O(1)$ per leg.}\label{alg:gait}
+\caption{Walking soldier, every tick (\code{scene/Gait.cpp}): gait phase, foot targets and two-link inverse kinematics.}\label{alg:gait}
 \begin{algorithmic}[1]
 \State phase $s\gets s+\lVert\Delta\vect p\rVert/$stride \Comment{driven by distance: no foot sliding at any speed}
 \For{each leg (left at $s$, right at $s+\tfrac12$)}

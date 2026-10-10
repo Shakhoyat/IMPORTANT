@@ -35,7 +35,7 @@ N=\big(M_{3\times3}^{-1}\big)^{\!\top},\qquad \vect n_{\text{world}}=\frac{N\,\v
 \item $M$ maps a tangent $\vect t$ to $M\vect t$; a normal must stay perpendicular, $(N\vect n)\cdot(M\vect t)=\vect n^\top N^\top M\vect t=0$
 for every $\vect t$, so $N^\top M=I$ and $N=(M^{-1})^\top$. Under a non-uniform $S$ the plain $M\vect n$ tilts the normal
 (Table~\ref{tab:normalmat}).
-\item The renderer computes $N$ once per part on the CPU (\code{Math3D.cpp: normalMatrix}, a cofactor inverse) and sends it as
+\item The renderer computes $N$ once per part on the \ab{483}{CPU} (\code{Math3D.cpp: normalMatrix}, a cofactor inverse) and sends it as
 \code{uNormalMat}; the shaders only multiply.
 \end{itemize}
 \begin{table}[htbp]
@@ -86,7 +86,7 @@ $A\,B$, $A\,\vect v$ & $\sum_k a_{rk}b_{kc}$ (column-major storage) & \code{oper
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_trs_order.pdf}
-\caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\ref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$).}
+\caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\ref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$). Short forms: TRS: translate, rotate, scale.}
 \label{fig:d-trs}
 \end{figure}
 
@@ -100,8 +100,7 @@ same parts, $R_y$ turns each to face into the base ($-150^\circ$, $140^\circ$, $
 road: a translation only, alternating $x=\pm3$\,m.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{The hall door: a rotation about its
 hinge, $T(\vect p)\,R_y(\alpha)\,T(-\vect p)$ (Eq.~\ref{eq:pivot}).}\end{subfigure}
-\caption{Modelling transformations in the scene: one design, many placements. Each copy differs only in its root's
-$T$ and $R$; the parts' own matrices are shared.}
+\caption{Modelling transformations in the scene: one design, many placements.}
 \label{fig:trs-scene}
 \end{figure}
 
@@ -126,9 +125,7 @@ frame, turned with its part.}
 \begin{minipage}[t]{0.38\linewidth}\centering{\footnotesize\textit{Checks}}\\[0.5mm]
 \wbblock{Transform_Trace}{checks}\end{minipage}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Transform\_Trace}: one vertex of a UAV (uncrewed aerial vehicle) part through $S$, $R$, $T$, the parent matrix,
-view, projection, perspective divide, normalised device coordinates (NDC) and viewport. The check column compares the sheet's world matrix with the
-exported one. \fullsheet{Transform_Trace}}
+\caption{Workbook sheet \code{Transform\_Trace}. \fullsheet{Transform_Trace}. Short forms: NDC: normalised device coordinates.}
 \label{fig:wb-trace}
 \end{figure}
 
@@ -153,8 +150,7 @@ sets its radius and width: $\wgBsrt$.
 \[\scriptsize\wgBmats\]
 \begin{table}[htbp]
 \caption{Group B: points of the unit torus through the tyre's and wheel's matrices, then into the world; the tyre's
-axis in world space is $\wgBaxle$. The wheel group also spins about this axis as the track moves (only its local
-angle changes).}\label{tab:wgB}
+axis in world space is $\wgBaxle$.}\label{tab:wgB}
 \centering\footnotesize\wgB
 \end{table}
 
@@ -165,12 +161,11 @@ hinge, so its matrix $T(\vect p)\,R_y(\psi)$ is the pivot rotation of Eq.~\eqref
 node moves with it, with no other matrix touched.
 \begin{table}[htbp]
 \caption{Group C. Top: soldier 1's left leg in the exported standing pose and at the gait phase with the most knee
-bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame. Bottom: the west leaf of the blast gate
-(its panel \wgDoorPanel, hinge at $\wgDoorHinge$\,m) closed and swung open: two opposite corners of the panel.}\label{tab:wgC}
+bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame.}\label{tab:wgC}
 \centering\footnotesize\wgC\\[2mm]\wgCdoor
 \end{table}
 
-\textbf{D. The UAV's camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
+\textbf{D. The \abp{484}{UAV} camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
 groups, $\wgDchain$. Its view axis is the camera frame's $+z$ direction, $W(0,0,1,0)^\top$ (a direction: $w=0$, so
 translations do not affect it).
 \begin{table}[htbp]

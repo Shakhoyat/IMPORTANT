@@ -51,10 +51,8 @@ def column(chunk, first, tex):
 
 def coord_sheet(design, own, root_id, by_id, mat, tex, shown_name):
     rows = sheet_rows(design, own, root_id, by_id, mat)
-    o = [r"\par\smallskip\noindent{\small\textbf{Coordinate sheet of the %s}: every component after its transformation chain, in the "
-         r"design's own frame (cm). Columns B to D are the centre $\mathbf p=W_{\mathrm{root}}^{-1}W_{\mathrm{part}}\,(0,0,0,1)^{\mathsf T}$; "
-         r"E to G are the extent $\Delta$ of the component's box, so its corners run from $\mathbf p-\tfrac12\Delta$ to "
-         r"$\mathbf p+\tfrac12\Delta$. %d components.}\par\nopagebreak\vspace{0.6mm}" % (tex(shown_name), len(rows))]
+    o = [r"\par\smallskip\noindent{\small\textbf{Coordinate sheet} (cm, design frame): centre B--D, extent E--G; %d components.}"
+         r"\par\nopagebreak\vspace{0.6mm}" % len(rows)]
     for b in range(0, len(rows), 2 * SHEET_ROWS):
         left = rows[b:b + SHEET_ROWS]
         right = rows[b + SHEET_ROWS:b + 2 * SHEET_ROWS]

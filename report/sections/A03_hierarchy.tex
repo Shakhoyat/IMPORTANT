@@ -22,7 +22,7 @@ void updateNode(SceneNode& node, const Mat4& parentWorld, float explode) {
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_hierarchy.pdf}
-\caption{Why world $=$ parent $\times$ local: rotating the shoulder by $35^\circ$ moves the elbow and the hand with it, while the elbow angle (its local matrix $M_2$) is unchanged.}
+\caption{Why world $=$ parent $\times$ local.}
 \label{fig:d-hier}
 \end{figure}
 
@@ -46,8 +46,7 @@ void updateNode(SceneNode& node, const Mat4& parentWorld, float explode) {
      child {node[g] {Round $\times2$\\hidden at launch}} }
   child {node[p] {Landing gear\\Cylinder $\times6$} };
 \end{tikzpicture}
-\caption{Scene graph of the UAV (uncrewed aerial vehicle), simplified (the two UAVs have 192 nodes). Orange nodes are groups (a transform, no
-mesh); grey nodes draw a primitive.}
+\caption{Scene graph of the UAV (uncrewed aerial vehicle), simplified (the two UAVs have 192 nodes).}
 \label{fig:sg}
 \end{figure}
 
@@ -55,8 +54,7 @@ mesh); grey nodes draw a primitive.}
 \centering
 \begin{subfigure}{0.49\linewidth}\img{figures/img/annot/hier_tank.jpg}{\linewidth}\caption{Main battle tank.}\end{subfigure}\hfill
 \begin{subfigure}{0.49\linewidth}\img{figures/img/annot/hier_uav.jpg}{\linewidth}\caption{UAV (rotor discs hidden in this view).}\end{subfigure}
-\caption{The hierarchy in the scene: each call-out is a group node. Turning a group (one local angle) carries
-every part below it, e.g.\ the gun follows the turret, the camera follows both gimbal angles.}
+\caption{The hierarchy in the scene: each call-out is a group node. Short forms: UAV: uncrewed aerial vehicle.}
 \label{fig:hier-scene}
 \end{figure}
 
@@ -65,7 +63,7 @@ angles, and Eq.~\eqref{eq:world} carries the lamp, its light direction and the c
 pulls every design apart along this tree: in Figure~\ref{fig:d-autonomous_uav} the sub-assemblies (motor mount with
 rotor, gimbal with camera) move out as blocks before their parts separate.
 
-\textbf{Limitation.} The world matrices of all \nLeaves{} parts are recomputed on the CPU every tick, static
+\textbf{Limitation.} The world matrices of all \nLeaves{} parts are recomputed on the \ab{485}{CPU} every tick, static
 buildings included. That is cheap here (the simulation step takes a few milliseconds); a larger scene would cache static
 subtrees.
 

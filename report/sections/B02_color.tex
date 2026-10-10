@@ -2,7 +2,7 @@
 \label{sec:color}
 \here{9}
 Colour is interpolated in four places: across a triangle (barycentric), between shading models (Gouraud vs Phong),
-between colour spaces (sRGB vs linear), and over time (sky and fog presets over the day). Each has a naive version
+between colour spaces (\ab{548}{sRGB} vs linear), and over time (sky and fog presets over the day). Each has a naive version
 that fails visibly.
 \begin{equation}
 c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.055}\big)^{2.4} & \text{else}\end{cases},\qquad
@@ -15,10 +15,10 @@ c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.
 \text{white-hot: } c=t^{0.9},\qquad t\in[0,1]\nonumber
 \end{gather}
 \begin{itemize}
-\item Eq.~\eqref{eq:srgb} is the exact sRGB decoding; the shaders decode base colours with the power 2.2 and encode the
+\item Eq.~\eqref{eq:srgb} is the exact \ab{549}{sRGB} decoding; the shaders decode base colours with the power 2.2 and encode the
 final image with the exact piecewise curve (Eq.~\eqref{eq:gamma}, Figure~\ref{fig:tonecurve}b).
 \item The seven palette stops $\vect c_0..\vect c_6$ are constants of \code{thermalPalette} in \code{ShaderSources.cpp}, mirrored
-on the CPU in \code{ThermalPalette.h}; the barycentric mix of three vertex colours is the same $\operatorname{lerp}$ with three weights (Eq.~\eqref{eq:raster}).
+on the \ab{550}{CPU} in \code{ThermalPalette.h}; the barycentric mix of three vertex colours is the same $\operatorname{lerp}$ with three weights (Eq.~\eqref{eq:raster}).
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -36,14 +36,12 @@ on the CPU in \code{ThermalPalette.h}; the barycentric mix of three vertex colou
 {\footnotesize\textit{F. Sky zenith colour over the day}}\\[0.5mm]
 \wbblock{Color_Interp}{sky}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Color\_Interp}: barycentric weights at sample points of one triangle, Gouraud vs Phong
-values at the same points, affine vs perspective-correct texture coordinates with $w$, sRGB vs linear blends of two
-colours, and the sky colours tabulated over the day. \fullsheet{Color_Interp}}
+\caption{Workbook sheet \code{Color\_Interp}. \fullsheet{Color_Interp}. Short forms: sRGB: standard red, green, blue colour space.}
 \label{fig:wb-color}
 \end{figure}
 
 \begin{table}[htbp]
-\caption{Colour interpolation: the naive method, how it fails, and the renderer's method.}
+\caption{Colour interpolation: the naive method, how it fails, and the renderer's method. Short forms: sRGB: standard red, green, blue colour space; HDR: high dynamic range.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -63,9 +61,7 @@ Heat to false colour & one linear ramp black$\to$white hides small heat differen
 \begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_ironbow.jpg}{\linewidth}\caption{Ironbow.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_whitehot.jpg}{\linewidth}\caption{White-hot.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_rainbow.jpg}{\linewidth}\caption{Rainbow.}\end{subfigure}
-\caption{Colour interpolation in the thermal view: the heat of each pixel ($t\in[0,1]$) is looked up in a palette that
-interpolates linearly between colour stops (top, from \code{thermalPalette} in the shader, shown sRGB-encoded); (a--c)
-the same night frame through each palette (\key{T} cycles them).}
+\caption{Colour interpolation in the thermal view.}
 \label{fig:palettes}
 \end{figure}
 

@@ -27,13 +27,13 @@ $T=\mathrm{clamp}(1-d)\,(1-t)^{\gv{fireLife}}$, mapped by a blackbody-like ramp 
 \mathbf{c}_{\mathrm{fire}}=\mathrm{bb}(T)\,(\gv{fireEmitA}+\gv{fireEmitB}\,T^2)
 \label{eq:bb}
 \end{equation}
-A cooling point slides from white-yellow through orange and deep red to black: interpolation along a curve through red, green, blue (RGB)
-space. The emission is HDR, so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
+A cooling point slides from white-yellow through orange and deep red to black: interpolation along a curve through \ab{578}{RGB}
+space. The emission is \ab{579}{HDR}, so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
 behind), with the smoke group and the glowing group each sorted back to front.
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_blackbody.pdf}
 \caption{(a) The shader's ramp (Eq.~\ref{eq:bb}) per channel and as a colour bar; (b) the temperature a flame core
-and a spark feed into it over their lives, and the resulting emitted colour (HDR, shown tone-mapped).}
+and a spark feed into it over their lives, and the resulting emitted colour (HDR (high dynamic range), shown tone-mapped).}
 \label{fig:bb}
 \end{figure}
 \begin{figure}[htbp]
@@ -43,8 +43,7 @@ and a spark feed into it over their lives, and the resulting emitted colour (HDR
 \begin{minipage}[t]{0.5\linewidth}\centering\wbblock{Explosion}{spark}\end{minipage}\hfill
 \begin{minipage}[t]{0.46\linewidth}\centering\wbblock{Explosion}{debris}\end{minipage}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Explosion}: the colour ramp and the fire emission factor per temperature, the colour of a
-flame core and a spark over their lives, one spark integrated step by step, and the debris bounce series. \fullsheet{Explosion}}
+\caption{Workbook sheet \code{Explosion}. \fullsheet{Explosion}}
 \label{fig:wb-explosion}
 \end{figure}
 \begin{figure}[htbp]
@@ -57,7 +56,7 @@ flame core and a spark over their lives, one spark integrated step by step, and 
 \label{fig:boom}
 \end{figure}
 
-Figure~\ref{fig:flow-particles} and Algorithm~\ref{alg:particles} give one blast from spawn to the HDR image.
+Figure~\ref{fig:flow-particles} and Algorithm~\ref{alg:particles} give one blast from spawn to the \ab{580}{HDR} image.
 \flowParticles
 \algParticles
 

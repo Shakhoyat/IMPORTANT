@@ -2,9 +2,9 @@
 \label{sec:paths}
 \here{2}
 Each intruder rover combines two robot-contest machines. \textbf{Planning (MicroMouse):} on $80\times80$ cells of
-0.5\,m, cells hidden from the UAVs are goals; a breadth-first flood fill spreads distances from them and the rover walks
+0.5\,m, cells hidden from the \ab{581}{UAVs} are goals; a breadth-first flood fill spreads distances from them and the rover walks
 downhill. \textbf{Driving (line follower):} the path becomes a guide line, five sensors read it, and a
-proportional--derivative (PD) controller sets the two wheel speeds. The soldiers use A* (1\,m cells, 0.40\,m clearance)
+\ab{582}{PD} controller sets the two wheel speeds. The soldiers use A* (1\,m cells, 0.40\,m clearance)
 smoothed into centripetal Catmull--Rom splines (Figures~\ref{fig:rovermap}, \ref{fig:guardmap}).
 \begin{equation}
 d(c)=1+\min_{n\in N_4(c)}d(n),\ d(\text{goal})=0;\qquad
@@ -15,10 +15,7 @@ with $w_i$ the sensors' lateral offsets, $s_i\in\{0,1\}$ their readings, $K_p=3.
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_floodfill.pdf}
-\caption{The two layers on a small example grid. (a) Breadth-first distances from the hidden goal cells (green, 0);
-the rover (red dot) steps to the smaller neighbour each time (dashed) and the cell path is rounded by three Chaikin
-passes into the guide line (red). (b) The line follower drawn to scale; two sensors on the left see the line, so the
-error is positive and the rover turns left.}
+\caption{The two layers on a small example grid. Short forms: BFS: breadth-first search.}
 \label{fig:floodfill}
 \end{figure}
 
@@ -28,15 +25,15 @@ error is positive and the rover turns left.}
 \begin{minipage}[t]{0.48\linewidth}\centering\wbblock{Line_Follower}{sensors}\end{minipage}\hfill
 \begin{minipage}[t]{0.48\linewidth}\centering\wbblock{Line_Follower}{pd}\end{minipage}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Line\_Follower}: one tick of the infrared (IR) array, the PD law and the wheel speeds. \fullsheet{Line_Follower}}
+\caption{Workbook sheet \code{Line\_Follower}: one tick of the infrared (IR) array, the PD (proportional--derivative) law and the wheel speeds. \fullsheet{Line_Follower}}
 \label{fig:wb-lfr}
 \end{figure}
 
-Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a UAV can see. Figure~\ref{fig:flow-rover} and
+Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a \ab{583}{UAV} can see. Figure~\ref{fig:flow-rover} and
 Algorithm~\ref{alg:intruder} give the whole controller of one rover.
 \flowRover
 \begin{algorithm}[htbp]
-\caption{Intruder rover, one tick (\code{ai/HideController.cpp}). Flood fill $O(C)$ and Dijkstra $O(C\log C)$ for $C=80^2$ cells per re-plan; Chaikin $O(3n)$ for $n$ path points; line following $O(1)$ per tick.}
+\caption{Intruder rover, one tick (\code{ai/HideController.cpp}). Short forms: UAV: uncrewed aerial vehicle.}
 \label{alg:intruder}
 \footnotesize
 \begin{algorithmic}[1]
@@ -77,18 +74,18 @@ Algorithm~\ref{alg:intruder} give the whole controller of one rover.
 \label{sec:motion}
 Three motions run at once and react to each other.
 \begin{itemize}
-\item \textbf{UAV patrol.} Each UAV flies a breathing orbit round the bunker, the two half a turn apart, and its camera
+\item \textbf{\ab{584}{UAV} patrol.} Each \ab{585}{UAV} flies a breathing orbit round the bunker, the two half a turn apart, and its camera
 sweeps a ground point ahead of it:
 \begin{equation}
 \vect g_i(t)=r_i(t)\,\big(\cos\theta_i(t),\ \sin\theta_i(t)\big),\qquad
 r_i(t)=r_0+A\sin(\omega_r t+\varphi_i),\qquad \theta_i(t)=\omega_\theta t+\varphi_i,\qquad \varphi_2=\varphi_1+\pi
 \label{eq:orbit}
 \end{equation}
-\item \textbf{Rover route.} Every re-plan the rover solves Eq.~\eqref{eq:paths} again with the UAV positions of that
-moment, so the route changes while it is driven; a UAV overhead makes the rover stop in cover.
-\item \textbf{Strike.} A confirmed track pulls the UAVs off the orbit. One intruder gets both UAVs (combined strike);
+\item \textbf{Rover route.} Every re-plan the rover solves Eq.~\eqref{eq:paths} again with the \ab{586}{UAV} positions of that
+moment, so the route changes while it is driven; a \ab{587}{UAV} overhead makes the rover stop in cover.
+\item \textbf{Strike.} A confirmed track pulls the \ab{588}{UAVs} off the orbit. One intruder gets both \ab{589}{UAVs} (combined strike);
 a second intruder that is far away (more than 14\,m from the first) and close to a protected point
-takes the nearer UAV, and each UAV then strikes its own target alone (Section~\ref{sec:game}).
+takes the nearer \ab{590}{UAV}, and each \ab{591}{UAV} then strikes its own target alone (Section~\ref{sec:game}).
 \end{itemize}
 Figure~\ref{fig:paths} shows six moments of one night over the whole camp; Figure~\ref{fig:motionseries} follows one
 rover through the same night.
@@ -96,10 +93,7 @@ rover through the same night.
 \begin{figure}[htbp]
 \centering
 \plot{p_motion_steps}{\linewidth}
-\caption{Six moments of one night over the whole base, from the simulation tracks of the export. Each UAV (uncrewed aerial vehicle)
-is drawn with the last 12\,s of its path and the ground its camera covers; each rover with the path it has driven so far.
-The rovers move along the buildings and trees, turn away as an orbit comes round, and are destroyed (crosses) where a
-UAV caught them in the open.}
+\caption{Six moments of one night over the whole base, from the simulation tracks of the export. Short forms: UAV: uncrewed aerial vehicle.}
 \label{fig:paths}
 \end{figure}
 
@@ -107,8 +101,7 @@ UAV caught them in the open.}
 \centering
 \plot{p_motion_series}{\linewidth}
 \caption{One rover through the night of Figure~\ref{fig:paths}: its distance to the nearest UAV (uncrewed aerial vehicle), its speed and
-how fast its heading turns. The shaded seconds are those with a UAV overhead; the turn-rate peaks are re-plans, where the
-route computed from the new UAV positions leaves the old one.}
+how fast its heading turns.}
 \label{fig:motionseries}
 \end{figure}
 
@@ -119,9 +112,7 @@ Figure~\ref{fig:flow-soldier} and Algorithm~\ref{alg:soldier} plan one soldier r
 \begin{figure}[htbp]
 \centering
 \plot{p_rover_map}{\linewidth}
-\caption{Route map of the intruder rovers in the export's 130\,s simulation (night, two UAVs (uncrewed aerial vehicles)): each rover's driven
-path from its spawn (circle) towards the objectives O1--O5 (stars), every life drawn (dashed: after a respawn); the
-UAVs' patrol orbits dotted. The rovers keep to cover around the buildings and stop where a UAV is overhead.}
+\caption{Route map of the intruder rovers in the export's 130\,s simulation (night, two UAVs (uncrewed aerial vehicles)).}
 \label{fig:rovermap}
 \end{figure}
 
@@ -129,14 +120,12 @@ UAVs' patrol orbits dotted. The rovers keep to cover around the buildings and st
 \centering
 \plot{p_guard_map}{\linewidth}
 \caption{Guard map of the garrison: every soldier's posts and walked routes for the day and the night shift, from the
-duty roster in the program. By day the sentry holds the gate road, four soldiers work between two posts (watch, mechanic,
-logistics, technician) and three walk or run loops; at night four guards man fixed posts, the technician works in the
-command room and the off-duty crew goes down to the bunker (triangles).}
+duty roster in the program.}
 \label{fig:guardmap}
 \end{figure}
 
 \begin{table}[htbp]
-\caption{Differences between the path methods.}
+\caption{Differences between the path methods. Short forms: BFS: breadth-first search; PD: proportional--derivative.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -151,5 +140,5 @@ Catmull--Rom (centripetal) & smooth curve through the waypoints, no loops or cus
 
 \textbf{Limitation.} The rover's sensors read a line the planner drew, not a line painted in the scene, so the
 line-follower layer adds realistic lag and overshoot rather than new information. On top of it a deliberate sideways
-weave, a wandering speed and short pauses keep the UAVs' tracker from extrapolating a rover along one straight,
+weave, a wandering speed and short pauses keep the \ab{592}{UAVs}' tracker from extrapolating a rover along one straight,
 constant-speed line.

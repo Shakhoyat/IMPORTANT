@@ -1,4 +1,4 @@
-\section{Projective transformation: frustum, NDC, depth}
+\section{Projective transformation: frustum, NDC (normalised device coordinates), depth}
 \label{sec:projective}
 \here{5}
 After the projection matrix a vertex is in clip space $(x_c,y_c,z_c,w_c)$ with $w_c=-z_{\text{eye}}$.
@@ -23,20 +23,20 @@ d=\frac{2NF}{F+N-z_n(F-N)}\qquad\text{(window depth back to distance, } z_n=2z_w
 \end{equation}
 \begin{itemize}
 \item Clip space keeps $w_c$; points with $|x_c|,|y_c|,|z_c|\le w_c$ are inside (Section~\ref{sec:clip}). After the divide
-the visible volume is the cube $[-1,1]^3$ (NDC).
+the visible volume is the cube $[-1,1]^3$ (\ab{494}{NDC}).
 \item $(x_0,y_0)=(0,0)$ and $W\times H$ come from \code{glViewport(0,0,w,h)}; the depth range is the default $[0,1]$.
-\item The screen-space passes (ambient occlusion, fog, reflections, TAA) invert Eq.~\eqref{eq:viewport} with their own
+\item The screen-space passes (ambient occlusion, fog, reflections, \ab{495}{TAA}) invert Eq.~\eqref{eq:viewport} with their own
 \code{linearDepth()} (Eq.~\eqref{eq:lindepth}, \code{ShadersPost.cpp}, \code{ShadersPostFx.cpp}).
 \end{itemize}
 
-\textbf{What the GPU does in fixed function, and where the project computes the same maths itself.} OpenGL 3.3 core
+\textbf{What the \ab{496}{GPU} does in fixed function, and where the project computes the same maths itself.} \ab{497}{OpenGL} 3.3 core
 has no fixed-function lighting, shading or matrix stack: every transform and every lighting equation of this report is
-the project's own C++ or GLSL, and the shaders call no built-in vector function either
+the project's own C++ or \ab{498}{GLSL}, and the shaders call no built-in vector function either
 (Section~\ref{sec:manualmath}). The stages between the vertex and the fragment shader are fixed hardware.
 Table~\ref{tab:fixedfn} lists them with the project's own implementation of the same equation (Frame Explorer,
 \code{math/ExplorerMath.cpp}, unit-tested).
 \begin{table}[htbp]
-\caption{Fixed-function GPU stages used by the renderer, and the project's own code that computes the same equation.}\label{tab:fixedfn}
+\caption{Fixed-function GPU (graphics processing unit) stages used by the renderer, and the project's own code that computes the same equation. Short forms: MSAA: multisample anti-aliasing; PCSS: percentage-closer soft shadows; CPU: central processing unit.}\label{tab:fixedfn}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}X@{}}
 \toprule
@@ -56,7 +56,7 @@ Depth bias & $z+f\,\Delta z_{\text{slope}}+u\,r$ & \code{glPolygonOffset}: shado
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_frustum_ndc.pdf}
-\caption{The perspective divide squeezes the frustum into the NDC cube: slices equally spaced in depth (orange) crowd towards the far face, which is why depth precision is best near the camera (Eq.~\ref{eq:ndc}).}
+\caption{The perspective divide squeezes the frustum into the NDC (normalised device coordinates) cube.}
 \label{fig:d-ndc}
 \end{figure}
 
@@ -84,4 +84,4 @@ $z_w$ would be almost white beyond a few metres), (b) the vertex stage in clip s
 
 \textbf{Limitation.} The near plane of 0.05\,m exists so a first-person rifle and a soldier's own hands are not clipped. It costs
 depth precision far away (Figure~\ref{fig:depth}b). Reversed-Z with a floating-point depth buffer would remove the
-problem but needs \code{glClipControl} (OpenGL 4.5), which the 3.3 baseline does not have.
+problem but needs \code{glClipControl} (\ab{499}{OpenGL} 4.5), which the 3.3 baseline does not have.

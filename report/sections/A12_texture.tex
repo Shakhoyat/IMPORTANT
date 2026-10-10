@@ -23,15 +23,15 @@ s=3f^2-2f^3,\quad f=\vect q-\lfloor\vect q\rfloor,\qquad
 \text{trilinear: } c=\operatorname{lerp}\big(c_{\lfloor\lambda\rfloor},\,c_{\lfloor\lambda\rfloor+1},\,\lambda-\lfloor\lambda\rfloor\big)\nonumber
 \end{gather}
 \begin{itemize}
-\item $h_{ij}$: an integer hash of the lattice corner (\code{latticeHash}, a 32-bit mix), the same on every GPU and on the
-CPU mirror; $\vect c_o$: a fixed offset per octave; $k$ fades the relief from 12 to 40\,m.
+\item $h_{ij}$: an integer hash of the lattice corner (\code{latticeHash}, a 32-bit mix), the same on every \ab{523}{GPU} and on the
+\ab{524}{CPU} mirror; $\vect c_o$: a fixed offset per octave; $k$ fades the relief from 12 to 40\,m.
 \item Box projection picks the plane of the largest normal component, so a primitive needs no stored $(u,v)$ and a
 pattern never stretches; it is used for the albedo patterns (\code{surfaceAlbedo}) and the relief (\code{surfaceBump}).
-\item Image textures (imported trees, the ground map, the font) are mip-mapped by the GPU: \code{glGenerateMipmap} builds the
+\item Image textures (imported trees, the ground map, the font) are mip-mapped by the \ab{525}{GPU}: \code{glGenerateMipmap} builds the
 box-filtered levels and \code{GL\_LINEAR\_MIPMAP\_LINEAR} selects $\lambda$ of Eq.~\eqref{eq:tex} and blends as in
 Eq.~\eqref{eq:filter}. This lookup is fixed-function; the procedural patterns are the project's own code.
 \end{itemize}
-\begin{lstlisting}[language=C++,caption={Value noise and its fractal sum (\code{src/rendering/ShaderSources.cpp}, GLSL).}]
+\begin{lstlisting}[language=C++,caption={Value noise and its fractal sum (\code{src/rendering/ShaderSources.cpp}, OpenGL Shading Language).}]
 float valueNoise(vec2 p) {
     vec2 i = floor(p), f = fract(p);
     f = f * f * (3.0 - 2.0 * f);                       // smoothstep fade
@@ -53,12 +53,11 @@ smoothstep fade against linear weights; (b) one octave; (c) the four-octave frac
 \end{figure}
 \begin{figure}[htbp]
 \centering\raw{lab/bump_on_off}{0.6\linewidth}
-\caption{Bump mapping in the renderer: six procedural materials with the relief off (top) and on (bottom). Only the
-normal changes (Eq.~\eqref{eq:noise}); the faces stay flat.}
+\caption{Bump mapping in the renderer: six procedural materials with the relief off (top) and on (bottom).}
 \label{fig:bump}
 \end{figure}
 \begin{table}[htbp]
-\caption{Texture techniques and where they run.}\label{tab:texcode}
+\caption{Texture techniques and where they run. Short forms: UV: texture coordinates $(u,v)$.}\label{tab:texcode}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXl@{}}
 \toprule
@@ -74,7 +73,7 @@ UV-mapped images, mip-maps, alpha test & imported trees, grass blades, the font 
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_texture.pdf}
-\caption{Texture mapping: each vertex carries $(u,v)$; inside the triangle $(u,v)$ is interpolated like any attribute and the texture is looked up there. Far away many texels fall under one pixel, so the lookup uses a smaller, pre-averaged mip level (Eq.~\ref{eq:tex}); fine detail fades to its average instead of shimmering.}
+\caption{Texture mapping: each vertex carries $(u,v)$; inside the triangle $(u,v)$ is interpolated like any attribute and the texture is looked up there.}
 \label{fig:d-tex}
 \end{figure}
 
@@ -85,13 +84,12 @@ is either computed (procedural) or looked up in an image.}\end{subfigure}\\[1.2m
 \begin{subfigure}{0.40\linewidth}\raw{lab/material_grid}{\linewidth}\caption{The procedural materials on spheres.}\end{subfigure}\hfill
 \begin{subfigure}{0.58\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{An imported tree: bark mapped by its texture coordinates $(u,v)$ (UV) and
 alpha-tested leaves.}\end{subfigure}
-\caption{Textures in the scene. Primitives carry no UV set, so their surfaces are procedural; the imported vegetation
-brings image textures with mip-maps.}
+\caption{Textures in the scene.}
 \label{fig:tex}
 \end{figure}
 
 A bump map perturbs only the normal (Eq.~\eqref{eq:tex}): the silhouette stays straight while the lighting shows
 relief.
 
-\textbf{Limitation.} Procedural world-space patterns need no UV unwrapping and never stretch, but they slide over a moving
-part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to MSAA and TAA.
+\textbf{Limitation.} Procedural world-space patterns need no \ab{526}{UV} unwrapping and never stretch, but they slide over a moving
+part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to \ab{527}{MSAA} and \ab{528}{TAA}.

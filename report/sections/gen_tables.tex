@@ -15,7 +15,7 @@
 12 & \primsq{capsule}~capsule & \code{createCapsule(16, 3, 0.25)} & 98 & 192 & $2 c s + 2$ & $4 c s$ & 349\\
 13 & \primsq{annulus}~annulus & \code{createAnnulus(0.43, 48)} & 192 & 192 & $4 n$ & $4 n$ & 2\\
 14 & \primsq{helix}~helix & \code{createHelix(0.475, 0.025, 5, 120, 6)} & 740 & 1{,}452 & $(n + 1) m + 2 (m + 1)$ & $2 n m + 2 m$ & 52\\
-15 & \primsq{grassblade}~grass blade & \code{createGrassBlade()} & 7 & 5 & $2\times 3 \text{ rows} + \text{tip} = 7$ & $2\times 2 \text{ seg.} + \text{tip} = 5$ & (450{,}000 GPU)\\
+15 & \primsq{grassblade}~grass blade & \code{createGrassBlade()} & 7 & 5 & $2\times 3 \text{ rows} + \text{tip} = 7$ & $2\times 2 \text{ seg.} + \text{tip} = 5$ & (450{,}000 \ab{1}{GPU})\\
 16 & \primsq{terraindisc}~terrain disc & \code{createTerrainDisc(130, 384, 36)} & 49{,}921 & 97{,}440 & $1 + k s$ & $s (2 k - 1) - D$ & 1\\
 \midrule\multicolumn{7}{@{}l}{Primitive instances in the scene (parts)} & 5{,}474\\\bottomrule\end{tabular}}
 \newcommand{\objtable}{\begin{tabular}{@{}lrrrrrrrrrrrrrrrrrr@{}}\toprule
@@ -24,17 +24,17 @@ Terrain & 1 & 1 & 1 & 0 & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- &
 Backdrop & 1 & 123 & 47 & 3 & 0 & 4 & 24 & 0 & 9 & 0 & 86 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
 Environment & 1 & 652 & 89 & 2 & 6 & 40 & 201 & 0 & 180 & 0 & 168 & 0 & 0 & 0 & 0 & 57 & 0 & 0\\
 Command Bunker & 1 & 440 & 18 & 18 & 0 & 317 & 20 & 1 & 92 & 0 & 0 & 0 & 1 & 0 & 0 & 9 & 0 & 0\\
-Autonomous UAV & 2 & 79 & 17 & 13 & 0 & 34 & 13 & 0 & 23 & 1 & 4 & 4 & 0 & 0 & 0 & 0 & 0 & 0\\
+Autonomous \ab{2}{UAV} & 2 & 79 & 17 & 13 & 0 & 34 & 13 & 0 & 23 & 1 & 4 & 4 & 0 & 0 & 0 & 0 & 0 & 0\\
 Base & 1 & 993 & 33 & 0 & 12 & 544 & 41 & 0 & 271 & 0 & 0 & 0 & 0 & 0 & 2 & 71 & 0 & 52\\
 Barracks hall & 1 & 277 & 5 & 1 & 0 & 225 & 2 & 0 & 50 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
-UAV pads & 1 & 18 & 3 & 0 & 0 & 4 & 8 & 0 & 4 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 2 & 0\\
+\ab{3}{UAV} pads & 1 & 18 & 3 & 0 & 0 & 4 & 8 & 0 & 4 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 2 & 0\\
 Target Rover & 6 & 26 & 2 & 8 & 0 & 6 & 12 & 0 & 8 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
 Main Battle Tank & 3 & 255 & 29 & 118 & 0 & 168 & 5 & 0 & 61 & 0 & 0 & 19 & 1 & 1 & 0 & 0 & 0 & 0\\
 Scout Helicopter & 1 & 91 & 19 & 17 & 0 & 40 & 21 & 0 & 28 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
-AA Gatling Gun & 1 & 78 & 5 & 26 & 0 & 19 & 4 & 1 & 54 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+\ab{4}{AA} Gatling Gun & 1 & 78 & 5 & 26 & 0 & 19 & 4 & 1 & 54 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
 Air-defence radar & 1 & 108 & 4 & 4 & 0 & 62 & 3 & 0 & 42 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
-SAM launcher & 1 & 112 & 9 & 10 & 1 & 73 & 5 & 0 & 24 & 0 & 1 & 8 & 0 & 0 & 0 & 0 & 0 & 0\\
-MLRS rocket truck & 1 & 136 & 22 & 28 & 1 & 44 & 9 & 0 & 52 & 0 & 6 & 24 & 0 & 0 & 0 & 0 & 0 & 0\\
+\ab{5}{SAM} launcher & 1 & 112 & 9 & 10 & 1 & 73 & 5 & 0 & 24 & 0 & 1 & 8 & 0 & 0 & 0 & 0 & 0 & 0\\
+\ab{6}{MLRS} rocket truck & 1 & 136 & 22 & 28 & 1 & 44 & 9 & 0 & 52 & 0 & 6 & 24 & 0 & 0 & 0 & 0 & 0 & 0\\
 Ammunition bunker & 1 & 43 & 2 & 0 & 2 & 15 & 10 & 0 & 6 & 0 & 0 & 0 & 2 & 0 & 0 & 8 & 0 & 0\\
 Camp camouflage & 1 & 640 & 21 & 0 & 2 & 272 & 48 & 0 & 90 & 0 & 24 & 0 & 0 & 0 & 0 & 204 & 0 & 0\\
 Boom barrier & 1 & 20 & 2 & 2 & 0 & 17 & 2 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
@@ -53,9 +53,9 @@ Sky Clock & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 
 \newcommand{\partsBase}{993}
 \newcommand{\partsEnv}{652}
 \newcommand{\partsCamp}{640}
-\newcommand{\benchtable}{\begin{tabular}{@{}lrrrrr@{}}\toprule Configuration & mean ms & p95 ms & fps & draws & triangles\\\midrule
+\newcommand{\benchtable}{\begin{tabular}{@{}lrrrrr@{}}\toprule Configuration & mean ms & p95 ms & \ab{7}{fps} & draws & triangles\\\midrule
 EPIC day 10:30 & 11.90 & 16.98 & 84.1 & 242 & 4{,}112{,}850\\
-EPIC night 23:00 (game: waves, UAVs) & 15.33 & 20.58 & 65.2 & 962 & 4{,}116{,}830\\
+EPIC night 23:00 (game: waves, \ab{8}{UAVs}) & 15.33 & 20.58 & 65.2 & 962 & 4{,}116{,}830\\
 EPIC day, thermal view & 12.93 & 17.45 & 77.3 & 53 & 1{,}477{,}730\\
 EPIC night, thermal view & 13.32 & 17.36 & 75.1 & 61 & 1{,}545{,}670\\
 EPIC day, shadows off & 15.43 & 17.48 & 64.8 & 187 & 4{,}138{,}570\\
@@ -68,8 +68,8 @@ classic look (no post) day & 11.70 & 19.08 & 85.5 & 154 & 1{,}441{,}730\\
 \bottomrule\end{tabular}}
 \newcommand{\rtperftable}{\begin{tabular}{@{}lrrl@{}}\toprule Mode & ms / frame & ray pass ms & internal size\\\midrule
 Raster & 15.70 & 0.00 & 1280$\times$720\\
-Hybrid RT & 30.00 & 18.36 & 1280$\times$720\\
-Whitted RT & 34.44 & 28.23 & 960$\times$540\\
+Hybrid \ab{9}{RT} & 30.00 & 18.36 & 1280$\times$720\\
+Whitted \ab{10}{RT} & 34.44 & 28.23 & 960$\times$540\\
 Path Tracing & 29.35 & 25.48 & 640$\times$360\\
 Light Tracing & 52.76 & 45.23 & 640$\times$360\\
 \bottomrule\end{tabular}}

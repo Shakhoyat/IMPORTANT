@@ -1,7 +1,7 @@
 \section{Dynamic and controllable objects}
 \label{sec:dynamic}
 \here{2}
-\nControllables{} units can be controlled (soldiers, two UAVs, tanks, helicopter, AA gun, radar, launchers, blast
+\nControllables{} units can be controlled (soldiers, two \ab{551}{UAVs}, tanks, helicopter, \ab{552}{AA} gun, radar, launchers, blast
 doors, gate). Motion is integrated at a fixed 60\,Hz tick; between ticks the drawn pose is interpolated, so motion is
 smooth at any frame rate. Almost every follow behaviour (character speed, cameras, doors) uses one tool: a
 critically damped spring, which reaches its target as fast as possible without overshoot and has an exact step for any $\Delta t$.
@@ -12,7 +12,7 @@ x(t)=x^\ast+\big((x_0-x^\ast)+(\dot x_0+\omega(x_0-x^\ast))\,t\big)e^{-\omega t}
 \end{equation}
 
 \begin{table}[htbp]
-\caption{Dynamic objects and their motion models.}\label{tab:dyn}
+\caption{Dynamic objects and their motion models. Short forms: UAV: uncrewed aerial vehicle.}\label{tab:dyn}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule

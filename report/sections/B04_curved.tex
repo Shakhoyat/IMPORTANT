@@ -11,16 +11,14 @@ the triangle count of \code{createSphere(s, k)} is $2s(k-1)$. Halving the error 
 \centering
 \plot{p_tessellation}{\linewidth}
 \caption{(a) Silhouette error against triangle count (Eq.~\eqref{eq:tess}); the dashed line is the small-angle
-approximation. (b--d) The mesh \code{createSphere(s,\,s/2)} builds, shaded in the key colour; the dashed circle is the
-true outline. The scene's 36 slices give 0.38\,\% of the radius with 1224 triangles.}
+approximation.}
 \label{fig:tess}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \img{figures/img/annot/curved_scene.jpg}{\linewidth}
-\caption{Curved primitives at the anti-aircraft (AA) gun position. Every curved surface is a polygon mesh with the tessellation of
-Eq.~\eqref{eq:tess}; smooth shading hides the facets inside the outline, not on it.}
+\caption{Curved primitives at the anti-aircraft (AA) gun position.}
 \label{fig:curved-scene}
 \end{figure}
 Elsewhere: tyres and muzzle rings are tori, helmets and the bunker's berm hemispheres, rotor blur discs flat cylinders,

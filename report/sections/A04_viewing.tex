@@ -19,7 +19,7 @@ V^{-1}=T(\vect e)\,R_{uvn}^{\top}\label{eq:viewdecomp}
 \end{equation}
 \begin{itemize}
 \item $R_{uvn}$ is orthonormal, so its inverse is its transpose; the camera's world matrix is $V^{-1}$, and a camera hung in
-the scene graph (the UAV gimbal) uses $V=W_{\text{camera}}^{-1}$.
+the scene graph (the \ab{486}{UAV} gimbal) uses $V=W_{\text{camera}}^{-1}$.
 \item A point straight ahead of the eye at distance $d$ lands at $(0,0,-d)$ in eye space.
 \end{itemize}
 \begin{lstlisting}[language=C++,caption={The view matrix (\code{src/math/Math3D.cpp: lookAt}); $\vect s=\vect u$, $\vect u=\vect v$, $\vect f=-\vect n$ of Eq.~\eqref{eq:view}.}]
@@ -65,11 +65,11 @@ camera, the view matrix, the perspective matrix, and the depth table used in Sec
 \label{fig:wb-view}
 \end{figure}
 
-The UAV camera of Figure~\ref{fig:cams}d takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
+The \ab{487}{UAV} camera of Figure~\ref{fig:cams}d takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
 view matrix is the inverse of the camera node's world matrix.
 
-\textbf{Camera system.} Orbit (default), free fly (\key{Home}), chase, UAV camera, walk, first and third person on
-any soldier (\key{Tab}, \key{V}), UAV chase / FPV / gimbal, any moving object's point of view (\key{F4}) and the
+\textbf{Camera system.} Orbit (default), free fly (\key{Home}), chase, \ab{488}{UAV} camera, walk, first and third person on
+any soldier (\key{Tab}, \key{V}), \ab{489}{UAV} chase / \ab{490}{FPV} / gimbal, any moving object's point of view (\key{F4}) and the
 cinematic director (\key{K}). Changes of camera blend over 0.6\,s on a critically damped spring.
 
 \textbf{Limitation.} When $\vect{up}\parallel\vect n$ (looking straight down) the cross product vanishes. The top view of

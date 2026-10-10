@@ -61,6 +61,9 @@ to right here.}
 \item Each card gives two numbered chains: instance 1's root placement $W_{\text{root}}$ with its numeric matrix, and one
 part's chain $W_{\text{part}}=W_{\text{root}}\,M_{g_1}\cdots M_{g_k}\,M$ with its local matrix $M$ and its numeric world matrix
 (lengths in metres; factors equal to the identity are left out).
+\item Each card ends with a coordinate sheet: every component after its chain, in the design's own frame. Columns B to D are
+the centre $\mathbf p=W_{\text{root}}^{-1}W_{\text{part}}\,(0,0,0,1)^{\mathsf T}$; E to G are the extent $\Delta$ of the component's
+box, so its corners run from $\mathbf p-\tfrac12\Delta$ to $\mathbf p+\tfrac12\Delta$ (\code{tools/report/coord\_sheet.py}).
 \item \code{tools/report/gen\_designs.py} checks every printed chain: the product of the exported local matrices equals the
 exported world matrix (largest relative error $1.3\times10^{-7}$ over 124 chains), and $T R_y R_x R_z S$ from the exported
 $T$, $R$, $S$ equals each exported local matrix.
@@ -82,16 +85,12 @@ $T$, $R$, $S$ equals each exported local matrix.
 % ---------------------------------------------------------------------------------- extras placed inside some cards
 \newcommand{\soldierextras}{%
 \begin{table}[H]
-\caption{The eight soldiers are one design (\nSoldierParts{} parts) placed eight times. What differs: the root
-transform, the girth (pelvis and torso $S_x$ relative to soldier 1), the colours of skin and uniform parts, and the
-joint angles of each soldier's pose at the start (animated groups more than $0.5^\circ$ from soldier 1).}\label{tab:var-soldier}
+\caption{The eight soldiers are one design (\nSoldierParts{} parts) placed eight times.}\label{tab:var-soldier}
 \centering\footnotesize\setlength{\tabcolsep}{4pt}\variantsSoldier
 \end{table}
 \begin{figure}[p]
 \centering\soldiergraph
-\caption{The soldier's scene graph: the \soldierGroups{} group nodes from the pelvis down, each with its local $T$ (m),
-$R$ ($^\circ$) and the primitives of the parts attached to it. A thick border marks a joint driven by the gait or the
-pose. The root places the pelvis in the world at $T=\soldierRootT$.}
+\caption{The soldier's scene graph.}
 \label{fig:soldier-graph}
 \end{figure}
 The gait writes only the joint angles of Figure~\ref{fig:soldier-graph}. The phase advances by distance over stride, so
@@ -134,14 +133,14 @@ then turret and gun.}
 \newcommand{\uavextras}{%
 \begin{figure}[H]
 \centering\partsgridUav
-\caption{Every part kind of the UAV (\nKindsUav{} kinds, $\times n$ = parts of that kind), each rendered alone at the
-same size, with its primitive and size. Glass and rotor-blur parts are drawn opaque, the light beam as a solid.}
+\caption{Every part kind of the UAV (uncrewed aerial vehicle) (\nKindsUav{} kinds, $\times n$ = parts of that kind), each rendered alone at the
+same size, with its primitive and size.}
 \label{fig:parts-uav}
 \end{figure}
 \begin{figure}[H]
 \centering\buildstripKeyUav
 \caption{The UAV (uncrewed aerial vehicle) built up in hierarchy order: the first 12, 35, 65 and 100\,\% of its parts, including the rounds on
-its rails. The searchlight beam is a light volume, not geometry, and is not drawn.}
+its rails.}
 \label{fig:build-uav}
 \end{figure}}
 
@@ -164,9 +163,9 @@ and the surface installations.}
 \designcardsPeople
 
 \clearpage\subsection{Vehicles and their weapons}
-Each vehicle or launcher is followed by the munition it fires: the UAV and its rounds, the SAM launcher and its missile,
-the MLRS truck and its rockets, the AA gun and its shell casings. The munitions are nested designs of their carriers;
-Figure~\ref{fig:munitions} compares them at one scale. The tank's shells and the AA gun's tracers are not scene parts:
+Each vehicle or launcher is followed by the munition it fires: the \ab{478}{UAV} and its rounds, the \ab{479}{SAM} launcher and its missile,
+the \ab{480}{MLRS} truck and its rockets, the \ab{481}{AA} gun and its shell casings. The munitions are nested designs of their carriers;
+Figure~\ref{fig:munitions} compares them at one scale. The tank's shells and the \ab{482}{AA} gun's tracers are not scene parts:
 the combat code draws them as glowing slugs.
 \designcardsVehiclesAndTheirWeapons
 \munitionlineupfig

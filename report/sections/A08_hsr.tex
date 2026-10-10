@@ -14,7 +14,7 @@ A=\tfrac12\sum_{k=0}^{2}\big(x_ky_{k+1}-x_{k+1}y_k\big)\quad(\text{screen, } y \
 z_w(\vect x)=\sum_k\lambda_k\,z_{w,k}\qquad\text{(affine in screen space)}\nonumber
 \end{gather}
 \begin{itemize}
-\item The screen-area sign of Eq.~\eqref{eq:hsr2} is the GPU's back-face test (\code{glCullFace(GL\_BACK)}, counter-clockwise
+\item The screen-area sign of Eq.~\eqref{eq:hsr2} is the \abp{504}{GPU} back-face test (\code{glCullFace(GL\_BACK)}, counter-clockwise
 front faces); the Frame Explorer computes it itself (\code{ExplorerMath.h: signedArea2}).
 \item Window depth $z_w$ is an affine function of screen position (it is $1/w$ that varies linearly), so depth needs no
 perspective correction, unlike colours and normals (Section~\ref{sec:raster}).
@@ -38,7 +38,7 @@ Ray casting & nearest hit along the ray & bounding volume hierarchy (BVH), $O(\l
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_hsr.pdf}
-\caption{Left: back-face culling keeps the faces whose normal points towards the eye. Right: the Z-buffer keeps the smallest depth per pixel, whatever order the wall and the crate are drawn in.}
+\caption{Left: back-face culling keeps the faces whose normal points towards the eye.}
 \label{fig:d-hsr}
 \end{figure}
 

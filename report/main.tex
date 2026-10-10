@@ -8,7 +8,14 @@
 \usepackage{pdflscape}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
-\captionsetup[table]{position=top,skip=3pt}
+\captionsetup[table]{position=top,skip=4pt}
+\captionsetup[figure]{skip=4pt}
+\captionsetup[subfigure]{skip=2pt,font=footnotesize}
+% one spacing rule for every float: text to float, float to float, float in the text
+\setlength{\textfloatsep}{11pt plus 2pt minus 2pt}
+\setlength{\floatsep}{9pt plus 2pt minus 2pt}
+\setlength{\intextsep}{9pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}\setlength{\belowcaptionskip}{3pt}
 \usepackage{float}
 \usepackage[section,below]{placeins}
 \usepackage{longtable}
@@ -50,7 +57,7 @@
 
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small ThermalSense: a graphics pipeline in a military outpost}
-\fancyhead[R]{\small Computer Graphics, CSE, KUET}
+\fancyhead[R]{\small Computer Graphics Laboratory}
 \fancyfoot[C]{\small\thepage}
 \renewcommand{\headrulewidth}{0.3pt}
 
@@ -85,7 +92,7 @@
   text width=1.5cm,minimum height=0.8cm,align=center,text=black!80,draw=black!45,font=\fontsize{7}{8}\selectfont] at (1.7*#1,0) {#3};\fi}
 \newcommand{\here}[1]{\begin{center}\begin{tikzpicture}
  \psn{1}{#1}{vertices\\primitives}\psn{2}{#1}{model\\$T R S$}\psn{3}{#1}{view\\$u,v,n$}\psn{4}{#1}{projection\\frustum}
- \psn{5}{#1}{clip, divide\\NDC, viewport}\psn{6}{#1}{hidden\\surfaces}\psn{7}{#1}{raster\\interpolate}\psn{8}{#1}{light +\\shade}
+ \psn{5}{#1}{clip, divide\\viewport}\psn{6}{#1}{hidden\\surfaces}\psn{7}{#1}{raster\\interpolate}\psn{8}{#1}{light +\\shade}
  \psn{9}{#1}{texture\\post}\psn{10}{#1}{rays}
  \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!60] ({1.7*\x+0.78},0) -- ({1.7*\x+0.92},0);
 \end{tikzpicture}\end{center}\vspace{-2mm}}
@@ -96,6 +103,15 @@
   keywordstyle=\color{blue!55!black}\bfseries,commentstyle=\color{green!35!black}\itshape,
   morekeywords={uniform,vec3,vec4,float,int,return,if,const,auto,Mat4,Vec3}}
 
+% Short forms: \ab{id}{UAV} prints the short form, or its full form in brackets when it is the first on its page
+% (ids in sections/gen_ab_first.tex, written by tools/report/abbrev_pages.py from the pages recorded in main.aux).
+\makeatletter
+\newcommand{\ab}[2]{\ifcsname abx@#1\endcsname\csname abl@#2\endcsname\else#2\fi\protected@write\@auxout{}{\string\abpage{#1}{#2}{\thepage}}}
+\newcommand{\abpage}[3]{}
+\newcommand{\abp}[2]{#2's\ifcsname abx@#1\endcsname\ (\csname abf@#2\endcsname)\fi\protected@write\@auxout{}{\string\abpage{#1}{#2}{\thepage}}}
+\makeatother
+\input{sections/gen_ab_long}
+\input{sections/gen_ab_first}
 \input{prim_colors}
 \input{sections/gen_numbers}
 \input{sections/gen_tables}
@@ -143,7 +159,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
 \begin{tikzpicture}[sb/.style={draw=blue!50,fill=blue!6,rounded corners=1.5pt,text width=1.5cm,align=center,
   font=\fontsize{7}{8}\selectfont,inner sep=1.5pt,minimum height=0.62cm}, up/.style={-{Latex[length=1mm]},blue!45}]
  \psn{1}{0}{vertices\\primitives}\psn{2}{0}{model\\$T R S$}\psn{3}{0}{view\\$u,v,n$}\psn{4}{0}{projection\\frustum}
- \psn{5}{0}{clip, divide\\NDC, viewport}\psn{6}{0}{hidden\\surfaces}\psn{7}{0}{raster\\interpolate}\psn{8}{0}{light +\\shade}
+ \psn{5}{0}{clip, divide\\viewport}\psn{6}{0}{hidden\\surfaces}\psn{7}{0}{raster\\interpolate}\psn{8}{0}{light +\\shade}
  \psn{9}{0}{texture\\post}\psn{10}{0}{rays}
  \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!60] ({1.7*\x+0.78},0) -- ({1.7*\x+0.92},0);
  \foreach \k/\r/\t in {1/1/{\ref{sec:curved} curves, surfaces},
@@ -154,7 +170,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
    {\node[sb] (n\k\r) at (1.7*\k,-0.15-0.72*\r) {\S\t};}
  \foreach \k in {1,2,3,6,7,8,9,10} \draw[up] (n\k1.north) -- (1.7*\k,-0.4);
 \end{tikzpicture}
-\caption{Part II on the pipeline: each box is a Part II section (number and topic) under the stage it extends.}
+\caption{Part II on the pipeline: each box is a Part II section (number and topic) under the stage it extends. Short forms: CV: computer vision.}
 \label{fig:partb-map}
 \end{figure}
 \begin{figure}[p]
@@ -174,7 +190,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
 \includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/plots/p_fixes.pdf} & \textbf{\ref{sec:hard} Hard problems} & the textbook method & instancing, separable kernels, indexed meshes, biases & $3.5$--$4.5\times$ less\\[1.5mm]
 \bottomrule
 \end{tabular}}
-\caption{Part II at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result.}
+\caption{Part II at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result. Short forms: BFS: breadth-first search; BVH: bounding volume hierarchy; HDR: high dynamic range; CV: computer vision; IK: inverse kinematics; PD: proportional--derivative. Short forms: LOD: level of detail; UAV: uncrewed aerial vehicle.}
 \label{fig:partb-glance}
 \end{figure}
 \input{sections/B02_color}

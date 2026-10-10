@@ -91,7 +91,7 @@ def base(ax, title, r=37):
     ax.add_patch(plt.Rectangle((L["bunker_min_x"], L["bunker_min_z"]), L["bunker_max_x"] - L["bunker_min_x"],
                                L["bunker_max_z"] - L["bunker_min_z"], fill=False, ec="0.25", lw=0.7, ls=(0, (3, 2)), zorder=2))
     for name, key, dx, dz in [("outer gate", "outer_gate", 1.5, -1.0), ("helipad", "helipad", 0, 5.8), ("radar", "radar_site", -1, 4),
-                              ("AA gun", "aa_gun_site", 0, -4.5), ("motor pool", "motor_pool", 0, -6.5), ("barracks", "barracks", 0, 7.5),
+                              ("anti-aircraft gun", "aa_gun_site", 0, -4.5), ("motor pool", "motor_pool", 0, -6.5), ("barracks", "barracks", 0, 7.5),
                               ("fuel depot", "fuel_depot", 0, -3.5)]:
         p = L[key]
         ax.text(p[0] + dx, p[2] + dz, name, fontsize=7, color="0.30", ha="center", va="center", zorder=6, clip_on=True,

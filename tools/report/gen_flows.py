@@ -58,7 +58,7 @@ FLOWS = [
       ("s", "leg: two-link inverse kinematics"), ("s", "arms swing against the legs"), ("d", "joint angles")],
      None),
     ("Rover", "fig:flow-rover",
-     r"Flow of Algorithm~\ref{alg:intruder}: one tick of an intruder rover, planner (MicroMouse) first, line follower after it.",
+     r"Flow of Algorithm~\ref{alg:intruder}: one tick of an intruder rover hiding from the UAVs (uncrewed aerial vehicles): planner first, line follower after it.",
      [("d", "rover and UAV positions"), ("s", "flood fill: distance to cover"), ("s", "Dijkstra: cheapest hidden route"),
       ("q", "seen by a UAV?"), ("s", "follow the line (PD steering)"), ("d", "wheel speeds")],
      (3, "yes", "re-plan at once", "no", 1)),

@@ -1,9 +1,9 @@
 \section{Reflection: approximated and traced}
 \label{sec:rtadv}
 \here{10}
-The raster renderer approximates mirror reflection with SSR: for a reflective pixel it
+The raster renderer approximates mirror reflection with \ab{553}{SSR}: for a reflective pixel it
 marches the reflected ray through the depth buffer and copies the colour where the ray passes behind a stored depth.
-It can only reflect what is on screen. The hybrid mode replaces that with real reflection rays against a BVH of the
+It can only reflect what is on screen. The hybrid mode replaces that with real reflection rays against a \ab{554}{BVH} of the
 scene; Whitted, path and light tracing render the whole image with rays. The reflection weight is a Fresnel term.
 \begin{equation}
 F(\theta)=F_0+(1-F_0)(1-\cos\theta)^5\quad\text{(Schlick)},\qquad
@@ -26,7 +26,7 @@ path and light tracing render at a reduced internal size and upscale.}\label{tab
 \end{table}
 
 \begin{table}[htbp]
-\caption{Differences between reflection methods.}
+\caption{Differences between reflection methods. Short forms: BVH: bounding volume hierarchy; SSR: screen-space reflections; RT: ray tracing.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -39,6 +39,6 @@ Path / light tracing & soft shadows, indirect light, caustics (light) & many pat
 \end{tabularx}
 \end{table}
 
-\textbf{Limitation.} The hybrid mode traces only the reflection. The screen-space passes (SSAO/GTAO, fog, SSR) work on the primary
+\textbf{Limitation.} The hybrid mode traces only the reflection. The screen-space passes (\ab{555}{SSAO}/GTAO, fog, \ab{556}{SSR}) work on the primary
 image, so they cannot apply to what is seen in a traced reflection; Whitted, path and light tracing also run at reduced
 internal resolution (Table~\ref{tab:rtperf}) and are for demonstration, not play.
