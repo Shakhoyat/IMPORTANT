@@ -22,6 +22,9 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(__file__))
 import primkey  # noqa: E402
+import abbrev  # noqa: E402  (ABBR and the first-use expansion; Section 7 writes its own)
+
+SEEN = set()   # short forms already written out in Section 7, in document order
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 EXP = json.load(open(os.path.join(ROOT, "report", "data", "scene_export_v10.json")))
@@ -70,7 +73,7 @@ def slug(t):
 
 def lower_name(name):
     """A design name inside a sentence: lower case except acronyms (UAV, SAM, MLRS, AA, HESCO)."""
-    return " ".join(w if w.isupper() and len(w) > 1 else w.lower() for w in name.split())
+    return " ".join(w if (w.isupper() and len(w) > 1) or w in ("Gatling", "Quonset") else w.lower() for w in name.split())
 
 
 def macro(name):
@@ -396,6 +399,113 @@ def rule(d):
     return ""
 
 
+# ------------------------------------------------------------------------------------------------ transformation chain
+def trs(c):
+    """M = T Ry Rx Rz S from the export's T, R_deg (x pitch, y yaw, z roll) and S (math/Math3D.cpp, scene/Transform.h)."""
+    tx, ty, tz = c["T"]
+    ax, ay, az = [math.radians(v) for v in c["R_deg"]]
+    T = np.eye(4)
+    T[:3, 3] = [tx, ty, tz]
+    cx, sx, cy, sy, cz, sz = math.cos(ax), math.sin(ax), math.cos(ay), math.sin(ay), math.cos(az), math.sin(az)
+    Rx = np.array([[1, 0, 0, 0], [0, cx, -sx, 0], [0, sx, cx, 0], [0, 0, 0, 1]])
+    Ry = np.array([[cy, 0, sy, 0], [0, 1, 0, 0], [-sy, 0, cy, 0], [0, 0, 0, 1]])
+    Rz = np.array([[cz, -sz, 0, 0], [sz, cz, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    S = np.diag(list(c["S"]) + [1.0])
+    return T @ Ry @ Rx @ Rz @ S
+
+
+def close(a, b):
+    return float(np.max(np.abs(a - b) / np.maximum(1.0, np.abs(b))))
+
+
+CHAIN_ERR = []
+
+
+def ancestors(c):
+    """Nodes from the scene root down to c (inclusive)."""
+    out = []
+    while c:
+        out.append(c)
+        c = BY_ID.get(c["parent_id"])
+    return list(reversed(out))
+
+
+def chain_check(c):
+    """Product of every local matrix from the scene root to c = the exported world matrix of c (and T Ry Rx Rz S = local)."""
+    W = np.eye(4)
+    for a in ancestors(c):
+        L = mat(a["local_matrix"])
+        e = close(trs(a), L)
+        if e > 1e-3:
+            sys.exit("%s: T Ry Rx Rz S != exported local matrix (error %.2g)" % (a["id"], e))
+        W = W @ L
+    e = close(W, mat(c["world_matrix"]))
+    if e > 1e-3:
+        sys.exit("%s: product of the chain != exported world matrix (error %.2g)" % (c["id"], e))
+    CHAIN_ERR.append(e)
+    return e
+
+
+def fnum(v, nd=2):
+    t = ("%%.%df" % nd) % v
+    return t[1:] if t.startswith("-") and float(t) == 0 else t
+
+
+def bmat(M, nd=3):
+    rows = [" & ".join(fnum(v, nd) for v in r) for r in M]
+    return "\\begin{bmatrix}" + "\\\\".join(rows) + "\\end{bmatrix}"
+
+
+def factors(c):
+    t, r, sc = c["T"], c["R_deg"], c["S"]
+    parts = ["T(%s)" % ",".join(fnum(v) for v in t)]
+    for ax, nm in [(1, "y"), (0, "x"), (2, "z")]:
+        if abs(r[ax]) > 0.05:
+            parts.append("R_%s(%s^\\circ)" % (nm, fnum(r[ax], 1)))
+    if any(abs(v - 1) > 1e-4 for v in sc):
+        parts.append("S(%s)" % ",".join(fnum(v) for v in sc))
+    return "\\,".join(parts)
+
+
+def mname(c):
+    return "M_{\\text{%s}}" % tex(c["name"]).replace("$", "")
+
+
+def chain_block(d):
+    inst = d["instance_list"][0]
+    root = BY_ID[inst["root_id"]]
+    own = [c for c in own_parts(d["name"], root["id"]) if not c["hidden_at_export"] and min(abs(v) for v in c["S"]) > 1e-6]
+    if root["primitive"] != "Group" or not own:
+        part = root
+    else:
+        def score(c):
+            return (len(ancestors(c)), any(abs(v) > 0.05 for v in c["R_deg"]), -c["dfs_index"])
+        part = max(own, key=score)
+    chain_check(root)
+    chain_check(part)
+    par = BY_ID.get(root["parent_id"])
+    Wp = mat(par["world_matrix"]) if par else np.eye(4)
+    lead = "W_{\\text{root}}=" + ("W_{\\text{%s}}\\," % tex(par["name"]) if par else "") + factors(root)
+    if part is root:
+        mid = ""
+        eq = ("$$%s=%s$$" % ("W_{\\text{root}}", bmat(mat(root["world_matrix"]))))
+        what = "The design is one part: its world matrix is the root's."
+    else:
+        path = ancestors(part)
+        k = path.index(root)
+        groups = path[k + 1:-1]
+        chain = "W_{\\text{root}}\\," + "".join(mname(g) + "\\," for g in groups) + "M"
+        mid = ("\\\\Part: %s (%s). \\ $W=%s$, \\quad $M=%s$." % (tex(part["name"]), prim_key(part).lower(), chain, factors(part)))
+        eq = ("\\[W_{\\text{root}}=%s\\qquad M=%s\\qquad W=%s\\]" % (bmat(mat(root["world_matrix"])), bmat(mat(part["local_matrix"])),
+                                                                    bmat(mat(part["world_matrix"]))))
+        what = ""
+    return ("\\par\\noindent\\fcolorbox{black!25}{black!2}{\\begin{minipage}{\\dimexpr\\linewidth-2\\fboxsep-2\\fboxrule\\relax}"
+            "\\raggedright\\fontsize{7.5}{9}\\selectfont\\setlength{\\abovedisplayskip}{2pt}\\setlength{\\belowdisplayskip}{1pt}"
+            "\\setlength{\\arraycolsep}{2.5pt}\\renewcommand{\\arraystretch}{0.95}"
+            "\\textbf{Transformation chain} (instance 1, %s; lengths in m).\\\\Root: $%s$. %s%s%s"
+            "\\end{minipage}}\\par\\smallskip" % (tex(inst["root_name"]), lead, mid, what, eq))
+
+
 # ------------------------------------------------------------------------------------------------ vegetation note
 VEG_KIND = {"Pine": 0, "Broadleaf tree": 1, "Bush": 2, "Boulder": 3, "Treeline pine": 4}
 
@@ -600,9 +710,15 @@ def atlas_block(fams):
     return "\n\\par\\vspace{1.5mm}\n".join(blocks)
 
 
+# Section 7 opens with the designs by family, every short form of their names written out at its first use
+fam_items = []
+for fam in FAMILIES:
+    names = [lower_name(d["name"]) for d in order if d["family"] == fam]
+    fam_items.append("\\item \\textbf{%s:} %s." % (fam.capitalize(), ", ".join(tex(n) for n in names)))
+out.append("\\newcommand{\\designfamilies}{\\begin{itemize}\n%s\n\\end{itemize}}" % abbrev.expand_first("\n".join(fam_items), SEEN))
 cut_at = FAMILIES.index("buildings") + 1
-out.append("\\newcommand{\\designatlasA}{%s}" % atlas_block(FAMILIES[:cut_at]))
-out.append("\\newcommand{\\designatlasB}{%s}" % atlas_block(FAMILIES[cut_at:]))
+out.append(abbrev.expand_first("\\newcommand{\\designatlasA}{%s}" % atlas_block(FAMILIES[:cut_at]), SEEN))
+out.append(abbrev.expand_first("\\newcommand{\\designatlasB}{%s}" % atlas_block(FAMILIES[cut_at:]), SEEN))
 
 
 # Table 19.1
@@ -659,7 +775,7 @@ for fam in FAMILIES:
             cut_note = (" Cutaway: %s are left out in both panels (%d parts) so what they cover shows." %
                         (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0], sum(j["removed"].values())))
         hfig = 5.1 if large else 3.6
-        fig = ["\\needspace{%.1fcm}" % (hfig + (11.0 if large else 5.0)),
+        fig = [("\\FloatBarrier" if large else "") + "\\needspace{%.1fcm}" % (hfig + (11.0 if large else 5.0)),
                "\\begin{center}",
                "\\fcolorbox{black!30}{white}{\\begin{minipage}{0.975\\linewidth}\\centering\\vspace{0.6mm}",
                pair(j, label_groups=large, hmax=hfig),
@@ -672,6 +788,7 @@ for fam in FAMILIES:
         r = rule(d)
         if r:
             body.append(r)
+        body.append(chain_block(d))
         card = "\n".join(x for x in fig if x) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_)
         if nm == "Soldier":
             card += "\n\\soldierextras"
@@ -683,7 +800,7 @@ for fam in FAMILIES:
             card += "\n\\heliextras"
         if nm == "Command bunker":
             card += "\n\\bunkerextras"
-        cards.append(card)
+        cards.append(abbrev.expand_first(card, SEEN))
     out.append("\\newcommand{\\designcards%s}{%%\n%s\n\\FloatBarrier}" % (macro(fam), "\n\n".join(cards)))
 
 # munitions at one scale
@@ -747,4 +864,5 @@ for nm, tag in (("Autonomous UAV", "Uav"), ("Main battle tank", "Tank"), ("Scout
 
 open(OUT, "w").write("\n".join(out) + "\n")
 json.dump(check, open(CHECK, "w"), indent=1)
+print("transformation chains checked: %d, max relative error %.2g" % (len(CHAIN_ERR), max(CHAIN_ERR)))
 print("wrote", OUT, len(DESIGNS), "designs;", total, "parts")

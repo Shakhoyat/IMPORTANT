@@ -1,0 +1,279 @@
+% Flow diagrams of the ten algorithms (one per algorithm of sections/algorithms.tex and Algorithm alg:intruder), at the
+% level of the project's own objects: data in (green), steps (blue), decisions (orange), data out (green).
+% Each \flow... macro is a figure placed right before its algorithm.
+
+\tikzset{
+  flow/.style={font=\fontsize{7.5}{8.7}\selectfont},
+  fd/.style={draw=green!40!black,fill=green!9,rounded corners=5pt,text width=#1,align=center,inner sep=2.2pt,minimum height=8.5mm},
+  fd/.default=2.75cm,
+  fs/.style={draw=blue!45!black,fill=blue!6,rounded corners=1.5pt,text width=#1,align=center,inner sep=2.2pt,minimum height=8.5mm},
+  fs/.default=2.75cm,
+  fq/.style={draw=orange!75!black,fill=orange!13,diamond,aspect=2.4,text width=#1,align=center,inner sep=0.3pt},
+  fq/.default=1.95cm,
+  fa/.style={-{Latex[length=1.5mm]},semithick,black!65},
+  yes/.style={font=\fontsize{7}{8}\selectfont\itshape,text=black!70,inner sep=1pt,fill=white},
+}
+
+% ------------------------------------------------------------------------------------------------ clipping
+\newcommand{\flowClip}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {scene parts (\nLeaves) with world matrix $W$};
+\node[fs] (sph) at (3.39,0) {bounding sphere: $\vect c=W(0,0,0,1)^\top$, $r=\tfrac12\sqrt{s_x^2+s_y^2+s_z^2}$};
+\node[fs] (pl) at (6.78,0) {6 planes $=$ row$_4\pm$row$_{1,2,3}$ of $PV$, normalised};
+\node[fq] (q1) at (10.266,0) {$\exists i$: $\vect a_i\!\cdot\!\vect c+d_i<-r$?};
+\node[fs] (vs) at (13.752,0) {vertex shader: $\vect p_c=P\,V\,W\,\vect p$};
+\node[fs] (skip) at (10.266,1.75) {skip the part: never sent to the GPU};
+\node[fq] (q2) at (13.752,-2.3) {vertices in $-w\le x,y,z\le w$?};
+\node[yes,fill=none,align=left] at (15.232,-3.4) {all out:\\dropped};
+\node[fs] (sh) at (10.266,-2.3) {Sutherland--Hodgman per plane: new vertex at $t=\frac{d_s}{d_s-d_e}$};
+\node[fs] (div) at (6.78,-2.3) {divide by $w$, viewport, fan into triangles};
+\node[fd] (out) at (3.39,-2.3) {triangles inside the view volume $\to$ rasteriser};
+\draw[fa] (in)--(sph); \draw[fa] (sph)--(pl); \draw[fa] (pl)--(q1);
+\draw[fa] (q1)--node[yes,right]{yes}(skip);
+\draw[fa] (q1)--node[yes,above]{no}(vs);
+\draw[fa] (vs)--(q2);
+\draw[fa] (q2)--node[yes,above]{crosses}(sh);
+\draw[fa] (q2.south) -- ++(0,-0.35) -| node[yes,pos=0.25,below]{all inside} (div.south);
+\draw[fa] (sh)--(div); \draw[fa] (div)--(out);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:clip}: whole parts are culled on the CPU (\code{math/Frustum.cpp}); the GPU clips
+the triangles of the parts that remain.}
+\label{fig:flow-clip}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ rasterisation
+\newcommand{\flowRaster}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {screen triangle $\vect p_k$, depth $z_k$, $1/w_k$, normals, colours};
+\node[fq] (q1) at (3.486,0) {signed area $\le0$ (clockwise)?};
+\node[fs] (cull) at (3.486,-1.8) {back face: culled};
+\node[fs] (bb) at (6.971,0) {bounding box of the 3 vertices};
+\node[fs] (ef) at (10.362,0) {pixel centre $\vect x$: edge functions $E_0,E_1,E_2$};
+\node[fq] (q2) at (13.8,0) {all $E_k\ge0$ (top-left rule)?};
+\node[fs] (bar) at (13.8,-1.8) {$\lambda_k=E_k/\sum E$; \ $z=\sum\lambda_kz_k$};
+\node[fq] (q3) at (10.362,-1.8) {$z<Z[\vect x]$?};
+\node[fs] (pc) at (6.971,-1.8) {$Z[\vect x]\gets z$; \ $a=\frac{\sum\lambda_ka_k/w_k}{\sum\lambda_k/w_k}$};
+\node[fd] (out) at (3.486,-3.45) {fragment shader $\to$ colour buffer, Z-buffer};
+\draw[fa] (in)--(q1);
+\draw[fa] (q1)--node[yes,right]{yes}(cull);
+\draw[fa] (q1)--node[yes,above]{no}(bb); \draw[fa] (bb)--(ef); \draw[fa] (ef)--(q2);
+\draw[fa] (q2)--node[yes,right]{yes}(bar);
+\draw[fa] (q2.north) -- ++(0,0.25) -| node[yes,pos=0.25,above]{no: next pixel} (ef.north);
+\draw[fa] (bar)--(q3);
+\draw[fa] (q3)--node[yes,above]{yes}(pc);
+\draw[fa] (q3.south) -- ++(0,-0.3) node[yes,below]{no: fragment hidden};
+\draw[fa] (pc.south) |- (out.east);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:raster}: one triangle of a UAV part from screen vertices to pixels in the colour and
+depth buffers.}
+\label{fig:flow-raster}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ Whitted
+\newcommand{\flowWhitted}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {pixel of the camera $\to$ ray $\vect o+t\vect d$, depth 0};
+\node[fs] (bvh) at (3.39,0) {BVH: slab test per box, nearer child first; unit-shape test in object space};
+\node[fq] (q1) at (6.828,0) {hit?};
+\node[fs] (sky) at (6.828,-1.75) {sky radiance $L(\vect d)$};
+\node[fs] (dir) at (10.266,0) {emission $+$ each light unless a shadow ray is blocked};
+\node[fq] (q2) at (13.752,0) {mirror or glass, depth $<5$?};
+\node[fs] (fr) at (13.752,-1.75) {Fresnel $F(\cos\theta_i,\eta{=}1.5)$};
+\node[fs] (rf) at (10.266,-1.75) {$\vect r=\vect d-2(\vect d\cdot\vect n)\vect n$: \textsc{Trace}, weight $F$};
+\node[fq] (q3) at (6.828,-3.5) {glass and no total internal reflection?};
+\node[fs] (rr) at (3.39,-3.5) {Snell: refracted ray, \textsc{Trace}, weight $1-F$};
+\node[fd] (out) at (0,-1.75) {radiance $L$ of the pixel (sum of the tree)};
+\draw[fa] (in)--(bvh); \draw[fa] (bvh)--(q1);
+\draw[fa] (q1)--node[yes,right]{no}(sky); \draw[fa] (q1)--node[yes,above]{yes}(dir); \draw[fa] (dir)--(q2);
+\draw[fa] (q2)--node[yes,right]{yes}(fr); \draw[fa] (fr)--(rf); \draw[fa] (rf.south) |- (q3.east);
+\draw[fa] (q3)--node[yes,above]{yes}(rr);
+\draw[fa] (rr.west) -| (out.south);
+\draw[fa] (sky)--(out);
+\draw[fa] (q2.north) -- ++(0,0.25) -| node[yes,pos=0.12,above]{no: return $L$} (out.north);
+\draw[fa] (q3.south) -- ++(0,-0.25) -| node[yes,pos=0.3,below]{no} ($(out.south)+(0.4,0)$);
+\draw[fa,dashed] (rf.north) -- ++(0,0.3) node[yes,above,xshift=-2mm]{recursion} -| (bvh.south);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:whitted}: one pixel of the Whitted mode over the scene's BVH; reflection and
+refraction call the same trace again (dashed) until depth 5.}
+\label{fig:flow-whitted}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ CV
+\newcommand{\flowCv}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {UAV heat image $320\times240$, apparent heat $0..1$};
+\node[fs] (sen) at (3.39,0) {sensor model: PSF blur, gain, offset, stripes, noise, 8 bit};
+\node[fs] (ot) at (6.78,0) {256-bin histogram $\to$ Otsu level $t_O$};
+\node[fs] (th) at (10.171,0) {$t=\max(204,\,t_O+1)$; \ mask $M=[I\ge t]$};
+\node[fs] (ds) at (13.561,0) {despeckle: hot pixel with $<2$ hot neighbours $\to0$};
+\node[fs] (uf) at (13.561,-1.8) {two-pass union-find labels, 8-connected};
+\node[fs] (mo) at (10.171,-1.8) {per blob: $n$, centroid, covariance, axis, elongation, peak};
+\node[fq] (q) at (6.78,-1.8) {area, shape and peak in range?};
+\node[fs] (rej) at (6.78,-3.5) {rejected: tracer, wire, warm ground};
+\node[fs] (ray) at (3.39,-1.8) {pixel ray through the centroid $\to$ terrain hit};
+\node[fd] (out) at (0,-1.8) {ground measurement $(x,z)$, $\sigma=0.12+0.015d$ $\to$ tracker};
+\draw[fa] (in)--(sen); \draw[fa] (sen)--(ot); \draw[fa] (ot)--(th); \draw[fa] (th)--(ds); \draw[fa] (ds)--(uf);
+\draw[fa] (uf)--(mo); \draw[fa] (mo)--(q);
+\draw[fa] (q)--node[yes,right]{no}(rej); \draw[fa] (q)--node[yes,above]{yes}(ray); \draw[fa] (ray)--(out);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:cv}: one vision frame of one UAV, from the rendered heat image to ground
+measurements for the shared tracker.}
+\label{fig:flow-cv}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ tracker
+\newcommand{\flowTracker}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {ground measurements of UAV 1 and UAV 2; current tracks};
+\node[fs] (pr) at (3.39,0) {predict each track: Kalman, state $(x,z,v_x,v_z)$};
+\node[fs] (ga) at (6.78,0) {per camera: cost $d^2_{\text{Mahalanobis}}$, $\infty$ outside the $\chi^2$ gate};
+\node[fs] (hu) at (10.171,0) {Hungarian assignment (minimum total $d^2$)};
+\node[fs] (new) at (13.561,0) {a measurement left over starts a tentative track};
+\node[fq] (q2) at (13.561,-2.1) {seen by both UAVs, residual $<1.2$\,m?};
+\node[fs] (tri) at (10.075,-2.1) {triangulate: midpoint of the rays' shortest segment, update};
+\node[fs] (up) at (13.561,-4.0) {update with each ground point};
+\node[fs] (lc) at (6.685,-2.1) {confirm, coast, delete by age; merge tracks $<1$\,m apart};
+\node[fd] (out) at (3.295,-2.1) {shared track picture $\to$ squad roles};
+\draw[fa] (in)--(pr); \draw[fa] (pr)--(ga); \draw[fa] (ga)--(hu); \draw[fa] (hu)--(new); \draw[fa] (new)--(q2);
+\draw[fa] (q2)--node[yes,above]{yes}(tri); \draw[fa] (q2)--node[yes,right]{no}(up);
+\draw[fa] (tri)--(lc); \draw[fa] (up.west) -| (lc.south); \draw[fa] (lc)--(out);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:tracker}: one frame of the tracker shared by both UAVs.}
+\label{fig:flow-tracker}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ squad
+\newcommand{\flowSquad}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {confirmed track nearest the base; lock times; rounds on the rails};
+\node[fs] (ro) at (3.39,0) {LEAD $=$ longest lock; WING $=$ the other UAV};
+\node[fs] (wi) at (6.78,0) {WING flies $\approx90^\circ$ round the target (better triangulation)};
+\node[fq] (q1) at (10.123,0) {both locks long, shots clear?};
+\node[fs] (ti) at (13.895,0) {flight times $T_k$; launch$_k=$ now $+\max_jT_j-T_k$};
+\node[fs] (pn) at (13.895,-2.1) {round: proportional navigation, turn rate clamped};
+\node[fq] (q2) at (10.123,-2.1) {within 0.5\,m of the aim?};
+\node[fd] (out) at (6.59,-2.1) {detonation $\to$ blast, particles, damage};
+\draw[fa] (in)--(ro); \draw[fa] (ro)--(wi); \draw[fa] (wi)--(q1);
+\draw[fa] (q1)--node[yes,above]{yes}(ti);
+\draw[fa] (q1.north) -- ++(0,0.25) -| node[yes,pos=0.25,above]{no: keep orbiting} (wi.north);
+\draw[fa] (ti)--(pn); \draw[fa] (pn)--(q2);
+\draw[fa] (q2)--node[yes,above]{yes}(out);
+\draw[fa] (q2.south) -- ++(0,-0.3) -| node[yes,pos=0.25,below]{no: next tick} (pn.south);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:squad}: the two UAVs' roles and the combined strike, every tick.}
+\label{fig:flow-squad}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ particles
+\newcommand{\flowParticles}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {blast: position, power (round 1, tank shell 1.6)};
+\node[fs] (sp) at (3.39,0) {spawn a few hundred particles of 7 kinds};
+\node[fs] (dr) at (6.78,0) {$\vect v\gets\vect v\,e^{-k\Delta t}$; \ $\vect v\gets\vect v+\vect g\Delta t$; \ $\vect p\gets\vect p+\vect v\Delta t$};
+\node[fq] (q1) at (10.266,0) {below the terrain?};
+\node[fs] (bo) at (10.266,-1.8) {bounce: $v_y\gets-e\,v_y$, damp sideways};
+\node[fq] (q2) at (13.752,0) {age $>$ life?};
+\node[fs] (rm) at (13.752,-1.8) {remove};
+\node[fs] (so) at (6.78,-1.8) {each frame: sort smoke and glow groups back to front};
+\node[fs] (dw) at (3.39,-1.8) {instanced quads: $T\to$ blackbody colour, premultiplied alpha};
+\node[fd] (out) at (0,-1.8) {HDR image (bloom makes fire glow)};
+\draw[fa] (in)--(sp); \draw[fa] (sp)--(dr); \draw[fa] (dr)--(q1);
+\draw[fa] (q1)--node[yes,right]{yes}(bo); \draw[fa] (q1)--node[yes,above]{no}(q2);
+\draw[fa] (bo.east) -| ($(q1.east)!0.5!(q2.west)$);
+\draw[fa] (q2)--node[yes,right]{yes}(rm);
+\draw[fa] (q2.north) -- ++(0,0.25) -| node[yes,pos=0.2,above]{no: next tick} (dr.north);
+\draw[fa] (rm.south) -- ++(0,-0.3) -| (so.south);
+\draw[fa] (so)--(dw); \draw[fa] (dw)--(out);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:particles}: one explosion, simulated every tick and drawn every frame.}
+\label{fig:flow-particles}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ soldier route
+\newcommand{\flowSoldier}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {duty roster: post $a\to b$; $72\times72$ grid of 1\,m cells};
+\node[fs] (sn) at (3.39,0) {snap $a$, $b$ to free cells ($\ge0.40$\,m clear)};
+\node[fs] (po) at (6.78,0) {A*: pop the cell with the smallest $f=g+h_{\text{octile}}$};
+\node[fq] (q1) at (10.266,0) {goal reached?};
+\node[fs] (re) at (10.266,-1.85) {relax 8 neighbours, no corner cutting};
+\node[fs] (ch) at (13.752,0) {chain of cells from the parents};
+\node[fs] (sp) at (13.752,-1.85) {string pulling: keep the farthest point in clear sight};
+\node[fs] (cr) at (13.752,-3.6) {centripetal Catmull--Rom through the kept points};
+\node[fq] (q2) at (10.266,-3.6) {a sample closer than 0.28\,m?};
+\node[fs] (ins) at (6.78,-3.6) {keep the chain point nearest that sample};
+\node[fd] (out) at (3.39,-3.6) {smooth route $\to$ the soldier walks it (gait)};
+\draw[fa] (in)--(sn); \draw[fa] (sn)--(po); \draw[fa] (po)--(q1);
+\draw[fa] (q1)--node[yes,right]{no}(re); \draw[fa] (re.west) -| (po.south);
+\draw[fa] (q1)--node[yes,above]{yes}(ch); \draw[fa] (ch)--(sp); \draw[fa] (sp)--(cr); \draw[fa] (cr)--(q2);
+\draw[fa] (q2)--node[yes,above]{yes}(ins);
+\draw[fa] (ins.north) -- ++(0,0.3) -| node[yes,pos=0.75,above]{} ($(cr.north)+(-1.2,0)$);
+\draw[fa] (q2.south) -- ++(0,-0.3) -| node[yes,pos=0.25,below]{no} (out.south);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:soldier}: one route of the guard roster, from two posts to a smooth path.}
+\label{fig:flow-soldier}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ gait
+\newcommand{\flowGait}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {soldier's ground displacement $\Delta\vect p$ this tick};
+\node[fs] (ph) at (3.39,0) {phase $s\gets s+\lVert\Delta\vect p\rVert/\text{stride}$};
+\node[fq=2.3cm] (q) at (6.828,0) {stance? left leg at $s$, right at $s+\tfrac12$};
+\node[fs] (st) at (10.266,0.9) {stance: ankle slides back on the ground};
+\node[fs] (sw) at (10.266,-0.9) {swing: cycloid $x$, sine lift $y$};
+\node[fs] (kn) at (13.752,0) {$d=\lVert(x,y)\rVert$; knee $\kappa$ by the law of cosines};
+\node[fs] (hi) at (13.752,-2.0) {hip $\eta=\operatorname{atan2}(x,-y)+\arccos(\cdot)$};
+\node[fs] (wr) at (10.266,-2.6) {write $R_x(-\eta)$, $R_x(\kappa)$ to the joint groups};
+\node[fd] (out) at (6.828,-2.6) {world matrices of the leg parts (Eq.~\ref{eq:world}) $\to$ drawn};
+\draw[fa] (in)--(ph); \draw[fa] (ph)--(q);
+\draw[fa] (q.north) |- node[yes,pos=0.75,above]{yes}(st.west); \draw[fa] (q.south) |- node[yes,pos=0.75,below]{no}(sw.west);
+\draw[fa] (st.east) -| (kn.north); \draw[fa] (sw.east) -- ++(0.25,0) |- (kn.west);
+\draw[fa] (kn)--(hi); \draw[fa] (hi.south) |- (wr.east); \draw[fa] (wr)--(out);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:gait}: each leg of a walking soldier, every tick.}
+\label{fig:flow-gait}
+\end{figure}}
+
+% ------------------------------------------------------------------------------------------------ rover
+\newcommand{\flowRover}{%
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[flow]
+\node[fd] (in) at (0,0) {UAV positions; rover pose $(\vect p,\psi)$; $80\times80$ grid of 0.5\,m cells};
+\node[fq] (q1) at (3.486,0) {re-plan due?};
+\node[fq] (q2) at (6.971,0) {infiltrating and not evading?};
+\node[fs] (dj) at (10.409,0.95) {Dijkstra from the goal: step cost $+$ exposure to a UAV};
+\node[fs] (bf) at (10.409,-0.95) {hidden cells (5 test points) $\to$ BFS flood fill $D$};
+\node[fs] (de) at (13.8,0) {descend $D$ cell by cell $\to$ cell path};
+\node[fs] (cc) at (13.8,-2.1) {Chaikin $\times3$ $\to$ guide line};
+\node[fs] (se) at (10.409,-2.6) {5 sensors on the line $\to$ error $e$};
+\node[fs] (pd) at (6.971,-2.6) {PD: $\omega=K_pe+K_d\dot e$; $v_{L,R}=v\mp\omega w/2$};
+\node[fd] (out) at (3.486,-2.6) {wheel speeds $\to$ rover moves, collisions checked};
+\draw[fa] (in)--(q1); \draw[fa] (q1)--node[yes,above]{yes}(q2);
+\draw[fa] (q2.north) |- node[yes,pos=0.75,above]{yes}(dj.west); \draw[fa] (q2.south) |- node[yes,pos=0.75,below]{no}(bf.west);
+\draw[fa] (dj.east) -| (de.north); \draw[fa] (bf.east) -- ++(0.2,0) |- (de.west);
+\draw[fa] (de)--(cc); \draw[fa] (cc.south) |- (se.east); \draw[fa] (se)--(pd); \draw[fa] (pd)--(out);
+\draw[fa] (q1.south) -- node[yes,right,pos=0.4]{no: keep the line} ($(q1.south)+(0,-1.45)$) -| ($(se.north)+(-0.6,0)$);
+\end{tikzpicture}
+\caption{Flow of Algorithm~\ref{alg:intruder}: one tick of an intruder rover, planner (MicroMouse) above, line follower below.}
+\label{fig:flow-rover}
+\end{figure}}

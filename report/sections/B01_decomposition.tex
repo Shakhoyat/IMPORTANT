@@ -1,6 +1,44 @@
 \section{Object decomposition catalogue}
 \label{sec:decomp}
 \here{1}
+The scene is built from \nDesigns{} designs, each the output of one builder function, placed \nDesignInstances{}
+times for \sceneParts{} parts in all. The designs by family (Figure~\ref{fig:atlas} shows each one):
+\designfamilies
+
+\textbf{Reading a card.}
+\begin{itemize}
+\item The full model beside the same parts drawn in their primitive's colour and pulled apart.
+\item Pale parts belong to a nested design with its own card; $^\dagger$ marks a part hidden at the start (a muzzle
+flash, a missile in its tube).
+\item The legend counts the design's own parts and matches its parts table.
+\item Parts tables: repeats share one row; $\pm a$ is a mirrored pair, $a{+}di$ counts copies $i=0,1,\dots$, $\{a,b\}$
+lists values and $a..b$ a range. Positions are in the design's frame (cm); rotations are relative to the parent (degrees).
+\item Transformation chain: the matrices of the root placement and of one part, as below.
+\end{itemize}
+
+\textbf{The basic matrices and their order.} Every node of a design (group or part) has one local matrix built from its
+own $T$, $R$ and $S$ (\code{scene/Transform.h}, \code{math/Math3D.cpp}); a part's world matrix is the product of the local
+matrices from the scene root down to the part, applied to the unit primitive's vertex $\vect p=(x,y,z,1)^\top$:
+\begin{gather}
+T(\vect t)=\begin{bmatrix}1&0&0&t_x\\0&1&0&t_y\\0&0&1&t_z\\0&0&0&1\end{bmatrix}\!,\
+R_x(\theta)=\begin{bmatrix}1&0&0&0\\0&\cos\theta&-\sin\theta&0\\0&\sin\theta&\cos\theta&0\\0&0&0&1\end{bmatrix}\!,\
+R_y(\psi)=\begin{bmatrix}\cos\psi&0&\sin\psi&0\\0&1&0&0\\-\sin\psi&0&\cos\psi&0\\0&0&0&1\end{bmatrix}\!,\nonumber\\
+R_z(\varphi)=\begin{bmatrix}\cos\varphi&-\sin\varphi&0&0\\\sin\varphi&\cos\varphi&0&0\\0&0&1&0\\0&0&0&1\end{bmatrix}\!,\quad
+S(\vect s)=\begin{bmatrix}s_x&0&0&0\\0&s_y&0&0\\0&0&s_z&0\\0&0&0&1\end{bmatrix}\!,\quad
+M=T\,R_y\,R_x\,R_z\,S\label{eq:basicmats}\\
+W_{\text{part}}=\underbrace{W_{\text{parent of root}}\,M_{\text{root}}}_{W_{\text{root}}}\,M_{g_1}\,M_{g_2}\cdots M_{g_k}\,M_{\text{part}},\qquad
+\vect p_{\text{world}}=W_{\text{part}}\,\vect p\nonumber
+\end{gather}
+\begin{itemize}
+\item Read right to left: the unit primitive is scaled, rolled ($R_z$), pitched ($R_x$), turned ($R_y$) and moved ($T$) in
+its group's frame; each group $g_i$ then carries it into its parent's frame.
+\item Each card's boxed block gives instance 1's root placement $W_{\text{root}}$, one part's chain with its own factors,
+its local matrix $M$ and its world matrix $W$ (lengths in metres). Factors equal to the identity are left out.
+\item \code{tools/report/gen\_designs.py} checks every printed chain: the product of the exported local matrices equals
+the exported world matrix (largest relative error $1.3\times10^{-7}$ over 124 chains), and $T R_y R_x R_z S$ from the
+exported $T$, $R$, $S$ equals each local matrix.
+\end{itemize}
+
 \begin{figure}[H]
 \centering\setlength{\tabcolsep}{1mm}\renewcommand{\arraystretch}{1}
 \designatlasA
@@ -13,15 +51,6 @@
 \designatlasB
 \caption{Object atlas (continued).}
 \end{figure}
-
-The scene is built from \nDesigns{} designs, each the output of one builder function, placed \nDesignInstances{}
-times for \sceneParts{} parts in all (Figure~\ref{fig:atlas}). Every card shows the full model beside the same parts
-drawn in their primitive's colour and pulled apart. Pale parts belong to a nested design with its own card; $^\dagger$
-marks a part hidden at the start (a muzzle flash, a missile in its tube). The legend counts the design's own parts and
-matches its parts table.
-
-In the parts tables, repeats share one row: $\pm a$ is a mirrored pair, $a{+}di$ counts copies $i=0,1,\dots$, $\{a,b\}$
-lists values and $a..b$ a range. Positions are in the design's frame (cm); rotations are relative to the parent (degrees).
 
 % ---------------------------------------------------------------------------------- extras placed inside some cards
 \newcommand{\soldierextras}{%
@@ -68,7 +97,7 @@ along the bottom, swing above it).}
 \caption{The three tanks are one design; only the root transform differs.}\label{tab:main-tank}
 \centering\footnotesize\variantsTank
 \end{table}
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering\buildstripKeyTank
 \caption{The tank built up in hierarchy order (depth-first order of the scene graph): hull first, then running gear,
 then turret and gun.}
@@ -82,7 +111,7 @@ then turret and gun.}
 same size, with its primitive and size. Glass and rotor-blur parts are drawn opaque, the light beam as a solid.}
 \label{fig:parts-uav}
 \end{figure}
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering\buildstripKeyUav
 \caption{The UAV built up in hierarchy order: the first 12, 35, 65 and 100\,\% of its parts, including the rounds on
 its rails. The searchlight beam is a light volume, not geometry, and is not drawn.}
@@ -90,14 +119,14 @@ its rails. The searchlight beam is a light volume, not geometry, and is not draw
 \end{figure}}
 
 \newcommand{\heliextras}{%
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering\buildstripKeyHeli
 \caption{The scout helicopter built up in hierarchy order: body, then the rotor heads and blades, then the searchlight.}
 \label{fig:build-heli}
 \end{figure}}
 
 \newcommand{\bunkerextras}{%
-\begin{figure}[tbp]
+\begin{figure}[H]
 \centering\buildstripKeyBunker
 \caption{The command bunker built up in hierarchy order: the entrance trench, the blast door, the shell, then the rooms
 and the surface installations.}
@@ -108,8 +137,8 @@ and the surface installations.}
 \designcardsPeople
 
 \needspace{15cm}\subsection{Vehicles and their weapons}
-Each vehicle or launcher is followed by the munition it fires: the UAV and its rounds, the surface-to-air missile (SAM) launcher and its missile,
-the multiple launch rocket system (MLRS) truck and its rockets, the anti-aircraft (AA) gun and its shell casings. The munitions are nested designs of their carriers;
+Each vehicle or launcher is followed by the munition it fires: the UAV and its rounds, the SAM launcher and its missile,
+the MLRS truck and its rockets, the AA gun and its shell casings. The munitions are nested designs of their carriers;
 Figure~\ref{fig:munitions} compares them at one scale. The tank's shells and the AA gun's tracers are not scene parts:
 the combat code draws them as glowing slugs.
 \designcardsVehiclesAndTheirWeapons
@@ -123,7 +152,7 @@ the combat code draws them as glowing slugs.
 
 \needspace{15cm}\subsection{Vegetation}
 Five tree and shrub designs are built from primitives. At ULTRA and EPIC the renderer swaps four of them, and the
-boulders, for imported CC0 meshes from Poly Haven; each card names the mesh and its triangle count. Those meshes are
+boulders, for imported public-domain meshes from Poly Haven; each card names the mesh and its triangle count. Those meshes are
 not primitive-built and appear in no table of this section. The cut branches are never swapped.
 \designcardsVegetation
 

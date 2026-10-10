@@ -2,7 +2,7 @@
 \label{sec:color}
 \here{9}
 Colour is interpolated in four places: across a triangle (barycentric), between shading models (Gouraud vs Phong),
-between colour spaces (sRGB vs linear), and over time (sky and fog presets over the day). Each has a naive version
+between colour spaces (standard RGB colour space (sRGB) vs linear), and over time (sky and fog presets over the day). Each has a naive version
 that fails visibly.
 \begin{equation}
 c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.055}\big)^{2.4} & \text{else}\end{cases},\qquad
