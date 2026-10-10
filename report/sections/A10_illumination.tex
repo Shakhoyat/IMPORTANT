@@ -120,7 +120,7 @@ Light & Type & Parameters & When\\\midrule
 Sun & directional & direction and colour from the solar model (Section~\ref{sec:day}), intensity up to 3.2 & sun above $-1^\circ$\\
 Moon & directional & intensity \moonI, colour (0.55, 0.62, 0.80) & night\\
 Beacon & point & $k_l=\beaconLin$, $k_q=\beaconQuad$, pulsing 0.6--2.0 & night\\
-UAV searchlight & spot & $\theta_i=\spotInner^\circ$, $\theta_o=\spotOuter^\circ$, $k_l=\spotLin$, $k_q=\spotQuad$ & night, UAV airborne\\
+UAV searchlights (2) & spot & $\theta_i=\spotInner^\circ$, $\theta_o=\spotOuter^\circ$, $k_l=\spotLin$, $k_q=\spotQuad$; UAV 1 with a shadow map, UAV 2 unshadowed & night, UAV airborne\\
 Practical lamps & point & up to 16 at once (floodlights, lamps, fire barrel) & dusk to dawn\\
 Ambient & hemisphere / spherical harmonics (SH) & night constant; by day the irradiance of the drawn sky & always\\
 \bottomrule

@@ -919,11 +919,12 @@ def sheet_clipping(wb):
 def sheet_illumination(wb, exp, vp):
     s = Sheet(wb, "Illumination", "Illumination: ambient + Lambert diffuse + Blinn-Phong specular at one roof point",
               "scene/DayCycle (solar model, transmittance, 3.2 smoothstep(-1, 10, e), ambient mixLog); export "
-              "'lights'; ShaderSources.cpp brdf(); BNK-171 'Roof slab A'.")
+              "'lights'; ShaderSources.cpp brdf(); the command bunker's part 'Roof slab A'.")
     s.widths({"A": 36, "B": 11, "C": 11, "D": 11, "E": 11, "F": 11, "G": 3, "H": 33, "I": 9, "J": 9, "K": 9})
     S = s.put
     L = exp["lights"]
-    roof = comp_index(exp)["BNK-171"]
+    # the command bunker's roof slab, found by name (part ids shift whenever parts are added before it)
+    roof = next(c for c in exp["components"] if c["object"] == "Command Bunker" and c["name"] == "Roof slab A")
     roof_top = roof["T"][1] + roof["S"][1] / 2
     # ---- inputs on the right
     c0 = 8
@@ -952,7 +953,7 @@ def sheet_illumination(wb, exp, vp):
     irow("spot attenuation linear, quadratic", [L["spot"]["linear"], L["spot"]["quadratic"]])
     irow("night ambient (LightRig)", L["ambient"])
     irow("day ambient (kDayAmbient)", [0.34, 0.36, 0.40])
-    irow("roof albedo kd (BNK-171 colour)", roof["color"])
+    irow("roof albedo kd (Roof slab A colour)", roof["color"])
     irow("roof ks, shininess n", [roof["specular"], round(roof["shininess"], 4)])
     irow("roof point P (top face, m)", [roof["T"][0], round(roof_top, 4), round(roof["T"][2], 4)])
     irow("normal N", [0, 1, 0])
@@ -1072,7 +1073,7 @@ def sheet_illumination(wb, exp, vp):
                                         "UAV spot (roof point)"], height=30)
     tau = inp["optical depth tau (R, G, B)"]
     na, da = inp["night ambient (LightRig)"], inp["day ambient (kDayAmbient)"]
-    kd = inp["roof albedo kd (BNK-171 colour)"]
+    kd = inp["roof albedo kd (Roof slab A colour)"]
     T = {}
     terms = [("Il = light colour x intensity", "Il"), ("ambient Ia", "Ia"), ("ambient kd Ia", "amb"),
              ("diffuse kd Il (N.L)", "dif"), ("specular ks Il (N.H)^n", "spe"), ("total I", "tot")]

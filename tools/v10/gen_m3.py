@@ -232,19 +232,22 @@ out.append("\\newcommand{\\wgC}{\\begin{tabular}{@{}lrrll@{}}\\toprule pose & hi
 out += rows
 out.append("\\bottomrule\\end{tabular}}")
 
-# C2: the blast door's west leaf closed and open (translation of the leaf group along its parent's x)
+# C2: the blast gate's west leaf closed and open (rotation of the leaf group about its jamb hinge: the group's origin
+# is the hinge, so M = T(hinge) Ry(psi); objects/Bunker.cpp turns the west leaf by -swing, the east leaf by +swing)
 leaf = pick("Command Bunker", lambda c: c["name"] == "Door leaf W")
 panel = [c for c in C if c["parent_id"] == leaf["id"] and c["primitive"] != "Group"]
 panel = max(panel, key=lambda c: c["S"][0] * c["S"][1] * c["S"][2])
-slide = float(re.search(r"by ([\d.]+) m", leaf["animation"]).group(1))
+swing = float(re.search(r"by ([\d.]+) deg", leaf["animation"]).group(1))
 rows = []
-for nm, tx in [("closed", leaf["T"][0]), ("open", leaf["T"][0] - slide)]:
-    W = parent_world(leaf) @ local(leaf, Tv=[tx, leaf["T"][1], leaf["T"][2]]) @ local(panel)
+for nm, psi in [("closed", 0.0), ("open", -swing)]:
+    W = parent_world(leaf) @ local(leaf, R=[leaf["R_deg"][0], psi, leaf["R_deg"][2]]) @ local(panel)
     a = (W @ np.array([-0.5, -0.5, 0.5, 1.0]))[:3]
     b = (W @ np.array([0.5, 0.5, 0.5, 1.0]))[:3]
-    rows.append(f"{nm} & {f(tx, 3)} & {vec(a, 2)} & {vec(b, 2)}\\\\")
-out.append(f"\\newcommand{{\\wgDoorSlide}}{{{f(slide, 2)}}}\\newcommand{{\\wgDoorPanel}}{{{tex(panel['name'])}}}")
-out.append("\\newcommand{\\wgCdoor}{\\begin{tabular}{@{}lrll@{}}\\toprule leaf & $T_x$ (m) & corner $v_5$ (world, m) & corner $v_3$ (world, m)\\\\\\midrule")
+    rows.append(f"{nm} & {f(psi, 0)} & {vec(a, 2)} & {vec(b, 2)}\\\\")
+hinge = (parent_world(leaf) @ np.array(list(leaf["T"]) + [1.0]))[:3]
+out.append(f"\\newcommand{{\\wgDoorSwing}}{{{f(swing, 0)}}}\\newcommand{{\\wgDoorPanel}}{{{tex(panel['name'])}}}"
+           f"\\newcommand{{\\wgDoorHinge}}{{{vec(hinge, 2)}}}")
+out.append("\\newcommand{\\wgCdoor}{\\begin{tabular}{@{}lrll@{}}\\toprule leaf & $R_y$ ($^\\circ$) & corner $v_5$ (world, m) & corner $v_3$ (world, m)\\\\\\midrule")
 out += rows
 out.append("\\bottomrule\\end{tabular}}")
 

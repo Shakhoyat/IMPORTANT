@@ -22,6 +22,7 @@ Soldier legs & gait phase advanced by distance / stride; two-link inverse kinema
 Third-person camera & spring-arm follow, sphere cast against walls; shorter arm indoors\\
 UAV & duty state machine (docked, take-off, patrol, return, landing); chase camera springs $\omega=10$ (position), 5 (heading); bank $0.3^\circ$ per $^\circ$/s of turn\\
 Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% open in 1.13\,s; the swinging leaf is a moving collision box\\
+Bunker blast gate & two leaves swing $92^\circ$ about their jamb hinges out into the trench, ease-in/ease-out in 4\,s; shut at the start; opens for any soldier in the trench or the tunnel and closes 3\,s after the last one has passed (a manual \key{Enter} toggle holds its state for 30\,s)\\
 Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,exposure value (EV) indoor bias\\
 \bottomrule
 \end{tabularx}
@@ -32,10 +33,11 @@ Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards
 \begin{subfigure}{0.325\linewidth}\raw{play_clean/play_door_closed}{\linewidth}\caption{Hall door shut.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{0.4\,s after \key{E}: the hinge spring.}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play_clean/play_door_open}{\linewidth}\caption{On its holder (95\,\% in 1.13\,s).}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.49\linewidth}\raw{showcase/sc_bunker_ramp_open}{\linewidth}\caption{Blast doors slid open (4\,s); a soldier walks out.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_sprint_fov}{\linewidth}\caption{Sprint: the field of view widens by up to $6^\circ$.}\end{subfigure}
-\caption{Controllable dynamics in the scene: a hinged door on a spring (a--c, Eq.~\eqref{eq:spring}), sliding blast
-doors (d) and the sprint camera (e).}
+\begin{subfigure}{0.325\linewidth}\raw{showcase/sc_bunker_ramp_closed}{\linewidth}\caption{Blast gate shut (its state at the start).}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{showcase/sc_bunker_ramp_open}{\linewidth}\caption{Both leaves swung out $92^\circ$ (4\,s); a soldier walks out.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{play_clean/play_sprint_fov}{\linewidth}\caption{Sprint: the field of view widens by up to $6^\circ$.}\end{subfigure}
+\caption{Controllable dynamics in the scene: a hinged door on a spring (a--c, Eq.~\eqref{eq:spring}), the bunker's
+hinged blast gate (d, e) and the sprint camera (f).}
 \label{fig:dyn}
 \end{figure}
 

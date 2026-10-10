@@ -197,10 +197,10 @@ tube centre & (0.35, 0, 0) & (0, 0.44, -2.124) & (-22.72, 0.14, -18.28)\\
 standing (export pose) & -7.1 & 12.3 & (-0.7, 0.22, 21.06) & (-0.7, -0.22, 21.02)\\
 walking, phase 0.8125 & -30.2 & 68.5 & (-0.7, 0.28, 21.23) & (-0.7, -0.07, 20.96)\\
 \bottomrule\end{tabular}}
-\newcommand{\wgDoorSlide}{1.5}\newcommand{\wgDoorPanel}{Leaf plate}
-\newcommand{\wgCdoor}{\begin{tabular}{@{}lrll@{}}\toprule leaf & $T_x$ (m) & corner $v_5$ (world, m) & corner $v_3$ (world, m)\\\midrule
-closed & -2.225 & (-2.95, -3.4, 4) & (-1.5, -0.8, 4)\\
-open & -3.725 & (-4.45, -3.4, 4) & (-3, -0.8, 4)\\
+\newcommand{\wgDoorSwing}{92}\newcommand{\wgDoorPanel}{Leaf plate}\newcommand{\wgDoorHinge}{(-1.3, -2.1, 4)}
+\newcommand{\wgCdoor}{\begin{tabular}{@{}lrll@{}}\toprule leaf & $R_y$ ($^\circ$) & corner $v_5$ (world, m) & corner $v_3$ (world, m)\\\midrule
+closed & 0 & (-1.3, -3.4, 4.2) & (0, -0.8, 4.2)\\
+open & -92 & (-1.5, -3.4, 3.99) & (-1.55, -0.8, 5.29)\\
 \bottomrule\end{tabular}}
 \newcommand{\wgD}{\begin{tabular}{@{}rrllr@{}}\toprule yaw $\psi$ & pitch $\theta$ & camera (world, m) & view axis $W(0,0,1,0)$ & below horizon ($^\circ$)\\\midrule
 0 & 50 & (0, 7.42, 12.37) & (0, -0.77, -0.64) & 50\\
@@ -226,10 +226,10 @@ Main Battle Tank 3 & 255 & (-25, -0.3, -3.5) & -90 & 0\\
 \newcommand{\nSoldierParts}{75}
 \newcommand{\primusetable}{\begin{tabularx}{\linewidth}{@{}rlr>{\raggedright\arraybackslash}X@{}}\toprule\# & Primitive & parts & Most frequent part kinds (count)\\\midrule
 1 & \primsq{cube}~cube & 24 & Corner casting 12, Crate 10, Ram lug 2\\
-2 & \primsq{cuboid}~cuboid & 2443 & Camo net panel 297, HESCO cell 212, Spoke 54, Tyre track 50, +514 more kinds\\
-3 & \primsq{sphere}~sphere & 808 & Bush 88, Canopy clump 48, Rock 46, Hub 36, +109 more kinds\\
+2 & \primsq{cuboid}~cuboid & 2452 & Camo net panel 297, HESCO cell 212, Spoke 54, Tyre track 50, +518 more kinds\\
+3 & \primsq{sphere}~sphere & 810 & Bush 88, Canopy clump 48, Rock 46, Hub 36, +109 more kinds\\
 4 & \primsq{hemisphere}~hemisphere & 10 & Helmet 8, Earth berm 1, Radome 1\\
-5 & \primsq{cylinder}~cylinder & 1358 & Fence wire 90, Net pole 58, Wheel 58, Hub 54, +223 more kinds\\
+5 & \primsq{cylinder}~cylinder & 1360 & Fence wire 90, Net pole 58, Wheel 58, Hub 54, +224 more kinds\\
 6 & \primsq{frustum}~frustum & 3 & Light cone 2, Searchlight cone 1\\
 7 & \primsq{cone}~cone & 295 & Pine crown 253, Cut branch tip 24, Round nose 15, Roof cone 1, +2 more kinds\\
 8 & \primsq{torus}~torus & 97 & Tyre 54, Tyre tread 20, Muzzle ring 12, Motor cooling ring 8, +1 more kind\\
@@ -243,7 +243,7 @@ Main Battle Tank 3 & 255 & (-25, -0.3, -3.5) & -90 & 0\\
 16 & \primsq{terraindisc}~terrain disc & 1 & Ground disc 1\\
 \bottomrule\end{tabularx}}
 \newcommand{\nSphereV}{614}
-\newcommand{\nSphereInst}{808}\newcommand{\nSphereTri}{1224}\newcommand{\sphereTriTotal}{0.99}
+\newcommand{\nSphereInst}{810}\newcommand{\nSphereTri}{1224}\newcommand{\sphereTriTotal}{0.99}
 \expandafter\def\csname nPrimtorus\endcsname{97}
 \expandafter\def\csname nPrimhelix\endcsname{52}
 \expandafter\def\csname nPrimcapsule\endcsname{364}

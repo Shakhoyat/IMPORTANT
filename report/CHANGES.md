@@ -595,3 +595,18 @@ Teaching drawings of each section's maths; every constant drawn from the code is
   `lab/bump_on_off` (18), `lab/explorer_stage_12_fog`, `lab/explorer_stage_14_tonemap` (19).
 - Checks: `check_counts.py` OK; `lint_prose.py` 0 failures (it now skips code listings); 0 overfull boxes; 0 undefined
   references. 178 pages. The Command bunker card must be regenerated from a fresh export if the bunker redesign changes its parts.
+
+### Round 6 addendum: bunker entrance and second searchlight (program at d99baa9)
+
+- **Export replaced** (`report/data/scene_export_v10.json`, from a binary built at d99baa9). Only the Command bunker changed:
+  390 to 403 own parts (cuboid 281 to 290, cylinder 80 to 82, sphere 18 to 20; 427 to 440 with its nested net), scene total
+  5 476 to 5 489 parts; 62 designs and 244 instances as before. The 13 new parts are flat-shaded (783 to 796 flat parts).
+- **Regenerated:** bunker shape view, cutaway and four build stages, the camp-of-primitives view (`capture_shapes.py` tokens with
+  the clean binary); `gen_numbers.py`, `gen_m3.py`, `gen_prim_cards.py`, `gen_designs.py`, `gen_maps.py` (site plan; routes
+  identical), the workbook and its typeset blocks; trench captures `sc_bunker_ramp_closed` / `sc_bunker_ramp_open`.
+- **Generators:** `gen_m3.py` works the west gate leaf as a rotation about its jamb hinge (was a slide); `build_cg_workbook.py`
+  finds the roof slab by name (it used a part id, which shifted); `gen_game.py` reads the C++ sources from `TS_SRC_ROOT` when set.
+- **Text:** Section 8.1 group C (leaf rotation R_y(-92 deg) about the hinge), Section 2 walk-in caption, Section 24 table row and
+  figure (gate shut, gate open), Section 16 light table (two searchlights: UAV 1 shadowed, UAV 2 unshadowed), Section 19 (both
+  searchlights have a shaft in the volumetric pass).
+- Checks: `check_counts.py` OK (5 489 everywhere); lint 0; 0 overfull boxes; 0 undefined references; 179 pages.

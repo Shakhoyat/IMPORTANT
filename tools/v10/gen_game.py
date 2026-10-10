@@ -9,6 +9,9 @@ import os
 import re
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# The C++ sources the constants are read from: the repository, or a clean checkout given by TS_SRC_ROOT (used when the
+# working tree holds edits that are not committed yet).
+SRCROOT = os.environ.get("TS_SRC_ROOT", ROOT)
 EXP = json.load(open(os.path.join(ROOT, "report", "data", "scene_export_v10.json")))
 SEC = os.path.join(ROOT, "report", "sections")
 
@@ -31,8 +34,8 @@ for k in ("launch_speed", "accel", "ramp_time", "cruise_speed", "fuse_m"):
 vals["reloadMeasured"] = round(EXP["simulation"]["reload_seconds_measured"], 2)
 
 # ---- source constants read by pattern (fail loudly if the code changes shape) ----
-combat = open(os.path.join(ROOT, "src", "scene", "Combat.cpp")).read()
-eff = open(os.path.join(ROOT, "src", "rendering", "Effects.cpp")).read()
+combat = open(os.path.join(SRCROOT, "src", "scene", "Combat.cpp")).read()
+eff = open(os.path.join(SRCROOT, "src", "rendering", "Effects.cpp")).read()
 
 
 def grab(pat, src, n=1):
@@ -66,10 +69,10 @@ vals["smokeGlowDecay"] = grab(r"float warm = heat \* exp\(-age \* \(kind == 1 \?
 vals["smokeHeatFloor"], vals["smokeHeatK"] = grab(r"h = ([\d.]+) \+ \(heat - [\d.]+\) \* exp\(-age \* \(kind == 2 \? [\d.]+ : ([\d.]+)\)\)", eff, 2)
 fl = re.search(r"emit = fogLit\(mix\(vec3\(([\d., ]+)\), vec3\(([\d., ]+)\), g\) \* g \* f", eff).groups()
 vals["flashOuter"], vals["flashInner"] = fl[0].replace(" ", ""), fl[1].replace(" ", "")
-deb = open(os.path.join(ROOT, "src", "scene", "Scene.cpp")).read() if os.path.exists(os.path.join(ROOT, "src", "scene", "Scene.cpp")) else ""
-for f in os.listdir(os.path.join(ROOT, "src", "scene")):
+deb = open(os.path.join(SRCROOT, "src", "scene", "Scene.cpp")).read() if os.path.exists(os.path.join(SRCROOT, "src", "scene", "Scene.cpp")) else ""
+for f in os.listdir(os.path.join(SRCROOT, "src", "scene")):
     if f.startswith("Scene") and f.endswith(".cpp"):
-        t = open(os.path.join(ROOT, "src", "scene", f)).read()
+        t = open(os.path.join(SRCROOT, "src", "scene", f)).read()
         if "updateDebris" in t and "restitution" in t:
             deb = t
 vals["debrisSub"] = grab(r"std::ceil\(dt \* ([\d.]+)f\)", deb)
@@ -77,14 +80,14 @@ vals["debrisRest"] = grab(r"p\.velocity\.y = -([\d.]+)f \* p\.velocity\.y;", deb
 vals["debrisFric"] = grab(r"p\.velocity\.x \*= ([\d.]+)f;\s*p\.velocity\.z \*= [\d.]+f;\s*p\.spinRate", deb)
 vals["debrisSpin"] = grab(r"p\.spinRate \*= ([\d.]+)f;", deb)
 vals["debrisRestSpeed"] = grab(r"if \(length\(p\.velocity\) < ([\d.]+)f\)", deb)
-hc = open(os.path.join(ROOT, "src", "ai", "HideController.cpp")).read()
-hh = open(os.path.join(ROOT, "src", "ai", "HideController.h")).read()
+hc = open(os.path.join(SRCROOT, "src", "ai", "HideController.cpp")).read()
+hh = open(os.path.join(SRCROOT, "src", "ai", "HideController.h")).read()
 for k in ("kMaxSpeed", "kReplanPeriod", "kInfiltrateReplan", "kSensorForward", "kSensorSpacing", "kLineHalfWidth"):
     vals[k] = grab(k + r" = ([\d.]+)f;", hc)
 vals["kKp"], vals["kKd"] = grab(r"kKp = ([\d.]+)f, kKd = ([\d.]+)f", hc, 2)
 for k in ("kCellSize", "kEvadeRadius", "kEvadeTime"):
     vals[k] = grab(k + r" = ([\d.]+)f;", hh)
-vals["kRoverTrackWidth"] = grab(r"kRoverTrackWidth = ([\d.]+)f;", open(os.path.join(ROOT, "src", "objects", "Rover.h")).read())
+vals["kRoverTrackWidth"] = grab(r"kRoverTrackWidth = ([\d.]+)f;", open(os.path.join(SRCROOT, "src", "objects", "Rover.h")).read())
 vals["kGridCells"] = int(grab(r"kGridCells = (\d+);", hh))
 vals["kIrSensorCount"] = int(grab(r"kIrSensorCount = (\d+);", hh))
 vals["omegaMax"] = grab(r"\(error - lastError_\) / std::max\(dt, 1e-3f\), -([\d.]+)f", hc)

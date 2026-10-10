@@ -159,13 +159,14 @@ angle changes).}\label{tab:wgB}
 \end{table}
 
 \textbf{C. Joints and doors: only one local matrix changes.} Walking changes the soldier's hip and knee angles
-(rotations about the joint's $x$ axis, from the gait cycle of Section~\ref{sec:dynamic}); opening the blast door
-changes one translation of the leaf group by \wgDoorSlide\,m. Every part below the changed node moves with it,
-with no other matrix touched.
+(rotations about the joint's $x$ axis, from the gait cycle of Section~\ref{sec:dynamic}); opening the blast gate
+changes one rotation of each leaf group, $R_y(\mp\wgDoorSwing^\circ)$ about its jamb hinge: the group's origin is the
+hinge, so its matrix $T(\vect p)\,R_y(\psi)$ is the pivot rotation of Eq.~\eqref{eq:pivot}. Every part below the changed
+node moves with it, with no other matrix touched.
 \begin{table}[htbp]
 \caption{Group C. Top: soldier 1's left leg in the exported standing pose and at the gait phase with the most knee
-bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame. Bottom: the west blast-door leaf (its
-panel \wgDoorPanel) closed and open: two opposite corners of the panel.}\label{tab:wgC}
+bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame. Bottom: the west leaf of the blast gate
+(its panel \wgDoorPanel, hinge at $\wgDoorHinge$\,m) closed and swung open: two opposite corners of the panel.}\label{tab:wgC}
 \centering\footnotesize\wgC\\[2mm]\wgCdoor
 \end{table}
 

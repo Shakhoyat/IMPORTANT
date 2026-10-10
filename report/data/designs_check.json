@@ -304,31 +304,31 @@
  "Command bunker": {
   "legend": {
    "Capsule": 9,
-   "Cuboid": 281,
-   "Cylinder": 80,
+   "Cuboid": 290,
+   "Cylinder": 82,
    "Hemisphere": 1,
-   "Sphere": 18,
+   "Sphere": 20,
    "Wedge": 1
   },
   "table": {
    "Wedge": 1,
-   "Cuboid": 281,
-   "Cylinder": 80,
-   "Sphere": 18,
+   "Cuboid": 290,
+   "Cylinder": 82,
+   "Sphere": 20,
    "Hemisphere": 1,
    "Capsule": 9
   },
   "export": {
    "Capsule": 9,
-   "Cuboid": 281,
-   "Cylinder": 80,
+   "Cuboid": 290,
+   "Cylinder": 82,
    "Hemisphere": 1,
-   "Sphere": 18,
+   "Sphere": 20,
    "Wedge": 1
   },
-  "parts": 390,
+  "parts": 403,
   "instances": 1,
-  "total": 390
+  "total": 403
  },
  "Barracks hall": {
   "legend": {
