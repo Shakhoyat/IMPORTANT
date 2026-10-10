@@ -21,7 +21,7 @@ $\to$ frame statistics (auto-exposure) $\to$ bloom $\to$ composite: exposure, gr
 \item The squared exponent ($\exp^2$ fog) keeps the near field clear and closes in faster than plain $\exp$ fog
 (Figure~\ref{fig:fogcurve}); $\rho$ is interpolated between the night and day values by the solar model.
 \item The volumetric march takes 24--64 steps (preset) with a per-pixel jitter; $p_{\text{HG}}(c)=\frac{1-g^2}{4\pi(1+g^2-2gc)^{3/2}}$
-is the Henyey--Greenstein phase function ($g=0.55$ moon, $0.35$ searchlight); the searchlight shaft is marched only
+is the Henyey--Greenstein phase function ($g=0.55$ moon, $0.35$ searchlight); each searchlight's shaft is marched only
 inside its cone (an analytic ray--cone interval).
 \end{itemize}
 

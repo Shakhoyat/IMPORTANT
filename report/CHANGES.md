@@ -590,5 +590,8 @@ Teaching drawings of each section's maths; every constant drawn from the code is
 - **Fig 7.57(a)** (grass card): the three titles of panel (a) overlapped; the panel is wider and the title smaller
   (`tools/report/gen_grass.py`).
 - Large cards start after a float barrier; build strips placed inline (no float page overflow).
+- New captures in the text, converted by `tools/v10/prepare_figures.py` from existing lab captures (no new program run):
+  `lab/materials_blinnphong_row`, `lab/materials_pbr_grid` (Section 16), `lab/explorer_stage_08_shadow` (16.1),
+  `lab/bump_on_off` (18), `lab/explorer_stage_12_fog`, `lab/explorer_stage_14_tonemap` (19).
 - Checks: `check_counts.py` OK; `lint_prose.py` 0 failures (it now skips code listings); 0 overfull boxes; 0 undefined
   references. 178 pages. The Command bunker card must be regenerated from a fresh export if the bunker redesign changes its parts.
