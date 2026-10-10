@@ -542,3 +542,9 @@ Teaching drawings of each section's maths; every constant drawn from the code is
     UAV and UAV round (close follow on the pad), HESCO perimeter, concertina wire and road (close views).
 - **Recorder:** `TS_FILM_CAM` (a free camera gliding between two poses at a fixed hour, HUD off), for the presentation film.
 - 129 pages, no overfull boxes, no float drift.
+- **Presentation film** (`report/video/thermalsense_film_2min.mp4`, 120 s, 1280×720, 17.2 MB, with the program's audio;
+  gitignored like the other videos): `tools/report/gen_film.py` assembles it from the showcase recording, a v6-cut
+  recording and `TS_FILM_CAM` glide shots, with an animated route map (`tools/report/gen_rover_anim.py`).
+  - 0:00–1:00: the pipeline stages, soldiers on duty, and the barracks hall and bunker interiors.
+  - 1:00–2:00: rover route planning, thermal tracking, the shared track, the combined strike with a slow-motion
+    impact, and soldiers moving and firing.

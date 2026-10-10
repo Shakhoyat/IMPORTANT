@@ -105,90 +105,95 @@ def base(ax, title, r=37):
     ax.text(r - 8, r - 3.8, "10 m", ha="center", fontsize=7)
 
 
-COL = ["#1f4e79", "#c0504d", "#4f8a3a", "#d08c1a", "#7a4f9a", "#3a8a8a", "#8c564b", "#d4508a"]
-G = routes["garrison"]["soldiers"]
-roster = routes["roster"]
+def main():
+    COL = ["#1f4e79", "#c0504d", "#4f8a3a", "#d08c1a", "#7a4f9a", "#3a8a8a", "#8c564b", "#d4508a"]
+    G = routes["garrison"]["soldiers"]
+    roster = routes["roster"]
 
 
-def short(name):
-    return name.split(" ", 2)[-1].title()
+    def short(name):
+        return name.split(" ", 2)[-1].title()
 
 
-fig, axs = plt.subplots(1, 2, figsize=(7.0, 3.85))
-for ax, shift, title in [(axs[0], 1, "(a) day shift (06:24 to 17:36)"), (axs[1], 0, "(b) night shift")]:
-    base(ax, title)
+    fig, axs = plt.subplots(1, 2, figsize=(7.0, 3.85))
+    for ax, shift, title in [(axs[0], 1, "(a) day shift (06:24 to 17:36)"), (axs[1], 0, "(b) night shift")]:
+        base(ax, title)
+        handles = []
+        used = []
+        for s in G:
+            i = s["index"]
+            sh = s["shifts"][shift]
+            col = COL[i % len(COL)]
+            for r in sh["routes"]:
+                if len(r) > 1:
+                    a = np.array(r)
+                    ax.plot(a[:, 0], a[:, 1], color=col, lw=1.4, alpha=0.9, zorder=4, solid_capstyle="round")
+            for st in sh["stops"]:
+                if sh["loop"]:
+                    continue
+                ax.plot(st["p"][0], st["p"][1], marker="v" if st.get("underground") else "o", ms=5.5, mfc=col, mec="white", mew=0.8, zorder=5)
+                if st.get("label"):
+                    lx, lz = st["p"][0] + 1.0, st["p"][1] - 1.0
+                    while any(abs(lx - ux) < 7 and abs(lz - uz) < 1.9 for ux, uz in used):   # stack labels that would overlap
+                        lz += 2.1
+                    used.append((lx, lz))
+                    ax.text(lx, lz, st["label"].title(), fontsize=6, color=col, zorder=6,
+                            bbox=dict(fc="white", ec="none", alpha=0.75, pad=0.3))
+            handles.append(Line2D([], [], color=col, lw=2, label="S%d %s" % (i + 1, short(roster[i]["name"]))))
+        if shift == 1:
+            fig.legend(handles=handles, loc="lower center", ncol=8, frameon=False, fontsize=6.6, handlelength=1.3, columnspacing=0.8)
+    fig.text(0.5, 0.075, "lines: walked routes (Catmull-Rom splines from A* over the site plan); dots: posts; triangles: posts in the bunker",
+             ha="center", fontsize=7, color="0.3")
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.93, bottom=0.12, wspace=0.03)
+    fig.savefig(os.path.join(OUT, "p_guard_map.pdf"))
+    fig.savefig(os.path.join(OUT, "p_guard_map.png"), dpi=200)
+    plt.close(fig)
+    print("wrote p_guard_map")
+
+    # ---- rover route map: each life of each intruder (split where it respawns), the objectives, the UAV paths
+    fig, ax = plt.subplots(figsize=(7.0, 4.6))
+    base(ax, "", r=24)
+    rc = ["#c0504d", "#d08c1a", "#7a4f9a", "#1f4e79", "#3a8a8a", "#4f8a3a"]
     handles = []
-    used = []
-    for s in G:
-        i = s["index"]
-        sh = s["shifts"][shift]
-        col = COL[i % len(COL)]
-        for r in sh["routes"]:
-            if len(r) > 1:
-                a = np.array(r)
-                ax.plot(a[:, 0], a[:, 1], color=col, lw=1.4, alpha=0.9, zorder=4, solid_capstyle="round")
-        for st in sh["stops"]:
-            if sh["loop"]:
-                continue
-            ax.plot(st["p"][0], st["p"][1], marker="v" if st.get("underground") else "o", ms=5.5, mfc=col, mec="white", mew=0.8, zorder=5)
-            if st.get("label"):
-                lx, lz = st["p"][0] + 1.0, st["p"][1] - 1.0
-                while any(abs(lx - ux) < 7 and abs(lz - uz) < 1.9 for ux, uz in used):   # stack labels that would overlap
-                    lz += 2.1
-                used.append((lx, lz))
-                ax.text(lx, lz, st["label"].title(), fontsize=6, color=col, zorder=6,
-                        bbox=dict(fc="white", ec="none", alpha=0.75, pad=0.3))
-        handles.append(Line2D([], [], color=col, lw=2, label="S%d %s" % (i + 1, short(roster[i]["name"]))))
-    if shift == 1:
-        fig.legend(handles=handles, loc="lower center", ncol=8, frameon=False, fontsize=6.6, handlelength=1.3, columnspacing=0.8)
-fig.text(0.5, 0.075, "lines: walked routes (Catmull-Rom splines from A* over the site plan); dots: posts; triangles: posts in the bunker",
-         ha="center", fontsize=7, color="0.3")
-fig.subplots_adjust(left=0.01, right=0.99, top=0.93, bottom=0.12, wspace=0.03)
-fig.savefig(os.path.join(OUT, "p_guard_map.pdf"))
-fig.savefig(os.path.join(OUT, "p_guard_map.png"), dpi=200)
-plt.close(fig)
-print("wrote p_guard_map")
-
-# ---- rover route map: each life of each intruder (split where it respawns), the objectives, the UAV paths
-fig, ax = plt.subplots(figsize=(7.0, 4.6))
-base(ax, "", r=24)
-rc = ["#c0504d", "#d08c1a", "#7a4f9a", "#1f4e79", "#3a8a8a", "#4f8a3a"]
-handles = []
-for i, tr in enumerate(routes["rover_tracks"]):
-    if not tr:
-        continue
-    lives, cur = [], [tr[0]]
-    for p in tr[1:]:
-        if p[0] - cur[-1][0] > 1.0 or math.hypot(p[1] - cur[-1][1], p[2] - cur[-1][2]) > 3.0:
-            lives.append(cur)
-            cur = [p]
-        else:
-            cur.append(p)
-    lives.append(cur)
-    for k, life in enumerate(lives):
-        a = np.array(life)
-        if len(a) < 2:
+    for i, tr in enumerate(routes["rover_tracks"]):
+        if not tr:
             continue
-        ax.plot(a[:, 1], a[:, 2], color=rc[i], lw=1.6, alpha=0.95 if k == 0 else 0.6, ls="-" if k == 0 else (0, (4, 2)), zorder=4)
-        ax.plot(a[0, 1], a[0, 2], "o", ms=5, mfc="white", mec=rc[i], mew=1.4, zorder=5)
-        ax.plot(a[-1, 1], a[-1, 2], "s", ms=4.5, mfc=rc[i], mec="white", mew=0.6, zorder=5)
-        ax.annotate("", (a[len(a) // 2 + 1, 1], a[len(a) // 2 + 1, 2]), (a[len(a) // 2, 1], a[len(a) // 2, 2]),
-                    arrowprops=dict(arrowstyle="-|>", color=rc[i], lw=1.2), zorder=5)
-    handles.append(Line2D([], [], color=rc[i], lw=2, label="rover %d" % (i + 1)))
-for u, tr in enumerate(routes["uav_tracks"]):
-    a = np.array(tr)
-    ax.plot(a[:, 1], a[:, 2], color="0.35", lw=0.7, ls=":", zorder=3)
-handles.append(Line2D([], [], color="0.35", lw=1, ls=":", label="UAV paths"))
-for j, o in enumerate(routes["objectives"]):
-    ax.plot(o[0], o[2], marker="*", ms=12, mfc="#ffd24a", mec="black", mew=0.7, zorder=6)
-    ax.text(o[0] + 1.2, o[2] + 1.6, "O%d" % (j + 1), fontsize=7.5, fontweight="bold", zorder=7)
-handles.append(Line2D([], [], marker="*", color="none", mfc="#ffd24a", mec="black", ms=11, label="objectives"))
-handles.append(Line2D([], [], marker="o", color="none", mfc="white", mec="0.2", ms=6, label="spawn"))
-handles.append(Line2D([], [], marker="s", color="none", mfc="0.2", mec="white", ms=6, label="end of a life"))
-handles.append(Line2D([], [], color="0.2", lw=1.5, ls=(0, (4, 2)), label="later life (respawned)"))
-ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False, fontsize=7.5)
-fig.subplots_adjust(left=0.0, right=0.76, top=0.99, bottom=0.01)
-fig.savefig(os.path.join(OUT, "p_rover_map.pdf"))
-fig.savefig(os.path.join(OUT, "p_rover_map.png"), dpi=200)
-plt.close(fig)
-print("wrote p_rover_map")
+        lives, cur = [], [tr[0]]
+        for p in tr[1:]:
+            if p[0] - cur[-1][0] > 1.0 or math.hypot(p[1] - cur[-1][1], p[2] - cur[-1][2]) > 3.0:
+                lives.append(cur)
+                cur = [p]
+            else:
+                cur.append(p)
+        lives.append(cur)
+        for k, life in enumerate(lives):
+            a = np.array(life)
+            if len(a) < 2:
+                continue
+            ax.plot(a[:, 1], a[:, 2], color=rc[i], lw=1.6, alpha=0.95 if k == 0 else 0.6, ls="-" if k == 0 else (0, (4, 2)), zorder=4)
+            ax.plot(a[0, 1], a[0, 2], "o", ms=5, mfc="white", mec=rc[i], mew=1.4, zorder=5)
+            ax.plot(a[-1, 1], a[-1, 2], "s", ms=4.5, mfc=rc[i], mec="white", mew=0.6, zorder=5)
+            ax.annotate("", (a[len(a) // 2 + 1, 1], a[len(a) // 2 + 1, 2]), (a[len(a) // 2, 1], a[len(a) // 2, 2]),
+                        arrowprops=dict(arrowstyle="-|>", color=rc[i], lw=1.2), zorder=5)
+        handles.append(Line2D([], [], color=rc[i], lw=2, label="rover %d" % (i + 1)))
+    for u, tr in enumerate(routes["uav_tracks"]):
+        a = np.array(tr)
+        ax.plot(a[:, 1], a[:, 2], color="0.35", lw=0.7, ls=":", zorder=3)
+    handles.append(Line2D([], [], color="0.35", lw=1, ls=":", label="UAV paths"))
+    for j, o in enumerate(routes["objectives"]):
+        ax.plot(o[0], o[2], marker="*", ms=12, mfc="#ffd24a", mec="black", mew=0.7, zorder=6)
+        ax.text(o[0] + 1.2, o[2] + 1.6, "O%d" % (j + 1), fontsize=7.5, fontweight="bold", zorder=7)
+    handles.append(Line2D([], [], marker="*", color="none", mfc="#ffd24a", mec="black", ms=11, label="objectives"))
+    handles.append(Line2D([], [], marker="o", color="none", mfc="white", mec="0.2", ms=6, label="spawn"))
+    handles.append(Line2D([], [], marker="s", color="none", mfc="0.2", mec="white", ms=6, label="end of a life"))
+    handles.append(Line2D([], [], color="0.2", lw=1.5, ls=(0, (4, 2)), label="later life (respawned)"))
+    ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False, fontsize=7.5)
+    fig.subplots_adjust(left=0.0, right=0.76, top=0.99, bottom=0.01)
+    fig.savefig(os.path.join(OUT, "p_rover_map.pdf"))
+    fig.savefig(os.path.join(OUT, "p_rover_map.png"), dpi=200)
+    plt.close(fig)
+    print("wrote p_rover_map")
+
+
+if __name__ == "__main__":
+    main()
