@@ -439,6 +439,9 @@ void main() {
     float meanSigma = sigmaSum / float(max(uSteps, 1));
     for (int s = 0; s < 2; ++s) {
         vec3 sp = s == 0 ? uSpotPos : uSpot2Pos, sd = s == 0 ? uSpotDir : uSpot2Dir, sc = s == 0 ? uSpotColor : uSpot2Color;
+        // A viewer at the lamp (the UAV's own gimbal camera) looks down the whole shaft: fade it out there, or the
+        // in-scattering along the axis fills the view with a white disc.
+        sc *= smoothstep(0.8, 4.0, length(uCamPos - sp));
         if (dot(sc, sc) <= 0.0) continue;
         vec2 seg = coneInterval(uCamPos, dir, len, sp, sd);
         if (seg.y <= seg.x) continue;
