@@ -330,7 +330,10 @@ void Helicopter::update(const WorldContext& w, const ControlInput* in) {
         rotorFrac_ = std::min(1.0f, rotorFrac_ + dt / kSpoolUpSeconds);
         if (rotorFrac_ >= 1.0f) state_ = State::Hover;
     } else if (state_ == State::Parked) {
-        rotorFrac_ = std::max(0.0f, rotorFrac_ - dt / kSpoolDownSeconds);
+        // On alert with no pilot: the engine runs and the rotor turns at flight idle, ready to lift off.
+        const float idle = !possessed && w.alert > 0.0f ? kAlertIdle : 0.0f;
+        if (rotorFrac_ < idle) rotorFrac_ = std::min(idle, rotorFrac_ + dt / kSpoolUpSeconds);
+        else rotorFrac_ = std::max(idle, rotorFrac_ - dt / kSpoolDownSeconds);
     } else {
         rotorFrac_ = 1.0f;
     }
@@ -465,6 +468,12 @@ void Helicopter::update(const WorldContext& w, const ControlInput* in) {
         lightPan_ = clampf(lightPan_ - (c.aimYaw * 70.0f * dt + c.aimYawDelta * 0.3f), -150.0f, 150.0f);
         lightDown_ = clampf(lightDown_ - (c.aimPitch * 50.0f * dt + c.aimPitchDelta * 0.3f), -10.0f, 90.0f);
         if (c.firePressed) lightOn_ = !lightOn_;
+    }
+    if (!possessed && w.alert > 0.0f && state_ == State::Parked) {
+        // standby: at night the belly searchlight sweeps the apron in front of the helicopter
+        lightOn_ = beamsAllowed_ && rotorFrac_ > 0.05f;
+        lightPan_ = 55.0f * std::sin(0.35f * time_);
+        lightDown_ = 24.0f + 6.0f * std::sin(0.23f * time_ + 1.0f);
     }
     if (rotorFrac_ <= 0.0f && state_ == State::Parked) lightOn_ = false;
 

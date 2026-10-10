@@ -111,11 +111,20 @@ std::unique_ptr<SceneNode> buildBackdrop() {
     auto root = b.root("Backdrop", {0, 0, 0}, "Distant world outside the playable disc");
     SceneNode* r = root.get();
 
-    // Far ground: a flat 400 m cylinder (axis vertical) just below the terrain rim, so the horizon between the
-    // 36 m terrain mesh and the hills is solid ground. The terrain never dips below the rim, so it stays hidden inside.
+    // Far ground: a flat 400 m square just below the terrain rim, so the horizon between the 36 m terrain mesh and
+    // the hills is solid ground. The terrain never dips below the rim, so it stays hidden inside. Four slabs around a
+    // 48 m square hole (corners at 34 m, still under the terrain disc): one sheet over the whole world was a lid across
+    // the 3.4 m deep bunker trench (the trench is a hole in the terrain), hiding the gate and cutting through the
+    // soldiers walking down the ramp. Slabs turned 90 deg about X like the old cylinder: local z is the thickness.
     const Material ground = makeMaterial({0.085f, 0.080f, 0.060f}, 0.12f, Surface::Ground, 0.95f, 0.0f);
-    b.part(r, "Far ground", P::Cylinder, {400.0f, 400.0f, 0.1f}, {90, 0, 0}, {0, farGroundTop() - 0.05f, 0}, ground,
-           "Ground plane beyond the disc");
+    constexpr float kHole = 24.0f, kFar = 200.0f, mid = 0.5f * (kHole + kFar);
+    const float y = farGroundTop() - 0.05f;
+    for (float s : {-1.0f, 1.0f}) {
+        b.part(r, "Far ground", P::Cube, {2.0f * kFar, kFar - kHole, 0.1f}, {90, 0, 0}, {0, y, s * mid}, ground,
+               s > 0 ? "Ground beyond the disc (north)" : "Ground beyond the disc (south)");
+        b.part(r, "Far ground", P::Cube, {kFar - kHole, 2.0f * kHole, 0.1f}, {90, 0, 0}, {s * mid, y, 0}, ground,
+               s > 0 ? "Ground beyond the disc (east)" : "Ground beyond the disc (west)");
+    }
     addHills(b, r);
     addTreeline(b, r);
     addFarTower(b, r);

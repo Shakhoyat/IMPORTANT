@@ -15,6 +15,7 @@
 #include "rendering/ImageWriter.h"
 #include "rendering/ThermalPalette.h"
 #include "scene/Director.h"
+#include "scene/Garrison.h"
 
 namespace ts {
 
@@ -512,6 +513,11 @@ void App::possess(int index) {
     const std::vector<Controllable*> c = sa::controllables(*scene_);
     if (index >= static_cast<int>(c.size()) || (index >= 0 && (!c[index] || !c[index]->possessable()))) return;
     possessAlt_ = false;
+    if (boardedSoldier_ >= 0 && index != boardedVehicle_) {   // another unit taken while aboard: the soldier is out again
+        if (auto* sd = boardedSoldier_ < static_cast<int>(c.size()) ? dynamic_cast<Soldier*>(c[static_cast<size_t>(boardedSoldier_)]) : nullptr)
+            sd->setAboard(false);
+        boardedSoldier_ = boardedVehicle_ = -1;
+    }
     releaseRover();  // v7: one thing under control at a time
     tpPoseValid_ = false;   // v8: the spring arm re-centres on the next subject
     aiming_ = false;

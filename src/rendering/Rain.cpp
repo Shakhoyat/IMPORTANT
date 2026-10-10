@@ -22,8 +22,8 @@ uniform float uFallSpeed;             // m/s
 out float vT;                         // 0 .. 1 along the streak (head -> tail)
 out vec3 vWorld;
 void main() {
-    vec3 fall = normalize(vec3(uWind.x, -uFallSpeed, uWind.z));
-    float speed = length(vec3(uWind.x, -uFallSpeed, uWind.z));
+    vec3 fall = tsNormalize(vec3(uWind.x, -uFallSpeed, uWind.z));
+    float speed = tsLength(vec3(uWind.x, -uFallSpeed, uWind.z));
     // Position inside the wrapping box: every drop falls forever, re-entering at the top.
     vec3 origin = uCamPos - 0.5 * uBox;
     float travel = uTime * speed + iDrop.z * uBox.y;
@@ -31,8 +31,8 @@ void main() {
     p.xz += (uWind.xz / uFallSpeed) * (uBox.y - p.y);            // wind drift over the fall
     p = mod(p - (origin - floor(origin / uBox) * uBox), uBox) + origin;  // wrap around the camera
     // Streak: the unit cube stretched along the fall direction (length = distance fallen in ~1/40 s)
-    vec3 side = normalize(cross(fall, vec3(0.0, 0.0, 1.0)));
-    vec3 side2 = cross(side, fall);
+    vec3 side = tsNormalize(tsCross(fall, vec3(0.0, 0.0, 1.0)));
+    vec3 side2 = tsCross(side, fall);
     float len = speed / 40.0 * iDrop.w;
     float width = 0.0035 * iDrop.w;
     vec3 local = side * aPos.x * width + side2 * aPos.z * width - fall * aPos.y * len;
@@ -49,22 +49,22 @@ uniform float uRainAmount;            // 0 .. 1
 layout(location = 0) out vec4 FragColor;
 void main() {
     if (indoorMask(vWorld) > 0.3) discard;                         // no rain inside the bunker
-    vec3 V = normalize(vWorld - uCamPos);                          // eye -> drop
+    vec3 V = tsNormalize(vWorld - uCamPos);                          // eye -> drop
     // Forward scattering: a drop between the eye and a light looks much brighter (refraction / glint).
-    vec3 light = uSkyZenith * 0.6 + uMoonColor * 0.08 * (0.3 + pow(max(dot(V, -uMoonDir), 0.0), 8.0));
+    vec3 light = uSkyZenith * 0.6 + uMoonColor * 0.08 * (0.3 + pow(max(tsDot(V, -uMoonDir), 0.0), 8.0));
     vec3 toSpot = vWorld - uSpotPos;
-    float ds = length(toSpot);
-    float cone = clamp((dot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
-    light += uSpotColor * cone * cone / (1.0 + uSpotAtt.x * ds + uSpotAtt.y * ds * ds) * 0.25 * (0.4 + 2.0 * pow(max(dot(V, toSpot / ds), 0.0), 6.0));
+    float ds = tsLength(toSpot);
+    float cone = tsClamp((tsDot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
+    light += uSpotColor * cone * cone / (1.0 + uSpotAtt.x * ds + uSpotAtt.y * ds * ds) * 0.25 * (0.4 + 2.0 * pow(max(tsDot(V, toSpot / ds), 0.0), 6.0));
     for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);
-        light += uPracticalColor[i].rgb * att * 0.3 * (0.4 + 2.0 * pow(max(dot(V, -Lp), 0.0), 6.0));
+        light += uPracticalColor[i].rgb * att * 0.3 * (0.4 + 2.0 * pow(max(tsDot(V, -Lp), 0.0), 6.0));
     }
-    float fade = smoothstep(0.0, 0.3, vT) * smoothstep(1.0, 0.6, vT);   // soft ends
-    float dist = length(vWorld - uCamPos);
-    float nearFade = smoothstep(0.3, 1.2, dist) * (1.0 - smoothstep(14.0, 22.0, dist));
+    float fade = tsSmoothstep(0.0, 0.3, vT) * tsSmoothstep(1.0, 0.6, vT);   // soft ends
+    float dist = tsLength(vWorld - uCamPos);
+    float nearFade = tsSmoothstep(0.3, 1.2, dist) * (1.0 - tsSmoothstep(14.0, 22.0, dist));
     FragColor = vec4(light * fade * nearFade * uRainAmount, 1.0);    // additive
 }
 )";

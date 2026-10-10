@@ -182,12 +182,20 @@ void AaGun::update(const WorldContext& w, const ControlInput* in) {
     if (in) {
         yawCmd_ -= radians(in->aimYaw * kSlewDeg * dt + in->aimYawDelta);
         pitchCmd_ += in->aimPitch * kSlewDeg * dt + in->aimPitchDelta;
+    } else if (w.alert > 0.0f && w.hasThreat) {
+        // on alert with an intruder tracked: the barrels are laid on it
+        const Vec3 o = root_->local.translation;
+        const float dx = w.threatPos.x - o.x, dz = w.threatPos.z - o.z;
+        yawCmd_ = std::atan2(dx, dz);
+        pitchCmd_ = degrees(std::atan2(w.threatPos.y + 0.3f - (o.y + 1.8f), std::sqrt(dx * dx + dz * dz)));
     } else {
+        // idle: sector sweep of the sky (on alert: twice as fast, wider elevation search)
+        const bool alert = w.alert > 0.0f;
         float rel = wrapPi(yawCmd_ - outward_);
         if (rel > radians(110.0f)) sweepDir_ = -1.0f;
         if (rel < -radians(110.0f)) sweepDir_ = 1.0f;
-        yawCmd_ += sweepDir_ * radians(15.0f) * dt;
-        pitchCmd_ = 25.0f + 10.0f * std::sin(0.3f * time_);
+        yawCmd_ += sweepDir_ * radians(alert ? 30.0f : 15.0f) * dt;
+        pitchCmd_ = alert ? 28.0f + 16.0f * std::sin(0.55f * time_) : 25.0f + 10.0f * std::sin(0.3f * time_);
     }
     pitchCmd_ = clampf(pitchCmd_, kPitchMinDeg, kPitchMaxDeg);
     pitchCmd_ = clampf(pitchCmd_, pitch_ - 30.0f, pitch_ + 30.0f);
@@ -198,8 +206,11 @@ void AaGun::update(const WorldContext& w, const ControlInput* in) {
 
     // ---- barrel spin and firing
     const bool trigger = in && in->fire && rounds_ > 0;
+    // on alert the barrels are kept turning slowly (a quarter of the firing speed) so the first burst comes at once
+    const float standby = !in && w.alert > 0.0f ? 0.25f * kMaxSpin : 0.0f;
     if (trigger) spin_ = std::min(kMaxSpin, spin_ + kMaxSpin / kSpoolUp * dt);
-    else spin_ = std::max(0.0f, spin_ - kMaxSpin / kSpoolDown * dt);
+    else if (spin_ < standby) spin_ = std::min(standby, spin_ + kMaxSpin / kSpoolUp * dt);
+    else spin_ = std::max(standby, spin_ - kMaxSpin / kSpoolDown * dt);
     spinAngle_ = std::fmod(spinAngle_ + spin_ * 360.0f * dt, 360.0f);
     firing_ = false;
     mountWorld_ = worldOf(mount_);   // aiming is applied below, so refresh after setting the angles
@@ -237,7 +248,7 @@ void AaGun::update(const WorldContext& w, const ControlInput* in) {
 
     // ---- node transforms
     cluster_->local.rotationDeg = {0.0f, 0.0f, spinAngle_};
-    searchAngle_ = std::fmod(searchAngle_ + (possessed_ ? 1080.0f : 360.0f) * dt, 360.0f);
+    searchAngle_ = std::fmod(searchAngle_ + (possessed_ ? 1080.0f : w.alert > 0.0f ? 720.0f : 360.0f) * dt, 360.0f);
     search_->local.rotationDeg = {0.0f, searchAngle_, 0.0f};
     const bool flash = flashT_ < 0.05f;
     const float fs = flash ? (0.7f + 0.5f * rnd()) : 0.0001f;

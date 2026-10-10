@@ -14,6 +14,8 @@
 
 #include "app/App.h"
 #include "objects/BaseLayout.h"
+#include "objects/Terrain.h"
+#include "scene/Garrison.h"
 #include "raytrace/RtTypes.h"
 #include "scene/Control.h"
 
@@ -78,6 +80,7 @@ std::vector<Interactable> App::gatherInteractables(InteractView& view) const {
         it.action = InteractAction::Release;
         it.always = true;
         it.name = possessedRover_ >= 0 ? "rover" : possessedName();
+        if (possessedRover_ < 0 && boardedSoldier_ >= 0 && possessed_ == boardedVehicle_) it.action = InteractAction::ExitVehicle;
         items.push_back(it);
         return items;
     }
@@ -179,9 +182,89 @@ std::vector<Interactable> App::gatherInteractables(InteractView& view) const {
         it.ref = static_cast<int>(i);
         it.key = s.key;
         it.action = s.canControl ? InteractAction::TakeControl : InteractAction::RideAlong;
+        // A soldier under control gets into the crewed vehicles (the UAVs and the radar are operated remotely).
+        if (self >= 0 && s.canControl && s.controllable >= 0 &&
+            (s.kind == PovKind::Tank || s.kind == PovKind::AaGun || s.kind == PovKind::Launcher || s.kind == PovKind::Helicopter)) {
+            it.action = InteractAction::Board;
+            it.reach = 3.2f + s.radius;   // from beside the hull or the gun pit's edge
+            it.name = std::string(s.kind == PovKind::Tank ? "Enter " : s.kind == PovKind::AaGun ? "Man " :
+                                  s.kind == PovKind::Helicopter ? "Board " : "Operate ") + s.name;
+        }
         items.push_back(it);
     }
     return items;
+}
+
+// A soldier under control gets into the vehicle: he is no longer drawn, the vehicle is under control in its chase view
+// (C: the gunner's sight), the camera blends from his shoulder.
+bool App::boardVehicle(uint32_t key) {
+    const int self = possessedSoldierIndex();
+    const std::vector<PovSource> list = listPovSources(*scene_, shownPose_.eye);
+    const int i = findPov(list, key);
+    if (self < 0 || i < 0 || list[static_cast<size_t>(i)].controllable < 0) return false;
+    const std::vector<Controllable*> ctl = sa::controllables(*scene_);
+    Soldier* sd = dynamic_cast<Soldier*>(ctl[static_cast<size_t>(self)]);
+    const int vehicle = list[static_cast<size_t>(i)].controllable;
+    const Vec3 at = ctl[static_cast<size_t>(vehicle)]->position();
+    selKey_ = key;
+    if (!sd || !controlSource(i) || possessed_ != vehicle) return false;
+    sd->setAboard(true);
+    boardedSoldier_ = self;
+    boardedVehicle_ = vehicle;
+    audio_.playClip(audio::Clip::Door, at + Vec3{0.0f, 1.5f, 0.0f}, true, 0.8f);   // hatch
+    std::printf("Board: %s gets into %s\n", ctl[static_cast<size_t>(self)]->name(), ctl[static_cast<size_t>(vehicle)]->name());
+    return true;
+}
+
+// Out of the vehicle: the soldier stands at the first free spot beside it (left side first), under control again in
+// third person; the vehicle goes back to its own alert behaviour.
+bool App::exitVehicle() {
+    const std::vector<Controllable*> ctl = sa::controllables(*scene_);
+    if (boardedSoldier_ < 0 || boardedSoldier_ >= static_cast<int>(ctl.size()) || boardedVehicle_ < 0) return false;
+    Soldier* sd = dynamic_cast<Soldier*>(ctl[static_cast<size_t>(boardedSoldier_)]);
+    Controllable* veh = ctl[static_cast<size_t>(boardedVehicle_)];
+    if (!sd) return false;
+    const RigPose from = shownPose_;
+    const Vec3 c = veh->position();
+    const CameraHint chase = veh->camera(false);
+    const float heading = std::atan2(chase.target.x - chase.eye.x, chase.target.z - chase.eye.z);   // where the vehicle looks
+    std::vector<Box> solids = scene_->staticSolids();
+    for (const Box& b : veh->dynamicObstacles()) solids.push_back(b);
+    const WalkSpace* ws = sa::walkSpace(*scene_);
+    Vec3 spot = c + Vec3{std::cos(heading), 0.0f, -std::sin(heading)} * 3.2f;
+    bool found = false;
+    for (int ring = 0; ring < 3 && !found; ++ring)
+        for (int k = 0; k < 8 && !found; ++k) {
+            // left of the vehicle first, then round it; wider rings if every spot is taken
+            const float a = heading + 0.5f * PI + (k % 2 == 0 ? 1.0f : -1.0f) * 0.25f * PI * static_cast<float>((k + 1) / 2);
+            const float r = 3.0f + 1.2f * static_cast<float>(ring);
+            const Vec3 p{c.x + std::sin(a) * r, 0.0f, c.z + std::cos(a) * r};
+            const float y = terrainHeight(p.x, p.z);
+            bool free = true;
+            for (const Box& b : solids)
+                if (p.x > b.min.x - 0.4f && p.x < b.max.x + 0.4f && p.z > b.min.z - 0.4f && p.z < b.max.z + 0.4f && b.max.y > y + 0.25f &&
+                    b.min.y < y + 1.8f) {
+                    free = false;
+                    break;
+                }
+            if (free && segmentClear(ws, solids, Vec3{c.x, y + 2.6f, c.z}, Vec3{p.x, y + 1.0f, p.z})) {
+                spot = p;
+                found = true;
+            }
+        }
+    sd->setAboard(false);
+    sd->place(spot.x, spot.z, degrees(std::atan2(spot.x - c.x, spot.z - c.z)));
+    possess(boardedSoldier_);
+    camera_.possessSight = false;
+    thirdPerson_ = true;
+    tp_.invalidate();
+    tpPoseValid_ = false;
+    alignYaw_ = 0.0f;
+    audio_.playClip(audio::Clip::Door, c + Vec3{0.0f, 1.5f, 0.0f}, true, 0.8f);
+    std::printf("Exit: %s leaves %s at (%.1f, %.1f)%s\n", sd->name(), veh->name(), spot.x, spot.z, found ? "" : " (no free spot found)");
+    boardedSoldier_ = boardedVehicle_ = -1;
+    beginJump(from);
+    return true;
 }
 
 bool App::updateInteraction() {
@@ -250,6 +333,10 @@ void App::performInteract() {
             if (it.key != 0) jumpToPov(it.key);
             break;
         case InteractAction::Release: releaseControl(); break;
+        case InteractAction::Board:
+            if (it.key != 0) boardVehicle(it.key);
+            break;
+        case InteractAction::ExitVehicle: exitVehicle(); break;
         case InteractAction::None: break;
     }
 }

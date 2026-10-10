@@ -449,8 +449,8 @@ void App::drawThermalFpvHud(const CameraView& cam, int w, int h) {
         const float bw = 230 * s, bh = 24 * s;
         for (int i = 0; i < Squad::kCount; ++i) {
             const SquadRole role = sq.roles[i];
-            const bool engaged = role == SquadRole::Lead || role == SquadRole::Wing;
-            const Rgba c = role == SquadRole::Lead ? Rgba{1.0f, 0.38f, 0.22f, 1.0f}
+            const bool engaged = role == SquadRole::Lead || role == SquadRole::Wing || role == SquadRole::Solo;
+            const Rgba c = role == SquadRole::Lead || role == SquadRole::Solo ? Rgba{1.0f, 0.38f, 0.22f, 1.0f}
                            : role == SquadRole::Wing ? kAmber : (role == SquadRole::Search ? Rgba{0.95f, 0.85f, 0.45f, 1.0f} : kGreen);
             const float y = y0 + (bh + 6 * s) * static_cast<float>(i);
             hud.rect(x, y, bw, bh, back);
@@ -547,6 +547,7 @@ void arrowHead(Hud& hud, const EdgeArrow& a, float size, Rgba c) {
 Rgba roleColor(SquadRole r) {
     switch (r) {
         case SquadRole::Lead: return Rgba{1.0f, 0.38f, 0.22f, 1.0f};
+        case SquadRole::Solo: return Rgba{1.0f, 0.38f, 0.22f, 1.0f};
         case SquadRole::Wing: return Rgba{1.0f, 0.75f, 0.15f, 1.0f};
         case SquadRole::Search: return Rgba{0.95f, 0.85f, 0.45f, 0.95f};
         case SquadRole::Manual: return Rgba{0.5f, 0.85f, 1.0f, 1.0f};
@@ -728,10 +729,16 @@ void drawTopBar(Hud& hud, const Scene& sc, int w, int h, float y0) {
     Rgba sc2 = kGreen;
     const float t = sc.time();
     if (st.phase == StrikePhase::Planned || st.phase == StrikePhase::Inbound) {
-        std::snprintf(sb, sizeof(sb), "%s  %s", st.combined ? "COMBINED STRIKE" : "STRIKE",
+        std::snprintf(sb, sizeof(sb), "%s  %s", st.combined ? "COMBINED STRIKE" : sq.detachedUav() >= 0 ? "SINGLE STRIKE (WING BUSY)" : "STRIKE",
                       st.phase == StrikePhase::Planned ? "PLANNED" : "INBOUND");
         const float blink = st.phase == StrikePhase::Inbound ? 0.75f + 0.25f * std::sin(t * 10.0f) : 1.0f;
         sc2 = Rgba{1.0f, 0.75f, 0.15f, blink};
+    } else if (sq.detachedUav() >= 0 && sq.sideStrike().phase == StrikePhase::Inbound) {
+        std::snprintf(sb, sizeof(sb), "UAV-%d SINGLE STRIKE  INBOUND", sq.detachedUav() + 1);
+        sc2 = Rgba{1.0f, 0.75f, 0.15f, 0.75f + 0.25f * std::sin(t * 10.0f)};
+    } else if (st.phase == StrikePhase::Tracking && st.track >= 0 && sq.detachedUav() >= 0) {
+        std::snprintf(sb, sizeof(sb), "TWO TARGETS: ID %d + ID %d  (SPLIT)", st.track, sq.sideStrike().track);
+        sc2 = Rgba{1.0f, 0.45f, 0.3f, 1.0f};
     } else if (st.phase == StrikePhase::Tracking && st.track >= 0) {
         std::snprintf(sb, sizeof(sb), "TRACKING ID %d", st.track);
         sc2 = Rgba{1.0f, 0.45f, 0.3f, 1.0f};

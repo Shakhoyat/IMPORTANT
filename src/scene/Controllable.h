@@ -45,6 +45,12 @@ struct WorldContext {
     float daylight = 0.0f;             // 0 night .. 1 full day
     bool beamsOn = true;               // searchlights / lamps allowed (night)
     bool soldierAtBlastDoors = false;  // a soldier is in the entrance trench or the tunnel near the blast doors
+    // Alert posture of the unmanned weapons (0 = at rest: unit tests and the default context). The scene keeps the camp
+    // at 0.6 (ready to fire, scanning its sector) and raises it to 1 while the squad tracks an intruder, whose position
+    // the weapons then lay on.
+    float alert = 0.0f;
+    bool hasThreat = false;
+    Vec3 threatPos{};
 };
 
 // How the camera frames a possessed object (world space, recomputed every frame).

@@ -17,6 +17,8 @@ const char* interactActionName(InteractAction a) {
         case InteractAction::TakeControl: return "TAKE_CONTROL";
         case InteractAction::RideAlong: return "RIDE_ALONG";
         case InteractAction::Release: return "RELEASE";
+        case InteractAction::Board: return "BOARD";
+        case InteractAction::ExitVehicle: return "EXIT_VEHICLE";
     }
     return "?";
 }
@@ -68,6 +70,8 @@ std::string interactPrompt(const Interactable& it, const char* key) {
         case InteractAction::TakeControl: verb = "Take control of "; break;
         case InteractAction::RideAlong: verb = "Ride "; break;
         case InteractAction::Release: verb = "Release"; break;
+        case InteractAction::Board: break;   // the name carries the verb
+        case InteractAction::ExitVehicle: verb = "Exit "; break;
     }
     std::string out = "[";
     out += key;

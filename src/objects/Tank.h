@@ -81,6 +81,13 @@ public:
     Vec3 muzzlePosition() const;
     Vec3 muzzleDirection() const;
     void lockTurret(bool lock) { turretLocked_ = lock; }   // parked: no idle scanning, gun held at +3 deg
+    // Parked on alert: the turret held 'offsetRad' off the hull heading and the gun at 'gunDeg' (its covering arc).
+    void coverArc(float offsetRad, float gunDeg) {
+        lockOffset_ = offsetRad;
+        lockGunDeg_ = gunDeg;
+        turretYaw_ = turretCmd_ = yaw_ + offsetRad;
+        gunPitch_ = gunCmd_ = gunDeg;
+    }
 
 private:
     void buildRig(const std::string& idPrefix, const std::string& objectName);
@@ -121,6 +128,7 @@ private:
     float antSwayX_ = 0.0f, antVelX_ = 0.0f, antSwayZ_ = 0.0f, antVelZ_ = 0.0f;
     float scanDir_ = 1.0f, dustAcc_ = 0.0f;
     bool possessed_ = false, lightsOn_ = false, turretLocked_ = false;
+    float lockOffset_ = 0.0f, lockGunDeg_ = 3.0f;
     Mat4 pitchWorld_, turretWorld_;                   // cached for camera / muzzle
 };
 

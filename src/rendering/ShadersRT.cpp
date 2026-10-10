@@ -39,7 +39,7 @@ uint gSeed;
 uint pcg(uint v) { uint s = v * 747796405u + 2891336453u; uint w = ((s >> ((s >> 28u) + 4u)) ^ s) * 277803737u; return (w >> 22u) ^ w; }
 float rnd() { gSeed = pcg(gSeed); return float(gSeed >> 8) * (1.0 / 16777216.0); }
 
-float luminance(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+float luminance(vec3 c) { return tsDot(c, vec3(0.2126, 0.7152, 0.0722)); }
 float maxc(vec3 c) { return max(c.r, max(c.g, c.b)); }
 
 // ---- unit shapes (local space, d unnormalised; quadratics solved from the closest approach)
@@ -56,19 +56,19 @@ bool roots(float a, float b, float c, out float t0, out float t1) {
 }
 bool hitSphere(vec3 o0, vec3 d, float tmin, float tmax, out float t, out vec3 n) {
     t = 0.0; n = vec3(0.0);
-    float ts = -dot(o0, d) / max(dot(d, d), 1e-30);
+    float ts = -tsDot(o0, d) / max(tsDot(d, d), 1e-30);
     vec3 o = o0 + d * ts;
     float t0, t1;
-    if (!roots(dot(d, d), dot(o, d), dot(o, o) - 0.25, t0, t1)) return false;
+    if (!roots(tsDot(d, d), tsDot(o, d), tsDot(o, o) - 0.25, t0, t1)) return false;
     t0 += ts; t1 += ts;
     float r = t0 > tmin ? t0 : t1;
     if (r <= tmin || r >= tmax) return false;
-    t = r; n = normalize(o0 + d * r);
+    t = r; n = tsNormalize(o0 + d * r);
     return true;
 }
 bool hitBox(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n) {
     t = 0.0; n = vec3(0.0);
-    vec3 inv = 1.0 / mix(d, vec3(1e-12), lessThan(abs(d), vec3(1e-12)));
+    vec3 inv = 1.0 / tsMix(d, vec3(1e-12), lessThan(abs(d), vec3(1e-12)));
     vec3 ta = (-0.5 - o) * inv, tb = (0.5 - o) * inv;
     vec3 tn = min(ta, tb), tf = max(ta, tb);
     float tNear = max(tn.x, max(tn.y, tn.z)), tFar = min(tf.x, min(tf.y, tf.z));
@@ -87,14 +87,14 @@ bool hitCylinder(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n
     float ts = a > 1e-30 ? -(o.x * d.x + o.y * d.y) / a : 0.0;
     vec2 s = o.xy + d.xy * ts;
     float t0, t1;
-    if (roots(a, dot(s, d.xy), dot(s, s) - 0.25, t0, t1)) {
+    if (roots(a, tsDot(s, d.xy), tsDot(s, s) - 0.25, t0, t1)) {
         t0 += ts; t1 += ts;
         for (int k = 0; k < 2; ++k) {
             float r = k == 0 ? t0 : t1;
             if (r <= tmin || r >= best) continue;
             float z = o.z + d.z * r;
             if (z < -0.5 || z > 0.5) continue;
-            best = r; vec3 p = o + d * r; n = normalize(vec3(p.xy, 0.0)); found = true; break;
+            best = r; vec3 p = o + d * r; n = tsNormalize(vec3(p.xy, 0.0)); found = true; break;
         }
     }
     if (abs(d.z) > 1e-12) {
@@ -103,7 +103,7 @@ bool hitCylinder(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n
             float r = (zc - o.z) / d.z;
             if (r <= tmin || r >= best) continue;
             vec2 q = o.xy + d.xy * r;
-            if (dot(q, q) > 0.25) continue;
+            if (tsDot(q, q) > 0.25) continue;
             best = r; n = vec3(0, 0, sign(zc)); found = true;
         }
     }
@@ -112,7 +112,7 @@ bool hitCylinder(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n
 }
 bool hitCone(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n) {
     bool found = false; float best = tmax; t = 0.0; n = vec3(0.0);
-    float ts = -dot(o, d) / max(dot(d, d), 1e-30);
+    float ts = -tsDot(o, d) / max(tsDot(d, d), 1e-30);
     vec3 s = o + d * ts;
     float k0 = 0.25 - 0.5 * s.z;
     float t0, t1;
@@ -123,13 +123,13 @@ bool hitCone(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n) {
             if (r <= tmin || r >= best) continue;
             float z = o.z + d.z * r;
             if (z < -0.5 || z > 0.5) continue;
-            best = r; vec3 p = o + d * r; n = normalize(vec3(p.xy, 0.5 * (0.25 - 0.5 * p.z))); found = true; break;
+            best = r; vec3 p = o + d * r; n = tsNormalize(vec3(p.xy, 0.5 * (0.25 - 0.5 * p.z))); found = true; break;
         }
     }
     if (abs(d.z) > 1e-12) {
         float r = (-0.5 - o.z) / d.z;
         vec2 q = o.xy + d.xy * r;
-        if (r > tmin && r < best && dot(q, q) <= 0.25) { best = r; n = vec3(0, 0, -1); found = true; }
+        if (r > tmin && r < best && tsDot(q, q) <= 0.25) { best = r; n = vec3(0, 0, -1); found = true; }
     }
     t = best;
     return found;
@@ -149,11 +149,11 @@ float valueNoise3(vec3 p) {
     ivec3 i = ivec3(floor(p));
     vec3 f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
-    float x00 = mix(latticeHash(i), latticeHash(i + ivec3(1, 0, 0)), f.x);
-    float x10 = mix(latticeHash(i + ivec3(0, 1, 0)), latticeHash(i + ivec3(1, 1, 0)), f.x);
-    float x01 = mix(latticeHash(i + ivec3(0, 0, 1)), latticeHash(i + ivec3(1, 0, 1)), f.x);
-    float x11 = mix(latticeHash(i + ivec3(0, 1, 1)), latticeHash(i + ivec3(1, 1, 1)), f.x);
-    return mix(mix(x00, x10, f.y), mix(x01, x11, f.y), f.z);
+    float x00 = tsMix(latticeHash(i), latticeHash(i + ivec3(1, 0, 0)), f.x);
+    float x10 = tsMix(latticeHash(i + ivec3(0, 1, 0)), latticeHash(i + ivec3(1, 1, 0)), f.x);
+    float x01 = tsMix(latticeHash(i + ivec3(0, 0, 1)), latticeHash(i + ivec3(1, 0, 1)), f.x);
+    float x11 = tsMix(latticeHash(i + ivec3(0, 1, 1)), latticeHash(i + ivec3(1, 1, 1)), f.x);
+    return tsMix(tsMix(x00, x10, f.y), tsMix(x01, x11, f.y), f.z);
 }
 bool leafCovered(vec3 pl) { return valueNoise3(pl * 11.0) > 0.40; }
 bool hitPrim(int i, vec3 ro, vec3 rd, float tmin, float tmax, out float t, out vec3 nw) {
@@ -161,31 +161,31 @@ bool hitPrim(int i, vec3 ro, vec3 rd, float tmin, float tmax, out float t, out v
     Prim p = prims[i];
     uint fl = uint(p.info.y);
     if ((fl & F_HIDDEN) != 0u) return false;
-    vec3 o = vec3(dot(p.r0.xyz, ro) + p.r0.w, dot(p.r1.xyz, ro) + p.r1.w, dot(p.r2.xyz, ro) + p.r2.w);
-    vec3 d = vec3(dot(p.r0.xyz, rd), dot(p.r1.xyz, rd), dot(p.r2.xyz, rd));
+    vec3 o = vec3(tsDot(p.r0.xyz, ro) + p.r0.w, tsDot(p.r1.xyz, ro) + p.r1.w, tsDot(p.r2.xyz, ro) + p.r2.w);
+    vec3 d = vec3(tsDot(p.r0.xyz, rd), tsDot(p.r1.xyz, rd), tsDot(p.r2.xyz, rd));
     vec3 nl;
     bool h = hitShape(p.info.x, o, d, tmin, tmax, t, nl);
     if (h && (fl & F_FOLIAGE) != 0u && !leafCovered(o + d * t)) {   // a gap: try the far side once
         h = hitShape(p.info.x, o, d, t + 1e-4, tmax, t, nl) && leafCovered(o + d * t);
     }
-    if (h) nw = normalize(nl.x * p.r0.xyz + nl.y * p.r1.xyz + nl.z * p.r2.xyz);   // inverse transpose
+    if (h) nw = tsNormalize(nl.x * p.r0.xyz + nl.y * p.r1.xyz + nl.z * p.r2.xyz);   // inverse transpose
     return h;
 }
 
 // ---- terrain height field: 2-level DDA (Heightfield.cpp)
 bool hitTriangle(vec3 o, vec3 d, vec3 a, vec3 b, vec3 c, out float t, out float u, out float v) {
     t = u = v = 0.0;
-    vec3 e1 = b - a, e2 = c - a, p = cross(d, e2);
-    float det = dot(e1, p);
+    vec3 e1 = b - a, e2 = c - a, p = tsCross(d, e2);
+    float det = tsDot(e1, p);
     if (abs(det) < 1e-12) return false;
     float inv = 1.0 / det;
     vec3 s = o - a;
-    u = dot(s, p) * inv;
+    u = tsDot(s, p) * inv;
     if (u < 0.0 || u > 1.0) return false;
-    vec3 q = cross(s, e1);
-    v = dot(d, q) * inv;
+    vec3 q = tsCross(s, e1);
+    v = tsDot(d, q) * inv;
     if (v < 0.0 || u + v > 1.0) return false;
-    t = dot(e2, q) * inv;
+    t = tsDot(e2, q) * inv;
     return true;
 }
 vec3 hfVertex(int i, int j) { return vec3(-uHfRadius + uHfCell * float(i), texelFetch(uHf, ivec2(i, j), 0).r, -uHfRadius + uHfCell * float(j)); }
@@ -199,11 +199,11 @@ bool hfCell(int ci, int cj, vec3 o, vec3 d, float tmin, float tmax, vec2 yRange,
     float best = tmax, tt, u, v; bool found = false;
     if (hitTriangle(o, d, v00, v10, v11, tt, u, v) && tt > tmin && tt < best) {
         best = tt; found = true;
-        n = normalize(hfNormal(ci, cj) * (1.0 - u - v) + hfNormal(ci + 1, cj) * u + hfNormal(ci + 1, cj + 1) * v);
+        n = tsNormalize(hfNormal(ci, cj) * (1.0 - u - v) + hfNormal(ci + 1, cj) * u + hfNormal(ci + 1, cj + 1) * v);
     }
     if (hitTriangle(o, d, v00, v11, v01, tt, u, v) && tt > tmin && tt < best) {
         best = tt; found = true;
-        n = normalize(hfNormal(ci, cj) * (1.0 - u - v) + hfNormal(ci + 1, cj + 1) * u + hfNormal(ci, cj + 1) * v);
+        n = tsNormalize(hfNormal(ci, cj) * (1.0 - u - v) + hfNormal(ci + 1, cj + 1) * u + hfNormal(ci, cj + 1) * v);
     }
     if (found) t = best;
     return found;
@@ -211,7 +211,7 @@ bool hfCell(int ci, int cj, vec3 o, vec3 d, float tmin, float tmax, vec2 yRange,
 bool hitTerrain(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n) {
     t = 0.0; n = vec3(0, 1, 0);
     if (uHasTerrain == 0) return false;
-    vec3 invD = 1.0 / mix(d, vec3(1e-12), lessThan(abs(d), vec3(1e-12)));
+    vec3 invD = 1.0 / tsMix(d, vec3(1e-12), lessThan(abs(d), vec3(1e-12)));
     vec3 lo = vec3(-uHfRadius, uHfY.x, -uHfRadius), hi = vec3(uHfRadius, uHfY.y, uHfRadius);
     vec3 t0 = (lo - o) * invD, t1 = (hi - o) * invD;
     vec3 tn = min(t0, t1), tf = max(t0, t1);
@@ -221,8 +221,8 @@ bool hitTerrain(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n)
     int K = 8;
     float bsize = uHfCell * float(K);
     vec3 p0 = o + d * ta;
-    int bi = clamp(int(floor((p0.x + uHfRadius) / bsize)), 0, uHfBlocksN - 1);
-    int bj = clamp(int(floor((p0.z + uHfRadius) / bsize)), 0, uHfBlocksN - 1);
+    int bi = tsClamp(int(floor((p0.x + uHfRadius) / bsize)), 0, uHfBlocksN - 1);
+    int bj = tsClamp(int(floor((p0.z + uHfRadius) / bsize)), 0, uHfBlocksN - 1);
     int sx = d.x > 0.0 ? 1 : -1, sz = d.z > 0.0 ? 1 : -1;
     float dtx = abs(bsize * invD.x), dtz = abs(bsize * invD.z);
     float nextX = (-uHfRadius + bsize * float(bi + (sx > 0 ? 1 : 0)) - o.x) * invD.x;
@@ -236,8 +236,8 @@ bool hitTerrain(vec3 o, vec3 d, float tmin, float tmax, out float t, out vec3 n)
         if (min(y0, y1) <= b.y + 1e-3 && max(y0, y1) >= b.x - 1e-3) {
             int i0 = bi * K, i1 = min(i0 + K, cells) - 1, j0 = bj * K, j1 = min(j0 + K, cells) - 1;
             vec3 q = o + d * tcur;
-            int ci = clamp(int(floor((q.x + uHfRadius) / uHfCell)), i0, i1);
-            int cj = clamp(int(floor((q.z + uHfRadius) / uHfCell)), j0, j1);
+            int ci = tsClamp(int(floor((q.x + uHfRadius) / uHfCell)), i0, i1);
+            int cj = tsClamp(int(floor((q.z + uHfRadius) / uHfCell)), j0, j1);
             float ctx = abs(uHfCell * invD.x), ctz = abs(uHfCell * invD.z);
             float cx = (-uHfRadius + uHfCell * float(ci + (sx > 0 ? 1 : 0)) - o.x) * invD.x;
             float cz = (-uHfRadius + uHfCell * float(cj + (sz > 0 ? 1 : 0)) - o.z) * invD.z;
@@ -270,7 +270,7 @@ bool trace(vec3 ro, vec3 rd, float tmin, float tmax, out Hit h) {
     float t; vec3 n;
     if (hitTerrain(ro, rd, tmin, h.t, t, n)) { h.t = t; h.prim = TERRAIN; h.ng = n; }
     if (uNodeCount == 0) return h.prim >= 0;
-    vec3 invD = 1.0 / mix(rd, vec3(1e-12), lessThan(abs(rd), vec3(1e-12)));
+    vec3 invD = 1.0 / tsMix(rd, vec3(1e-12), lessThan(abs(rd), vec3(1e-12)));
     // Stack of (node, entry distance): a node is only visited if it still starts before the closest hit. Children
     // are tested once (when their parent is visited); the nearer one is descended into directly.
     int stack[24];
@@ -315,7 +315,7 @@ vec3 transmittance(vec3 ro, vec3 rd, float tmax, uint skip) {
     float t; vec3 n;
     vec3 T = vec3(1.0);
     if (uNodeCount > 0) {
-        vec3 invD = 1.0 / mix(rd, vec3(1e-12), lessThan(abs(rd), vec3(1e-12)));
+        vec3 invD = 1.0 / tsMix(rd, vec3(1e-12), lessThan(abs(rd), vec3(1e-12)));
         int stack[24];
         int sp = 0;
         float te;
@@ -359,7 +359,7 @@ float valueNoise2(vec2 p) {   // smooth value noise (bilinear hash lattice)
     float b = float(pcg(uint(int(i.x) + 1) * 1597334677u ^ uint(int(i.y)) * 3812015801u)) / 4294967296.0;
     float c = float(pcg(uint(int(i.x)) * 1597334677u ^ uint(int(i.y) + 1) * 3812015801u)) / 4294967296.0;
     float e = float(pcg(uint(int(i.x) + 1) * 1597334677u ^ uint(int(i.y) + 1) * 3812015801u)) / 4294967296.0;
-    return mix(mix(a, b, f.x), mix(c, e, f.x), f.y);
+    return tsMix(tsMix(a, b, f.x), tsMix(c, e, f.x), f.y);
 }
 // Grass stand-in: the meadow channel of the ground map turns the soil into a turf of blade colours (olive / straw
 // tufts like the raster blades) darkened by the blades' mutual occlusion (no blade geometry is traced).
@@ -368,12 +368,12 @@ vec3 terrainAlbedo(vec3 P) {
     if (uHasGround == 0) return uTerrA.rgb;
     vec4 m = texture(uGround, P.xz / (2.0 * uGroundExtent) + 0.5);
     float tuft = valueNoise2(P.xz * 1.7), fine = valueNoise2(P.xz * 9.0);
-    vec3 grass = mix(vec3(0.075, 0.105, 0.030), vec3(0.150, 0.130, 0.062), smoothstep(0.35, 0.8, tuft)) * (0.75 + 0.5 * fine);
+    vec3 grass = tsMix(vec3(0.075, 0.105, 0.030), vec3(0.150, 0.130, 0.062), tsSmoothstep(0.35, 0.8, tuft)) * (0.75 + 0.5 * fine);
     grass *= 0.8;                                                                       // blade self-occlusion
-    vec3 a = mix(vec3(0.066, 0.055, 0.039), grass, m.a);                                // soil -> meadow
-    a = mix(a, vec3(0.065, 0.045, 0.026), m.b);                                         // needle litter
-    a = mix(a, vec3(0.064, 0.056, 0.044), smoothstep(0.1, 0.9, m.g));                   // vehicle track
-    a = mix(a, vec3(0.035, 0.030, 0.024), smoothstep(0.3, 0.7, m.r));                   // creek mud
+    vec3 a = tsMix(vec3(0.066, 0.055, 0.039), grass, m.a);                                // soil -> meadow
+    a = tsMix(a, vec3(0.065, 0.045, 0.026), m.b);                                         // needle litter
+    a = tsMix(a, vec3(0.064, 0.056, 0.044), tsSmoothstep(0.1, 0.9, m.g));                   // vehicle track
+    a = tsMix(a, vec3(0.035, 0.030, 0.024), tsSmoothstep(0.3, 0.7, m.r));                   // creek mud
     return a;
 }
 // Shading normal of the stand-ins: leaves and grass blades scatter the normal in small cells.
@@ -384,8 +384,8 @@ vec3 standInNormal(vec3 n, vec3 p, int prim, uint flags) {
     if (k <= 0.0) return n;
     vec3 q = p * freq;
     vec3 j = vec3(valueNoise3(q), valueNoise3(q + 17.3), valueNoise3(q + 41.7)) * 2.0 - 1.0;
-    vec3 r = normalize(n + k * j);
-    return dot(r, n) > 0.1 ? r : n;
+    vec3 r = tsNormalize(n + k * j);
+    return tsDot(r, n) > 0.1 ? r : n;
 }
 
 Surf surfaceOf(int prim, vec3 P) {
@@ -397,9 +397,9 @@ Surf surfaceOf(int prim, vec3 P) {
     return s;
 }
 bool isGlass(Surf s) { return s.ior >= 1.0; }
-vec3 F0of(Surf s) { return mix(vec3(s.ior), s.albedo, s.metal); }   // opaque: ior slot = dielectric F0
+vec3 F0of(Surf s) { return tsMix(vec3(s.ior), s.albedo, s.metal); }   // opaque: ior slot = dielectric F0
 
-vec3 fresnelSchlick(float c, vec3 f0) { float m = clamp(1.0 - c, 0.0, 1.0); float m2 = m * m; return f0 + (1.0 - f0) * (m2 * m2 * m); }
+vec3 fresnelSchlick(float c, vec3 f0) { float m = tsClamp(1.0 - c, 0.0, 1.0); float m2 = m * m; return f0 + (1.0 - f0) * (m2 * m2 * m); }
 float fresnelDielectric(float cosi, float eta) {
     float sin2t = eta * eta * (1.0 - cosi * cosi);
     if (sin2t >= 1.0) return 1.0;
@@ -410,11 +410,11 @@ float fresnelDielectric(float cosi, float eta) {
 float ggxD(float nh, float a) { float a2 = a * a; float d = nh * nh * (a2 - 1.0) + 1.0; return a2 / (PI * d * d); }
 float smithG1(float nx, float a) { float a2 = a * a; return 2.0 * nx / (nx + sqrt(a2 + (1.0 - a2) * nx * nx)); }
 vec3 evalBsdf(Surf s, vec3 n, vec3 wo, vec3 wi) {
-    float nl = dot(n, wi), nv = dot(n, wo);
+    float nl = tsDot(n, wi), nv = tsDot(n, wo);
     if (nl <= 0.0 || nv <= 0.0) return vec3(0.0);
     if (s.ior <= 0.0 && s.metal <= 0.0) return s.albedo / PI;
-    vec3 h = normalize(wo + wi);
-    float nh = max(dot(n, h), 0.0), vh = max(dot(wo, h), 0.0);
+    vec3 h = tsNormalize(wo + wi);
+    float nh = max(tsDot(n, h), 0.0), vh = max(tsDot(wo, h), 0.0);
     float a = max(s.rough * s.rough, 2e-3);
     vec3 F = fresnelSchlick(vh, F0of(s));
     vec3 spec = F * (ggxD(nh, a) * smithG1(nv, a) * smithG1(nl, a) / (4.0 * nv * nl));
@@ -435,20 +435,20 @@ vec3 sampleCone(vec3 axis, float cosMax, float u1, float u2) {
 vec3 sampleSphere(float u1, float u2) { float z = 1.0 - 2.0 * u1, r = sqrt(max(0.0, 1.0 - z * z)), ph = 2.0 * PI * u2; return vec3(r * cos(ph), r * sin(ph), z); }
 float specProb(Surf s, vec3 n, vec3 wo) {
     if (s.ior <= 0.0 && s.metal <= 0.0) return 0.0;
-    float fs = luminance(fresnelSchlick(max(dot(n, wo), 0.0), F0of(s)));
+    float fs = luminance(fresnelSchlick(max(tsDot(n, wo), 0.0), F0of(s)));
     float fd = luminance(s.albedo) * (1.0 - s.metal) * (1.0 - fs);
-    return clamp(fs / max(fs + fd, 1e-4), 0.1, 0.9);
+    return tsClamp(fs / max(fs + fd, 1e-4), 0.1, 0.9);
 }
 // BSDF sample: returns false if absorbed; weight = f cos / pdf; spec = delta-like lobe
 bool sampleBsdf(Surf s, vec3 n, bool front, vec3 wo, out vec3 wi, out vec3 weight, out bool spec) {
     wi = vec3(0.0); weight = vec3(0.0); spec = false;
     if (isGlass(s)) {
-        float cosi = max(dot(wo, n), 0.0), eta = front ? 1.0 / s.ior : s.ior;
+        float cosi = max(tsDot(wo, n), 0.0), eta = front ? 1.0 / s.ior : s.ior;
         float F = fresnelDielectric(cosi, eta);
         spec = true;
-        vec3 t = refract(-wo, n, eta);
-        if (rnd() < F || dot(t, t) == 0.0) { wi = reflect(-wo, n); weight = vec3(1.0); }
-        else { wi = normalize(t); weight = s.transmit; }
+        vec3 t = tsRefract(-wo, n, eta);
+        if (rnd() < F || tsDot(t, t) == 0.0) { wi = tsReflect(-wo, n); weight = vec3(1.0); }
+        else { wi = tsNormalize(t); weight = s.transmit; }
         return true;
     }
     float ps = specProb(s, n, wo);
@@ -457,15 +457,15 @@ bool sampleBsdf(Surf s, vec3 n, bool front, vec3 wo, out vec3 wi, out vec3 weigh
     if (rnd() < ps) {
         float a2 = a * a, c2 = (1.0 - u1) / (1.0 + (a2 - 1.0) * u1), c = sqrt(c2), sn = sqrt(max(0.0, 1.0 - c2)), ph = 2.0 * PI * u2;
         vec3 hv = toWorld(vec3(sn * cos(ph), sn * sin(ph), c), n);
-        wi = reflect(-wo, hv);
+        wi = tsReflect(-wo, hv);
         spec = a < 0.01;
     } else {
         wi = sampleCosine(n, u1, u2);
     }
-    float nl = dot(n, wi);
+    float nl = tsDot(n, wi);
     if (nl <= 0.0) return false;
-    vec3 hv = normalize(wo + wi);
-    float nh = max(dot(n, hv), 1e-6), vh = max(dot(wo, hv), 1e-6);
+    vec3 hv = tsNormalize(wo + wi);
+    float nh = max(tsDot(n, hv), 1e-6), vh = max(tsDot(wo, hv), 1e-6);
     float pdf = ps * ggxD(nh, a) * nh / (4.0 * vh) + (1.0 - ps) * nl / PI;
     if (pdf <= 1e-8) return false;
     weight = evalBsdf(s, n, wo, wi) * (nl / pdf);
@@ -485,18 +485,18 @@ bool sampleLight(int i, vec3 p, bool soft, out vec3 wi, out vec3 E, out float di
     vec3 pos = l.position;
     if (soft && l.radius > 0.0) pos += sampleSphere(rnd(), rnd()) * l.radius;
     vec3 d = pos - p;
-    dist = max(length(d), 1e-3);
+    dist = max(tsLength(d), 1e-3);
     wi = d / dist;
     float att = 0.0;
     if (l.type == 1) att = 1.0 / (1.0 + l.att.x * dist + l.att.y * dist * dist);
     else if (l.type == 2) {
-        float cone = clamp((dot(-wi, l.direction) - l.att.w) / max(l.att.z - l.att.w, 1e-4), 0.0, 1.0);
+        float cone = tsClamp((tsDot(-wi, l.direction) - l.att.w) / max(l.att.z - l.att.w, 1e-4), 0.0, 1.0);
         att = cone * cone / (1.0 + l.att.x * dist + l.att.y * dist * dist);
     } else {
         float x = dist / max(l.range, 1e-3);
-        float window = clamp(1.0 - x * x * x * x, 0.0, 1.0);
+        float window = tsClamp(1.0 - x * x * x * x, 0.0, 1.0);
         att = window * window / (1.0 + dist * dist);
-        if (l.att.w > -1.5) att *= smoothstep(l.att.w, l.att.w + 0.1, dot(-wi, l.direction));
+        if (l.att.w > -1.5) att *= tsSmoothstep(l.att.w, l.att.w + 0.1, tsDot(-wi, l.direction));
     }
     E = l.color * (PI * att);
     return att > 0.0;
@@ -506,7 +506,7 @@ vec3 directLight(vec3 p, vec3 n, Surf s, vec3 wo, bool soft) {
     for (int i = 0; i < uLightCount; ++i) {
         vec3 wi, E; float dist;
         if (!sampleLight(i, p, soft, wi, E, dist)) continue;
-        float nl = dot(n, wi);
+        float nl = tsDot(n, wi);
         bool leaf = (s.flags & F_FOLIAGE) != 0u;
         if (leaf) nl = (nl + 0.5) / 1.5;              // leaves: wrapped Lambert (light through thin leaves)
         if (nl <= 0.0) continue;
@@ -521,13 +521,13 @@ vec3 directLight(vec3 p, vec3 n, Surf s, vec3 wo, bool soft) {
 vec3 envRadiance(vec3 d) { return max(uBounce + (uZenith - uBounce) * (0.5 + 0.75 * d.y), vec3(0.0)); }
 // What a mirror sees of the sky when its reflected ray escapes: the raster's sky-in-water gradient (fog colour at the
 // horizon to 1.2 x zenith overhead), not the brighter hemispherical-integral model used for diffuse light.
-vec3 skyDome(vec3 d) { return d.y >= 0.0 ? mix(uFogColor, uZenith * 1.2, clamp(d.y * 1.5, 0.0, 1.0)) : mix(uFogColor, uBounce, clamp(-d.y * 3.0, 0.0, 1.0)); }
+vec3 skyDome(vec3 d) { return d.y >= 0.0 ? tsMix(uFogColor, uZenith * 1.2, tsClamp(d.y * 1.5, 0.0, 1.0)) : tsMix(uFogColor, uBounce, tsClamp(-d.y * 3.0, 0.0, 1.0)); }
 vec3 ambientOf(vec3 n) { return uBounce + (uZenith - uBounce) * (0.5 + 0.5 * n.y); }
 float fogOf(float t) { float x = uFogDensity * t; return 1.0 - exp(-x * x); }
 
 vec3 primaryDir(vec2 uv) {   // uv in [0,1], v = 0 at the TOP row
     float x = (2.0 * uv.x - 1.0) * uTanHalfY * uAspect, y = (1.0 - 2.0 * uv.y) * uTanHalfY;
-    return normalize(uCamFwd + uCamRight * x + uCamUp * y);
+    return tsNormalize(uCamFwd + uCamRight * x + uCamUp * y);
 }
 )";
 
@@ -567,17 +567,17 @@ vec3 whitted(vec3 ro, vec3 rd, vec2 uv) {
         }
         vec3 p = k.o + k.d * h.t;
         Surf s = surfaceOf(h.prim, p);
-        bool front = dot(k.d, h.ng) < 0.0;
+        bool front = tsDot(k.d, h.ng) < 0.0;
         vec3 n = standInNormal(front ? h.ng : -h.ng, p, h.prim, s.flags);
         vec3 wo = -k.d;
         L += k.w * s.emission;
         if (isGlass(s)) {
-            float cosi = max(dot(wo, n), 0.0), eta = front ? 1.0 / s.ior : s.ior;
+            float cosi = max(tsDot(wo, n), 0.0), eta = front ? 1.0 / s.ior : s.ior;
             float F = fresnelDielectric(cosi, eta);
             if (k.depth < uMaxDepth) {
-                vec3 t = refract(k.d, n, eta);
-                if (F < 1.0 && dot(t, t) > 0.0 && sp < 6) st[sp++] = Task(p - n * EPS, normalize(t), k.w * s.transmit * (1.0 - F), k.depth + 1);
-                if (sp < 6) st[sp++] = Task(p + n * EPS, reflect(k.d, n), k.w * F, k.depth + 1);
+                vec3 t = tsRefract(k.d, n, eta);
+                if (F < 1.0 && tsDot(t, t) > 0.0 && sp < 6) st[sp++] = Task(p - n * EPS, tsNormalize(t), k.w * s.transmit * (1.0 - F), k.depth + 1);
+                if (sp < 6) st[sp++] = Task(p + n * EPS, tsReflect(k.d, n), k.w * F, k.depth + 1);
             }
             continue;
         }
@@ -588,8 +588,8 @@ vec3 whitted(vec3 ro, vec3 rd, vec2 uv) {
         L += k.w * s.albedo * ambientOf(n) * ((1.0 - s.metal) * ao);
         if (s.rough < 0.4 && k.depth < uMaxDepth && sp < 6) {
             float gloss = (0.4 - s.rough) / 0.4;
-            vec3 kr = fresnelSchlick(max(dot(wo, n), 0.0), F0of(s)) * (gloss * gloss);
-            if (maxc(kr) > 0.01) st[sp++] = Task(p + n * EPS, reflect(k.d, n), k.w * kr, k.depth + 1);
+            vec3 kr = fresnelSchlick(max(tsDot(wo, n), 0.0), F0of(s)) * (gloss * gloss);
+            if (maxc(kr) > 0.01) st[sp++] = Task(p + n * EPS, tsReflect(k.d, n), k.w * kr, k.depth + 1);
         }
     }
     return L;
@@ -610,7 +610,7 @@ vec3 pathTrace(vec3 ro, vec3 rd, vec2 uv, out vec3 aovAlbedo, out vec4 aovND) {
         }
         vec3 p = ro + rd * h.t;
         Surf s = surfaceOf(h.prim, p);
-        bool front = dot(rd, h.ng) < 0.0;
+        bool front = tsDot(rd, h.ng) < 0.0;
         vec3 n = standInNormal(front ? h.ng : -h.ng, p, h.prim, s.flags);
         if (bounce == 0) {
             primaryT = h.t;
@@ -625,7 +625,7 @@ vec3 pathTrace(vec3 ro, vec3 rd, vec2 uv, out vec3 aovAlbedo, out vec4 aovND) {
         if (!sampleBsdf(s, n, front, wo, wi, w, sp)) break;
         beta *= w;
         spec = sp;
-        ro = p + n * (dot(wi, n) >= 0.0 ? EPS : -EPS);
+        ro = p + n * (tsDot(wi, n) >= 0.0 ? EPS : -EPS);
         rd = wi;
         if (bounce >= uRrStart) {
             float q = max(0.05, 1.0 - maxc(beta));
@@ -633,7 +633,7 @@ vec3 pathTrace(vec3 ro, vec3 rd, vec2 uv, out vec3 aovAlbedo, out vec4 aovND) {
             beta /= 1.0 - q;
         }
     }
-    if (primaryT > 0.0 && !primarySky) L = mix(L, uFogColor, fogOf(primaryT));
+    if (primaryT > 0.0 && !primarySky) L = tsMix(L, uFogColor, fogOf(primaryT));
     return L;
 }
 
@@ -651,9 +651,9 @@ void main() {
     if (any(isnan(c)) || any(isinf(c))) c = vec3(0.0);
     c = min(c, vec3(64.0));            // firefly clamp (night key ~ 0.03: far above any real surface)
     vec4 prev = imageLoad(uAccum, px);
-    imageStore(uAccum, px, vec4(mix(prev.rgb, c, uBlend), 1.0));
+    imageStore(uAccum, px, vec4(tsMix(prev.rgb, c, uBlend), 1.0));
     if (uMode == 3) {
-        imageStore(uAlbedo, px, vec4(mix(imageLoad(uAlbedo, px).rgb, alb, uBlend), 1.0));
+        imageStore(uAlbedo, px, vec4(tsMix(imageLoad(uAlbedo, px).rgb, alb, uBlend), 1.0));
         imageStore(uNormalDepth, px, nd);
     }
 }
@@ -688,10 +688,10 @@ void main() {
     vec4 surf = texture(uSurface, uv);
     if (d < 1.0) {
         vec3 P = worldAt(uv, d);
-        vec3 N = normalize(surf.rgb * 2.0 - 1.0);
-        vec3 V = normalize(P - uCamPos);
-        if (dot(N, V) > 0.0) N = -N;
-        float dist = length(P - uCamPos);
+        vec3 N = tsNormalize(surf.rgb * 2.0 - 1.0);
+        vec3 V = tsNormalize(P - uCamPos);
+        if (tsDot(N, V) > 0.0) N = -N;
+        float dist = tsLength(P - uCamPos);
         // Which primitive is it? (albedo for the shadow term; grass / foliage fall back to a mid albedo)
         Hit h;
         vec3 albedo = vec3(0.18);
@@ -708,7 +708,7 @@ void main() {
             for (int i = 0; i < uLightCount; ++i) {
                 if (!(i == uKeyLight || i == uSpotLight)) continue;
                 vec3 wi, E; float ld;
-                if (sampleLight(i, P, false, wi, E, ld)) irr += E / PI * max(dot(N, wi), 0.0);
+                if (sampleLight(i, P, false, wi, E, ld)) irr += E / PI * max(tsDot(N, wi), 0.0);
             }
             vec3 albedoS = min(albedo, c / max(irr, vec3(1e-4)));
             vec3 lost = vec3(0.0);
@@ -716,7 +716,7 @@ void main() {
                 if (!(i == uKeyLight || i == uSpotLight)) continue;
                 vec3 wi, E; float ld;
                 if (!sampleLight(i, P, true, wi, E, ld)) continue;
-                float nl = dot(N, wi);
+                float nl = tsDot(N, wi);
                 if (nl <= 0.0) continue;
                 uint skip = F_NOSHADOW | F_PROXY | (lights[i].type == 2 ? F_HOLDER : 0u);
                 vec3 T = transmittance(P + N * 0.02, wi, ld >= 1e29 ? 1e30 : ld * 0.999 - 0.02, skip);
@@ -725,7 +725,7 @@ void main() {
             c = max(c - lost, c * 0.06);
         }
         if (uReflections == 1 && surf.a > 0.02) {
-            vec3 R = reflect(V, N);
+            vec3 R = tsReflect(V, N);
             vec3 refl = vec3(0.0);
             Hit rh;
             vec3 o = P + N * 0.02;
@@ -739,24 +739,24 @@ void main() {
                 bool reuse = false;
                 if (onScreen) {
                     vec3 seen = worldAt(quv, texture(uDepth, quv).r);
-                    reuse = length(seen - q) < 0.05 + 0.01 * rh.t;
+                    reuse = tsLength(seen - q) < 0.05 + 0.01 * rh.t;
                 }
                 if (reuse) refl = texture(uScene, quv).rgb;
                 else {
                     Surf s = surfaceOf(rh.prim, q);
-                    bool fr = dot(R, rh.ng) < 0.0;
+                    bool fr = tsDot(R, rh.ng) < 0.0;
                     refl = shadeHit(q, standInNormal(fr ? rh.ng : -rh.ng, q, rh.prim, s.flags), s, -R);
-                    refl = mix(refl, uFogColor, fogOf(rh.t));   // the raster fogs what it shows: so must the mirror
+                    refl = tsMix(refl, uFogColor, fogOf(rh.t));   // the raster fogs what it shows: so must the mirror
                 }
             }
-            float F = 0.02 + 0.98 * pow(1.0 - clamp(dot(N, -V), 0.0, 1.0), 5.0);
+            float F = 0.02 + 0.98 * pow(1.0 - tsClamp(tsDot(N, -V), 0.0, 1.0), 5.0);
             if (metal > 0.5) {
                 // Polished metal: the raster colour is mostly its sky-specular approximation; the traced mirror image
                 // (tinted by F0 = albedo, Schlick towards white at grazing angles) replaces it.
-                vec3 Fm = albedo + (1.0 - albedo) * pow(1.0 - clamp(dot(N, -V), 0.0, 1.0), 5.0);
-                c = mix(c, refl * Fm, clamp(surf.a / 0.5, 0.0, 1.0));
+                vec3 Fm = albedo + (1.0 - albedo) * pow(1.0 - tsClamp(tsDot(N, -V), 0.0, 1.0), 5.0);
+                c = tsMix(c, refl * Fm, tsClamp(surf.a / 0.5, 0.0, 1.0));
             } else {
-                c += refl * mix(0.35, 1.0, F) * surf.a;   // water film / wet surfaces: added like SSR
+                c += refl * tsMix(0.35, 1.0, F) * surf.a;   // water film / wet surfaces: added like SSR
             }
         }
     }
@@ -788,9 +788,9 @@ uniform uint uPathsPerFrame;
 
 void splatAt(vec3 p, vec3 val) {
     vec3 d = p - uCamPos;
-    float z = dot(d, uCamFwd);
+    float z = tsDot(d, uCamFwd);
     if (z <= 1e-4) return;
-    float x = dot(d, uCamRight) / z, y = dot(d, uCamUp) / z;
+    float x = tsDot(d, uCamRight) / z, y = tsDot(d, uCamUp) / z;
     vec2 uv = vec2(0.5 + 0.5 * x / (uTanHalfY * uAspect), 0.5 + 0.5 * y / uTanHalfY);   // GL rows (y up)
     if (any(lessThan(uv, vec2(0.0))) || any(greaterThanEqual(uv, vec2(1.0)))) return;
     ivec2 px = ivec2(uv * vec2(uRes));
@@ -822,12 +822,12 @@ void main() {
         // whole camp (30 %), weighted by the mixture density, so the photons land where the camera looks.
         vec3 t, b;
         basis(travel, t, b);
-        vec2 f2 = vec2(dot(uFocus - uEmitCentre, t), dot(uFocus - uEmitCentre, b));
+        vec2 f2 = vec2(tsDot(uFocus - uEmitCentre, t), tsDot(uFocus - uEmitCentre, b));
         float r = sqrt(u1), ph = 2.0 * PI * u2;
         vec2 disc = vec2(r * cos(ph), r * sin(ph));
         vec2 q = rnd() < 0.7 ? f2 + disc * uFocusRadius : disc * uEmitRadius;
-        float pdfA = (length(q - f2) < uFocusRadius ? 0.7 / (PI * uFocusRadius * uFocusRadius) : 0.0) +
-                     (length(q) < uEmitRadius ? 0.3 / (PI * uEmitRadius * uEmitRadius) : 0.0);
+        float pdfA = (tsLength(q - f2) < uFocusRadius ? 0.7 / (PI * uFocusRadius * uFocusRadius) : 0.0) +
+                     (tsLength(q) < uEmitRadius ? 0.3 / (PI * uEmitRadius * uEmitRadius) : 0.0);
         ro = uEmitCentre - travel * 250.0 + t * q.x + b * q.y;
         rd = travel;
         beta = irr / (pdfA * pdfDir * pl);
@@ -836,12 +836,12 @@ void main() {
         if (l.type == 2) {
             rd = sampleCone(l.direction, l.att.w, u1, u2);
             float pdfDir = 1.0 / (2.0 * PI * (1.0 - l.att.w));
-            float cone = clamp((dot(rd, l.direction) - l.att.w) / max(l.att.z - l.att.w, 1e-4), 0.0, 1.0);
+            float cone = tsClamp((tsDot(rd, l.direction) - l.att.w) / max(l.att.z - l.att.w, 1e-4), 0.0, 1.0);
             beta = l.color * (PI * cone * cone / (pdfDir * pl));
         } else {
             rd = sampleSphere(u1, u2);
             float k = 1.0;
-            if (l.type == 3 && l.att.w > -1.5) k = smoothstep(l.att.w, l.att.w + 0.1, dot(rd, l.direction));
+            if (l.type == 3 && l.att.w > -1.5) k = tsSmoothstep(l.att.w, l.att.w + 0.1, tsDot(rd, l.direction));
             beta = l.color * (PI * k * 4.0 * PI / pl);
         }
         attType = l.type;
@@ -856,21 +856,21 @@ void main() {
         if (bounce == 0 && attType >= 0) {
             Light l = lights[li];
             float d = h.t + 0.03, att;
-            if (attType == 3) { float x = d / max(l.range, 1e-3); float wdw = clamp(1.0 - x * x * x * x, 0.0, 1.0); att = wdw * wdw / (1.0 + d * d); }
+            if (attType == 3) { float x = d / max(l.range, 1e-3); float wdw = tsClamp(1.0 - x * x * x * x, 0.0, 1.0); att = wdw * wdw / (1.0 + d * d); }
             else att = 1.0 / (1.0 + l.att.x * d + l.att.y * d * d);
             beta *= att * d * d;
         }
         vec3 p = ro + rd * h.t;
         Surf s = surfaceOf(h.prim, p);
-        bool front = dot(rd, h.ng) < 0.0;
+        bool front = tsDot(rd, h.ng) < 0.0;
         vec3 n = standInNormal(front ? h.ng : -h.ng, p, h.prim, s.flags);
         vec3 wi = -rd;
         if (!isGlass(s) && !(s.metal > 0.5 && s.rough < 0.1)) {   // (near-)mirrors are delta surfaces for the camera
             vec3 toCam = uCamPos - p;
-            float dist = length(toCam);
+            float dist = tsLength(toCam);
             vec3 wo = toCam / max(dist, 1e-6);
-            float cosCam = dot(-wo, uCamFwd);
-            if (cosCam > 0.0 && dot(wo, n) > 0.0) {
+            float cosCam = tsDot(-wo, uCamFwd);
+            if (cosCam > 0.0 && tsDot(wo, n) > 0.0) {
                 vec3 f = evalBsdf(s, n, wo, wi);
                 if (maxc(f * beta) > 0.0) {
                     vec3 T = transmittance(p + n * EPS, wo, dist * 0.999, F_NOSHADOW | F_PROXY);
@@ -878,7 +878,7 @@ void main() {
                         float c2 = cosCam * cosCam;
                         float We = npix / (area * c2 * c2);
                         // (distance clamped at 0.5 m: a surface touching the lens would splat unbounded values)
-                        splatAt(p, beta * f * T * (dot(wo, n) * cosCam / max(dist * dist, 0.25) * We));
+                        splatAt(p, beta * f * T * (tsDot(wo, n) * cosCam / max(dist * dist, 0.25) * We));
                     }
                 }
             }
@@ -886,7 +886,7 @@ void main() {
         vec3 nwi, w; bool sp;
         if (!sampleBsdf(s, n, front, wi, nwi, w, sp)) return;
         beta *= w;
-        ro = p + n * (dot(nwi, n) >= 0.0 ? EPS : -EPS);
+        ro = p + n * (tsDot(nwi, n) >= 0.0 ? EPS : -EPS);
         rd = nwi;
         if (bounce >= uRrStart) {
             float q = max(0.05, 1.0 - maxc(w));
@@ -926,12 +926,12 @@ void main() {
     else {
         Surf s = surfaceOf(h.prim, uCamPos + rd * h.t);
         c += s.emission;
-        if (h.prim == TERRAIN || (s.flags & F_SKY) == 0u) c = mix(c, uFogColor, fogOf(h.t));
+        if (h.prim == TERRAIN || (s.flags & F_SKY) == 0u) c = tsMix(c, uFogColor, fogOf(h.t));
         alb = isGlass(s) ? s.transmit : max(s.albedo, vec3(0.02));
-        nd = vec4(dot(rd, h.ng) < 0.0 ? h.ng : -h.ng, h.t);
+        nd = vec4(tsDot(rd, h.ng) < 0.0 ? h.ng : -h.ng, h.t);
     }
     vec4 prev = imageLoad(uAccum, px);
-    imageStore(uAccum, px, vec4(mix(prev.rgb, c, uBlend), 1.0));
+    imageStore(uAccum, px, vec4(tsMix(prev.rgb, c, uBlend), 1.0));
     imageStore(uAlbedo, px, vec4(alb, 1.0));
     imageStore(uNormalDepth, px, nd);
 }
@@ -960,7 +960,7 @@ void main() {
     const float k[5] = float[](1.0 / 16.0, 1.0 / 4.0, 3.0 / 8.0, 1.0 / 4.0, 1.0 / 16.0);
     vec3 c0 = fetch(px);
     vec4 nd0 = imageLoad(uNormalDepth, px);
-    float l0 = dot(c0, vec3(0.2126, 0.7152, 0.0722));
+    float l0 = tsDot(c0, vec3(0.2126, 0.7152, 0.0722));
     vec3 sum = vec3(0.0);
     float wsum = 0.0;
     for (int dy = -2; dy <= 2; ++dy)
@@ -969,9 +969,9 @@ void main() {
             if (any(lessThan(q, ivec2(0))) || any(greaterThanEqual(q, uRes))) continue;
             vec3 c = fetch(q);
             vec4 nd = imageLoad(uNormalDepth, q);
-            float wn = pow(max(0.0, dot(nd0.xyz, nd.xyz)), 32.0);
+            float wn = pow(max(0.0, tsDot(nd0.xyz, nd.xyz)), 32.0);
             float wz = exp(-abs(nd0.w - nd.w) / (0.02 * max(nd0.w, 0.1) * float(uStep) + 1e-3));
-            float wl = exp(-abs(l0 - dot(c, vec3(0.2126, 0.7152, 0.0722))) / (uSigma * (l0 + 0.002) + 1e-5));
+            float wl = exp(-abs(l0 - tsDot(c, vec3(0.2126, 0.7152, 0.0722))) / (uSigma * (l0 + 0.002) + 1e-5));
             float w = k[dx + 2] * k[dy + 2] * wn * wz * wl;
             sum += c * w;
             wsum += w;

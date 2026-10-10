@@ -361,7 +361,7 @@ SceneNode* addCamoNet(Builder& b, SceneNode* parent, const Vec3& ground, float y
 }
 
 SceneNode* addRevetment(Builder& b, SceneNode* parent, const Vec3& ground, float yawDeg, float halfW, float halfD,
-                        float height) {
+                        float height, bool frontWall) {
     using Pm = PrimitiveType;
     const Material earth = makeMaterial({0.13f, 0.105f, 0.075f}, 0.15f, Surface::Ground, 0.95f, 0.0f);
     const Material bag = mats::sandbag();
@@ -390,7 +390,7 @@ SceneNode* addRevetment(Builder& b, SceneNode* parent, const Vec3& ground, float
     wall(-wx, 0.0f, 2.0f * halfD + 1.2f, -1.0f);  // left (outer side towards -X)
     wall(wx, 0.0f, 2.0f * halfD + 1.2f, 1.0f);    // right
     // Front wall across +Z (rotate the same profile by 90 deg: built as three cubes along X).
-    {
+    if (frontWall) {
         const float h = height, zf = halfD + 0.45f, len = 2.0f * wx + 1.2f;
         b.part(g, "Revetment core", Pm::Cube, {len, 0.85f * h, 0.8f}, {0, 0, 0}, {0, 0.425f * h, zf}, earth, "Compacted earth core of the front wall");
         b.part(g, "Revetment slope (outer)", Pm::Cube, {len, 1.05f * h, 0.55f}, {-28, 0, 0}, {0, 0.45f * h, zf + 0.62f}, earth, "Outer slope of the front wall");

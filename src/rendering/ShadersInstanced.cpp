@@ -67,8 +67,8 @@ out vec3 fWorld;
 void main() {
     tsLoadLight(gInstance[0]);
     vec3 a = gWorld[0], b = gWorld[1], c = gWorld[2];
-    vec3 cr = cross(b - a, c - a);
-    vec3 N = length(cr) > 1e-12 ? normalize(cr) : vec3(0.0, 1.0, 0.0);   // degenerate (zero-area) triangle
+    vec3 cr = tsCross(b - a, c - a);
+    vec3 N = tsLength(cr) > 1e-12 ? tsNormalize(cr) : vec3(0.0, 1.0, 0.0);   // degenerate (zero-area) triangle
     Terms t = computeLight((a + b + c) / 3.0, N);
     for (int i = 0; i < 3; ++i) {
         gl_Position = gl_in[i].gl_Position;
@@ -108,7 +108,7 @@ void main() {
     int i = uInstanceBase + gl_InstanceID;
     tsLoadLight(i);
     vec4 w = tsModel(i) * vec4(aPos, 1.0);
-    vec3 N = normalize(tsNormalMat(i) * aNormal);
+    vec3 N = tsNormalize(tsNormalMat(i) * aNormal);
     Terms t = computeLight(w.xyz, N);    // lighting per VERTEX
     vAmb = t.amb; vD0 = t.d0; vS0 = t.s0; vD1 = t.d1; vS1 = t.s1; vD2 = t.d2; vS2 = t.s2; vSa = t.sa; vIrr = t.irr;
     vWorld = w.xyz;
@@ -127,7 +127,7 @@ void main() {
     tsLoadLight(vInstance);
     tsLoadOutput(vInstance);
     Terms t = Terms(vAmb, vD0, vS0, vD1, vS1, vD2, vS2, vSa, vIrr);
-    FragColor = shadeFragment(t, vWorld, normalize(vNormal));
+    FragColor = shadeFragment(t, vWorld, tsNormalize(vNormal));
 }
 )";
 
@@ -157,10 +157,10 @@ layout(location = 0) out vec4 FragColor;
 void main() {
     tsLoadLight(vInstance);
     tsLoadOutput(vInstance);
-    vec3 N = normalize(vNormal);
+    vec3 N = tsNormalize(vNormal);
     if (!gl_FrontFacing) N = -N;
     vec3 dnx = dFdx(N), dny = dFdy(N);
-    gSpecAA = uHdr == 1 ? min(0.5 * (dot(dnx, dnx) + dot(dny, dny)), 0.18) : 0.0;   // v8 specular AA
+    gSpecAA = uHdr == 1 ? min(0.5 * (tsDot(dnx, dnx) + tsDot(dny, dny)), 0.18) : 0.0;   // v8 specular AA
     FragColor = shadeFragment(computeLight(vWorld, N), vWorld, N);
 }
 )";

@@ -1,5 +1,7 @@
 #include "rendering/Shader.h"
 
+#include "rendering/ShaderMath.h"
+
 #include <cstdio>
 #include <utility>
 #include <vector>
@@ -8,7 +10,14 @@ namespace ts {
 
 namespace {
 
-GLuint compile(GLenum type, const std::string& src, const std::string& name) {
+GLuint compile(GLenum type, const std::string& source, const std::string& name) {
+    // Every program gets the hand-written vector maths (ShaderMath.h); a source that still calls a GLSL built-in vector
+    // function is refused.
+    if (const std::string b = builtinVectorCall(source); !b.empty()) {
+        std::fprintf(stderr, "[shader %s] calls the GLSL built-in %s(): use the ts* function of ShaderMath.h\n", name.c_str(), b.c_str());
+        return 0;
+    }
+    const std::string src = withManualMath(source);
     GLuint s = glCreateShader(type);
     const char* text = src.c_str();
     glShaderSource(s, 1, &text, nullptr);

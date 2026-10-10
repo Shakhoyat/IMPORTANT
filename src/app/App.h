@@ -284,6 +284,11 @@ private:
     RigPose povHoldPose_;
     bool possessAlt_ = false;                 // possessed tank / UAV on its alternative camera
     int possessedRover_ = -1;                 // intruder slot the player drives
+    // Boarding: the soldier the player walked up with sits inside the vehicle under control (controllables() indices);
+    // leaving the vehicle puts him back on his feet beside it.
+    int boardedSoldier_ = -1, boardedVehicle_ = -1;
+    bool boardVehicle(uint32_t key);          // E on foot at a tank / AA gun / launcher / helicopter
+    bool exitVehicle();                       // E (or Esc) inside: step out
     ViewMemo prevView_;                       // End: back to this view
     FlyCam fly_;
     bool flyCam_ = false;                     // free camera entered with Home (smoothed fly, wheel = speed)

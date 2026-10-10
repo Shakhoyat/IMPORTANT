@@ -120,7 +120,7 @@ public:
     CameraHint camera(bool firstPerson) const override;
     std::string status() const override;
     Vec3 position() const override { return {x_, feetY_, z_}; }
-    float friendlyRadius() const override { return 1.2f; }
+    float friendlyRadius() const override { return aboard_ ? 0.0f : 1.2f; }
     bool onBlast(const Vec3& point, float power) override;
 
     // --- garrison / test access ---
@@ -140,6 +140,9 @@ public:
     bool carrying() const { return carrying_; }
     bool unarmed() const { return duty_ == Duty::Resident; }   // v8: residents keep their rifles in the rack
     bool onDayShift() const { return day_; }
+    // Inside a vehicle (the player boarded it with this soldier): nothing of him is drawn and his duty waits.
+    void setAboard(bool on);
+    bool aboard() const { return aboard_; }
     int stance() const { return stance_; }          // possessed: 0 stand, 1 crouch, 2 wave
     // v7.1 WP-T: open-world movement of the possessed soldier (jump arc, strafe)
     bool airborne() const { return airborne_; }
@@ -181,7 +184,8 @@ private:
     bool planted_[2] = {false, false};
     Vec3 lock_[2];
     Pose pose_;
-    bool carrying_ = false, day_ = false, possessed_ = false;
+    bool carrying_ = false, day_ = false, possessed_ = false, aboard_ = false;
+    Vec3 aboardScale_{1.0f, 1.0f, 1.0f};
     int stance_ = 0;
     // v7.1 WP-T (possessed only): jump state, landing dip; v9 M3: the motor drives them (cmdSpeed_ / strafe_ went
     // into its velocity spring)

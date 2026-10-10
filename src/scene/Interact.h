@@ -20,7 +20,9 @@ namespace ts {
 
 class WalkSpace;
 
-enum class InteractAction { None, OpenDoor, CloseDoor, EnterBuilding, ExitBuilding, TakeControl, RideAlong, Release };
+// Board: a soldier on foot gets into / mans a vehicle (name carries the verb: "Enter MBT-1 TANK"); ExitVehicle: he gets out.
+enum class InteractAction { None, OpenDoor, CloseDoor, EnterBuilding, ExitBuilding, TakeControl, RideAlong, Release, Board,
+                            ExitVehicle };
 const char* interactActionName(InteractAction a);   // "OPEN_DOOR", ... (logs, tests)
 
 struct Interactable {

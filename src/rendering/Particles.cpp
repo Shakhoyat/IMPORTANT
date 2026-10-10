@@ -56,11 +56,11 @@ void main() {
         radius = 0.006 + 0.008 * fract(s2);
     }
     // Keep far points at least ~1.1 px wide so they never vanish or shimmer
-    float dist = length(c - uCamPos);
+    float dist = tsLength(c - uCamPos);
     radius = max(radius, dist * (mote ? 0.0010 : 0.0016));
-    vec3 fwd = normalize(c - uCamPos);
-    vec3 right = normalize(cross(fwd, vec3(0.0, 1.0, 0.0)));
-    vec3 upv = cross(right, fwd);
+    vec3 fwd = tsNormalize(c - uCamPos);
+    vec3 right = tsNormalize(tsCross(fwd, vec3(0.0, 1.0, 0.0)));
+    vec3 upv = tsCross(right, fwd);
     vLocal = aPos.xy * 2.0;                 // the cube's front and back face coincide: each point is drawn twice (0.5 weight below)
     vec3 wp = c + (right * aPos.x + upv * aPos.y) * 2.0 * radius;
     vWorld = wp;
@@ -80,34 +80,34 @@ flat in float vKind;
 layout(location = 0) out vec4 FragColor;
 void main() {
     if (uViewMode != 1) discard;                       // visible view only
-    float r = length(vLocal);
+    float r = tsLength(vLocal);
     if (r >= 1.0) discard;
-    float dist = length(vCentre - uCamPos);
+    float dist = tsLength(vCentre - uCamPos);
     if (vKind < 0.5) {
         // Firefly: hot core and soft halo, warm yellow-green, emissive HDR
         float core = exp(-r * r * 9.0);
         float halo = exp(-r * 3.0) * 0.25;
-        vec3 col = mix(vec3(0.75, 1.0, 0.28), vec3(1.0, 0.95, 0.55), core);
-        float fade = 1.0 - smoothstep(30.0, 45.0, dist);
+        vec3 col = tsMix(vec3(0.75, 1.0, 0.28), vec3(1.0, 0.95, 0.55), core);
+        float fade = 1.0 - tsSmoothstep(30.0, 45.0, dist);
         FragColor = vec4(col * (core + halo) * vGlow * fade * 0.5, 1.0);
         return;
     }
     // Mote: scatters light from the moon, the searchlight cone and practical lights (forward-peaked)
-    vec3 V = normalize(vCentre - uCamPos);
-    vec3 light = uSkyZenith * 0.2 + uMoonColor * 0.03 * (0.3 + pow(max(dot(V, -uMoonDir), 0.0), 8.0));
+    vec3 V = tsNormalize(vCentre - uCamPos);
+    vec3 light = uSkyZenith * 0.2 + uMoonColor * 0.03 * (0.3 + pow(max(tsDot(V, -uMoonDir), 0.0), 8.0));
     vec3 toSpot = vCentre - uSpotPos;
-    float ds = max(length(toSpot), 1e-3);
-    float cone = clamp((dot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
-    light += uSpotColor * cone * cone / (1.0 + uSpotAtt.x * ds + uSpotAtt.y * ds * ds) * 0.12 * (0.4 + 2.0 * pow(max(dot(V, toSpot / ds), 0.0), 6.0));
+    float ds = max(tsLength(toSpot), 1e-3);
+    float cone = tsClamp((tsDot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
+    light += uSpotColor * cone * cone / (1.0 + uSpotAtt.x * ds + uSpotAtt.y * ds * ds) * 0.12 * (0.4 + 2.0 * pow(max(tsDot(V, toSpot / ds), 0.0), 6.0));
     for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vCentre, Lp);
-        light += uPracticalColor[i].rgb * att * 0.15 * (0.4 + 2.0 * pow(max(dot(V, -Lp), 0.0), 6.0));
+        light += uPracticalColor[i].rgb * att * 0.15 * (0.4 + 2.0 * pow(max(tsDot(V, -Lp), 0.0), 6.0));
     }
     float sprite = exp(-r * r * 4.0);
-    float nearFade = smoothstep(0.4, 1.5, dist) * (1.0 - smoothstep(9.0, 16.0, dist));
-    float tw = 0.6 + 0.4 * sin(uTime * 2.0 + dot(vCentre, vec3(12.9, 7.3, 4.1)));   // tumbling glints
+    float nearFade = tsSmoothstep(0.4, 1.5, dist) * (1.0 - tsSmoothstep(9.0, 16.0, dist));
+    float tw = 0.6 + 0.4 * sin(uTime * 2.0 + tsDot(vCentre, vec3(12.9, 7.3, 4.1)));   // tumbling glints
     FragColor = vec4(light * sprite * nearFade * tw * (1.0 - 0.7 * uRain) * 0.5, 1.0);
 }
 )";

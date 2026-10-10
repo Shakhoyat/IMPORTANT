@@ -175,6 +175,8 @@ bool App::possessRandomSoldier() {
 // Esc: give control back (the soldier resumes its duty), leave a ride-along, else clear the selection.
 // Returns false when there was nothing to leave (the caller may then quit).
 bool App::releaseControl() {
+    if (possessedRover_ < 0 && boardedSoldier_ >= 0 && possessed_ == boardedVehicle_ && camera_.mode == CameraMode::Possess)
+        return exitVehicle();
     if (possessedRover_ >= 0 || camera_.mode == CameraMode::Possess) {
         const RigPose from = shownPose_;
         audio_.uiCue(audio::UiCue::Release);

@@ -48,25 +48,25 @@ void main() {
     vec3 c = iA.xyz;
     float rad = iA.w;
     vec2 l = aPos.xy * 2.0;
-    vec3 view = normalize(c - uCamPos);
+    vec3 view = tsNormalize(c - uCamPos);
     vec3 wp;
     if (kind == 5 || kind == 6 || kind == 8 || kind == 11) {            // velocity-aligned streak
         vec3 ax = iB.xyz;
-        float al = length(ax);
+        float al = tsLength(ax);
         ax = al > 1e-4 ? ax / al : vec3(0.0, 1.0, 0.0);
-        vec3 side = cross(ax, view);
-        float sl = length(side);
-        side = sl > 1e-4 ? side / sl : normalize(cross(ax, vec3(1.0, 0.0, 0.0)));
+        vec3 side = tsCross(ax, view);
+        float sl = tsLength(side);
+        side = sl > 1e-4 ? side / sl : tsNormalize(tsCross(ax, vec3(1.0, 0.0, 0.0)));
         wp = c + ax * l.y * iD.z + side * l.x * rad;
     } else if (kind == 7) {                                              // shock wave ring on the ground
         wp = vec3(c.x + l.x * rad, c.y + 0.07, c.z + l.y * rad);
     } else if (kind == 10) {                                             // scorch decal
         wp = vec3(c.x + l.x * rad * 1.3, c.y + 0.05 + rad * 0.02, c.z + l.y * rad * 1.3);
     } else {                                                             // camera-facing puff
-        vec3 right = cross(view, vec3(0.0, 1.0, 0.0));
-        float rl = length(right);
+        vec3 right = tsCross(view, vec3(0.0, 1.0, 0.0));
+        float rl = tsLength(right);
         right = rl > 1e-3 ? right / rl : vec3(1.0, 0.0, 0.0);
-        vec3 upv = cross(right, view);
+        vec3 upv = tsCross(right, view);
         float ext = (kind == 4 || kind == 9) ? 1.0 : 1.5;                // smoke / fire edges may erode out to 1.5 r
         wp = c + (right * l.x + upv * l.y) * rad * ext;
         vP.z = ext;
@@ -96,12 +96,12 @@ float softDepth(float radius) {
     if (uHasSceneDepth == 0) return 1.0;
     float sd = texture(uSceneDepth, gl_FragCoord.xy / uResolution).r;
     if (sd >= 1.0) return 1.0;
-    return clamp((linZ(sd) - linZ(gl_FragCoord.z)) / max(radius * 0.6, 0.05), 0.0, 1.0);
+    return tsClamp((linZ(sd) - linZ(gl_FragCoord.z)) / max(radius * 0.6, 0.05), 0.0, 1.0);
 }
 vec2 rot(vec2 p, float a) { float c = cos(a), s = sin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
 // Blackbody-like ramp: 0 black, deep red, orange, yellow, white-yellow
 vec3 bb(float T) {   // continuous power curves (no plateaus): red first, then green, then blue
-    T = clamp(T, 0.0, 1.0);
+    T = tsClamp(T, 0.0, 1.0);
     return vec3(pow(T, 0.45), pow(T, 1.9), 0.85 * pow(T, 4.5));
 }
 vec3 fogLit(vec3 lit) { return uVolumetric == 1 || uHdr != 1 ? lit : lit * (1.0 - fogAmount(vWorld)); }
@@ -113,7 +113,7 @@ void main() {
     float radius = vP.x, ext = vP.z, age = vP.w;
     float t = vQ.x, seed = vQ.y, heat = vQ.z, bright = vQ.w;
     vec2 L = vLocal;
-    float r = length(L) * ext;
+    float r = tsLength(L) * ext;
     float soft = (kind == 7 || kind == 10) ? 1.0 : softDepth(radius);
     float ang = seed * 6.2831853 + age * (seed - 0.5) * 0.9;
     vec2 q = rot(L * ext, ang) * 1.8 + seed * 53.0;
@@ -129,38 +129,38 @@ void main() {
         float n = fbm(q + vec2(0.0, -age * 0.25));
         float n2 = valueNoise(q * 3.1 + 7.0);
         float d = r + (n - 0.5) * 0.95 + (n2 - 0.5) * 0.25 + t * 0.35;
-        float dens = smoothstep(1.0, 0.2, d) * smoothstep(1.45, 1.0, r);   // envelope: never cut by the quad edge
+        float dens = tsSmoothstep(1.0, 0.2, d) * tsSmoothstep(1.45, 1.0, r);   // envelope: never cut by the quad edge
         vec3 albedo; float op;
         if (kind == 1)      { albedo = vec3(0.085, 0.080, 0.076); op = 0.92; }
         else if (kind == 2) { albedo = vec3(0.34, 0.34, 0.35);    op = 0.38; }
         else                { albedo = vec3(0.20, 0.15, 0.10);    op = 0.55; }
-        float fade = pow(max(1.0 - t, 0.0), 1.2) * smoothstep(0.0, 0.03, t + 0.03);
-        alpha = dens * op * fade * soft * mix(0.75, 1.15, n);
+        float fade = pow(max(1.0 - t, 0.0), 1.2) * tsSmoothstep(0.0, 0.03, t + 0.03);
+        alpha = dens * op * fade * soft * tsMix(0.75, 1.15, n);
         if (alpha < 0.004) discard;
-        vec3 fwd = normalize(vCentre - uCamPos);
-        vec3 right = normalize(cross(fwd, vec3(0.0, 1.0, 0.0)) + vec3(1e-4, 0.0, 0.0));
-        vec3 upv = cross(right, fwd);
+        vec3 fwd = tsNormalize(vCentre - uCamPos);
+        vec3 right = tsNormalize(tsCross(fwd, vec3(0.0, 1.0, 0.0)) + vec3(1e-4, 0.0, 0.0));
+        vec3 upv = tsCross(right, fwd);
         float z = sqrt(max(1.0 - r * r * 0.8, 0.06));
-        vec3 N = normalize(right * (L.x * ext * 0.8 + (n - 0.5) * 1.6) + upv * (L.y * ext * 0.8 + (n2 - 0.5) * 1.6) - fwd * z);
-        vec3 Lm = normalize(-uMoonDir);
-        float wd = dot(N, Lm) * 0.5 + 0.5;
+        vec3 N = tsNormalize(right * (L.x * ext * 0.8 + (n - 0.5) * 1.6) + upv * (L.y * ext * 0.8 + (n2 - 0.5) * 1.6) - fwd * z);
+        vec3 Lm = tsNormalize(-uMoonDir);
+        float wd = tsDot(N, Lm) * 0.5 + 0.5;
         vec3 light = uMoonColor * wd * wd * 0.9 + uAmbient + uSkyZenith * (0.7 + 0.5 * N.y);
         vec3 toSpot = vCentre - uSpotPos;
-        float ds = max(length(toSpot), 1e-3);
-        float cone = clamp((dot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
+        float ds = max(tsLength(toSpot), 1e-3);
+        float cone = tsClamp((tsDot(toSpot / ds, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
         light += uSpotColor * cone * cone / (1.0 + uSpotAtt.x * ds + uSpotAtt.y * ds * ds) * 0.6;
         for (int i = 0; i < 8; ++i) {
             if (i >= uPracticalCount) break;
             vec3 Lp;
             float att = practicalAttenuation(i, vCentre, Lp);
-            float dd = dot(N, Lp) * 0.5 + 0.5;
+            float dd = tsDot(N, Lp) * 0.5 + 0.5;
             light += uPracticalColor[i].rgb * att * dd * dd * 2.0;
         }
         // Young smoke is lit from inside / below by the fire that made it
         float warm = heat * exp(-age * (kind == 1 ? 0.9 : 2.5));
-        float below = 0.55 + 0.45 * clamp(-N.y + 0.2, 0.0, 1.0);
+        float below = 0.55 + 0.45 * tsClamp(-N.y + 0.2, 0.0, 1.0);
         light += vec3(1.0, 0.36, 0.08) * warm * below * (kind == 1 ? 2.2 : 0.8);
-        body = fogLit(albedo * light * mix(0.55, 1.25, n2)) * alpha;
+        body = fogLit(albedo * light * tsMix(0.55, 1.25, n2)) * alpha;
         h = 0.08 + (heat - 0.08) * exp(-age * (kind == 2 ? 0.8 : 0.35));
         cover = alpha * 0.6;
     } else if (kind == 0) {
@@ -170,39 +170,39 @@ void main() {
         float n2 = fbm(qf * 2.3 + vec2(3.0, -age * 3.1));
         float n3 = valueNoise(qf * 6.0 + age);
         float d = r + (n - 0.5) * 0.95 + (n2 - 0.5) * 0.4 + (n3 - 0.5) * 0.18;
-        float T = clamp(1.0 - d, 0.0, 1.0) * smoothstep(1.45, 0.95, r);   // envelope: never cut by the quad edge
+        float T = tsClamp(1.0 - d, 0.0, 1.0) * tsSmoothstep(1.45, 0.95, r);   // envelope: never cut by the quad edge
         float life = max(1.0 - t, 0.0);
-        T *= pow(life, 0.6) * mix(0.65, 1.0, clamp(heat, 0.0, 1.0));
-        float cov = smoothstep(0.0, 0.35, T);
+        T *= pow(life, 0.6) * tsMix(0.65, 1.0, tsClamp(heat, 0.0, 1.0));
+        float cov = tsSmoothstep(0.0, 0.35, T);
         emit = bb(T) * (0.5 + 5.0 * T * T) * bright * cov * soft;
-        alpha = (0.45 * smoothstep(0.1, 0.7, t) + 0.25) * smoothstep(0.45, 0.95, d) * smoothstep(1.3, 0.8, d) * smoothstep(1.45, 1.0, r) * soft;   // soot edge darkens old flames
+        alpha = (0.45 * tsSmoothstep(0.1, 0.7, t) + 0.25) * tsSmoothstep(0.45, 0.95, d) * tsSmoothstep(1.3, 0.8, d) * tsSmoothstep(1.45, 1.0, r) * soft;   // soot edge darkens old flames
         emit = fogLit(emit);
-        h = heat * mix(1.0, 0.75, t) * (0.85 + 0.15 * smoothstep(0.0, 0.5, T));
+        h = heat * tsMix(1.0, 0.75, t) * (0.85 + 0.15 * tsSmoothstep(0.0, 0.5, T));
         cover = max(cov * 0.95, alpha) * soft;
         if (cover < 0.004) discard;
     } else if (kind == 4) {
         // ---- flash: very bright short sphere ----
-        float g = exp(-r * r * 6.0) * smoothstep(1.0, 0.6, r);
+        float g = exp(-r * r * 6.0) * tsSmoothstep(1.0, 0.6, r);
         float f = pow(max(1.0 - t, 0.0), 1.5);
-        emit = fogLit(mix(vec3(1.0, 0.55, 0.2), vec3(1.0, 0.92, 0.75), g) * g * f * bright * 7.0 * soft);
+        emit = fogLit(tsMix(vec3(1.0, 0.55, 0.2), vec3(1.0, 0.92, 0.75), g) * g * f * bright * 7.0 * soft);
         h = 1.0;
         cover = g * f;
         if (cover < 0.003) discard;
     } else if (kind == 5 || kind == 6) {
         // ---- sparks / embers: hot streaks, cooling ----
-        float Tn = clamp(heat * (1.0 - t * (kind == 5 ? 0.9 : 0.85)), 0.0, 1.0);
-        float prof = kind == 5 ? exp(-L.x * L.x * 6.0) * smoothstep(1.0, 0.7, abs(L.y))
-                               : exp(-dot(L, L) * 4.0) * smoothstep(1.0, 0.6, length(L));
-        float grad = kind == 5 ? mix(0.2, 1.0, L.y * 0.5 + 0.5) : 1.0;
+        float Tn = tsClamp(heat * (1.0 - t * (kind == 5 ? 0.9 : 0.85)), 0.0, 1.0);
+        float prof = kind == 5 ? exp(-L.x * L.x * 6.0) * tsSmoothstep(1.0, 0.7, abs(L.y))
+                               : exp(-tsDot(L, L) * 4.0) * tsSmoothstep(1.0, 0.6, tsLength(L));
+        float grad = kind == 5 ? tsMix(0.2, 1.0, L.y * 0.5 + 0.5) : 1.0;
         float flick = kind == 6 ? 0.75 + 0.25 * sin(uTime * 17.0 + seed * 40.0) : 1.0;
         emit = fogLit(bb(0.1 + 0.9 * Tn) * (2.0 + 9.0 * Tn) * bright * prof * grad * flick);
         h = Tn;
-        cover = prof * grad * smoothstep(0.0, 0.15, Tn);
+        cover = prof * grad * tsSmoothstep(0.0, 0.15, Tn);
         if (cover < 0.004) discard;
     } else if (kind == 7) {
         // ---- shock wave: thin bright ring racing across the ground ----
-        float R = length(L);
-        float ring = smoothstep(0.86, 0.95, R) * smoothstep(1.0, 0.96, R);
+        float R = tsLength(L);
+        float ring = tsSmoothstep(0.86, 0.95, R) * tsSmoothstep(1.0, 0.96, R);
         float f = (1.0 - t) * (1.0 - t);
         float breakup = 0.65 + 0.35 * valueNoise(rot(L, ang) * 9.0);
         emit = fogLit(vec3(1.0, 0.82, 0.62) * ring * f * breakup * bright * 0.15);
@@ -211,23 +211,23 @@ void main() {
         if (cover < 0.004) discard;
     } else if (kind == 8 || kind == 11) {
         // ---- tracer / exhaust flame: streak, bright head (+Y), fading tail ----
-        float head = smoothstep(-1.0, 0.9, L.y);
-        float g = head * head * smoothstep(1.0, 0.85, L.y);
+        float head = tsSmoothstep(-1.0, 0.9, L.y);
+        float g = head * head * tsSmoothstep(1.0, 0.85, L.y);
         float w = kind == 11 ? 0.35 + 0.65 * (L.y * 0.5 + 0.5) : 1.0;
         float prof = exp(-(L.x * L.x) / (w * w) * 4.0);
         float flick = kind == 11 ? 0.8 + 0.2 * sin(uTime * 90.0 + seed * 30.0 + L.y * 5.0) : 1.0;
         vec3 outer = kind == 11 ? vec3(1.0, 0.45, 0.08) : vec3(1.0, 0.22, 0.04);
         vec3 inner = kind == 11 ? vec3(1.0, 0.92, 0.7) : vec3(1.0, 0.72, 0.35);
         float core = exp(-L.x * L.x * 22.0 / (w * w)) * g;
-        emit = fogLit(mix(outer, inner, core) * g * prof * flick * bright * (kind == 11 ? 14.0 : 30.0));
+        emit = fogLit(tsMix(outer, inner, core) * g * prof * flick * bright * (kind == 11 ? 14.0 : 30.0));
         h = 0.95;
         cover = g * prof;
         if (cover < 0.004) discard;
     } else if (kind == 9) {
         // ---- exhaust / muzzle glow ----
-        float g = exp(-r * r * 4.0) * smoothstep(1.0, 0.8, r);
+        float g = exp(-r * r * 4.0) * tsSmoothstep(1.0, 0.8, r);
         float flick = 0.85 + 0.15 * sin(uTime * 60.0 + seed * 20.0);
-        emit = fogLit(mix(vec3(1.0, 0.4, 0.1), vec3(1.0, 0.85, 0.6), g * g) * g * bright * 10.0 * flick * soft);
+        emit = fogLit(tsMix(vec3(1.0, 0.4, 0.1), vec3(1.0, 0.85, 0.6), g * g) * g * bright * 10.0 * flick * soft);
         h = 1.0;
         cover = g;
         if (cover < 0.004) discard;
@@ -236,28 +236,28 @@ void main() {
         vec2 qs = rot(L, ang) * 2.2 + seed * 91.0;
         float n = fbm(qs);
         float n2 = valueNoise(qs * 4.0);
-        float d = length(L) * 1.1 + (n - 0.5) * 0.75 + (n2 - 0.5) * 0.15;
-        float dark = smoothstep(1.0, 0.35, d) * mix(0.92, 0.6, smoothstep(20.0, 300.0, age));
+        float d = tsLength(L) * 1.1 + (n - 0.5) * 0.75 + (n2 - 0.5) * 0.15;
+        float dark = tsSmoothstep(1.0, 0.35, d) * tsMix(0.92, 0.6, tsSmoothstep(20.0, 300.0, age));
         if (dark < 0.01) discard;
         float hot = exp(-age / 14.0);
-        float e = smoothstep(0.55, 0.8, fbm(qs * 3.0 + vec2(age * 0.05, 0.0))) * smoothstep(0.8, 0.15, d);
+        float e = tsSmoothstep(0.55, 0.8, fbm(qs * 3.0 + vec2(age * 0.05, 0.0))) * tsSmoothstep(0.8, 0.15, d);
         float flick = 0.6 + 0.4 * sin(uTime * 2.7 + hash21(floor(qs * 9.0)) * 30.0);
         emit = fogLit(bb(0.25 + 0.4 * e * flick) * e * hot * flick * 3.0);
         alpha = dark * 0.92;
-        h = heat * (0.6 + 0.4 * smoothstep(0.8, 0.2, d));
+        h = heat * (0.6 + 0.4 * tsSmoothstep(0.8, 0.2, d));
         cover = dark * 0.95;
     }
 
     if (thermal) {
         vec4 c = finalColor(vec3(0.0), h, vWorld);
-        float a = clamp(cover, 0.0, 1.0);
+        float a = tsClamp(cover, 0.0, 1.0);
         FragColor = vec4(c.rgb * a, a);
         return;
     }
     float dither = 1.0 + (hash21(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) * 0.3;
     emit *= dither; body *= dither;
     vec4 c = finalColor(vec3(0.0), 0.0, vWorld);   // keeps the surface target written; colour is ours
-    FragColor = vec4(body + emit, clamp(alpha, 0.0, 1.0));
+    FragColor = vec4(body + emit, tsClamp(alpha, 0.0, 1.0));
 }
 )";
 
@@ -284,17 +284,17 @@ uniform vec3 uBodyColor;
 uniform vec3 uBodyEmit;
 uniform float uBodyHeat;
 void main() {
-    vec3 N = normalize(vN);
-    vec3 V = normalize(uCamPos - vWorld);
-    vec3 Lm = normalize(-uMoonDir);
-    vec3 light = uAmbient + uSkyZenith * (0.7 + 0.5 * N.y) + uMoonColor * max(dot(N, Lm), 0.0);
-    vec3 H = normalize(Lm + V);
-    vec3 spec = uMoonColor * pow(max(dot(N, H), 0.0), 40.0) * 0.6;
+    vec3 N = tsNormalize(vN);
+    vec3 V = tsNormalize(uCamPos - vWorld);
+    vec3 Lm = tsNormalize(-uMoonDir);
+    vec3 light = uAmbient + uSkyZenith * (0.7 + 0.5 * N.y) + uMoonColor * max(tsDot(N, Lm), 0.0);
+    vec3 H = tsNormalize(Lm + V);
+    vec3 spec = uMoonColor * pow(max(tsDot(N, H), 0.0), 40.0) * 0.6;
     for (int i = 0; i < 8; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);
-        light += uPracticalColor[i].rgb * att * max(dot(N, Lp), 0.0);
+        light += uPracticalColor[i].rgb * att * max(tsDot(N, Lp), 0.0);
     }
     vec3 lit = uBodyColor * light + spec + uBodyEmit;
     FragColor = finalColor(lit, uBodyHeat, vWorld);

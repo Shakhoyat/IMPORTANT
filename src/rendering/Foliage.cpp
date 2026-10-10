@@ -71,20 +71,20 @@ uniform float uTime;
 bool cardVertex(out vec3 P, out vec3 N, out vec2 uv, out float kind, out float seed) {
     kind = floor(iA.w);
     seed = fract(iA.w);
-    float len = length(iB.xyz);
+    float len = tsLength(iB.xyz);
     vec3 ax = iB.xyz / len;
-    vec3 side = normalize(cross(ax, iC.xyz));
-    N = cross(side, ax);
+    vec3 side = tsNormalize(tsCross(ax, iC.xyz));
+    N = tsCross(side, ax);
     uv = vec2(aPos.x + 0.5, aPos.z + 0.5);
     float along = uv.y * len;
     P = iA.xyz + ax * along + side * (aPos.x * iB.w);
     if (kind < 0.5) P.y -= uv.y * uv.y * len * 0.22;      // sprays droop
     // Wind: the whole crown leans with a travelling gust (more with height), tips flutter on top of it.
     vec2 wd = vec2(0.8, 0.45);
-    float phase = dot(iA.xz, wd);
+    float phase = tsDot(iA.xz, wd);
     float gust = 0.5 + 0.5 * sin(uTime * 0.7 + phase * 0.22);
     float travel = sin(uTime * 1.25 + phase * 0.55 + seed * 1.5);
-    float hgt = clamp(iA.y * 0.10, 0.0, 1.0);
+    float hgt = tsClamp(iA.y * 0.10, 0.0, 1.0);
     P.xz += wd * (0.02 + 0.05 * gust) * (0.25 + 0.75 * hgt) * (0.4 + travel);
     float f1 = sin(uTime * (2.6 + seed * 2.2) + seed * 40.0 + iA.x * 0.9);
     float f2 = sin(uTime * (3.3 + seed * 1.7) + seed * 23.0 + iA.z * 0.8);
@@ -97,25 +97,25 @@ bool cardVertex(out vec3 P, out vec3 N, out vec2 uv, out float kind, out float s
 const char* kCardCoverage = R"(
 float fhash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
+    p += tsDot(p, p + 45.32);
     return fract(p.x * p.y);
 }
 // 1 where the card is opaque. Pines: a central stem with needles sweeping towards the tip (random reach);
 // broadleaf: two grids of small pointed leaves with random rotation, jitter and gaps. 'shade' = 0 stem/base .. 1 tips.
 float cardCoverage(vec2 uv, float kind, float seed, float dist, out float shade) {
-    float widen = smoothstep(12.0, 60.0, dist);   // far away thicken slightly so the pattern does not shimmer
+    float widen = tsSmoothstep(12.0, 60.0, dist);   // far away thicken slightly so the pattern does not shimmer
     shade = 0.5;
     if (kind < 0.5) {
         float x = (uv.x - 0.5) * 2.0, ax = abs(x), v = uv.y;
-        float env = pow(max(sin(3.14159 * pow(clamp(v, 0.0, 1.0), 0.7)), 0.0), 0.7) * (0.75 + 0.25 * fhash(vec2(seed, 3.0)));
-        float stem = step(ax, 0.045 * (1.0 - 0.5 * v) + 0.02 * widen);
+        float env = pow(max(sin(3.14159 * pow(tsClamp(v, 0.0, 1.0), 0.7)), 0.0), 0.7) * (0.75 + 0.25 * fhash(vec2(seed, 3.0)));
+        float stem = tsStep(ax, 0.045 * (1.0 - 0.5 * v) + 0.02 * widen);
         float n = 12.0 + floor(seed * 6.0);
         float s = v * n - ax * 5.0;
         float cell = floor(s), f = fract(s);
         float reach = env * (0.7 + 0.3 * fhash(vec2(cell, sign(x) + seed * 17.0)));
         float th = (0.5 + 0.3 * widen) * (1.0 - 0.5 * ax / max(reach, 1e-3)) + 0.06 * widen;
-        float needle = step(ax, reach) * step(f, th);
-        shade = clamp(ax / max(reach, 1e-3), 0.0, 1.0) * needle;
+        float needle = tsStep(ax, reach) * tsStep(f, th);
+        shade = tsClamp(ax / max(reach, 1e-3), 0.0, 1.0) * needle;
         return max(stem, needle);
     }
     float cov = 0.0;
@@ -130,7 +130,7 @@ float cardCoverage(vec2 uv, float kind, float seed, float dist, out float shade)
         vec2 q = vec2(c * f.x + s2 * f.y, -s2 * f.x + c * f.y);
         float lx = q.x / 0.5;
         float hw = (0.20 + 0.10 * widen) * (1.0 - lx * lx);
-        float inside = step(abs(lx), 1.0) * step(abs(q.y), hw) * step(0.16, h);
+        float inside = tsStep(abs(lx), 1.0) * tsStep(abs(q.y), hw) * tsStep(0.16, h);
         if (inside > 0.5 && cov < 0.5) shade = fract(h * 7.3) * 0.6 + 0.4 * (lx * 0.5 + 0.5);
         cov = max(cov, inside);
     }
@@ -170,7 +170,7 @@ float oneTap(sampler2DArrayShadow m, mat4 vp, float layer, vec3 P) {
 }
 
 void main() {
-    float dist = length(vWorld - uCamPos);
+    float dist = tsLength(vWorld - uCamPos);
     float shade;
     if (cardCoverage(vUV, vKind, vSeed, dist, shade) < 0.5) discard;
     float heat = 0.13 + 0.03 * vUV.y + 0.02 * (vSeed - 0.5);
@@ -179,20 +179,20 @@ void main() {
     vec3 albedo;
     if (vKind < 0.5) {      // spruce: bluish dark green, lighter young needles at the tips
         // v8: deep green (was blue-green: under the blue daylight ambient the spruces read teal)
-        albedo = mix(vec3(0.011, 0.024, 0.013), vec3(0.036, 0.066, 0.030), clamp(0.7 * vUV.y + 0.5 * shade, 0.0, 1.0));
+        albedo = tsMix(vec3(0.011, 0.024, 0.013), vec3(0.036, 0.066, 0.030), tsClamp(0.7 * vUV.y + 0.5 * shade, 0.0, 1.0));
     } else {                // broadleaf: olive, some yellowish leaves
-        albedo = mix(vec3(0.026, 0.036, 0.010), vec3(0.100, 0.125, 0.034), shade);
-        albedo = mix(albedo, vec3(0.110, 0.100, 0.030), step(0.86, vTint) * 0.5);
+        albedo = tsMix(vec3(0.026, 0.036, 0.010), vec3(0.100, 0.125, 0.034), shade);
+        albedo = tsMix(albedo, vec3(0.110, 0.100, 0.030), tsStep(0.86, vTint) * 0.5);
     }
     albedo *= 0.75 + 0.5 * vTint;
     if (uViewMode == 2) albedo = uBaseColor;
 
-    vec3 V = normalize(uCamPos - vWorld);
-    vec3 N = normalize(vN);
+    vec3 V = tsNormalize(uCamPos - vWorld);
+    vec3 N = tsNormalize(vN);
     float ny = N.y;
-    if (dot(N, V) < 0.0) N = -N;                       // two-sided
-    vec3 Lm = normalize(-uMoonDir);
-    float ndl = dot(N, Lm);
+    if (tsDot(N, V) < 0.0) N = -N;                       // two-sided
+    vec3 Lm = tsNormalize(-uMoonDir);
+    float ndl = tsDot(N, Lm);
     float sm = 1.0, ss = 1.0;
     if (uShadows > 0) {
         vec3 Ps = vWorld + Lm * 0.05;
@@ -201,30 +201,30 @@ void main() {
     }
     // Moon: diffuse on the lit side, subsurface transmission (yellow-green) when the moon is behind the card.
     float front = max(ndl, 0.0), back = max(-ndl, 0.0);
-    float through = pow(max(dot(-V, Lm), 0.0), 3.0);   // looking towards the moon: leaves glow
+    float through = pow(max(tsDot(-V, Lm), 0.0), 3.0);   // looking towards the moon: leaves glow
     vec3 transTint = vKind < 0.5 ? vec3(0.55, 0.85, 0.65) : vec3(0.85, 1.0, 0.45);
-    float glow = mix(2.2, 0.9, uDayWeight);   // v8: sunlight through needles / leaves is a rim, not a lamp
+    float glow = tsMix(2.2, 0.9, uDayWeight);   // v8: sunlight through needles / leaves is a rim, not a lamp
     vec3 moon = uMoonColor * sm * (albedo * (0.25 + 0.75 * front) + albedo * transTint * (0.9 * back + 0.9 * through) * glow);
-    vec3 sheen = uMoonColor * sm * pow(max(dot(N, normalize(Lm + V)), 0.0), 40.0) * 0.012;   // waxy leaf highlight
+    vec3 sheen = uMoonColor * sm * pow(max(tsDot(N, tsNormalize(Lm + V)), 0.0), 40.0) * 0.012;   // waxy leaf highlight
 
-    vec3 amb = uHdr == 1 ? hemiAmbient(normalize(vN)) : uAmbient;
-    float ao = mix(0.30, 1.0, clamp(0.35 + 0.5 * (0.5 + 0.5 * ny) + 0.35 * vUV.y * (vKind < 0.5 ? 1.0 : 0.0), 0.0, 1.0));
+    vec3 amb = uHdr == 1 ? hemiAmbient(tsNormalize(vN)) : uAmbient;
+    float ao = tsMix(0.30, 1.0, tsClamp(0.35 + 0.5 * (0.5 + 0.5 * ny) + 0.35 * vUV.y * (vKind < 0.5 ? 1.0 : 0.0), 0.0, 1.0));
     vec3 lit = albedo * amb * ao + moon + sheen;
 
     vec3 d = uBeaconPos - vWorld;
-    float dd = length(d);
-    lit += albedo * uBeaconColor * mix(0.35, 1.0, abs(dot(N, d / dd))) / (1.0 + uBeaconAtt.x * dd + uBeaconAtt.y * dd * dd);
+    float dd = tsLength(d);
+    lit += albedo * uBeaconColor * tsMix(0.35, 1.0, abs(tsDot(N, d / dd))) / (1.0 + uBeaconAtt.x * dd + uBeaconAtt.y * dd * dd);
     for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);
-        lit += albedo * uPracticalColor[i].rgb * att * mix(0.35, 1.0, abs(dot(N, Lp)));
+        lit += albedo * uPracticalColor[i].rgb * att * tsMix(0.35, 1.0, abs(tsDot(N, Lp)));
     }
     d = uSpotPos - vWorld;
-    dd = length(d);
+    dd = tsLength(d);
     vec3 Ls = d / dd;
-    float cone = clamp((dot(-Ls, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
-    vec3 spot = uSpotColor * cone * cone * mix(0.35, 1.0, abs(dot(N, Ls))) / (1.0 + uSpotAtt.x * dd + uSpotAtt.y * dd * dd);
+    float cone = tsClamp((tsDot(-Ls, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
+    vec3 spot = uSpotColor * cone * cone * tsMix(0.35, 1.0, abs(tsDot(N, Ls))) / (1.0 + uSpotAtt.x * dd + uSpotAtt.y * dd * dd);
     if (uShadows > 1 && max(spot.r, spot.g) > 1e-4) {
         vec4 lp = uSpotVP * vec4(vWorld, 1.0);
         vec3 p = lp.xyz / lp.w * 0.5 + 0.5;

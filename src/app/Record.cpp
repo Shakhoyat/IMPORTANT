@@ -20,6 +20,7 @@
 #include "scene/Garrison.h"
 #include "objects/BaseLayout.h"
 #include "scene/Pov.h"
+#include "objects/Tank.h"
 #include "objects/Terrain.h"
 #include "rendering/FrameExplorer.h"
 #include "rendering/ImageWriter.h"
@@ -207,7 +208,21 @@ int App::recordMode() {
     // TS_TOUR = route file: a soldier explores in third person, the recorder steering him like a player would (camera-
     // relative walk, the arm easing behind). Lines: "hour H", "soldier ROSTER", "doors MASK" (1 blast, 2 hall, 4 generator),
     // "start X Z YAW [FEETY]", then "p X Z [run]" waypoints. The garrison's own soldiers keep their duties around him.
-    struct TourPt { float x, z; bool run; };
+    // The script is played like a player would: besides the waypoints, "face X Z" (turn to a point), "use" (E: open the
+    // door in front / get into the vehicle in front), "wait S", "view first|third", and inside a vehicle "drive X Z"
+    // (waypoint), "aim X Y Z" (lay the gun / launcher on a world point and hold it; "aim off"), "sight" / "chase" (gunner's
+    // sight or chase camera), "fire S" (trigger held S seconds), "action" (the vehicle's secondary action) and "exit".
+    // "turn YAW" pivots the tank to a heading; "cam BACK UP SIDE" films the vehicle from a low follow camera (under the
+    // camp nets, where the game's own chase camera sits above the net), "cam off" gives the view back to the game.
+    enum class TourOp { Walk, Face, Use, Wait, View, Drive, Aim, AimOff, Sight, Chase, Fire, Action, Exit, Turn, Cam, CamOff, Hud };
+    struct TourPt {
+        float x, z;
+        bool run;
+        TourOp op = TourOp::Walk;
+        float y = 0.0f, t = 0.0f;   // third parameter; time spent in the step
+    };
+    bool aimOn = false, followOn = false, followValid = false;
+    Vec3 aimAt{}, followArm{}, followEye{}, followAim{};
     std::vector<TourPt> tour;
     std::vector<size_t> routed;   // indices of "g" points (expanded after the planner is built)
     size_t tourK = 0;
@@ -232,6 +247,50 @@ int App::recordMode() {
                 ls >> q.x >> q.z >> r;
                 q.run = r == "run";
                 if (k == "g") q.run = q.run, routed.push_back(tour.size());
+                tour.push_back(q);
+            } else if (k == "face" || k == "drive") {
+                TourPt q{0, 0, false};
+                q.op = k == "face" ? TourOp::Face : TourOp::Drive;
+                ls >> q.x >> q.z;
+                tour.push_back(q);
+            } else if (k == "aim") {
+                TourPt q{0, 0, false};
+                std::string first;
+                ls >> first;
+                if (first == "off") q.op = TourOp::AimOff;
+                else {
+                    q.op = TourOp::Aim;
+                    q.x = static_cast<float>(std::atof(first.c_str()));
+                    ls >> q.y >> q.z;
+                }
+                tour.push_back(q);
+            } else if (k == "wait" || k == "fire" || k == "turn" || k == "hud") {
+                TourPt q{0, 0, false};
+                q.op = k == "wait" ? TourOp::Wait : k == "fire" ? TourOp::Fire : k == "turn" ? TourOp::Turn : TourOp::Hud;
+                ls >> q.x;
+                tour.push_back(q);
+            } else if (k == "cam") {
+                TourPt q{0, 0, false};
+                std::string first;
+                ls >> first;
+                if (first == "off") q.op = TourOp::CamOff;
+                else {
+                    q.op = TourOp::Cam;
+                    q.x = static_cast<float>(std::atof(first.c_str()));
+                    ls >> q.y >> q.z;
+                }
+                tour.push_back(q);
+            } else if (k == "view") {
+                TourPt q{0, 0, false};
+                std::string r;
+                ls >> r;
+                q.op = TourOp::View;
+                q.run = r == "third";
+                tour.push_back(q);
+            } else if (k == "use" || k == "sight" || k == "chase" || k == "action" || k == "exit") {
+                TourPt q{0, 0, false};
+                q.op = k == "use" ? TourOp::Use : k == "sight" ? TourOp::Sight : k == "chase" ? TourOp::Chase :
+                       k == "action" ? TourOp::Action : TourOp::Exit;
                 tour.push_back(q);
             }
         }
@@ -267,6 +326,10 @@ int App::recordMode() {
                 for (size_t i = 0; i < tour.size(); ++i) {
                     const Vec3 to{tour[i].x, 0.0f, tour[i].z};
                     std::vector<Vec3> cells;
+                    if (tour[i].op != TourOp::Walk) {   // not a waypoint: kept in place
+                        out.push_back(tour[i]);
+                        continue;
+                    }
                     if (std::find(routed.begin(), routed.end(), i) != routed.end() && g->planner().gridPath(from, to, {}, cells)) {
                         const std::vector<int> keep = g->planner().stringPull(cells, {});
                         for (size_t k = 1; k + 1 < keep.size(); ++k)
@@ -289,6 +352,11 @@ int App::recordMode() {
             for (int k = 0; k < 60; ++k) { step(kSimStep); updateGameCamera(kSimStep); }
             std::printf("tour: soldier %d at (%.1f, %.1f), %zu waypoints, %s\n", roster, sx, sz, tour.size(), possessedName());
         }
+    }
+    if (const char* dump = std::getenv("TS_DUMP_SOLIDS")) {   // route planning for the film takes: the static solid boxes
+        std::ofstream o(dump);
+        for (const Box& b : scene_->staticSolids())
+            o << b.min.x << ' ' << b.min.y << ' ' << b.min.z << ' ' << b.max.x << ' ' << b.max.y << ' ' << b.max.z << '\n';
     }
     RenderTarget target;
     if (!target.create(w, h, 0, false)) return 1;  // the renderer anti-aliases (MSAA + TAA) before this target
@@ -456,15 +524,132 @@ int App::recordMode() {
             const int pi = possessedSoldierIndex();
             const Soldier* me = pi >= 0 && pi < static_cast<int>(cl.size()) ? dynamic_cast<const Soldier*>(cl[pi]) : nullptr;
             held_ = ControlInput{};
-            if (me && tourK < tour.size()) {
+            const float frameDt = 1.0f / static_cast<float>(fps);
+            Controllable* veh = !me && possessed_ >= 0 && possessed_ < static_cast<int>(cl.size()) ? cl[static_cast<size_t>(possessed_)] : nullptr;
+            // steps that are not waypoints: done by the game's own functions, like key presses
+            while (tourK < tour.size() && tour[tourK].op != TourOp::Walk) {
+                TourPt& op = tour[tourK];
+                bool done = true;
+                switch (op.op) {
+                    case TourOp::Use:
+                        if (updateInteraction()) performInteract();
+                        else {
+                            std::printf("tour: nothing to use at step %zu (frame %d); in range:", tourK, f);
+                            InteractView iv;
+                            for (const Interactable& c : gatherInteractables(iv))
+                                if (length(c.point - iv.player) < 9.0f)
+                                    std::printf(" [%s %s %.1f m reach %.1f]", interactActionName(c.action), c.name.c_str(), length(c.point - iv.player), c.reach);
+                            std::printf("\n");
+                        }
+                        break;
+                    case TourOp::Exit: exitVehicle(); break;
+                    case TourOp::View: setViewThirdPerson(op.run); break;
+                    case TourOp::Sight: camera_.possessSight = true; possessAlt_ = false; break;
+                    case TourOp::Chase: camera_.possessSight = false; possessAlt_ = false; break;
+                    case TourOp::Action: actionEdge_ = true; break;
+                    case TourOp::AimOff: aimOn = false; break;
+                    case TourOp::Hud: showHud_ = op.x > 0.5f; break;
+                    case TourOp::Cam:
+                        followOn = true;
+                        followValid = false;
+                        followArm = {op.x, op.y, op.z};
+                        break;
+                    case TourOp::CamOff:
+                        followOn = false;
+                        if (possessed_ >= 0) camera_.mode = CameraMode::Possess;
+                        break;
+                    case TourOp::Turn: {
+                        const Tank* tank = dynamic_cast<const Tank*>(veh);
+                        if (!tank) break;
+                        const float err = std::fmod(op.x - tank->yawDeg() + 540.0f, 360.0f) - 180.0f;
+                        held_.turn = clampf(-err / 18.0f, -1.0f, 1.0f);
+                        op.t += frameDt;
+                        done = std::fabs(err) < 2.0f || op.t > 20.0f;
+                        break;
+                    }
+                    case TourOp::Aim:
+                        aimOn = true;
+                        aimAt = {op.x, op.y, op.z};
+                        break;
+                    case TourOp::Wait:
+                        op.t += frameDt;
+                        done = op.t >= op.x;
+                        break;
+                    case TourOp::Fire:
+                        if (op.t == 0.0f) firePressedEdge_ = true;
+                        held_.fire = true;
+                        op.t += frameDt;
+                        done = op.t >= op.x;
+                        break;
+                    case TourOp::Face: {
+                        // the camera arm (and with it the soldier, who is asked to step that way) turns to the point
+                        if (!me) break;
+                        const Vec3 p = me->position();
+                        const float want = degrees(std::atan2(op.x - p.x, op.z - p.z));
+                        const float diff = std::fmod(want - tp_.yawDeg + 540.0f, 360.0f) - 180.0f;
+                        const float body = std::fmod(want - me->yawDeg() + 540.0f, 360.0f) - 180.0f;
+                        tpLookYaw_ -= clampf(diff * 3.0f * frameDt, -3.0f, 3.0f);
+                        if (std::fabs(body) > 6.0f) {   // a small step towards it turns the body
+                            const float cy = radians(tp_.yawDeg), dx = op.x - p.x, dz = op.z - p.z, d = std::max(std::sqrt(dx * dx + dz * dz), 1e-3f);
+                            held_.forward = 0.25f * (dx * std::sin(cy) + dz * std::cos(cy)) / d;
+                            held_.turn = 0.25f * (-dx * std::cos(cy) + dz * std::sin(cy)) / d;
+                        }
+                        op.t += frameDt;
+                        done = (std::fabs(diff) < 4.0f && std::fabs(body) < 8.0f) || op.t > 4.0f;
+                        break;
+                    }
+                    case TourOp::Drive: {
+                        const Tank* tank = dynamic_cast<const Tank*>(veh);
+                        if (!tank) break;
+                        const Vec3 p = tank->position();
+                        const float dx = op.x - p.x, dz = op.z - p.z, d = std::sqrt(dx * dx + dz * dz);
+                        const float err = std::fmod(degrees(std::atan2(dx, dz)) - tank->yawDeg() + 540.0f, 360.0f) - 180.0f;
+                        held_.turn = clampf(-err / 25.0f, -1.0f, 1.0f);   // Tank: positive turn = right = heading falls
+                        held_.forward = std::fabs(err) > 50.0f ? 0.0f : clampf(d / 4.0f, 0.25f, 1.0f) * (1.0f - std::fabs(err) / 70.0f);
+                        if (std::getenv("TS_TOUR_DEBUG") && f % 15 == 0)
+                            std::printf("tour: drive f %d pos (%.1f, %.1f) yaw %.0f err %.0f d %.1f fwd %.2f turn %.2f speed %.1f\n", f, p.x, p.z,
+                                        tank->yawDeg(), err, d, held_.forward, held_.turn, tank->speed());
+                        if (std::getenv("TS_TOUR_DEBUG") && f % 60 == 0 && std::fabs(tank->speed()) < 0.05f && op.t > 2.0f) {
+                            const float yr = radians(tank->yawDeg());
+                            const Vec3 ahead = p + Vec3{std::sin(yr), 0.0f, std::cos(yr)} * 4.2f;
+                            for (const SceneNode* n : scene_->leaves()) {
+                                if (!n->obstacle || !n->visible) continue;
+                                const Vec3 c = transformPoint(n->world, {0, 0, 0});
+                                if (std::fabs(c.x - ahead.x) < 2.5f && std::fabs(c.z - ahead.z) < 2.5f)
+                                    std::printf("tour:   near the bow: %s / %s at (%.1f, %.1f, %.1f)\n", n->object.c_str(), n->name.c_str(), c.x, c.y, c.z);
+                            }
+                        }
+                        op.t += frameDt;
+                        done = d < 1.6f || op.t > 40.0f;
+                        if (op.t > 40.0f) std::printf("tour: drive step %zu timed out at (%.1f, %.1f)\n", tourK, p.x, p.z);
+                        break;
+                    }
+                    case TourOp::Walk: break;
+                }
+                if (!done) break;
+                ++tourK;
+                tourLastD = 1e9f;
+                tourStuck = 0.0f;
+            }
+            if (aimOn && veh) {   // lay the sight on the point: the arrow keys, proportional to the error seen in the sight
+                const CameraHint sight = veh->camera(true);
+                const Vec3 fwd = normalize(sight.target - sight.eye), want = normalize(aimAt - sight.eye);
+                const Vec3 right = normalize(cross(fwd, Vec3{0.0f, 1.0f, 0.0f}));
+                const float ex = degrees(std::atan2(dot(want, right), dot(want, fwd)));
+                const float ey = degrees(std::asin(clampf(want.y, -1.0f, 1.0f)) - std::asin(clampf(fwd.y, -1.0f, 1.0f)));
+                held_.aimYaw = clampf(ex / 6.0f, -1.0f, 1.0f);
+                held_.aimPitch = clampf(ey / 5.0f, -1.0f, 1.0f);
+            }
+            if (me && tourK < tour.size() && tour[tourK].op == TourOp::Walk) {
                 const Vec3 p = me->position();
                 float dx = tour[tourK].x - p.x, dz = tour[tourK].z - p.z, d = std::sqrt(dx * dx + dz * dz);
-                if (d < (tourK + 1 < tour.size() ? 0.9f : 0.35f)) {
+                const bool walkOn = tourK + 1 < tour.size() && tour[tourK + 1].op == TourOp::Walk;   // passes through the point
+                if (d < (walkOn ? 0.9f : 0.35f)) {
                     ++tourK;
                     tourLastD = 1e9f;
                     tourStuck = 0.0f;
                 }
-                if (tourK < tour.size()) {
+                if (tourK < tour.size() && tour[tourK].op == TourOp::Walk) {
                     dx = tour[tourK].x - p.x;
                     dz = tour[tourK].z - p.z;
                     d = std::max(std::sqrt(dx * dx + dz * dz), 1e-3f);
@@ -496,6 +681,23 @@ int App::recordMode() {
         if (tourOn) {
             settings_.letterbox = 0.0f;
             settings_.fade = 1.0f;
+            const std::vector<Controllable*> cl = sa::controllables(*scene_);
+            if (followOn && possessed_ >= 0 && possessed_ < static_cast<int>(cl.size()) && !dynamic_cast<const Soldier*>(cl[static_cast<size_t>(possessed_)])) {
+                // low follow camera: behind (and beside) the hull heading, eased so the hull's shake does not reach it
+                const Controllable* v = cl[static_cast<size_t>(possessed_)];
+                const CameraHint ch = v->camera(false);
+                float hd = std::atan2(ch.target.x - ch.eye.x, ch.target.z - ch.eye.z);
+                if (const Tank* tank = dynamic_cast<const Tank*>(v)) hd = radians(tank->yawDeg());
+                const Vec3 d{std::sin(hd), 0.0f, std::cos(hd)}, side{std::cos(hd), 0.0f, -std::sin(hd)};
+                const Vec3 c = v->position();
+                const Vec3 eye = c - d * followArm.x + side * followArm.z + Vec3{0.0f, followArm.y, 0.0f};
+                const Vec3 aim = c + d * 2.5f + Vec3{0.0f, 1.5f, 0.0f};
+                const float k = followValid ? 0.08f : 1.0f;
+                followEye = followEye + (eye - followEye) * k;
+                followAim = followAim + (aim - followAim) * (followValid ? 0.2f : 1.0f);
+                followValid = true;
+                setFree(followEye, followAim, 55.0f);
+            }
         } else if (filmCam) {
             const float u = frames > 1 ? static_cast<float>(f) / static_cast<float>(frames - 1) : 0.0f;
             const float e = u * u * (3.0f - 2.0f * u);   // ease in and out

@@ -1,5 +1,7 @@
 #include "rendering/RayTracerGL.h"
 
+#include "rendering/ShaderMath.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -48,7 +50,12 @@ RayTracerGL::Program::~Program() {
     if (id) glDeleteProgram(id);
 }
 
-bool RayTracerGL::Program::build(const char* name, const std::string& src) {
+bool RayTracerGL::Program::build(const char* name, const std::string& source) {
+    if (const std::string b = builtinVectorCall(source); !b.empty()) {   // as Shader::build: hand-written vector maths only
+        std::fprintf(stderr, "[shader %s] calls the GLSL built-in %s(): use the ts* function of ShaderMath.h\n", name, b.c_str());
+        return false;
+    }
+    const std::string src = withManualMath(source);
     GLuint s = glCreateShader(GL_COMPUTE_SHADER);
     const char* text = src.c_str();
     glShaderSource(s, 1, &text, nullptr);

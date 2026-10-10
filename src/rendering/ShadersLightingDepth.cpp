@@ -47,8 +47,8 @@ vec3 skyXyYToRgb(float x, float y, float Y) {
 }
 // Clear-sky radiance (no sun disc) towards dir; below the horizon the horizon value.
 vec3 skyModelRadiance(vec3 dir) {
-    dir = normalize(dir);
-    float gamma = acos(clamp(dot(dir, uSkySun), -1.0, 1.0));
+    dir = tsNormalize(dir);
+    float gamma = acos(tsClamp(tsDot(dir, uSkySun), -1.0, 1.0));
     vec3 v = uSkyZenithN * perezF3(dir.y, gamma);
     return skyXyYToRgb(v.y, v.z, v.x) * uSkyScale;
 }
@@ -76,9 +76,9 @@ std::string agxBlock() {
     s += "    return s;\n}\n";
     s += R"(vec3 agxDisplay(vec3 c) {   // scene-linear -> display-linear 0..1
     c = kAgxInset * max(c, vec3(0.0));
-    c = (clamp(log2(max(c, vec3(1e-10))), kAgxMinEv, kAgxMaxEv) - kAgxMinEv) / (kAgxMaxEv - kAgxMinEv);
+    c = (tsClamp(log2(max(c, vec3(1e-10))), kAgxMinEv, kAgxMaxEv) - kAgxMinEv) / (kAgxMaxEv - kAgxMinEv);
     c = kAgxOutset * vec3(agxSigmoid(c.r), agxSigmoid(c.g), agxSigmoid(c.b));
-    return pow(clamp(c, 0.0, 1.0), vec3(2.2));
+    return pow(tsClamp(c, 0.0, 1.0), vec3(2.2));
 }
 )";
     return s;
@@ -107,14 +107,14 @@ vec3 viewPos(vec2 uv) {
     vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, z, 1.0);
     return p.xyz / p.w;
 }
-float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+float ign(vec2 p) { return fract(52.9829189 * fract(tsDot(p, vec2(0.06711056, 0.00583715)))); }
 
 void main() {
     float d = texture(uDepth, vUV).r;
     if (d >= 1.0) { AO = 1.0; return; }
     vec3 P = viewPos(vUV);
-    vec3 N = normalize(texture(uNormal, vUV).xyz * 2.0 - 1.0);
-    vec3 V = normalize(-P);
+    vec3 N = tsNormalize(texture(uNormal, vUV).xyz * 2.0 - 1.0);
+    vec3 V = tsNormalize(-P);
     vec2 res = vec2(textureSize(uDepth, 0));
     // Radius in pixels at this depth (projection scale), at most 1/8 of the frame height.
     float rPix = min(uRadius * uProj[1][1] * 0.5 * res.y / max(-P.z, 1e-3), res.y * 0.125);
@@ -127,12 +127,12 @@ void main() {
         float phi = (float(s) + noiseA) * 3.14159265 / float(uSlices);
         vec2 omega = vec2(cos(phi), sin(phi));
         vec3 dirV = vec3(omega, 0.0);
-        vec3 orthoDir = dirV - dot(dirV, V) * V;
-        vec3 axis = normalize(cross(orthoDir, V));
-        vec3 projN = N - axis * dot(N, axis);
-        float projLen = length(projN);
-        float sgn = sign(dot(orthoDir, projN));
-        float cosN = clamp(dot(projN, V) / max(projLen, 1e-4), 0.0, 1.0);
+        vec3 orthoDir = dirV - tsDot(dirV, V) * V;
+        vec3 axis = tsNormalize(tsCross(orthoDir, V));
+        vec3 projN = N - axis * tsDot(N, axis);
+        float projLen = tsLength(projN);
+        float sgn = sign(tsDot(orthoDir, projN));
+        float cosN = tsClamp(tsDot(projN, V) / max(projLen, 1e-4), 0.0, 1.0);
         float n = sgn * acos(cosN);
         float hc0 = cos(n + 1.5707963), hc1 = cos(n - 1.5707963);   // lowest horizons: the tangent plane
         float low0 = hc0, low1 = hc1;
@@ -141,18 +141,18 @@ void main() {
             float t = (float(j) + noiseB) / float(uSteps);
             vec2 off = omega * max(t * t * rPix, 1.0 + float(j)) / res;
             vec3 S0 = viewPos(vUV + off) - P, S1 = viewPos(vUV - off) - P;
-            float l0 = length(S0), l1 = length(S1);
-            float w0 = 1.0 - smoothstep(uRadius * 0.6, uRadius, l0), w1 = 1.0 - smoothstep(uRadius * 0.6, uRadius, l1);
-            hc0 = max(hc0, mix(low0, dot(S0 / max(l0, 1e-4), V), w0));
-            hc1 = max(hc1, mix(low1, dot(S1 / max(l1, 1e-4), V), w1));
+            float l0 = tsLength(S0), l1 = tsLength(S1);
+            float w0 = 1.0 - tsSmoothstep(uRadius * 0.6, uRadius, l0), w1 = 1.0 - tsSmoothstep(uRadius * 0.6, uRadius, l1);
+            hc0 = max(hc0, tsMix(low0, tsDot(S0 / max(l0, 1e-4), V), w0));
+            hc1 = max(hc1, tsMix(low1, tsDot(S1 / max(l1, 1e-4), V), w1));
         }
-        float h0 = n + clamp(-acos(clamp(hc1, -1.0, 1.0)) - n, -1.5707963, 1.5707963);
-        float h1 = n + clamp(acos(clamp(hc0, -1.0, 1.0)) - n, -1.5707963, 1.5707963);
+        float h0 = n + tsClamp(-acos(tsClamp(hc1, -1.0, 1.0)) - n, -1.5707963, 1.5707963);
+        float h1 = n + tsClamp(acos(tsClamp(hc0, -1.0, 1.0)) - n, -1.5707963, 1.5707963);
         float a0 = (cosN + 2.0 * h0 * sin(n) - cos(2.0 * h0 - n)) * 0.25;
         float a1 = (cosN + 2.0 * h1 * sin(n) - cos(2.0 * h1 - n)) * 0.25;
         vis += projLen * (a0 + a1);
     }
-    vis = clamp(vis / float(max(uSlices, 1)), 0.0, 1.0);
+    vis = tsClamp(vis / float(max(uSlices, 1)), 0.0, 1.0);
     AO = pow(vis, uPower);
 }
 )";
@@ -178,15 +178,15 @@ vec3 viewPos(vec2 uv) {
     vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, z, 1.0);
     return p.xyz / p.w;
 }
-float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+float ign(vec2 p) { return fract(52.9829189 * fract(tsDot(p, vec2(0.06711056, 0.00583715)))); }
 
 void main() {
     Contact = 1.0;
     float d = texture(uDepth, vUV).r;
     if (d >= 1.0) return;
     vec3 P = viewPos(vUV);
-    vec3 N = normalize(texture(uNormal, vUV).xyz * 2.0 - 1.0);
-    if (dot(N, uLightView) <= 0.02) return;              // facing away: N.L and the shadow map already darken it
+    vec3 N = tsNormalize(texture(uNormal, vUV).xyz * 2.0 - 1.0);
+    if (tsDot(N, uLightView) <= 0.02) return;              // facing away: N.L and the shadow map already darken it
     float dist = -P.z;
     if (dist > 60.0) return;
     float len = uLength * (1.0 + 0.015 * dist);
@@ -204,11 +204,11 @@ void main() {
         float delta = rayDepth - sceneDepth;              // > 0: the ray point is hidden behind the visible surface
         float thick = 0.12 + 0.01 * rayDepth;
         float bias = 0.004 + 0.0008 * rayDepth;
-        float hit = smoothstep(bias, 2.0 * bias, delta) * (1.0 - smoothstep(0.6 * thick, thick, delta));
+        float hit = tsSmoothstep(bias, 2.0 * bias, delta) * (1.0 - tsSmoothstep(0.6 * thick, thick, delta));
         occ = max(occ, hit * (1.0 - 0.5 * t));             // occluders near the start shade more
         if (occ > 0.95) break;
     }
-    occ *= 1.0 - smoothstep(35.0, 60.0, dist);
+    occ *= 1.0 - tsSmoothstep(35.0, 60.0, dist);
     Contact = 1.0 - occ * uStrength;
 }
 )";

@@ -858,6 +858,13 @@ void Soldier::place(float x, float z, float yawDeg, float feetY) {
     planted_[0] = planted_[1] = false;
 }
 
+void Soldier::setAboard(bool on) {
+    if (on == aboard_) return;
+    if (on) aboardScale_ = rig_.root->local.scale;
+    else rig_.root->local.scale = aboardScale_;
+    aboard_ = on;
+}
+
 // Leaves the current post for the first stop of the other shift's program (after the staggered delay).
 void Soldier::startShift(bool day, float time) {
     (void)time;
@@ -1143,6 +1150,12 @@ void Soldier::update(const WorldContext& w, const ControlInput* in) {
     }
     State& s = *st_;
     const float dt = clampf(w.dt, 0.0f, 0.05f);
+    if (aboard_) {   // inside a vehicle: not drawn, no duty, no steps
+        possessed_ = false;
+        speed_ = 0.0f;
+        rig_.root->local.scale = {0.001f, 0.001f, 0.001f};
+        return;
+    }
     s.animT += dt;
     s.duckT += dt;
     if (!g_ || !g_->ready || !s.prog) {

@@ -65,8 +65,9 @@ SceneNode* addCamoNet(Builder& b, SceneNode* parent, const Vec3& ground, float y
 // U-shaped earth revetment (open at the rear, local -Z; the vehicle faces +Z): inner half width 'halfW', inner
 // half depth 'halfD', crest height 'height'. Each wall = core cube + two sloped cubes (rotated about the wall
 // axis) + a sandbag crest, so the profile is a trapezoid built from rotated cubes only.
+// frontWall = false: two side walls only (a drive-through bay: the vehicle leaves forwards).
 SceneNode* addRevetment(Builder& b, SceneNode* parent, const Vec3& ground, float yawDeg, float halfW, float halfD,
-                        float height);
+                        float height, bool frontWall = true);
 
 // Cut branches and a small bush leaning against a vehicle flank (local x = side * dist from 'ground').
 void addCutBranches(Builder& b, SceneNode* parent, const Vec3& ground, float yawDeg, float dist, float length,

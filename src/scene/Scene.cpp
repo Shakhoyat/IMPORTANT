@@ -579,6 +579,24 @@ void Scene::update(float dt, const Detection& det, const ControlInput* input, in
             break;
         }
     }
+    // Alert posture of the unmanned weapons: always ready; with a confirmed track they lay on the squad's target (or,
+    // without one, on the confirmed track nearest to the bunker).
+    w.alert = 0.6f;
+    {
+        const Track* threat = squad_.tracker().find(squad_.targetTrack());
+        if (!threat || threat->state == TrackState::Tentative) {
+            threat = nullptr;
+            for (const Track& t : squad_.tracker().tracks()) {
+                if (t.state == TrackState::Tentative) continue;
+                if (!threat || length(t.position()) < length(threat->position())) threat = &t;
+            }
+        }
+        if (threat) {
+            w.alert = 1.0f;
+            w.hasThreat = true;
+            w.threatPos = threat->position();
+        }
+    }
     for (size_t i = 0; i < controllables_.size(); ++i) {
         controllables_[i]->update(w, static_cast<int>(i) == possessed ? input : nullptr);
     }

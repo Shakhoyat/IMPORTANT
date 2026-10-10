@@ -332,6 +332,12 @@ void SamLauncher::update(const WorldContext& w, const ControlInput* in) {
     if (in) {
         if (in->actionPressed) deployed_ = !deployed_;
         if (deployed_) readAim(*in, dt, kAzRate, kElevRate, kAzLimitDeg, kElevMinDeg, kElevMaxDeg, azCmd_, elevCmd_);
+    } else if (w.alert > 0.0f) {
+        // On alert with nobody at the controls: canisters raised through the net's aperture and ready, the turntable
+        // sweeping the part of its sector the aperture leaves free (air targets: ground intruders are not laid on).
+        deployed_ = true;
+        elevCmd_ = kDefaultElevDeg - 5.0f + 6.0f * std::sin(0.11f * time_);
+        azCmd_ = 12.0f * std::sin(0.21f * time_ + 0.8f);
     }
     elev_.step(deployed_ ? elevCmd_ : 0.0f, kElevRate, kElevAccel, dt);
     az_.step(deployed_ ? azCmd_ : 0.0f, kAzRate, kAzAccel, dt);
@@ -580,6 +586,12 @@ void MlrsTruck::update(const WorldContext& w, const ControlInput* in) {
     if (in) {
         if (in->actionPressed && !rippling_) deployed_ = !deployed_;
         if (deployed_) readAim(*in, dt, kAzRate, kElevRate, kAzLimitDeg, kElevMinDeg, kElevMaxDeg, azCmd_, elevCmd_);
+    } else if (w.alert > 0.0f && !rippling_) {
+        // On alert: the pod raised through the net's aperture to its firing elevation, the mount sweeping inside it
+        // (long-range fire: ground intruders inside the camp are not laid on).
+        deployed_ = true;
+        elevCmd_ = 34.0f + 5.0f * std::sin(0.09f * time_ + 1.3f);
+        azCmd_ = 9.0f * std::sin(0.16f * time_);
     }
     elev_.step(deployed_ ? elevCmd_ : 0.0f, kElevRate, kElevAccel, dt);
     az_.step(deployed_ ? azCmd_ : 0.0f, kAzRate, kAzAccel, dt);
@@ -744,9 +756,9 @@ Vec3 groundAt(float x, float z) { return {x, terrainHeight(x, z), z}; }
 
 // Revetment, net and branches for one vehicle bay.
 void dressBay(Builder& b, SceneNode* parent, float x, float z, float yawDeg, float halfW, float halfD, float netFront,
-              uint32_t seed, float apertureHalf, float apertureBayZ0, int branchSides) {
+              uint32_t seed, float apertureHalf, float apertureBayZ0, int branchSides, bool frontWall = true) {
     const Vec3 g = groundAt(x, z);
-    addRevetment(b, parent, g, yawDeg, halfW, halfD, 1.3f);
+    addRevetment(b, parent, g, yawDeg, halfW, halfD, 1.3f, frontWall);
     const float rear = halfD + 0.6f, fr = std::max(halfD + 1.45f, netFront);
     const float width = 2.0f * (halfW + 1.2f), depth = rear + fr, cz = 0.5f * (fr - rear);
     const float y = radians(yawDeg);
@@ -775,8 +787,10 @@ std::unique_ptr<Controllable> makeDressing() {
     dressBay(b, r, kMlrsSite.x, kMlrsSite.z, kMlrsSite.yawDeg, kMlrsSite.halfW, kMlrsSite.halfD, kMlrsSite.front, 0x6b42u, 1.8f, -2.2f, 2);
     dressBay(b, r, kTankSouth.x, kTankSouth.z, kTankSouth.yawDeg, kTankSouth.halfW, kTankSouth.halfD, kTankSouth.front, 0x7c53u, 0.0f, 0.0f, 2);
     dressBay(b, r, kTankWest.x, kTankWest.z, kTankWest.yawDeg, kTankWest.halfW, kTankWest.halfD, kTankWest.front, 0x8d64u, 0.0f, 0.0f, 2);
-    // The original tank park gets the same treatment (walls stay outside the 6 x 9 m tank spot).
-    dressBay(b, r, layout::kMotorPool.x, layout::kMotorPool.z, layout::kTankParkYawDeg, kPoolHalfW, kPoolHalfD, kPoolFront, 0x9e75u, 0.0f, 0.0f, 0);
+    // The original tank park gets the same treatment (walls stay outside the 6 x 9 m tank spot); its front is open:
+    // the ready tank drives straight out onto the road.
+    dressBay(b, r, layout::kMotorPool.x, layout::kMotorPool.z, layout::kTankParkYawDeg, kPoolHalfW, kPoolHalfD, kPoolFront, 0x9e75u, 0.0f, 0.0f, 0,
+             false);
     // Ammunition crates inside two of the bays (rear corners).
     addSupplyCache(b, r, kSamSite.x - std::sin(radians(kSamSite.yawDeg)) * 3.4f + std::cos(radians(kSamSite.yawDeg)) * 1.2f,
                    kSamSite.z - std::cos(radians(kSamSite.yawDeg)) * 3.4f - std::sin(radians(kSamSite.yawDeg)) * 1.2f, 20.0f, 0);

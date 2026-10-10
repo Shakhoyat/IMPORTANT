@@ -23,7 +23,8 @@
 
 namespace ts {
 
-enum class SquadRole { Patrol, Lead, Wing, Manual, Search };
+// Solo: detached from the pair to deal with a second intruder far from the pair's target, alone.
+enum class SquadRole { Patrol, Lead, Wing, Manual, Search, Solo };
 const char* squadRoleName(SquadRole r);
 enum class StrikePhase { None, Tracking, Planned, Inbound };
 const char* strikePhaseName(StrikePhase p);
@@ -55,6 +56,10 @@ struct StrikeState {
 
 constexpr float kSquadLeadLock = 0.8f, kSquadWingLock = 0.5f, kSquadSoloLock = 1.3f;
 constexpr float kSquadWingWait = 2.5f;     // s the lead waits for the wing's lock before a solo strike
+// Two intruders at once: a second confirmed track farther than kSquadSplitDist from the target takes one UAV away from
+// the pair (the nearer one); each UAV then strikes its own target alone. The pair re-forms when the second track is
+// destroyed or lost, or comes within kSquadRejoinDist of the first.
+constexpr float kSquadSplitDist = 14.0f, kSquadRejoinDist = 9.0f;
 constexpr float kSquadStandOff = 6.5f, kSquadEngageAlt = 5.0f;
 constexpr float kSquadPatrolAlt = 7.5f;
 constexpr float kSquadReacquireTime = 12.0f;  // s of searching round the last known position
@@ -150,6 +155,8 @@ public:
 
     const MultiTracker& tracker() const { return tracker_; }
     const StrikeState& strike() const { return strike_; }
+    const StrikeState& sideStrike() const { return side_; }   // the detached UAV's own strike (track -1: none)
+    int detachedUav() const { return detached_; }             // UAV dealing with the second intruder alone, or -1
     int targetTrack() const { return strike_.track; }
     bool designatorValid(int uav) const;
     Vec3 designatorPoint(int uav) const { return designator_[uav]; }
@@ -169,6 +176,9 @@ private:
     float detour_[kCount] = {0.0f, 0.0f};  // extra orbit angle / height while a UAV has no clear shot
     MultiTracker tracker_;
     StrikeState strike_;
+    StrikeState side_;        // second intruder, engaged by detached_ alone
+    int detached_ = -1;
+    float sideLock_ = 0.0f;   // s the detached UAV has held the second intruder
     Vec3 designator_[kCount];
     Vec3 camPos_[kCount];
     std::vector<Vec3> assets_;

@@ -47,7 +47,7 @@ layout(location = 0) out vec4 Color;
 //     L = L_surface T + (L_sky + sun HG(cos, 0.76) k_mie) (1 - T)
 vec3 aerialPerspective(vec3 c, vec3 P) {
     vec3 ray = P - uCamPos;
-    float dist = length(ray);
+    float dist = tsLength(ray);
     if (uAerialDensity <= 0.0 || dist < 1e-3) return c;
     vec3 dir = ray / dist;
     float k = ray.y / uAerialHeight;
@@ -56,8 +56,8 @@ vec3 aerialPerspective(vec3 c, vec3 P) {
     vec3 sky = skyModelRadiance(vec3(dir.x, max(dir.y, 0.04), dir.z));
     // The Perez fit over-brightens the horizon right below a low sun: cap the in-scatter at 1.6x the mean horizon.
     const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
-    sky *= min(1.0, 1.6 * dot(uHazeRef, lw) / max(dot(sky, lw), 1e-4));
-    float cs = dot(dir, uSkySun), g = 0.76;
+    sky *= min(1.0, 1.6 * tsDot(uHazeRef, lw) / max(tsDot(sky, lw), 1e-4));
+    float cs = tsDot(dir, uSkySun), g = 0.76;
     float hg = (1.0 - g * g) / (12.566371 * pow(1.0 + g * g - 2.0 * g * cs, 1.5));
     return c * T + (sky + uSunColor * hg * uAerialMie) * (1.0 - T);
 }
@@ -71,13 +71,13 @@ vec3 worldAt(vec2 uv, float d) {
 // and compare its depth with the depth buffer; a crossing within a thickness is refined by bisection.
 vec3 reflection(vec2 uv, float d, vec4 surf) {
     vec3 P = worldAt(uv, d);
-    vec3 N = normalize(surf.rgb * 2.0 - 1.0);
-    vec3 V = normalize(P - uCamPos);
-    vec3 R = reflect(V, N);
+    vec3 N = tsNormalize(surf.rgb * 2.0 - 1.0);
+    vec3 V = tsNormalize(P - uCamPos);
+    vec3 R = tsReflect(V, N);
     if (R.y < -0.2) return vec3(0.0);
     float jitter = hash21(gl_FragCoord.xy + fract(uTime * 3.7) * 61.0);
     float t = 0.04 * (1.0 + jitter), prevT = 0.0;
-    float dist0 = length(P - uCamPos);
+    float dist0 = tsLength(P - uCamPos);
     for (int i = 0; i < 96; ++i) {
         if (i >= uSsrSteps) break;
         vec3 Q = P + R * t;
@@ -99,10 +99,10 @@ vec3 reflection(vec2 uv, float d, vec4 surf) {
             }
             vec4 cb = uViewProj * vec4(P + R * b, 1.0);
             q = cb.xy / cb.w * 0.5 + 0.5;
-            vec2 edge = smoothstep(vec2(0.0), vec2(0.07), q) * smoothstep(vec2(1.0), vec2(0.93), q);
-            float fade = edge.x * edge.y * (1.0 - smoothstep(0.6, 1.0, float(i) / float(uSsrSteps)));
-            float F = 0.02 + 0.98 * pow(1.0 - clamp(dot(N, -V), 0.0, 1.0), 5.0);
-            return texture(uScene, q).rgb * fade * mix(0.35, 1.0, F);
+            vec2 edge = tsSmoothstep(vec2(0.0), vec2(0.07), q) * tsSmoothstep(vec2(1.0), vec2(0.93), q);
+            float fade = edge.x * edge.y * (1.0 - tsSmoothstep(0.6, 1.0, float(i) / float(uSsrSteps)));
+            float F = 0.02 + 0.98 * pow(1.0 - tsClamp(tsDot(N, -V), 0.0, 1.0), 5.0);
+            return texture(uScene, q).rgb * fade * tsMix(0.35, 1.0, F);
         }
         prevT = t;
         t = t * 1.09 + 0.03;
@@ -144,7 +144,7 @@ uniform int uReset;
 uniform int uHeat;           // 1: thermal heat image (scalar)
 layout(location = 0) out vec4 Color;
 
-vec3 toYCoCg(vec3 c) { return vec3(dot(c, vec3(0.25, 0.5, 0.25)), dot(c, vec3(0.5, 0.0, -0.5)), dot(c, vec3(-0.25, 0.5, -0.25))); }
+vec3 toYCoCg(vec3 c) { return vec3(tsDot(c, vec3(0.25, 0.5, 0.25)), tsDot(c, vec3(0.5, 0.0, -0.5)), tsDot(c, vec3(-0.25, 0.5, -0.25))); }
 vec3 fromYCoCg(vec3 c) { return vec3(c.x + c.y - c.z, c.x + c.z, c.x - c.y - c.z); }
 vec3 tonemapW(vec3 c) { return c / (1.0 + max(c.r, max(c.g, c.b))); }       // compress HDR before filtering
 vec3 untonemapW(vec3 c) { return c / max(1.0 - max(c.r, max(c.g, c.b)), 1e-4); }
@@ -202,9 +202,9 @@ void main() {
     if (ma > 1.0) hist = centre + v / ma;
     vec3 c = toYCoCg(tonemapW(cur));
     // Faster response when the camera moves a lot (less smearing), slower when still (more AA)
-    float motion = length((prevUV - vUV) * vec2(textureSize(uCurrent, 0)));
-    float feedback = mix(uFeedback, 0.75, clamp(motion / 30.0, 0.0, 1.0));
-    vec3 outc = max(untonemapW(max(fromYCoCg(mix(c, hist, feedback)), vec3(0.0))), vec3(0.0));
+    float motion = tsLength((prevUV - vUV) * vec2(textureSize(uCurrent, 0)));
+    float feedback = tsMix(uFeedback, 0.75, tsClamp(motion / 30.0, 0.0, 1.0));
+    vec3 outc = max(untonemapW(max(fromYCoCg(tsMix(c, hist, feedback)), vec3(0.0))), vec3(0.0));
     if (any(isnan(outc)) || any(isinf(outc))) outc = cur;   // never let one bad pixel into the history
     Color = vec4(outc, 1.0);
 }
@@ -228,12 +228,12 @@ void main() {
         for (int y = 0; y < 4; ++y) {
             for (int x = 0; x < 4; ++x) {
                 vec2 uv = (vec2(o) + (vec2(x, y) + 0.5) / 4.0) * cell;
-                uv.y = mix(uLetterbox, 1.0 - uLetterbox, uv.y);        // meter the picture, not the black bars
+                uv.y = tsMix(uLetterbox, 1.0 - uLetterbox, uv.y);        // meter the picture, not the black bars
                 vec3 c = texture(uSrc, uv).rgb;
                 if (any(isnan(c)) || any(isinf(c))) continue;
-                float v = uHeat == 1 ? c.r : log2(max(dot(c, vec3(0.2126, 0.7152, 0.0722)), 0.0) + 1e-5);
+                float v = uHeat == 1 ? c.r : log2(max(tsDot(c, vec3(0.2126, 0.7152, 0.0722)), 0.0) + 1e-5);
                 // Centre-weighted metering for exposure (the frame edges count half)
-                float w = uHeat == 1 ? 1.0 : mix(0.5, 1.0, smoothstep(0.7, 0.2, length(uv - 0.5)));
+                float w = uHeat == 1 ? 1.0 : tsMix(0.5, 1.0, tsSmoothstep(0.7, 0.2, tsLength(uv - 0.5)));
                 mn = min(mn, v); mx = max(mx, v); sum += v * w; sum2 += v * v * w; n += w;
             }
         }
@@ -267,8 +267,8 @@ layout(location = 0) out vec4 Stats;
 void main() {
     vec4 c = texelFetch(uCurrent, ivec2(0), 0);
     vec4 p = texelFetch(uPrevious, ivec2(0), 0);
-    vec4 k = mix(vec4(uRateDown), vec4(uRateUp), step(p, c));
-    Stats = mix(p, c, clamp(k, 0.0, 1.0));
+    vec4 k = tsMix(vec4(uRateDown), vec4(uRateUp), tsStep(p, c));
+    Stats = tsMix(p, c, tsClamp(k, 0.0, 1.0));
 }
 )";
 
@@ -285,17 +285,17 @@ vec3 chroma(vec2 uv, vec2 dir, float k) {    // lens dispersion: red and blue gh
 void main() {
     vec2 uv = vec2(1.0) - vUV;                            // ghosts appear mirrored through the centre
     vec2 ghostVec = (vec2(0.5) - uv) * 0.34;
-    vec2 dir = normalize(ghostVec + 1e-6);
+    vec2 dir = tsNormalize(ghostVec + 1e-6);
     vec3 result = vec3(0.0);
     const vec3 tints[5] = vec3[](vec3(1.0, 0.8, 0.6), vec3(0.6, 0.8, 1.0), vec3(0.8, 1.0, 0.7),
                                  vec3(1.0, 0.6, 0.9), vec3(0.7, 0.9, 1.0));
     for (int i = 0; i < 5; ++i) {
         vec2 o = fract(uv + ghostVec * float(i));
-        float w = pow(max(1.0 - length(vec2(0.5) - o) / 0.7071, 0.0), 10.0);
+        float w = pow(max(1.0 - tsLength(vec2(0.5) - o) / 0.7071, 0.0), 10.0);
         result += chroma(o, dir, 0.004 * float(i + 1)) * w * tints[i];
     }
     vec2 haloVec = dir * 0.45;                            // halo ring around the centre
-    float hw = pow(max(1.0 - length(vec2(0.5) - fract(uv + haloVec)) / 0.7071, 0.0), 6.0);
+    float hw = pow(max(1.0 - tsLength(vec2(0.5) - fract(uv + haloVec)) / 0.7071, 0.0), 6.0);
     result += chroma(uv + haloVec, dir, 0.01) * hw * vec3(0.9, 0.95, 1.0) * 0.6;
     Color = vec4(result, 1.0);
 }
@@ -340,7 +340,7 @@ float focusDistance() {
     for (int i = 0; i < 5; ++i) f += linearDepth(texture(uDepth, vec2(0.5) + 0.02 * vec2(i % 3 - 1, i / 3)).r);
     return f / 5.0;
 }
-float coc(float z, float focus) { return clamp(uAperture * abs(z - focus) / max(z, 1e-3), 0.0, uMaxCoc); }
+float coc(float z, float focus) { return tsClamp(uAperture * abs(z - focus) / max(z, 1e-3), 0.0, uMaxCoc); }
 
 void main() {
     float focus = focusDistance();
@@ -357,7 +357,7 @@ void main() {
         float z = linearDepth(texture(uDepth, uv).r);
         float ct = coc(z, focus);
         if (z > zc) ct = min(ct, cc);                        // background behind a sharp pixel stays behind
-        float w = clamp(ct - r + 1.0, 0.0, 1.0);
+        float w = tsClamp(ct - r + 1.0, 0.0, 1.0);
         vec3 s = texture(uSrc, uv).rgb;
         sum += s * w;
         wsum += w;
@@ -384,8 +384,8 @@ void main() {
     float z = linearDepth(texture(uDepth, vUV).r);
     float c = uAperture * abs(z - focus) / max(z, 1e-3);
     vec4 blur = texture(uBlur, vUV);
-    float k = clamp(max(c, blur.a * uAperture * 0.5) - 0.7, 0.0, 1.0);
-    Color = vec4(mix(texture(uSharp, vUV).rgb, blur.rgb, k), 1.0);
+    float k = tsClamp(max(c, blur.a * uAperture * 0.5) - 0.7, 0.0, 1.0);
+    Color = vec4(tsMix(texture(uSharp, vUV).rgb, blur.rgb, k), 1.0);
 }
 )";
 
@@ -433,10 +433,10 @@ vec3 acesFitted(vec3 v) {
     v = inM * v;
     vec3 a = v * (v + 0.0245786) - 0.000090537;
     vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
-    return clamp(outM * (a / b), 0.0, 1.0);
+    return tsClamp(outM * (a / b), 0.0, 1.0);
 }
 vec3 linearToSrgb(vec3 c) {
-    return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c));
+    return tsMix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, tsStep(vec3(0.0031308), c));
 }
 
 vec3 sceneSample(vec2 uv, vec2 ca) {   // lateral chromatic aberration grows towards the frame edge
@@ -450,7 +450,7 @@ vec4 finish(vec3 c) {
 
 vec3 thermalSensor(vec2 uv) {
     // Heat shimmer: warm air above hot parts refracts the long-wave image a little
-    float hot = smoothstep(0.45, 0.9, texture(uScene, uv - vec2(0.0, 0.01)).r);
+    float hot = tsSmoothstep(0.45, 0.9, texture(uScene, uv - vec2(0.0, 0.01)).r);
     uv += (vec2(valueNoise(uv * 60.0 + vec2(0.0, uTime * 4.0)), valueNoise(uv * 60.0 - uTime * 3.0)) - 0.5) * 0.003 * hot;
     vec2 px = 1.0 / vec2(textureSize(uScene, 0));
     // Optics (germanium lens MTF): slight blur
@@ -479,10 +479,10 @@ vec3 thermalSensor(vec2 uv) {
     t += (hash21(fc + fract(uTime * 7.31) * 311.0) - 0.5) * uSensorNoise;
     t += (hash21(vec2(fc.x, 3.0)) - 0.5) * 0.018 + (hash21(vec2(7.0, fc.y)) - 0.5) * 0.008;
     vec2 q = vUV - 0.5;
-    t -= 0.10 * dot(q, q);
-    t = mix(t, 0.45, uShutter);
+    t -= 0.10 * tsDot(q, q);
+    t = tsMix(t, 0.45, uShutter);
     if (hash21(fc * 1.37 + 0.5) > 0.99996) t = 1.0;
-    return thermalPalette(clamp(t, 0.0, 1.0));
+    return thermalPalette(tsClamp(t, 0.0, 1.0));
 }
 
 void main() {
@@ -491,13 +491,13 @@ void main() {
     float grain = hash21(gl_FragCoord.xy + fract(uTime * 13.7) * 517.0) - 0.5;
     if (uMode == 1) { FragColor = finish(thermalSensor(vUV)); return; }
 
-    vec2 ca = q * dot(q, q) * 0.012;
+    vec2 ca = q * tsDot(q, q) * 0.012;
     vec3 c;
     if (uMotionBlur > 0.0) {   // camera motion blur: 12 taps along the per-pixel screen velocity
         float d = texture(uDepth, vUV).r;
         vec4 prev = uReproject * vec4(vUV * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
         vec2 vel = (vUV - (prev.xy / prev.w * 0.5 + 0.5)) * uMotionBlur;
-        float len = length(vel);
+        float len = tsLength(vel);
         if (len > 0.06) vel *= 0.06 / len;
         c = vec3(0.0);
         float jitter = hash21(gl_FragCoord.xy + uTime);
@@ -515,36 +515,36 @@ void main() {
     float exposure = uExposure;
     if (uAutoExposure == 1) {
         float meanLog = texelFetch(uStats, ivec2(0), 0).z;
-        exposure *= exp2(clamp(uKeyLog2 - meanLog, -uEvRange, uEvRange + uEvBias));   // v9 M4: + uEvBias
+        exposure *= exp2(tsClamp(uKeyLog2 - meanLog, -uEvRange, uEvRange + uEvBias));   // v9 M4: + uEvBias
     }
     c *= exposure;
     // Night vision (Purkinje shift): in dim light the eye's rods take over -- less colour, bluer.
-    float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    float scotopic = (1.0 - smoothstep(0.004, 0.08, l)) * uPurkinje;
-    c = mix(c, l * vec3(0.62, 0.78, 1.15), scotopic * 0.55);
+    float l = tsDot(c, vec3(0.2126, 0.7152, 0.0722));
+    float scotopic = (1.0 - tsSmoothstep(0.004, 0.08, l)) * uPurkinje;
+    c = tsMix(c, l * vec3(0.62, 0.78, 1.15), scotopic * 0.55);
     // Grading: cool moonlit shadows, warm practical lights, a touch of saturation in the mids
-    vec3 graded = mix(c * vec3(0.90, 0.98, 1.12), c * vec3(1.10, 1.0, 0.86), smoothstep(0.08, 1.6, l));
+    vec3 graded = tsMix(c * vec3(0.90, 0.98, 1.12), c * vec3(1.10, 1.0, 0.86), tsSmoothstep(0.08, 1.6, l));
     // Daylight: almost neutral, slightly cool shade and warm sunlit highlights
     if (uDayGrade > 0.0)
-        graded = mix(graded, c * mix(vec3(0.97, 1.0, 1.04), vec3(1.04, 1.0, 0.95), smoothstep(0.05, 1.2, l)), uDayGrade);
+        graded = tsMix(graded, c * tsMix(vec3(0.97, 1.0, 1.04), vec3(1.04, 1.0, 0.95), tsSmoothstep(0.05, 1.2, l)), uDayGrade);
     c = graded;
     // v8 daylight: a little more contrast around mid grey (log space) and richer colour, so a clear day reads crisp
     // instead of milky; the night grade is untouched (uDayGrade = 0).
     if (uDayGrade > 0.0) {
         vec3 lc = log2(max(c, vec3(1e-6)));
         const float mid = -2.4739;   // log2(0.18)
-        c = mix(c, exp2(mid + (lc - mid) * uDayContrast), uDayGrade);
+        c = tsMix(c, exp2(mid + (lc - mid) * uDayContrast), uDayGrade);
     }
-    float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    c = max(mix(vec3(lum), c, 1.12 + uDaySaturation * uDayGrade), vec3(0.0));
+    float lum = tsDot(c, vec3(0.2126, 0.7152, 0.0722));
+    c = max(tsMix(vec3(lum), c, 1.12 + uDaySaturation * uDayGrade), vec3(0.0));
     // Display transform: AgX (log encoding + sigmoid; saturated highlights desaturate towards white instead of clipping
     // one channel) or the v3-v8 ACES fit.
     vec3 aces = acesFitted(c * uAcesExposure);
-    c = uToneMap == 1 || uAgxWeight <= 0.0 ? aces : mix(aces, agxDisplay(c * uAgxExposure), uAgxWeight);
+    c = uToneMap == 1 || uAgxWeight <= 0.0 ? aces : tsMix(aces, agxDisplay(c * uAgxExposure), uAgxWeight);
     c = linearToSrgb(c);
-    c *= 1.0 - uVignette * dot(q, q) * 1.5;
+    c *= 1.0 - uVignette * tsDot(q, q) * 1.5;
     c += grain * uGrain * (1.0 - 0.6 * c);                  // film grain, stronger in the shadows
-    FragColor = finish(clamp(c, 0.0, 1.0));
+    FragColor = finish(tsClamp(c, 0.0, 1.0));
 }
 )";
 

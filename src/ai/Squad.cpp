@@ -26,6 +26,7 @@ const char* squadRoleName(SquadRole r) {
         case SquadRole::Wing: return "WING";
         case SquadRole::Manual: return "MANUAL";
         case SquadRole::Search: return "SEARCH";
+        case SquadRole::Solo: return "SOLO";
     }
     return "?";
 }
@@ -142,6 +143,7 @@ float Squad::threat(const Track& t) const {
 Vec3 Squad::cameraPosition(int uav) const { return camPos_[uav]; }
 
 bool Squad::designatorValid(int uav) const {
+    if (uav == detached_ && side_.phase == StrikePhase::Inbound && side_.launched[uav]) return true;
     return strike_.track >= 0 && (strike_.phase == StrikePhase::Planned || strike_.phase == StrikePhase::Inbound) &&
            strike_.launched[uav];
 }
@@ -362,6 +364,44 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
     dutyTransitions(time, manual);
     bool away[kCount];
     for (int i = 0; i < kCount; ++i) away[i] = manual[i] || duty_[i] != UavDuty::Patrol;
+
+    // ---- 3a. A second intruder far from the target: one UAV leaves the pair and deals with it alone ----
+    const Track* side = nullptr;
+    if (target && !away[0] && !away[1]) {
+        side = tracker_.find(side_.track);
+        if (side && (side->id == target->id || side->state == TrackState::Tentative || ignored(side->position()) ||
+                     length(flat(side->position() - target->position())) < kSquadRejoinDist))
+            side = nullptr;
+        // a new second target only while the pair has not committed both rounds to the first
+        const bool pairFree = strike_.phase == StrikePhase::None || strike_.phase == StrikePhase::Tracking;
+        if (!side && side_.phase != StrikePhase::Inbound && pairFree)
+            for (const Track& t : tracker_.tracks()) {
+                if (t.state == TrackState::Tentative || t.id == target->id || ignored(t.position())) continue;
+                if (length(flat(t.position() - target->position())) < kSquadSplitDist) continue;
+                if (!side || threat(t) < threat(*side)) side = &t;
+            }
+    }
+    if (!side) {
+        if (side_.phase != StrikePhase::Inbound) {   // (a round in the air is followed to its arrival)
+            side_ = StrikeState{};
+            detached_ = -1;
+            sideLock_ = 0.0f;
+        }
+    } else if (side->id != side_.track) {
+        side_ = StrikeState{};
+        side_.track = side->id;
+        side_.phase = StrikePhase::Tracking;
+        side_.started = time;
+        sideLock_ = 0.0f;
+        // the UAV nearer to the second intruder goes
+        detached_ = length(flat(drones[0].position - side->position())) <= length(flat(drones[1].position - side->position())) ? 0 : 1;
+    }
+    if (detached_ >= 0 && away[detached_]) {   // recalled or taken over by the user
+        side_ = StrikeState{};
+        detached_ = -1;
+        side = nullptr;
+    }
+    if (detached_ >= 0) away[detached_] = true;   // out of the pair: the other UAV leads alone
     int lead = -1, wing = -1;
     if (target) {
         for (int i = 0; i < kCount; ++i) {
@@ -439,6 +479,56 @@ void Squad::update(float dt, float time, const SquadFrame& frame, const bool man
         }
     }
 
+    // ---- 4a. The detached UAV: its own lock and a strike of one round ----
+    if (detached_ >= 0) {
+        const int u = detached_;
+        roles[u] = SquadRole::Solo;
+        side_.cooldown = std::max(0.0f, side_.cooldown - dt);
+        if (side) {
+            bool others[kCount];
+            for (int i = 0; i < kCount; ++i) others[i] = i != u;
+            engage(dt, *side, u, -1, others);
+            const bool seen = (side->seenNow >> u) & 1u;
+            sideLock_ = seen ? sideLock_ + dt : std::max(0.0f, sideLock_ - 0.4f * dt);
+            const Vec3 now = side->position();
+            const bool keepOut = hasKeepOut_ && now.x > keepOut_.min.x && now.x < keepOut_.max.x && now.z > keepOut_.min.z && now.z < keepOut_.max.z;
+            if (side_.phase == StrikePhase::Tracking && side_.cooldown <= 0.0f && sideLock_ >= kSquadSoloLock && ready[u] > 0 && !keepOut &&
+                clearShot(drones[u].position, now)) {
+                float T = 0.0f;
+                Vec3 aim = now;
+                for (int it = 0; it < 2; ++it) {
+                    T = roundFlightTime(length(aim - drones[u].position));
+                    aim = now + side->velocity() * T;
+                }
+                side_.phase = StrikePhase::Inbound;
+                side_.combined = false;
+                side_.launchAt[u] = side_.launchedAt[u] = time;
+                side_.flightTime[u] = T;
+                side_.launched[u] = true;
+                designator_[u] = aim;
+                orders.push_back({u, aim, 1 + u});
+                GameEvent ev;
+                ev.type = GameEventType::LockOn;
+                ev.position = aim;
+                ev.track = side->id;
+                ev.uav = u;
+                events.push_back(ev);
+                ev.type = GameEventType::RoundLaunched;
+                ev.position = drones[u].position;
+                events.push_back(ev);
+            }
+        }
+        if (side_.phase == StrikePhase::Inbound) {
+            const float remaining = std::max(0.0f, side_.flightTime[u] - (time - side_.launchedAt[u]));
+            if (side) designator_[u] = side->position() + side->velocity() * remaining;
+            if (time > side_.launchedAt[u] + side_.flightTime[u] + 1.2f) {   // missed / target survived (or it is gone)
+                side_.phase = StrikePhase::Tracking;
+                side_.launched[u] = false;
+                side_.cooldown = 2.0f;
+            }
+        }
+    }
+
     // ---- 5. v9 M5 duty: rotor spool, take-off, return, landing, docked on the pad ----
     for (int i = 0; i < kCount; ++i) {
         if (manual[i] || duty_[i] == UavDuty::Patrol) spool_[i] = std::min(1.0f, spool_[i] + dt / kRotorSpoolUp);
@@ -451,6 +541,12 @@ void Squad::onKill(const Vec3& where) {
     if (length(flat(lastKnown_ - where)) < 3.0f) lastKnownTime_ = -1e9f;  // target dead: back to patrol
     const Track* t = tracker_.find(strike_.track);
     if (t && length(flat(t->position() - where)) < 3.0f) strike_ = StrikeState{};
+    const Track* s = tracker_.find(side_.track);
+    if (s && length(flat(s->position() - where)) < 3.0f) {   // the second intruder is destroyed: the pair re-forms
+        side_ = StrikeState{};
+        detached_ = -1;
+        sideLock_ = 0.0f;
+    }
     std::vector<int> drop;
     for (const Track& tr : tracker_.tracks())
         if (length(flat(tr.position() - where)) < 2.5f) drop.push_back(tr.id);

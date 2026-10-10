@@ -20,6 +20,7 @@ public:
     static constexpr float kRotorRpm = 300.0f;        // nominal main rotor speed (5 rev/s)
     static constexpr float kTailRatio = 5.0f;         // tail rotor turns 5x faster
     static constexpr float kSpoolUpSeconds = 6.0f;
+    static constexpr float kAlertIdle = 0.38f;   // rotor fraction of an unmanned helicopter on alert (flight idle)
     static constexpr float kSpoolDownSeconds = 8.0f;
     static constexpr float kMaxSpeed = 15.0f;         // m/s cruise
     static constexpr float kBoostSpeed = 25.0f;       // m/s with Shift

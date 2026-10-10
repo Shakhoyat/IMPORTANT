@@ -375,15 +375,22 @@ void Tank::updateTurret(const WorldContext& w, const ControlInput* in) {
         turretCmd_ -= radians(in->aimYaw * kTurretSlewDeg * dt + in->aimYawDelta);
         gunCmd_ = clampf(gunCmd_ + in->aimPitch * kGunSlewDeg * dt + in->aimPitchDelta, kGunMinDeg, kGunMaxDeg);
     } else if (turretLocked_) {
-        turretCmd_ = yaw_;  // parked in a revetment: barrel held over the front wall
-        gunCmd_ += clampf(3.0f - gunCmd_, -3.0f * dt, 3.0f * dt);
+        turretCmd_ = yaw_ + lockOffset_;  // parked in a revetment: barrel held over the front wall, on its covering arc
+        gunCmd_ += clampf(lockGunDeg_ - gunCmd_, -3.0f * dt, 3.0f * dt);
+    } else if (w.alert > 0.0f && w.hasThreat) {
+        // on alert with an intruder tracked: the gun is laid on it (range decides the elevation)
+        const float dx = w.threatPos.x - x_, dz = w.threatPos.z - z_;
+        turretCmd_ = std::atan2(dx, dz);
+        const float want = clampf(degrees(std::atan2(w.threatPos.y + 0.3f - (root_->local.translation.y + 2.1f), std::sqrt(dx * dx + dz * dz))),
+                                  kGunMinDeg, kGunMaxDeg);
+        gunCmd_ += clampf(want - gunCmd_, -kGunSlewDeg * dt, kGunSlewDeg * dt);
     } else {
-        // idle: the turret slowly scans +-70 deg around the hull heading, gun slightly raised
+        // idle: the turret scans +-70 deg around the hull heading, gun slightly raised (on alert: faster, gun higher)
         float rel = wrapPi(turretCmd_ - yaw_);
         if (rel > radians(70.0f)) scanDir_ = -1.0f;
         if (rel < -radians(70.0f)) scanDir_ = 1.0f;
-        turretCmd_ += scanDir_ * radians(8.0f) * dt;
-        gunCmd_ += clampf(2.0f - gunCmd_, -3.0f * dt, 3.0f * dt);
+        turretCmd_ += scanDir_ * radians(w.alert > 0.0f ? 16.0f : 8.0f) * dt;
+        gunCmd_ += clampf((w.alert > 0.0f ? 5.0f : 2.0f) - gunCmd_, -3.0f * dt, 3.0f * dt);
     }
     // the command never runs more than 45 deg ahead of the turret (no wind-up)
     float diff = clampf(wrapPi(turretCmd_ - turretYaw_), -radians(45.0f), radians(45.0f));
@@ -615,6 +622,7 @@ ParkedTank::ParkedTank(const Vec3& pos, float yawDeg, int index)
     ownerId = 0;
     place(pos.x, pos.z, yawDeg);
     lockTurret(true);
+    coverArc(0.0f, 6.0f);   // gun raised over the front wall (the barrel stays inside its bay: posts and routes pass beside it)
     for (int i = 0; i < 4; ++i) update(WorldContext{}, nullptr);
     // Parked with the engine off: the exhaust and engine deck have cooled to near ambient.
     std::vector<SceneNode*> stack{root()};

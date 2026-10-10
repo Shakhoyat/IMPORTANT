@@ -102,18 +102,18 @@ out float vCover;
 
 // Share of a cell's blades drawn at distance d: all within 26 m, 40 % at 75 m (the v3-v8 thinning curve), 24 % past
 // 120 m; the kept blades widen to cover.
-float grassKeep(float d) { return mix(1.0, 0.4, smoothstep(26.0, 75.0, d)) * mix(1.0, 0.6, smoothstep(75.0, 120.0, d)); }
+float grassKeep(float d) { return tsMix(1.0, 0.4, tsSmoothstep(26.0, 75.0, d)) * tsMix(1.0, 0.6, tsSmoothstep(75.0, 120.0, d)); }
 
 vec2 push(vec3 root, vec3 pos, vec2 params) {
     vec2 d = root.xz - pos.xz;
-    float dist = length(d);
+    float dist = tsLength(d);
     if (params.x <= 0.0 || dist > params.x) return vec2(0.0);
     return d / max(dist, 1e-3) * (1.0 - dist / params.x) * params.y;
 }
 
 float hash12(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-    p3 += dot(p3, p3.yzx + 33.33);
+    p3 += tsDot(p3, p3.yzx + 33.33);
     return fract((p3.x + p3.y) * p3.z);
 }
 
@@ -125,11 +125,11 @@ void main() {
     // here each blade keeps itself if its rank in the cell is below the share its own distance needs, so density
     // falls off smoothly across cell borders. The kept blades widen by the inverse share: the meadow keeps its
     // coverage (area per m^2) with a fraction of the blades, and TAA resolves the rest.
-    float dist = length(root - uCamPos);
+    float dist = tsLength(root - uCamPos);
     float keep = grassKeep(dist);
     float rank = (float(gl_InstanceID) + 0.5) / uCellCount;
     if (rank > keep) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
-    float lod = smoothstep(26.0, 75.0, dist);
+    float lod = tsSmoothstep(26.0, 75.0, dist);
     float widen = min(1.0 / keep, 3.0);
     // Width tapers to a point; the blade is a flat strip that faces its lean direction. v9 M6: a textured card is wider
     // (the atlas blade fills about 45 % of its rectangle) and tapers less (the texture draws the tip).
@@ -153,20 +153,20 @@ void main() {
     // Travelling gusts: two large-scale bands sweep across the field along vec2(0.8, 0.45); taller blades
     // catch more wind. 'front' is the slow big wave, 'ripple' the faster small one riding on it.
     vec2 wd = vec2(0.8, 0.45);
-    float along = dot(root.xz, wd) / length(wd);
-    float across = dot(root.xz, vec2(-wd.y, wd.x)) / length(wd);
+    float along = tsDot(root.xz, wd) / tsLength(wd);
+    float across = tsDot(root.xz, vec2(-wd.y, wd.x)) / tsLength(wd);
     float front = 0.5 + 0.5 * sin(along * 0.11 - uTime * 0.9 + 1.4 * sin(across * 0.05));
     float ripple = 0.5 + 0.5 * sin(along * 0.45 - uTime * 2.1 + across * 0.17);
     float gust = 0.12 + 0.88 * front * front * (0.6 + 0.4 * ripple);
     float flutter = sin(uTime * 2.3 + iShape.w * 6.2831 + root.x * 0.7) * 0.22 * (0.35 + gust);
-    float tall = 0.6 + 0.8 * clamp(iShape.x / 0.6, 0.0, 1.0);
+    float tall = 0.6 + 0.8 * tsClamp(iShape.x / 0.6, 0.0, 1.0);
     vec2 wind = wd * (0.10 + 0.62 * gust) * tall + vec2(-wd.y, wd.x) * flutter;
     vec2 bend = vec2(cos(iRoot.w), sin(iRoot.w)) * iShape.z + wind
               + push(root, uPusherA, uPusherAParams) + push(root, uPusherB, uPusherBParams);
-    float amount = min(length(bend), 1.4);
-    bend = amount > 0.0 ? normalize(bend) * amount : bend;
+    float amount = min(tsLength(bend), 1.4);
+    bend = amount > 0.0 ? tsNormalize(bend) * amount : bend;
     // v9: a gentle curve (mostly the straight lean of the v3-v8 blade, whose cube had vertices at root and tip only)
-    float tb = mix(t, t * t, 0.3);
+    float tb = tsMix(t, t * t, 0.3);
     p.xz += bend * tb * iShape.x;
     p.y -= amount * amount * tb * iShape.x * 0.3;  // keeps the blade length roughly constant
     vWorld = root + p;
@@ -178,30 +178,30 @@ void main() {
     vec3 Nf = vec3(c * aNormal.x + s * aNormal.z, aNormal.y, -s * aNormal.x + c * aNormal.z);
     // v9 M1: one-sided strip, lit on the side the camera sees (decided by the blade's face normal, so both edges of a
     // blade agree)
-    if (dot(vec3(s, 0.0, c), uCamPos - root) < 0.0) Nf = -Nf;
-    vec3 N = normalize(mix(Nf, vec3(0.0, 1.0, 0.0), 0.55) + vec3(bend.x, 0.0, bend.y) * (0.5 + 0.8 * t));
-    vec3 L = normalize(-uMoonDir);
-    vec3 V = normalize(uCamPos - vWorld);
+    if (tsDot(vec3(s, 0.0, c), uCamPos - root) < 0.0) Nf = -Nf;
+    vec3 N = tsNormalize(tsMix(Nf, vec3(0.0, 1.0, 0.0), 0.55) + vec3(bend.x, 0.0, bend.y) * (0.5 + 0.8 * t));
+    vec3 L = tsNormalize(-uMoonDir);
+    vec3 V = tsNormalize(uCamPos - vWorld);
     vAmbD = uHdr == 1 ? hemiAmbient(N) : uAmbient;
-    float back = pow(max(dot(-V, L), 0.0), 3.0);        // looking towards the moon: blades glow
+    float back = pow(max(tsDot(-V, L), 0.0), 3.0);        // looking towards the moon: blades glow
     // v8: by day the translucency is a thin rim of the tips against the sun (full strength it lit the field like straw)
-    vMoonD = uMoonColor * (mix(0.25, 0.12, uDayWeight) + mix(0.75, 0.88, uDayWeight) * max(dot(N, L), 0.0) +
-                           mix(2.0, 0.55, uDayWeight) * back * t * vec3(0.85, 1.0, 0.55) / 0.85);
-    vSheen = uMoonColor * pow(max(dot(N, normalize(L + V)), 0.0), 14.0) * 0.10 * (0.3 + 0.7 * t) * (0.6 + 0.4 * (1.0 - lod));
+    vMoonD = uMoonColor * (tsMix(0.25, 0.12, uDayWeight) + tsMix(0.75, 0.88, uDayWeight) * max(tsDot(N, L), 0.0) +
+                           tsMix(2.0, 0.55, uDayWeight) * back * t * vec3(0.85, 1.0, 0.55) / 0.85);
+    vSheen = uMoonColor * pow(max(tsDot(N, tsNormalize(L + V)), 0.0), 14.0) * 0.10 * (0.3 + 0.7 * t) * (0.6 + 0.4 * (1.0 - lod));
     vec3 d = uBeaconPos - vWorld;
-    float dd = length(d);
-    vLocalD = uBeaconColor * max(dot(N, d / dd), 0.2) / (1.0 + uBeaconAtt.x * dd + uBeaconAtt.y * dd * dd);
+    float dd = tsLength(d);
+    vLocalD = uBeaconColor * max(tsDot(N, d / dd), 0.2) / (1.0 + uBeaconAtt.x * dd + uBeaconAtt.y * dd * dd);
     for (int i = 0; i < TS_MAX_PRACTICALS; ++i) {
         if (i >= uPracticalCount) break;
         vec3 Lp;
         float att = practicalAttenuation(i, vWorld, Lp);
-        vLocalD += uPracticalColor[i].rgb * att * max(dot(N, Lp), 0.25);
+        vLocalD += uPracticalColor[i].rgb * att * max(tsDot(N, Lp), 0.25);
     }
     d = uSpotPos - vWorld;
-    dd = length(d);
+    dd = tsLength(d);
     vec3 Ls = d / dd;
-    float cone = clamp((dot(-Ls, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
-    vSpotD = uSpotColor * cone * cone * max(dot(N, Ls), 0.25) / (1.0 + uSpotAtt.x * dd + uSpotAtt.y * dd * dd);
+    float cone = tsClamp((tsDot(-Ls, uSpotDir) - uSpotCos.y) / max(uSpotCos.x - uSpotCos.y, 1e-4), 0.0, 1.0);
+    vSpotD = uSpotColor * cone * cone * max(tsDot(N, Ls), 0.25) / (1.0 + uSpotAtt.x * dd + uSpotAtt.y * dd * dd);
     gl_Position = uProj * uView * vec4(vWorld, 1.0);
 }
 )";
@@ -237,11 +237,11 @@ void main() {
     vec3 texMod = vec3(1.0);
     if (uTextured == 1) {
         vec4 tx = texture(uGrassTex, vUV, 0.75);   // mip bias: stable under the TAA jitter
-        alpha = uA2C == 1 ? clamp((tx.a - 0.12) * 2.2, 0.0, 1.0) * vCover : (tx.a >= 0.4 ? 1.0 : 0.0);
+        alpha = uA2C == 1 ? tsClamp((tx.a - 0.12) * 2.2, 0.0, 1.0) * vCover : (tx.a >= 0.4 ? 1.0 : 0.0);
         if (alpha <= 0.0) discard;
         vec3 lin = pow(tx.rgb, vec3(2.2));
-        texMod = clamp(lin / max(uTexLuma, 1e-3), vec3(0.55), vec3(1.6));
-        texMod = mix(vec3(luma(texMod)), texMod, 0.35);   // keep the calibrated hue, take the texture's detail
+        texMod = tsClamp(lin / max(uTexLuma, 1e-3), vec3(0.55), vec3(1.6));
+        texMod = tsMix(vec3(luma(texMod)), texMod, 0.35);   // keep the calibrated hue, take the texture's detail
     }
     float heat = 0.13 + 0.03 * vT + 0.02 * (vSeed - 0.5) + 0.7 * trailHeat(vWorld);  // crushed, warmed blades   // blades are slightly cooler than soil
     if (uViewMode == 0 || uViewMode >= 3) { FragColor = finalColor(vec3(0.0), heat, vWorld); FragColor.a = alpha; return; }
@@ -249,12 +249,12 @@ void main() {
     vec3 base = vec3(0.010, 0.014, 0.005);
     vec3 green = vec3(0.040, 0.082, 0.018), olive = vec3(0.074, 0.088, 0.026), straw = vec3(0.150, 0.122, 0.060);
     // v8: mostly green / olive tufts with dry ones scattered (the field used to read as straw in daylight)
-    vec3 tip = mix(mix(green, olive, smoothstep(0.0, 0.6, vSeed)), straw, smoothstep(0.62, 1.0, vSeed));
+    vec3 tip = tsMix(tsMix(green, olive, tsSmoothstep(0.0, 0.6, vSeed)), straw, tsSmoothstep(0.62, 1.0, vSeed));
     tip *= 0.82 + 0.36 * vHue;
-    vec3 albedo = uViewMode == 2 ? uBaseColor : mix(base, tip, pow(clamp(vT, 0.0, 1.0), 0.6)) * texMod;
+    vec3 albedo = uViewMode == 2 ? uBaseColor : tsMix(base, tip, pow(tsClamp(vT, 0.0, 1.0), 0.6)) * texMod;
     float sm = 1.0, ss = 1.0;
     if (uShadows > 0) {
-        bool nearC = length(vWorld - uCamPos) < uCascadeSplit;
+        bool nearC = tsLength(vWorld - uCamPos) < uCascadeSplit;
         sm = nearC ? oneTap(uMoonShadow, uMoonVP0, 0.0, vWorld) : oneTap(uMoonShadow, uMoonVP1, 1.0, vWorld);
     }
     if (uShadows > 1 && max(vSpotD.r, vSpotD.g) > 1e-4) {
@@ -263,7 +263,7 @@ void main() {
         if (lp.w > 0.0 && all(greaterThan(p, vec3(0.0))) && all(lessThan(p, vec3(1.0))))
             ss = texture(uSpotShadow, vec3(p.xy, p.z - 0.0003));
     }
-    float ao = mix(0.30, 1.0, vT);                            // self-shadowing towards the root
+    float ao = tsMix(0.30, 1.0, vT);                            // self-shadowing towards the root
     vec3 lit = albedo * ((vAmbD * ao + vMoonD * sm) * uNightLift + vLocalD + vSpotD * ss) + vSheen * sm;
     FragColor = finalColor(lit, heat, vWorld);
     FragColor.a = alpha;
