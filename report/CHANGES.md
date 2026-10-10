@@ -460,3 +460,42 @@ Teaching drawings of each section's maths; every constant drawn from the code is
   Designs 63 OK / 0 DIFF.
 - Checks: 396 tests pass; `check_counts.py` OK (5 476 parts everywhere); 0 overfull boxes, 0 undefined references.
   Page count: 111 (was 127; appendices removed).
+
+## Round 3: visual storytelling, interiors, abbreviations
+
+- **Removed:** the requirements-coverage subsection and its table (old Table 32.1) and the reference to it.
+- **Section 2:** two new full pages follow a soldier at eye height into the command bunker (gate, trench, tunnel,
+  command room, generator door shut / open) and the barracks hall (door shut / opening / open, inside by day and night,
+  looking out). New capture shots `sc_*` (HUD-free 1920x1080 EPIC) with a `doors` option that opens the blast doors,
+  the hall door or the generator-room door before the settle; `TS_CLEAN=1` renders the gameplay shots without HUD.
+- **Section 7:**
+  - Vehicles are now followed by the munition each one fires. The new family "vehicles and their weapons" orders the
+    UAV, then UAV round, SAM launcher, SAM missile, MLRS truck, MLRS rocket, AA gun and shell casing. The atlas labels
+    each munition "fired by ...".
+  - Every card shows the design in the running scene. `tools/report/insitu_cams.py` places one camera per design from
+    the export's part bounds (`TS_INSITU` shot file). Live-following shots cover the UAV and the helicopter. Other
+    captures are used where nets, the backdrop or night units need them.
+  - New grass card (`tools/report/gen_grass.py`): the grass-blade primitive, one tuft and a patch, built with the
+    rules of `rendering/Grass.cpp` in the key colour, plus the rendered meadow and a parameter table (budgets parsed
+    from `GrassBlade.h`). Grass also appears in the atlas.
+  - Build stages are laid out 2x2 at half page width (1400 px).
+- **Sections 8-29, one project figure per concept** (`tools/report/annotate.py` call-outs on the captures):
+  - TRS placements of huts, towers, barriers and the hinged door;
+  - the tank's and UAV's group nodes;
+  - four cameras, 2x2;
+  - the light types in the scene;
+  - flat, Gouraud and Phong parts (from the export's shading field);
+  - procedural versus image textures;
+  - thermal palettes as colour interpolation, with ramps plotted from the shader stops;
+  - the same camera at three times of day;
+  - curved primitives at the AA position;
+  - the door and blast-door dynamics;
+  - larger path, reflection and explosion figures (explosions 2x2).
+- **Fig 25.1** replaced by `tools/report/gen_cv_story.py`: the scene, the UAV's heat image with a zoom box, the
+  histogram with Otsu's threshold against the floor actually used, then the window through threshold, despeckle,
+  components and target, all from the program's stage outputs and `cv_frame.json`.
+- **Abbreviations:** a list after the contents (69 entries) and the full form at first use in the prose, both from
+  `tools/report/abbrev.py`.
+- **Image quality:** captures are converted at the full 1920 px (ffmpeg q 4; `FORCE=1` re-encodes everything).
+- Checks: 396 tests pass; `check_counts.py` OK; no figure drifts out of its section; 2 small overfull vboxes on two
+  card pages. Page count: 127. PDF: 55 MB (about 500 images).

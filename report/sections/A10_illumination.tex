@@ -31,6 +31,20 @@ Ambient & hemisphere / spherical harmonics (SH) & night constant; by day the irr
 \end{table}
 
 \begin{figure}[htbp]
+\centering
+\begin{subfigure}{0.49\linewidth}\raw{showcase/sc_radar}{\linewidth}\caption{Sun (directional): one direction for every
+fragment, so all shadows are parallel.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, practical lamps (point)
+and the red beacon.}\end{subfigure}\\[1.2mm]
+\begin{subfigure}{0.49\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{UAV searchlights (spot): a cone with a
+soft edge between $\theta_i$ and $\theta_o$.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{showcase/sc_hall_inside_night}{\linewidth}\caption{Indoors at night: the tube lights
+(point lights with distance attenuation, Eq.~\ref{eq:att}).}\end{subfigure}
+\caption{Each light type of Table~\ref{tab:lights} in the scene.}
+\label{fig:lights-scene}
+\end{figure}
+
+\begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_lighting.pdf}
 \caption{The vectors of Eq.~\ref{eq:phong} at one surface point, and how quickly the diffuse and specular terms fall off with angle (a larger exponent gives a smaller, sharper highlight).}
 \label{fig:d-light}

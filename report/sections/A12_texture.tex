@@ -18,19 +18,18 @@ material property. A procedural texture computes the value with a function inste
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.25\linewidth}\raw{lab/material_grid}{\linewidth}\caption{Procedural materials.}\end{subfigure}\hfill
-\begin{subfigure}{0.365\linewidth}\raw{scene/m6_grass_close}{\linewidth}\caption{CC0 grass atlas on blades.}\end{subfigure}\hfill
-\begin{subfigure}{0.365\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{glTF tree, alpha-tested leaves.}\end{subfigure}
-\caption{Procedural (a) and image textures (b, c); the leaves in (c) are cut out by alpha-to-coverage.}
+\begin{subfigure}{\linewidth}\img{figures/img/annot/tex_scene.jpg}{\linewidth}\caption{The SAM position: every surface
+is either computed (procedural) or looked up in an image.}\end{subfigure}\\[1.2mm]
+\begin{subfigure}{0.40\linewidth}\raw{lab/material_grid}{\linewidth}\caption{The procedural materials on spheres.}\end{subfigure}\hfill
+\begin{subfigure}{0.58\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{An imported tree: UV-mapped bark and
+alpha-tested leaves.}\end{subfigure}
+\caption{Textures in the scene. Primitives carry no UV set, so their surfaces are procedural; the imported vegetation
+brings image textures with mip-maps.}
 \label{fig:tex}
 \end{figure}
 
 A bump map perturbs only the normal (Eq.~\eqref{eq:tex}): the silhouette stays straight while the lighting shows
 relief.
-
-\textbf{Where coordinates come from.} Primitives carry no UV set. Their surfaces (concrete, camouflage, sandbags,
-wood, metal, terrain soil and grass) are procedural: noise and cellular patterns evaluated from the world position
-in the fragment shader. The imported vegetation brings real UV-mapped image textures (glTF) with mip-maps.
 
 \textbf{Limitation.} Procedural world-space patterns need no UV unwrapping and never stretch, but they slide over a moving
 part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to MSAA and TAA.

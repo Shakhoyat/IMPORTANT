@@ -39,6 +39,15 @@ mesh); grey nodes draw a primitive.}
 \label{fig:sg}
 \end{figure}
 
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}{0.49\linewidth}\img{figures/img/annot/hier_tank.jpg}{\linewidth}\caption{Main battle tank.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\img{figures/img/annot/hier_uav.jpg}{\linewidth}\caption{UAV (rotor discs hidden in this view).}\end{subfigure}
+\caption{The hierarchy in the scene: each call-out is a group node. Turning a group (one local angle) carries
+every part below it, e.g.\ the gun follows the turret, the camera follows both gimbal angles.}
+\label{fig:hier-scene}
+\end{figure}
+
 The camera and the searchlight hang under two gimbal groups. The visual-servo controller writes only their two
 angles, and Eq.~\eqref{eq:world} carries the lamp, its light direction and the camera frame along. Section~\ref{sec:decomp}
 pulls every design apart along this tree: in Figure~\ref{fig:d-autonomous_uav} the sub-assemblies (motor mount with
@@ -47,3 +56,5 @@ rotor, gimbal with camera) move out as blocks before their parts separate.
 \textbf{Limitation.} The world matrices of all \nLeaves{} parts are recomputed on the CPU every tick, static
 buildings included. That is cheap here (the simulation step takes a few milliseconds); a larger scene would cache static
 subtrees.
+
+\clearpage

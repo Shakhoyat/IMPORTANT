@@ -9,7 +9,7 @@ targets in it.
 y=Q\big(g\odot(h_{\text{PSF}}\ast x)+o+c+n\big),\quad h_{\text{PSF}}=\tfrac1{16}\begin{bmatrix}1&2&1\end{bmatrix}^{\!\top}\!\begin{bmatrix}1&2&1\end{bmatrix},\quad n\sim\mathcal N(0,2^2)
 \label{eq:sensor}
 \end{equation}
-($g$, $o$: per-pixel gain and offset (fixed pattern, partly removed by the shutter non-uniformity correction (NUC)), $c$: column stripes, $n$:
+($h_{\text{PSF}}$: the optics' point spread function (PSF), $g$, $o$: per-pixel gain and offset (fixed pattern, partly removed by the shutter non-uniformity correction (NUC)), $c$: column stripes, $n$:
 temporal noise in digital number (DN), $Q$: rounding to 8 bits.) Then (following \cite{gonzalez2018}): Otsu threshold \cite{otsu1979} (with a floor at heat 0.8), despeckle (a hot pixel
 needs 2 hot neighbours), connected components by two-pass union-find, blob features, a target filter, and a Kalman
 multi-target tracker that fuses both UAVs.
@@ -22,15 +22,14 @@ S_x=\begin{bmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{bmatrix},\quad
 
 \begin{figure}[htbp]
 \centering
-\raw{lab/cv_pipeline_uav1}{\linewidth}
-\caption{The CV pipeline on one UAV frame: raw sensor image, histogram and Otsu threshold, mask, despeckle,
-components, overlay.}
+\plot{p_cv_story}{\linewidth}
+\caption{One frame of the CV pipeline, followed from the scene to a target. (a) an intruder rover at night; (b) the
+heat image UAV 2 renders of it; (c) its histogram: Otsu's threshold would cut into the warm ground, so the floor (204)
+decides; (d)--(h) the green window of (b) through each stage: threshold, despeckle, connected components, and the
+target with its box, principal axis, range and track. All images are the program's own stage outputs.}
 \label{fig:cv}
 \end{figure}
 
-Sensor noise and warm walls survive the blur but not the threshold and despeckle steps; only compact hot blobs with a
-hot core become targets. The CV runs on the CPU at 320$\times$240 on a worker thread, and the point spread function (PSF) blur is separable
-(two 3-tap passes instead of one 9-tap pass).
 \begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.49\linewidth}\raw{lab/explorer_imagelab_gauss_gamma}{\linewidth}\caption{Frame Explorer image lab: Gaussian and gamma.}\end{subfigure}\hfill
@@ -68,8 +67,11 @@ $5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT
 
 \begin{figure}[htbp]
 \centering
-\raw{v5/scene_thermal}{0.8\linewidth}
-\caption{The external thermal view, ironbow palette: engines and people hot, sun-warmed walls warm, ground cool.}
+\begin{subfigure}{\linewidth}\raw{v5b/uav_closeup_thermal}{\linewidth}\caption{External thermal view (ironbow): soldiers, the
+UAV's motors and the lamps are hot; sun-warmed roofs warm; ground cool.}\end{subfigure}\\[1.5mm]
+\begin{subfigure}{\linewidth}\raw{v5b/thermal_fpv_whitehot}{\linewidth}\caption{Through the UAV gimbal camera (white-hot), as the
+operator sees it in the game.}\end{subfigure}
+\caption{The simulated sensor in the running game.}
 \label{fig:thermal}
 \end{figure}
 

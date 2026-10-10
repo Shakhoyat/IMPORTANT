@@ -21,10 +21,11 @@ The code writes the same matrix with $\vect f=-\vect n$ (forward), $\vect s=\vec
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.325\linewidth}\raw{play/play_first_person}{\linewidth}\caption{Soldier, first person.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Third person (spring arm).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{v5/uav_camera_view}{\linewidth}\caption{UAV-mounted gimbal camera.}\end{subfigure}
-\caption{Three cameras on the same scene, each a different $(\vect e,\vect a,\vect{up})$.}
+\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_command_bunker}{\linewidth}\caption{Orbit camera (default): $\vect e$ on a sphere around $\vect a$.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_first_person}{\linewidth}\caption{First person: $\vect e$ at the soldier's eye, 1.7\,m.}\end{subfigure}\\[1.2mm]
+\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_third_person}{\linewidth}\caption{Third person: $\vect e$ on a spring arm behind the shoulder.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{v5/uav_camera_view}{\linewidth}\caption{UAV gimbal camera: $\vect e$, $\vect a$ from the camera node (thermal).}\end{subfigure}
+\caption{Four cameras on the same scene, each a different $(\vect e,\vect a,\vect{up})$ in Eq.~\ref{eq:view}.}
 \label{fig:cams}
 \end{figure}
 
@@ -42,7 +43,7 @@ camera, the view matrix, the perspective matrix, and the depth table used in Sec
 \label{fig:wb-view}
 \end{figure}
 
-The UAV camera of Figure~\ref{fig:cams}c takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
+The UAV camera of Figure~\ref{fig:cams}d takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
 view matrix is the inverse of the camera node's world matrix.
 
 \textbf{Camera system.} Orbit (default), free fly (\key{Home}), chase, UAV camera, walk, first and third person on

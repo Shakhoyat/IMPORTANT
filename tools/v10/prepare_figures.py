@@ -1,6 +1,6 @@
 """v10: the report's figures as compact JPEGs (Overleaf / git friendly). Finds every \\raw{group/name} used in
 report/sections/*.tex and converts report/figures/raw/group/name.png -> report/figures/img/group/name.jpg
-(max 1920 px wide, ffmpeg q 2). The full-size PNGs stay in figures/raw (untracked; tools/v10/capture_all.sh)."""
+(max 1920 px wide, ffmpeg q 4; FORCE=1 re-encodes all). The full-size PNGs stay in figures/raw (untracked; tools/v10/capture_all.sh)."""
 import glob
 import os
 import re
@@ -19,7 +19,7 @@ for n in sorted(names):
         missing.append(n)
         continue
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+    if not os.environ.get("FORCE") and os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
         continue
-    subprocess.run([FFMPEG, "-loglevel", "error", "-y", "-i", src, "-vf", "scale='min(1920,iw)':-2", "-q:v", "2", dst], check=True)
+    subprocess.run([FFMPEG, "-loglevel", "error", "-y", "-i", src, "-vf", "scale='min(1920,iw)':-2", "-q:v", "4", dst], check=True)
 print(len(names), "figures;", "missing:", missing)

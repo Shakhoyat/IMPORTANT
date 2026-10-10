@@ -460,8 +460,8 @@ def insitu(name):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     if not os.path.exists(dst) or os.path.getmtime(dst) < os.path.getmtime(src):
         im = Image.open(src).convert("RGB")
-        im.thumbnail((1600, 1600), Image.LANCZOS)
-        im.save(dst, quality=90)
+        im.thumbnail((1280, 1280), Image.LANCZOS)
+        im.save(dst, quality=85)
     return "figures/img/insitu/%s.jpg" % slug(name)
 
 
@@ -656,13 +656,13 @@ for fam in FAMILIES:
             names = [tex(c.rstrip("*").lower() + ("s" if c.endswith("*") else "")) for c in j["cut"]]
             cut_note = (" Cutaway: %s are left out in both panels (%d parts) so what they cover shows." %
                         (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0], sum(j["removed"].values())))
-        hfig = 5.6 if large else 3.6
+        hfig = 5.1 if large else 3.6
         fig = ["\\needspace{%.1fcm}" % (hfig + (11.0 if large else 5.0)),
                "\\begin{center}",
                "\\fcolorbox{black!30}{white}{\\begin{minipage}{0.975\\linewidth}\\centering\\vspace{0.6mm}",
                pair(j, label_groups=large, hmax=hfig),
                ("\\\\[1mm]\\begin{tabular}{@{}c@{}}\\img{%s}{%.2fcm}\\\\[-0.3mm]{\\fontsize{7.5}{9}\\selectfont %s}\\end{tabular}"
-                % (insitu(nm), 0.62 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
+                % (insitu(nm), 0.52 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
                "\\\\[0.8mm]{\\fontsize{7}{8.5}\\selectfont %s}\\vspace{0.6mm}\\end{minipage}}" % strip,
                "\\captionof{figure}{%s.%s}\\label{fig:d-%s}" % (tex(nm), cut_note, slug(nm)),
                "\\end{center}\\vspace{-3mm}"]
@@ -708,7 +708,7 @@ def lineup_panel(jj, which, width_cm):
     return "\n".join(tk)
 
 
-out.append("\\newcommand{\\munitionlineupfig}{\\begin{figure}[H]\\centering"
+out.append("\\newcommand{\\munitionlineupfig}{\\begin{figure}[tbp]\\centering"
            "\\begin{subfigure}{\\linewidth}\\centering %s\\caption{All four at one scale.}\\end{subfigure}\\\\[1mm]"
            "\\begin{subfigure}{0.62\\linewidth}\\centering %s\\caption{The two small rounds enlarged (their own 10\\,cm bar).}\\end{subfigure}"
            "\\caption{The munitions built from parts, side by side at one scale, made of primitives (orthographic, lengths along the "

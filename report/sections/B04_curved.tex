@@ -15,14 +15,16 @@ approximation. (b--d) The mesh \code{createSphere(s,\,s/2)} builds, shaded in th
 true outline. The scene's 36 slices give 0.38\,\% of the radius with 1224 triangles.}
 \label{fig:tess}
 \end{figure}
-Smooth shading hides the facets inside the outline but not the polygonal silhouette (Figure~\ref{fig:shading}): only
-more triangles fix the edge.
 
-\textbf{Curved objects in the scene.} Barrels, masts and heads are spheres and cylinders; tyres and muzzle rings are
-tori; helmets, the radome and the bunker's earth berm are hemispheres; sandbags are capsules; the concertina wire is
-made of helices and the rotor blur discs are flat cylinders. The soldiers' walking paths and the patrol routes are
-curves too (centripetal Catmull--Rom splines, Section~\ref{sec:paths}). The CC0 trees carry their own detail levels:
-three simplified meshes and an octahedral impostor far away.
+\begin{figure}[htbp]
+\centering
+\img{figures/img/annot/curved_scene.jpg}{\linewidth}
+\caption{Curved primitives at the AA gun position. Every curved surface is a polygon mesh with the tessellation of
+Eq.~\eqref{eq:tess}; smooth shading hides the facets inside the outline, not on it.}
+\label{fig:curved-scene}
+\end{figure}
+Elsewhere: tyres and muzzle rings are tori, helmets and the bunker's berm hemispheres, rotor blur discs flat cylinders,
+and the walking and patrol paths are curves too (Catmull--Rom splines, Section~\ref{sec:paths}).
 
 \textbf{Limitation.} The primitives have no level of detail: all \nSphereInst{} sphere parts use \nSphereTri{}
 triangles each (about \sphereTriTotal{} million triangles), and a distant sphere costs the same as a close one. Choosing

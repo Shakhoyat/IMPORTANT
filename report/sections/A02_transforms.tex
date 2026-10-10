@@ -14,10 +14,8 @@ S=\mathrm{diag}(s_x,s_y,s_z,1)\nonumber
 \text{rotation about a pivot } \vect p:\quad M_{\text{pivot}} = T(\vect p)\,R\,T(-\vect p)
 \label{eq:pivot}
 \end{equation}
-Each part's geometry is defined in its own frame (Figure~\ref{fig:axes}); only the product of matrices up the
-hierarchy places it in the world. Order matters: $T R S \neq S R T$. Scaling after a rotation would shear a rotated box; translating before a rotation
-would swing the part around the parent's origin. The turret, gun barrel, rotor and door hinges use
-Eq.~\eqref{eq:pivot}: each sits in a group node whose origin is the pivot.
+Order matters: $TRS\neq SRT$ (Figure~\ref{fig:d-trs}). Turret, gun, rotors and door hinges use Eq.~\eqref{eq:pivot}:
+each sits in a group whose origin is the pivot. Figure~\ref{fig:trs-scene} shows the transforms at work in the base.
 
 \begin{lstlisting}[language=C++,caption={The local matrix of every scene node (\code{src/scene/Transform.h}).}]
 // Model matrix M = T * R * S with R = Ry * Rx * Rz: the primitive is scaled first,
@@ -33,7 +31,22 @@ Mat4 matrix() const { return translate(translation) * rotateEulerYXZ(rotationDeg
 
 \begin{figure}[htbp]
 \centering
-\raw{scene/soldier_axes}{0.72\linewidth}
+\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_quonset_hut}{\linewidth}\caption{One Quonset hut design, three
+placements: $T$ and $R_y$ ($125^\circ$, $112^\circ$, $99^\circ$) fan them along the camp's curve.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_guard_tower}{\linewidth}\caption{Four guard towers on the perimeter: the
+same parts, $R_y$ turns each to face into the base ($-150^\circ$, $140^\circ$, $25^\circ$, $-70^\circ$).}\end{subfigure}\\[1.2mm]
+\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_jersey_barrier}{\linewidth}\caption{Six jersey barriers along the gate
+road: a translation only, alternating $x=\pm3$\,m.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{The hall door: a rotation about its
+hinge, $T(\vect p)\,R_y(\alpha)\,T(-\vect p)$ (Eq.~\ref{eq:pivot}).}\end{subfigure}
+\caption{Modelling transformations in the scene: one design, many placements. Each copy differs only in its root's
+$T$ and $R$; the parts' own matrices are shared.}
+\label{fig:trs-scene}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\raw{scene/soldier_axes}{0.8\linewidth}
 \caption{Local versus world coordinates on a soldier's joints (\key{H}): each red/green/blue triad is one local
 frame, turned with its part.}
 \label{fig:axes}

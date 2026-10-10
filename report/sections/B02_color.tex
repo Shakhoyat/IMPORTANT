@@ -41,9 +41,22 @@ Across a triangle & affine in screen space: textures bend & perspective-correct 
 Lighting & Gouraud: highlight between vertices lost, Mach bands & Phong per fragment & Figs.~\ref{fig:shading}, \ref{fig:gp}\\
 Colour space & blending sRGB values: mid-tones too dark, e.g.\ 50\,\% red/green gives a muddy (0.5, 0.5, 0) & material colours converted to linear, lit and blended in linear HDR, encoded once at the end & Fig.~\ref{fig:wb-color}\\
 Sky over the day & linear mix of night and day presets: the night tint is swamped by the day value until very late & presets blended in log space (Eq.~\ref{eq:srgb}): equal steps are equal ratios, which the eye sees as even & Figs.~\ref{fig:hero}, \ref{fig:daycycle}\\
+Heat to false colour & one linear ramp black$\to$white hides small heat differences & 7 colour stops, linear between neighbours (ironbow, rainbow), or a power curve (white-hot) & Fig.~\ref{fig:palettes}\\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\plot{p_palettes}{\linewidth}\\[1.5mm]
+\begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_ironbow.jpg}{\linewidth}\caption{Ironbow.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_whitehot.jpg}{\linewidth}\caption{White-hot.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_rainbow.jpg}{\linewidth}\caption{Rainbow.}\end{subfigure}
+\caption{Colour interpolation in the thermal view: the heat of each pixel ($t\in[0,1]$) is looked up in a palette that
+interpolates linearly between colour stops (top, from \code{thermalPalette} in the shader, shown sRGB-encoded); (a--c)
+the same night frame through each palette (\key{T} cycles them).}
+\label{fig:palettes}
+\end{figure}
 
 \textbf{Limitation.} Log-space blending is undefined for a zero channel: every preset must stay strictly positive,
 and a preset with a near-zero channel makes the blend linger near black for most of the transition. The final image

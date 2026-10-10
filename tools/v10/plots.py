@@ -318,6 +318,39 @@ def plot_histogram(png):
     save(fig, "p_thermal_histogram")
 
 
+def plot_palettes():
+    # rendering/ShaderSources.cpp thermalPalette: 7 stops, mix() between neighbours (6 linear segments); white-hot t^0.9
+    iron = [(0.00, 0.00, 0.03), (0.12, 0.02, 0.33), (0.46, 0.03, 0.55), (0.80, 0.10, 0.34), (0.98, 0.42, 0.06),
+            (1.00, 0.78, 0.16), (1.00, 1.00, 0.88)]
+    rain = [(0.00, 0.00, 0.05), (0.05, 0.10, 0.60), (0.00, 0.70, 0.90), (0.10, 0.85, 0.20), (1.00, 0.95, 0.10),
+            (1.00, 0.20, 0.05), (1.0, 1.0, 1.0)]
+    t = np.linspace(0, 1, 600)
+
+    def stops(c):
+        c = np.array(c)
+        u = t * 6
+        k = np.minimum(u.astype(int), 5)
+        f = (u - k)[:, None]
+        return c[k] * (1 - f) + c[k + 1] * f
+    white = np.repeat(np.power(t, 0.9)[:, None], 3, axis=1)
+    fig, ax = plt.subplots(3, 1, figsize=(7.0, 1.35), sharex=True)
+    for a, (name, rgb, st) in zip(ax, [("ironbow", stops(iron), iron), ("white-hot", white, None), ("rainbow", stops(rain), rain)]):
+        enc = np.where(rgb <= 0.0031308, 12.92 * rgb, 1.055 * np.power(np.clip(rgb, 0, 1), 1 / 2.4) - 0.055)  # sRGB for display
+        a.imshow(enc[None, :, :], aspect="auto", extent=(0, 1, 0, 1))
+        if st:
+            for k in range(7):
+                a.axvline(k / 6, color="black", lw=0.6, ymin=0, ymax=0.25)
+        a.set_yticks([])
+        a.set_ylabel(name, rotation=0, ha="right", va="center", fontsize=8)
+        a.grid(False)
+        for sp in a.spines.values():
+            sp.set_visible(False)
+    ax[-1].set_xlabel("normalised heat $t$ (ticks: the 7 colour stops; between them $\\mathrm{mix}(c_k, c_{k+1}, 6t-k)$)")
+    ax[-1].set_xticks(np.linspace(0, 1, 7))
+    ax[-1].set_xticklabels(["0", "1/6", "2/6", "3/6", "4/6", "5/6", "1"])
+    save(fig, "p_palettes")
+
+
 def plot_bench(csv_path):
     rows = list(csv.DictReader(open(csv_path)))
     if not rows:
@@ -383,6 +416,7 @@ if __name__ == "__main__":
     plot_gouraud_phong()
     plot_gaussian()
     plot_tessellation()
+    plot_palettes()
     hist_src = os.path.join(ROOT, "report", "figures", "raw", "lab", "cv_u1_a_raw_grey.png")
     if os.path.exists(hist_src):
         plot_histogram(hist_src)
