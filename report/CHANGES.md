@@ -610,3 +610,32 @@ Teaching drawings of each section's maths; every constant drawn from the code is
   figure (gate shut, gate open), Section 16 light table (two searchlights: UAV 1 shadowed, UAV 2 unshadowed), Section 19 (both
   searchlights have a shaft in the volumetric pass).
 - Checks: `check_counts.py` OK (5 489 everywhere); lint 0; 0 overfull boxes; 0 undefined references; 179 pages.
+
+## Final night
+
+- **Program.** Every shader uses hand-written vector functions (`src/rendering/ShaderMath.cpp`: `tsDot`, `tsLength`, `tsNormalize`,
+  `tsCross`, `tsReflect`, `tsRefract`, `tsMix`, `tsClamp`, `tsStep`, `tsSmoothstep`, `tsTranspose`; 905 calls in 13 files); the compile
+  step refuses a shader that calls a built-in vector function. Weapons on alert (launchers raised through the net apertures and sweeping,
+  helicopter at flight idle, tank and AA gun laid on the tracked intruder). A soldier gets into and out of the tank, AA gun, launchers
+  and helicopter with `E`. Guards at their posts fire on a tracked intruder within 26 m. Squad: a second intruder more than 14 m from
+  the target and within 10 m of a protected point takes the nearer UAV (two single strikes); a lone intruder gets the combined strike
+  (the lead waits up to 8 s for the wing). The motor-pool bay is open at the front so the tank can drive out. 396 tests pass.
+- **Film.** `report/video/thermalsense_final_1080p.mp4` (3:38, 1920×1080, 336 MB; 720p copy 49.5 MB; 960×540 slide copy 18 MB) from
+  `tools/report/gen_film3.py`; footage by `build/film3/final.sh` with the recorder's scripted takes (`TS_TOUR` steps use, face, drive,
+  turn, aim, fire, sight, cam, camfix, exit) and film views (`TS_FILM_VIEW` follow / uav1 / flir, `TS_FILM_EVENTS`).
+- **Report** (196 pages, export of the final build: 5,474 parts).
+  - Cover in the department's layout; "Submitted by / Submitted to" in a table with year, semester and lab group; no date.
+  - New Section 16.1 "Vector maths written by hand" (equations, source excerpt, table of calls); shader excerpts and Table 16.1 use
+    the `ts*` names.
+  - Section 7: a coordinate sheet per design (every component's centre and extent in the design frame, 2,804 rows, checked against
+    the chain of local matrices); family headings start a page; the space test before cards is removed (it left pages half empty).
+  - Every heading and caption that names an object by a short form carries the full form in brackets (`abbrev.py` title pass).
+  - Flow diagrams regenerated as one-row chains of at most six boxes and one decision (`tools/report/gen_flows.py`).
+  - Section 29.1 "The motion over the whole base": six moments of one night over the whole camp and one rover's time series
+    (`tools/report/gen_motion.py`) replace the two debug captures of the old Figure 29.4.
+  - Section 27: single strike, combined strike, guards, alert posture, getting into the vehicles; Algorithm 6 and its flow updated.
+- **Critique pass.** Found and fixed: two pages holding only a heading and twelve half-empty pages in Section 7 (now four short pages,
+  all float pages or section ends); a code table that still showed built-in calls; site labels covering the tracks in the motion
+  panels; the motion subsection split by floats. Checks: 0 overfull boxes, 0 undefined references, `check_counts.py` OK.
+- **Slides.** `report/ThermalSense_Presentation.pptx`: 25 slides (new: vehicles, single / combined strike and guards, hand-written
+  vector maths), the final film embedded.

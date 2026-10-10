@@ -55,9 +55,12 @@ def steps():
         j = int(np.argmin([abs(g - t) for g in grid]))
         grid[j] = t
     grid = sorted(grid)
-    fig, axs = plt.subplots(2, 3, figsize=(7.0, 5.0))
+    fig, axs = plt.subplots(2, 3, figsize=(7.0, 5.3))
     for ax, t in zip(axs.ravel(), grid):
         gm.base(ax, "t = %.0f s" % t, r=36)
+        for txt in list(ax.texts):   # site names only in the first panel; the bunker label would cover the tracks
+            if txt.get_text() != "10 m" and (ax is not axs.ravel()[0] or txt.get_text().startswith("command bunker")):
+                txt.remove()
         for o in R["objectives"]:
             ax.plot(o[0], o[2], marker="*", ms=7, mfc="#f2c230", mec="black", mew=0.5, zorder=7)
         for i, tr in enumerate(R["rover_tracks"]):
@@ -76,7 +79,8 @@ def steps():
             ax.plot(s[:, 1], s[:, 2], color=UAV[k], lw=0.9, ls=(0, (1, 1.2)), zorder=5)
             ax.add_patch(plt.Circle((s[-1, 1], s[-1, 2]), FOOT, fc="#f7e08a", ec="#b8860b", lw=0.6, alpha=0.45, zorder=3))
             ax.plot(s[-1, 1], s[-1, 2], marker="^", ms=5, mfc=UAV[k], mec="white", mew=0.6, zorder=9)
-            ax.text(s[-1, 1] + 1.6, s[-1, 2] - 1.6, "UAV-%d" % (k + 1), fontsize=5.5, color="black", zorder=9)
+            ax.text(s[-1, 1] + 1.8, s[-1, 2] - 1.8, "UAV-%d" % (k + 1), fontsize=6.5, color="black", zorder=9,
+                    bbox=dict(fc="white", ec="none", alpha=0.7, pad=0.4))
         for kt, kx, kz, ki in K:
             if kt <= t:
                 ax.plot(kx, kz, marker="x", ms=6, mew=1.6, color="black", zorder=9)

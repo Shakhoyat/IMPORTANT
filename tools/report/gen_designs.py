@@ -793,7 +793,10 @@ for fam in FAMILIES:
             cut_note = (" Cutaway: %s are left out in both panels (%d parts) so what they cover shows." %
                         (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0], sum(j["removed"].values())))
         hfig = 5.1 if large else 3.6
-        fig = [("\\FloatBarrier" if large else "") + "\\needspace{%.1fcm}" % (hfig + (11.0 if large else 5.0)),
+        first = not cards   # the family's first card follows its heading on a fresh page: no space test (it would break again)
+        # no space test before a card: its picture block is one box, so a card starts where the box fits (the test read a
+        # stale page total after the coordinate sheets and sent cards to a new page with most of the old one empty)
+        fig = ["" if first else ("\\FloatBarrier" if large else "") + "\\par\\addvspace{2mm}",
                "\\begin{center}",
                "\\fcolorbox{black!30}{white}{\\begin{minipage}{0.975\\linewidth}\\centering\\vspace{0.6mm}",
                pair(j, label_groups=large, hmax=hfig),

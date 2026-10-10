@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REP = os.path.join(ROOT, "report")
 OUT = os.path.join(REP, "ThermalSense_Presentation.pptx")
-VIDEO = os.path.join(REP, "demo_v7.mp4")          # earlier decks embedded report/demo_v5.mp4
+VIDEO = os.path.join(REP, "video", "thermalsense_final_slide.mp4")   # the final film at 960x540, 18 MB (tools/report/gen_film3.py)
 PREVIEW = os.path.join(ROOT, "build", "slides_preview.png")
 PREVIEW_DIR = os.path.join(ROOT, "build", "slides_preview")
 TMP = tempfile.mkdtemp(prefix="ts_slides_")
@@ -32,7 +32,7 @@ W, H = 13.333, 7.5
 FONT, MONO = "Calibri", "Consolas"
 
 # Picture search order (first match wins; .png before .jpg). Report captures first, then the agents' review shots.
-SOURCES = [("report/figures_v7", "v7"), ("report/figures_v6", "v6"), ("report/figures_v5", "v5"),
+SOURCES = [("report/figures_final", "final film frame"), ("report/figures_v7", "v7"), ("report/figures_v6", "v6"), ("report/figures_v5", "v5"),
            ("docs/v7_notes/wpi_shots", "WP-I review shot"), ("docs/v7_notes/wph_shots/day", "WP-H review shot"),
            ("docs/v5_notes/h5_shots", "v5 HUD preview shot"), ("report/figures_lab", "lab render")]
 
@@ -66,8 +66,12 @@ FIG = {
     "fx_reflect": ["explorer_reflection_ssr_vs_rt", "explorer_stage_10_reflect"],
     "fx_diff": ["explorer_reflection_rt_difference", "explorer_reflection_mask"],
     # results, video
+    # final night: vehicles, strikes, guards (frames of the final film)
+    "veh_a": ["final_tank_walk"], "veh_b": ["final_tank_drive"], "veh_c": ["final_tank_sight"], "veh_d": ["final_tank_exit"],
+    "str_a": ["final_single"], "str_b": ["final_combined"], "str_c": ["final_guards"], "str_d": ["final_flir"],
+    "mm_a": ["final_alert_sam"],
     "results": ["game_free_fly", "game_missile_impact", "kill_banner"],
-    "video": ["game_tank_commander", "game_soldier_fire", "raytrace_mode_path", "combined_strike", "game_overview"],
+    "video": ["final_combined", "game_tank_commander", "game_soldier_fire", "raytrace_mode_path", "combined_strike", "game_overview"],
 }
 
 # GPU timings from docs/v7_notes/wp-h.md "Performance" (RTX 4070 via Mesa d3d12, 1280x720 output, EPIC, glFinish).
@@ -213,8 +217,8 @@ def build():
 
     # 1 Title
     sl = Slide(prs, "Good morning. This is ThermalSense, my computer graphics lab project: autonomous drones defending a hidden army base, now a playable game. "
-        "Everything you will see, the camp, the soldiers, the vehicles and the rover intruders, is built only from cube, sphere and cylinder primitives. "
-        "No model files, no textures. Version seven adds a day and night cycle, first person play, real ray tracing and a frame explorer. I end with the demonstration video.")
+        "Everything you will see, the camp, the soldiers, the vehicles and the rover intruders, is assembled from sixteen primitive shapes that the program generates itself. "
+        "Every lighting equation is written by hand. Version seven adds a day and night cycle, first person play, real ray tracing and a frame explorer. I end with the demonstration video.")
     sl.image(find_img(1, "title"), 0, 0, W, H)
     sl.rect(0, 3.7, W, 3.8, BG)
     sl.rect(0.6, 3.95, 1.4, 0.07, AMBER)
@@ -231,7 +235,8 @@ def build():
                                       (12, "Vision under noise")]),
                ("v7: play, rays, frames", [(13, "Game camera, possession"), (14, "Whitted, path, light tracing"), (15, "BVH and SAH"),
                                            (16, "Ray-tree debugger"), (17, "Ray tracing timings"), (18, "Frame Explorer: 16 stages"),
-                                           (19, "Colour interpolation"), (20, "Reflection: SSR vs RT"), (21, "Results"), (22, "Demo video")])]
+                                           (19, "Colour interpolation"), (20, "Reflection: SSR vs RT"), (21, "Vehicles: in, fire, out"),
+                                           (22, "Single and combined strike"), (23, "Hand-written vector maths"), (24, "Results"), (25, "Demo video")])]
     sl = Slide(prs, "Here is the outline in three parts. First the foundations from versions one to five: the goal, how every object is assembled from primitives, "
         "the camp and bunker, the controllable vehicles, the rendering pipeline and the autonomous game loop. "
         "Second, version six makes the base live: a day and night cycle, eight soldiers, random rover routes and vision under sensor noise. "
@@ -242,10 +247,12 @@ def build():
         x = colx[c]
         sl.rect(x, 1.6, 3.95, 0.06, AMBER)
         sl.text(x, 1.72, 3.95, 0.45, head, 20, AMBER, True)
+        gap = min(0.49, 4.9 / len(items))
+        fs = 17 if gap > 0.45 else 14
         for i, (num, it) in enumerate(items):
-            y = 2.3 + i * 0.49
-            sl.text(x, y, 0.6, 0.45, f"{num}", 17, AMBER if c else GREY, True)
-            sl.text(x + 0.6, y, 3.35, 0.45, it, 17, WHITE)
+            y = 2.3 + i * gap
+            sl.text(x, y, 0.6, gap - 0.04, f"{num}", fs, AMBER if c else GREY, True)
+            sl.text(x + 0.6, y, 3.35, gap - 0.04, it, fs, WHITE)
     slides.append(sl)
 
     # 3 Goal and history
@@ -619,7 +626,54 @@ def build():
     formula(sl, 0.5, 6.4, 12.33, 0.85, ["R = D − 2 (D·N) N          F = F₀ + (1 − F₀)(1 − cos θ)⁵   (Schlick)"], 15)
     slides.append(sl)
 
-    # 21 Results
+    # 21 Vehicles: get in, fire, get out (final night)
+    sl = Slide(prs, "The vehicles are part of the same world as the soldier. Here the player walks a soldier up to the tank and presses E. "
+        "The soldier is no longer drawn, the tank takes the input, drives out of its bay and pivots on its tracks, and the turret turns on its own. "
+        "C switches to the gunner's sight for two rounds, then E puts the soldier back on his feet beside the hull. "
+        "The anti-aircraft gun, both launchers and the helicopter work the same way.")
+    sl.title("Get in, drive, fire, get out", k("Final  |  controllable vehicles"))
+    for i, (slot, cap) in enumerate([("veh_a", "1  Walk up, [E] to get in"), ("veh_b", "2  Drive out, pivot, traverse"),
+                                     ("veh_c", "3  Gunner's sight: fire"), ("veh_d", "4  [E] again: back on foot")]):
+        sl.image(find_img(21, slot), 0.5 + (i % 2) * 4.27, 1.6 + (i // 2) * 2.5, 4.12, 2.32, cap)
+    bullets(sl, 9.25, 1.7, 3.6, ["One key for doors, vehicles and units", "Soldier hidden while aboard, duty paused",
+                                 "Exit spot: 8 directions on 3 rings tested against the solid boxes",
+                                 "Unmanned weapons on alert: launchers raised, rotor at idle, guns on the intruder"], 15, 0.92)
+    slides.append(sl)
+
+    # 22 Single strike, combined strike, guards (final night)
+    sl = Slide(prs, "The defence decides by rule how to strike. One intruder gets both drones: the lead waits for the wing's lock and both rounds are timed to arrive together. "
+        "A second intruder that is far from the first and close to a protected point cannot wait, so the nearer drone leaves the pair and each strikes its own target alone. "
+        "Guards at their posts open fire on any tracked intruder within range and a clear line. All of it starts from thermal pixels only.")
+    sl.title("Single strike, combined strike, guards", k("Final  |  autonomous defence"))
+    for i, (slot, cap) in enumerate([("str_d", "Thermal view: tracks on every hot target"), ("str_a", "Single strike: the other UAV is busy"),
+                                     ("str_c", "Guards fire from their posts (tracers)"), ("str_b", "Combined strike: both rounds together")]):
+        sl.image(find_img(22, slot), 0.5 + (i % 2) * 4.27, 1.6 + (i // 2) * 2.5, 4.12, 2.32, cap)
+    bullets(sl, 9.25, 1.7, 3.6, ["Split: second track > 14 m away and < 10 m from an asset", "Lead waits up to 8 s for a free wing",
+                                 "Time on target: the farther UAV launches first", "Guards: range 26 m, 0.6 s bursts, same clear-line test as the rounds"], 15, 0.92)
+    slides.append(sl)
+
+    # 23 Hand-written vector maths (final night)
+    sl = Slide(prs, "No shader of the program calls a built-in vector function. The dot product, normalise, cross, reflect, refract, clamp, mix, step and smooth step "
+        "are written out from their definitions in one file and placed in front of every shader, nine hundred and five calls in thirteen files. "
+        "The compile step refuses a shader that still calls a built-in one. Blinn-Phong and the microfacet model are built from these functions, "
+        "and the C++ side has its own vectors and matrices as well.")
+    sl.title("Lighting maths written by hand", k("Final  |  no built-in vector functions"))
+    formula(sl, 0.5, 1.6, 7.6, 3.1, ["a·b = Σ aᵢ bᵢ          |a| = √(a·a)          â = a / |a|",
+                                     "a×b = (a_y b_z − a_z b_y,  a_z b_x − a_x b_z,  a_x b_y − a_y b_x)",
+                                     "reflect:  r = d − 2 (n·d) n",
+                                     "refract:  k = 1 − η² (1 − (n·d)²),   t = η d − (η (n·d) + √k) n",
+                                     "mix(a, b, t) = (1 − t) a + t b        clamp(x, a, b) = min(max(x, a), b)",
+                                     "smoothstep:  t = clamp((x − e₀)/(e₁ − e₀), 0, 1),   t² (3 − 2t)"], 12, "src/rendering/ShaderMath.cpp  (tsDot, tsNormalize, tsReflect, ...)")
+    formula(sl, 0.5, 4.9, 7.6, 2.3, ["I = k_a I_a + Σ f_att I_l [ k_d max(0, N·L) + k_s max(0, N·H)ⁿ ]",
+                                     "float nl = max(tsDot(N, L), 0.0);",
+                                     "vec3 H = tsNormalize(L + V);",
+                                     "spec = radiance * uSpecular * pow(max(tsDot(N, H), 0.0), uShininess);"], 12, "Blinn-Phong, as compiled")
+    for i, (big, small) in enumerate([("905", "calls of the hand-written functions"), ("0", "built-in vector calls (compile refuses them)"), ("13", "shader source files")]):
+        stat(sl, 8.4, 1.6 + i * 1.45, 4.43, big, small)
+    sl.image(find_img(23, "mm_a"), 8.4, 5.85, 4.43, 1.35, "Lit by these equations only")
+    slides.append(sl)
+
+    # 24 Results
     sl = Slide(prs, f"Results. All {n('nTests')} automated tests pass, covering primitives, vision, tracking, soldiers, the day cycle, the game camera, ray tracing and the explorer. "
         "Six hundred second traces are deterministic per seed, no rover spawns by day, and every kill comes from a round aimed at a vision track. "
         "The night preset still matches the version five figures. The Windows executable and the WSL window both build without administrator rights.")
@@ -632,15 +686,15 @@ def build():
                                  "Night regression matches v5 (static shots MAE 0.4-5.8 / 255)",
                                  "Raster 11.7 ms; ray traced: Whitted 25.7 ms, path 21.9 ms on the RTX 4070",
                                  "Workbook verify PASS; Windows exe + WSLg build, no sudo"], 16, 0.68)
-    sl.image(find_img(21, "results"), 6.73, 3.05, 6.1, 4.2, "Free camera over a combined strike (+150)")
+    sl.image(find_img(24, "results"), 6.73, 3.05, 6.1, 4.2, "Free camera over a combined strike (+150)")
     slides.append(sl)
 
-    # 22 Video
-    sl = Slide(prs, "And now the demonstration, recorded in the program itself with its procedural sound. The version seven director cut runs about two and a half minutes: "
-        "the night attack and combined strike, dawn, the soldiers by day, jumps into a soldier, a rover, a drone and a missile, the five render modes with the ray debugger, "
-        "and the Frame Explorer stepping through a frame. Thank you; questions are welcome afterwards.")
-    sl.title("Demo video", k("Demonstration, 2.5 minutes"))
-    poster = find_img(22, "video")
+    # 25 Video
+    sl = Slide(prs, "And now the demonstration, recorded in the program itself with its own sound, three minutes and thirty-eight seconds. Part one shows the graphics: the base, the render modes, "
+        "a soldier opening the doors, the weapons on alert, and the same soldier getting into the tank, the anti-aircraft gun and the launcher. "
+        "Part two shows the defence: the dusk launch, the thermal tracks, a single strike, the guards, the combined strike and dawn. Thank you; questions are welcome.")
+    sl.title("Demo video", k("Demonstration, 3 min 38 s"))
+    poster = find_img(25, "video")
     vx, vy, vw, vh = 1.67, 1.5, 10.0, 5.625
     pj = jpeg(poster) if poster else None
     if os.path.exists(VIDEO):

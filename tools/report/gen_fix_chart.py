@@ -3,7 +3,12 @@ indexed vs non-indexed frame time. Run: ~/.local/bin/uv run -q --with matplotlib
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "Nimbus Roman", "DejaVu Serif"], "mathtext.fontset": "stix",
+import os
+import glob as _glob
+import matplotlib.font_manager as _fm
+for _f in _glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "report", "fonts", "*.otf")):
+    _fm.fontManager.addfont(_f)   # the report's Times face (TeX Gyre Termes X), so plot text matches the body text
+plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre TermesX", "Times New Roman", "Nimbus Roman", "DejaVu Serif"], "mathtext.fontset": "stix",
                      "font.size": 15, "axes.spines.top": False, "axes.spines.right": False})
 # numbers from the report: Section 29 (hard problems) and the benchmark (report/data/bench.csv: EPIC day / non-indexed)
 panels = [("Grass: triangles (millions)", "one cube\nper blade", 7.7, "instanced\nblades + LOD", 1.82, "M"),

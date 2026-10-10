@@ -17,8 +17,12 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "report", "figures", "plots")
 os.makedirs(OUT, exist_ok=True)
 
+import glob as _glob
+import matplotlib.font_manager as _fm
+for _f in _glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "report", "fonts", "*.otf")):
+    _fm.fontManager.addfont(_f)   # the report's Times face (TeX Gyre Termes X), so plot text matches the body text
 plt.rcParams.update({
-    "font.family": "serif", "font.serif": ["Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
+    "font.family": "serif", "font.serif": ["TeX Gyre TermesX", "Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
     "mathtext.fontset": "stix", "font.size": 9, "axes.titlesize": 9, "axes.labelsize": 9, "legend.fontsize": 8,
     "xtick.labelsize": 8, "ytick.labelsize": 8, "axes.grid": True, "grid.alpha": 0.3, "lines.linewidth": 1.4,
     "figure.dpi": 150, "savefig.bbox": "tight", "figure.constrained_layout.use": True, "axes.spines.top": False, "axes.spines.right": False,

@@ -9,7 +9,7 @@ import sys
 
 import numpy as np
 
-SHEET_ROWS = 44   # rows per column of a sheet block (two columns side by side)
+SHEET_ROWS = 18   # rows per column of a sheet block (two columns side by side); short blocks let pages break between them
 
 HEAD = (r"\rowcolor{sheethead} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{E} & \textbf{F} & \textbf{G}\\\hline" "\n"
         r"\cellcolor{sheethead}\textbf{1} & \textbf{Component} & $x$ & $y$ & $z$ & $\Delta x$ & $\Delta y$ & $\Delta z$\\\hline")
@@ -67,7 +67,7 @@ def coord_sheet(design, own, root_id, by_id, mat, tex, shown_name):
         if right:
             blk += r"\hfill " + column(right, b + 2 + len(left), tex)
         blk += r"}\par\vspace{1.5mm}"
-        if b == 0:   # the title stays with the first block
+        if b == 0:   # the title is set in one box with the first (short) block, so it cannot be left behind on a page
             blk = r"\noindent\begin{minipage}{\linewidth}" + o.pop() + "\n" + blk + r"\end{minipage}\par\vspace{1.5mm}"
         o.append(blk)
     return "\n".join(o), len(rows)

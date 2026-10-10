@@ -48,9 +48,8 @@ SEG = [
     # ---- part 1: free exploration by day
     ("clip", f2("overview_dusk"), 0.6, 8.0, "", "ThermalSense", {"big": True, "sub": "A graphics pipeline, end to end, in a military outpost", "audio": "amb"}),
     ("clip", f2("gate_sentry"), 0.6, 7.0, P1, "Sentries hold the gate; the garrison follows its duty roster", {}),
-    # the follow camera drops onto the ramp at 10.6-11.4 s while the soldier ducks under the lintel: cut there
-    ("clip", f3("tour_bunker"), 4.0, 6.6, P1, "A soldier, free to explore: down the trench to the blast gate", {}),
-    ("clip", f3("tour_bunker"), 11.5, 12.0, P1, "Through the hinged blast gate, along the tunnel into the command room", {}),
+    # recorded after the far-ground fix (a ground sheet lay across the trench and hid the ramp and the gate)
+    ("clip", f3("tour_bunker_fix"), 4.0, 19.5, P1, "A soldier, free to explore: down the open trench, through the blast gate, into the command room", {}),
     ("clip", f2("tour_rooms"), 0.6, 16.0, P1, "The bunk room, past the off-duty crew", {}),
     ("clip", f2("tour_hall"), 1.6, 23.0, P1, "The barracks hall: off-duty soldiers rest and train", {}),
     ("clip", f2("hall_night"), 0.6, 6.0, P1, "The same hall at night, lit only by its tube lights", {}),

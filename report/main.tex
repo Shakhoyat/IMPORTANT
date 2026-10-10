@@ -21,6 +21,20 @@
 \usepackage{enumitem}
 \usepackage{listings}
 \usepackage{fancyhdr}
+\usepackage[titles]{tocloft}
+% Contents: dotted leaders on every level, parts in small capitals, sections not bold-heavy
+\renewcommand{\cfttoctitlefont}{\Large\bfseries}
+\renewcommand{\cftpartfont}{\normalsize\bfseries}
+\renewcommand{\cftpartpagefont}{\normalsize\bfseries}
+\renewcommand{\cftsecfont}{\normalsize}
+\renewcommand{\cftsecpagefont}{\normalsize}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftbeforepartskip}{9pt}
+\renewcommand{\cftbeforesecskip}{2.2pt}
+\renewcommand{\cftbeforesubsecskip}{0.6pt}
+\setlength{\cftsecnumwidth}{2.2em}
+\setlength{\cftsubsecindent}{2.2em}
+\setlength{\cftsubsecnumwidth}{2.8em}
 \setlist{nosep,leftmargin=1.2em}
 \setlength{\parskip}{3pt}
 \setlength{\parindent}{0pt}
@@ -52,6 +66,7 @@
 \newcommand{\wb}[2]{\img{figures/workbook/#1.png}{#2}}
 % v10 M1: workbook blocks typeset from the recalculated workbook (tools/v10/sheet_to_tex.py); yellow = input from the code
 \definecolor{wbin}{RGB}{255,242,204}
+\definecolor{covertitle}{RGB}{28,62,58}   % cover: title and table headings
 \definecolor{sheethead}{RGB}{226,231,238}   % coordinate sheets (Section 7): column letters and row numbers
 \newcommand{\wbblock}[2]{{\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}\input{sections/wb/#1_#2}}}
 \newcommand{\fullsheet}[1]{(full sheet: \code{\detokenize{#1}} in \code{report/workbooks/cg\_workbook.xlsx})}
@@ -101,8 +116,8 @@
 \input{sections/04_architecture}
 \input{sections/05_controls}
 
-\part*{Part A. Class concepts along the graphics pipeline}
-\addcontentsline{toc}{part}{Part A. Class concepts along the graphics pipeline}
+\part*{Part I\\[2mm] The Graphics Pipeline}
+\addcontentsline{toc}{part}{Part I\quad The Graphics Pipeline}
 \input{sections/A01_primitives}
 \input{sections/B01_decomposition}
 \input{sections/A02_transforms}
@@ -119,9 +134,9 @@
 \input{sections/A12b_post}
 \input{sections/A13_raytracing}
 
-\part*{Part B. Advanced work}
-\addcontentsline{toc}{part}{Part B. Advanced work}
-\noindent Part B goes beyond the class material, but every topic still sits on one stage of the same pipeline.
+\part*{Part II\\[2mm] Advanced Work}
+\addcontentsline{toc}{part}{Part II\quad Advanced Work}
+\noindent Part II goes beyond the class material, but every topic still sits on one stage of the same pipeline.
 Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:partb-glance} relates each one to the class method and its measured result.
 \begin{figure}[htbp]
 \centering
@@ -139,7 +154,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
    {\node[sb] (n\k\r) at (1.7*\k,-0.15-0.72*\r) {\S\t};}
  \foreach \k in {1,2,3,6,7,8,9,10} \draw[up] (n\k1.north) -- (1.7*\k,-0.4);
 \end{tikzpicture}
-\caption{Part B on the pipeline: each box is a Part B section (number and topic) under the stage it extends.}
+\caption{Part II on the pipeline: each box is a Part II section (number and topic) under the stage it extends.}
 \label{fig:partb-map}
 \end{figure}
 \begin{figure}[p]
@@ -159,7 +174,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
 \includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/plots/p_fixes.pdf} & \textbf{\ref{sec:hard} Hard problems} & the textbook method & instancing, separable kernels, indexed meshes, biases & $3.5$--$4.5\times$ less\\[1.5mm]
 \bottomrule
 \end{tabular}}
-\caption{Part B at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result.}
+\caption{Part II at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result.}
 \label{fig:partb-glance}
 \end{figure}
 \input{sections/B02_color}
@@ -173,14 +188,15 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
 \input{sections/B09_paths}
 \input{sections/B10_hard}
 
-\part*{Back matter}
-\addcontentsline{toc}{part}{Back matter}
+\part*{Part III\\[2mm] Evaluation and Conclusion}
+\addcontentsline{toc}{part}{Part III\quad Evaluation and Conclusion}
 \input{sections/C01_performance}
 \input{sections/C02_limits}
 \input{sections/C03_conclusion}
 
 \nocite{*}
 \bibliographystyle{ieeetr}
+\phantomsection\addcontentsline{toc}{section}{References}
 {\small\bibliography{refs}}
 
 \end{document}

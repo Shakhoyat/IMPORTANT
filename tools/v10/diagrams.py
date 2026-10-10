@@ -15,8 +15,12 @@ from matplotlib.patches import Arc, FancyArrowPatch, Polygon, Rectangle, Circle
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "report", "figures", "diagrams")
 os.makedirs(OUT, exist_ok=True)
+import glob as _glob
+import matplotlib.font_manager as _fm
+for _f in _glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "report", "fonts", "*.otf")):
+    _fm.fontManager.addfont(_f)   # the report's Times face (TeX Gyre Termes X), so plot text matches the body text
 plt.rcParams.update({
-    "font.family": "serif", "font.serif": ["Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
+    "font.family": "serif", "font.serif": ["TeX Gyre TermesX", "Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
     "mathtext.fontset": "stix", "font.size": 9, "axes.titlesize": 9, "legend.fontsize": 8,
     "figure.dpi": 150, "savefig.bbox": "tight", "figure.constrained_layout.use": True,
 })

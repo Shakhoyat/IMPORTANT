@@ -30,7 +30,11 @@ P = np.array(BLADE["positions"], dtype=float)
 TRI = np.array(BLADE["indices"]).reshape(-1, 3)
 KEY = np.array(primkey.rgb01("Grass blade"))
 WIDEN = 4.0
-plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
+import glob as _glob
+import matplotlib.font_manager as _fm
+for _f in _glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "report", "fonts", "*.otf")):
+    _fm.fontManager.addfont(_f)   # the report's Times face (TeX Gyre Termes X), so plot text matches the body text
+plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre TermesX", "Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
                      "mathtext.fontset": "stix", "font.size": 9})
 
 

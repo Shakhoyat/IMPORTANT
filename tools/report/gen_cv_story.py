@@ -19,7 +19,11 @@ from PIL import Image
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 LAB = os.path.join(ROOT, "report", "figures", "raw", "lab")
 OUT = os.path.join(ROOT, "report", "figures", "plots", "p_cv_story.pdf")
-plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
+import glob as _glob
+import matplotlib.font_manager as _fm
+for _f in _glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "report", "fonts", "*.otf")):
+    _fm.fontManager.addfont(_f)   # the report's Times face (TeX Gyre Termes X), so plot text matches the body text
+plt.rcParams.update({"font.family": "serif", "font.serif": ["TeX Gyre TermesX", "Times New Roman", "Times", "Nimbus Roman", "DejaVu Serif"],
                      "mathtext.fontset": "stix", "font.size": 8.5})
 
 F = json.load(open(os.path.join(LAB, "cv_frame.json")))

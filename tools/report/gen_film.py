@@ -30,7 +30,7 @@ TMP = tempfile.mkdtemp(prefix="film_")
 #   kind: clip (video file, own audio) | still (image, Ken Burns) | flip (images in turn) | title (card)
 SEG = [
     ("title", os.path.join(IMG, "showcase", "sc_overview_dusk.jpg"), 0, 4.6, "", "ThermalSense", "A graphics pipeline, end to end, in a military outpost"),
-    ("still", os.path.join(IMG, "primcards", "camp_prims.jpg"), 0, 2.6, "1  PRIMITIVES", "16 primitive generators build all 5,489 parts", {}),
+    ("still", os.path.join(IMG, "primcards", "camp_prims.jpg"), 0, 2.6, "1  PRIMITIVES", "16 primitive generators build all 5,492 parts", {}),
     ("flip", [os.path.join(IMG, "shapes", "autonomous_uav_stage%d.jpg" % p) for p in (12, 35, 65, 100)], 0, 2.6, "2  MODELLING",
      "Scene graph: every part placed by M = T R S, a UAV built up in hierarchy order", {}),
     ("flip", [os.path.join(IMG, "scene", "v10_proj_persp.jpg"), os.path.join(IMG, "scene", "v10_proj_iso.jpg")], 0, 3.6, "3  VIEWING AND PROJECTION",
@@ -43,7 +43,7 @@ SEG = [
     ("clip", os.path.join(FILM, "gate_sentry.mp4"), 0.8, 4.2, "8  SOLDIERS ON DUTY", "Sentries hold the gate; the garrison follows its duty roster", {}),
     ("clip", os.path.join(FILM, "tower_post.mp4"), 1.5, 2.6, "8  SOLDIERS ON DUTY", "A guard tower post, 5.4 m up", {}),
     ("clip", os.path.join(FILM, "hall_day.mp4"), 1.0, 4.4, "9  INSIDE THE BUILDINGS", "Barracks hall: off-duty soldiers rest and train", {}),
-    ("clip", os.path.join(ROOT, "build", "film3", "tour_bunker.mp4"), 11.5, 5.6, "9  INSIDE THE BUILDINGS",
+    ("clip", os.path.join(ROOT, "build", "film3", "tour_bunker_fix.mp4"), 8.2, 5.6, "9  INSIDE THE BUILDINGS",
      "Through the hinged blast gate, down the tunnel to the command room", {}),
     ("clip", os.path.join(FILM, "hall_night.mp4"), 1.5, 3.2, "9  INSIDE THE BUILDINGS", "The hall at night: lit by its own tube lights", {}),
     ("clip", SC, 78.6, 1.6, "10  RAY TRACING", "Raster", {}),

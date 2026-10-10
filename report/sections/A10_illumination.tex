@@ -100,10 +100,10 @@ under the moon and one warm point lamp.}
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{3.6cm}X@{}}
 \toprule
 Term & Equation & Code (exact line)\\\midrule
-Lambert diffuse & $\max(0,\vect N\cdot\vect L)$ & \code{float nl = max(dot(N, L), 0.0); diff = radiance * nl;}\\
-Blinn--Phong specular & Eq.~\eqref{eq:phongblinn} & \code{spec = radiance * uSpecular * pow(max(dot(N, H), 0.0), uShininess);}\\
+Lambert diffuse & $\max(0,\vect N\cdot\vect L)$ & \code{float nl = max(tsDot(N, L), 0.0); diff = radiance * nl;}\\
+Blinn--Phong specular & Eq.~\eqref{eq:phongblinn} & \code{spec = radiance * uSpecular * pow(max(tsDot(N, H), 0.0), uShininess);}\\
 Point / spot attenuation & Eq.~\eqref{eq:att} & \code{rad = uBeaconColor / (1.0 + uBeaconAtt.x * dist + uBeaconAtt.y * dist * dist);}\\
-Spot cone & Eq.~\eqref{eq:att} & \code{cone = clamp((dot(-L, uSpotDir) - uSpotCos.y) / (uSpotCos.x - uSpotCos.y), 0, 1); rad *= cone * cone}\\
+Spot cone & Eq.~\eqref{eq:att} & \code{cone = tsClamp((tsDot(-L, uSpotDir) - uSpotCos.y) / (uSpotCos.x - uSpotCos.y), 0, 1); rad *= cone * cone}\\
 Lamp falloff & Eq.~\eqref{eq:lampatt} & \code{att = window * window / (1.0 + dist * dist);} (\code{practicalAttenuation})\\
 GGX, Smith, Schlick & Eq.~\eqref{eq:ggx} & \code{brdf()} when \code{uPbr == 1}\\
 Sum of the terms & Eq.~\eqref{eq:illumcode} & \code{compose()}: \code{albedo * diffuse + specular + albedo * uEmissive}\\
