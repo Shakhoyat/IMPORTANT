@@ -9,6 +9,32 @@ fragments behind it, in any drawing order.
 \text{write}\ (c,z)\ \text{iff}\ z<Z[x,y]
 \label{eq:hsr}
 \end{equation}
+\begin{gather}
+A=\tfrac12\sum_{k=0}^{2}\big(x_ky_{k+1}-x_{k+1}y_k\big)\quad(\text{screen, } y \text{ up}),\qquad A>0\Rightarrow\text{front face (counter-clockwise)}\label{eq:hsr2}\\
+z_w(\vect x)=\sum_k\lambda_k\,z_{w,k}\qquad\text{(affine in screen space)}\nonumber
+\end{gather}
+\begin{itemize}
+\item The screen-area sign of Eq.~\eqref{eq:hsr2} is the GPU's back-face test (\code{glCullFace(GL\_BACK)}, counter-clockwise
+front faces); the Frame Explorer computes it itself (\code{ExplorerMath.h: signedArea2}).
+\item Window depth $z_w$ is an affine function of screen position (it is $1/w$ that varies linearly), so depth needs no
+perspective correction, unlike colours and normals (Section~\ref{sec:raster}).
+\item Depth test: \code{GL\_LESS} for the scene (strictly nearer wins), \code{GL\_LEQUAL} for hidden-line edges drawn over
+their own offset surfaces; the Z-buffer is cleared to 1 (the far plane) every frame.
+\end{itemize}
+\begin{table}[htbp]
+\caption{Hidden-surface methods: where each one runs in ThermalSense.}\label{tab:hsrmethods}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXXl@{}}
+\toprule
+Method & Test & Cost & Used for\\\midrule
+Back-face culling & $A\le0$ (Eq.~\eqref{eq:hsr2}) & one sign per triangle & closed meshes (not terrain, foliage, grass)\\
+Z-buffer & $z<Z[x,y]$ & one compare per fragment, $W\times H$ depths (24 bit) & every opaque surface\\
+Painter's algorithm & sort back to front, draw in order & $O(n\log n)$ per frame & smoke and glow particles (Section~\ref{sec:explode})\\
+Frustum culling & sphere outside a plane (Eq.~\eqref{eq:cull}) & 6 dot products per part & whole parts, grass cells\\
+Ray casting & nearest hit along the ray & bounding volume hierarchy (BVH), $O(\log N)$ per ray & ray-traced modes, picking (Section~\ref{sec:rt})\\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_hsr.pdf}

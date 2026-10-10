@@ -2,13 +2,24 @@
 \label{sec:color}
 \here{9}
 Colour is interpolated in four places: across a triangle (barycentric), between shading models (Gouraud vs Phong),
-between colour spaces (standard RGB colour space (sRGB) vs linear), and over time (sky and fog presets over the day). Each has a naive version
+between colour spaces (sRGB vs linear), and over time (sky and fog presets over the day). Each has a naive version
 that fails visibly.
 \begin{equation}
 c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.055}\big)^{2.4} & \text{else}\end{cases},\qquad
 \operatorname{mix}_{\log}(a,b,t)=\exp\big((1-t)\ln a+t\ln b\big)
 \label{eq:srgb}
 \end{equation}
+\begin{gather}
+\operatorname{lerp}(\vect a,\vect b,t)=(1-t)\,\vect a+t\,\vect b,\qquad
+\text{palette: } \vect c(t)=\operatorname{lerp}\big(\vect c_k,\vect c_{k+1},\,6t-k\big),\quad k=\lfloor6t\rfloor\label{eq:palette}\\
+\text{white-hot: } c=t^{0.9},\qquad t\in[0,1]\nonumber
+\end{gather}
+\begin{itemize}
+\item Eq.~\eqref{eq:srgb} is the exact sRGB decoding; the shaders decode base colours with the power 2.2 and encode the
+final image with the exact piecewise curve (Eq.~\eqref{eq:gamma}, Figure~\ref{fig:tonecurve}b).
+\item The seven palette stops $\vect c_0..\vect c_6$ are constants of \code{thermalPalette} in \code{ShaderSources.cpp}, mirrored
+on the CPU in \code{ThermalPalette.h}; the barycentric mix of three vertex colours is the same $\operatorname{lerp}$ with three weights (Eq.~\eqref{eq:raster}).
+\end{itemize}
 
 \begin{figure}[htbp]
 \centering

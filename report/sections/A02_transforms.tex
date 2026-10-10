@@ -23,6 +23,67 @@ each sits in a group whose origin is the pivot. Figure~\ref{fig:trs-scene} shows
 Mat4 matrix() const { return translate(translation) * rotateEulerYXZ(rotationDeg) * ts::scale(scale); }
 \end{lstlisting}
 
+\textbf{All the matrices, as the code builds them.} The general forms of $T$, $R_x$, $R_y$, $R_z$ and $S$ are
+Eqs.~\eqref{eq:basicTS} and \eqref{eq:basicmats} (Section~\ref{sec:decomp-mats}). Homogeneous coordinates let one $4\times4$ product hold both the linear part and the
+translation:
+\begin{gather}
+\vect p=(x,y,z,1)^\top\ \text{(point: moved by } T),\qquad \vect d=(x,y,z,0)^\top\ \text{(direction: } T \text{ has no effect)}\nonumber\\
+R=R_y(\psi)\,R_x(\theta)\,R_z(\varphi)\label{eq:homog}\\
+N=\big(M_{3\times3}^{-1}\big)^{\!\top},\qquad \vect n_{\text{world}}=\frac{N\,\vect n}{\lVert N\,\vect n\rVert}\qquad\text{(normal matrix)}\label{eq:normalmat}
+\end{gather}
+\begin{itemize}
+\item $M$ maps a tangent $\vect t$ to $M\vect t$; a normal must stay perpendicular, $(N\vect n)\cdot(M\vect t)=\vect n^\top N^\top M\vect t=0$
+for every $\vect t$, so $N^\top M=I$ and $N=(M^{-1})^\top$. Under a non-uniform $S$ the plain $M\vect n$ tilts the normal
+(Table~\ref{tab:normalmat}).
+\item The renderer computes $N$ once per part on the CPU (\code{Math3D.cpp: normalMatrix}, a cofactor inverse) and sends it as
+\code{uNormalMat}; the shaders only multiply.
+\end{itemize}
+\begin{table}[htbp]
+\caption{Why normals need the inverse transpose: a face of a unit primitive at $45^\circ$ (normal $(1,1,0)/\sqrt2$), stretched
+by $S=\mathrm{diag}(4,1,1)$ like a wall panel.}\label{tab:normalmat}
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Method & Normal after the transform & Angle to the true normal\\\midrule
+true normal of the stretched face $x/4+y=c$ & $(0.243,\,0.970,\,0)$ & $0^\circ$\\
+$M\vect n$, normalised (wrong) & $(0.970,\,0.243,\,0)$ & $61.9^\circ$\\
+$N\vect n=(M^{-1})^\top\vect n$, normalised & $(0.243,\,0.970,\,0)$ & $0^\circ$\\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{lstlisting}[language=C++,caption={Rotation, Euler order and normal matrix (\code{src/math/Math3D.cpp}); no maths library is used.}]
+Mat4 rotateY(float a) {                       // R_y: cos and sin in the x-z plane
+    Mat4 r; const float c = std::cos(a), s = std::sin(a);
+    r.at(0, 0) = c;  r.at(0, 2) = s;  r.at(2, 0) = -s;  r.at(2, 2) = c;
+    return r;
+}
+Mat4 rotateEulerYXZ(const Vec3& e) { return rotateY(radians(e.y)) * rotateX(radians(e.x)) * rotateZ(radians(e.z)); }
+Mat3 normalMatrix(const Mat4& model) {        // inverse-transpose of the upper-left 3x3
+    const Mat4 inv = inverse(model);
+    Mat3 n;
+    for (int row = 0; row < 3; ++row)
+        for (int col = 0; col < 3; ++col) n.m[col * 3 + row] = inv.at(col, row);
+    return n;
+}
+\end{lstlisting}
+\begin{table}[htbp]
+\caption{Each transformation and the function that computes it (all in \code{src/math/Math3D.cpp} unless named).}\label{tab:trscode}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Matrix & Equation & Code\\\midrule
+$T(\vect t)$, $S(\vect s)$ & Eq.~\eqref{eq:basicTS}: $t$ in column 4, $s$ on the diagonal & \code{translate}, \code{scale}\\
+$R_x$, $R_y$, $R_z$ & Eq.~\eqref{eq:basicmats}: $\cos$/$\sin$ in the plane of the other two axes & \code{rotateX}, \code{rotateY}, \code{rotateZ}\\
+$R$ (Euler) & $R_y(\psi)R_x(\theta)R_z(\varphi)$, Eq.~\eqref{eq:homog} & \code{rotateEulerYXZ}\\
+$M$ (local) & $T\,R\,S$, Eq.~\eqref{eq:trs} & \code{scene/Transform.h: matrix}\\
+$M_{\text{pivot}}$ & $T(\vect p)\,R\,T(-\vect p)$, Eq.~\eqref{eq:pivot} & group node at the pivot\\
+$W$ (world) & $W_{\text{parent}}M$, Eq.~\eqref{eq:world} & \code{scene/Scene.cpp: updateNode}\\
+$N$ (normals) & $(M_{3\times3}^{-1})^\top$, Eq.~\eqref{eq:normalmat} & \code{normalMatrix}, \code{inverse}\\
+$A\,B$, $A\,\vect v$ & $\sum_k a_{rk}b_{kc}$ (column-major storage) & \code{operator*}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_trs_order.pdf}
 \caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\ref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$).}

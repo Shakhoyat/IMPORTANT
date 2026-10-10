@@ -11,14 +11,14 @@ typed by hand.
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
 Language, build & C++17; GNU Make (\code{Makefile}), CMake, and a zig/clang cross-build of \code{ThermalSense.exe} (\code{tools/build\_windows.sh})\\
-Graphics application programming interface (API) & OpenGL 3.3 core profile, OpenGL Shading Language (GLSL) 330 (shaders embedded in \code{src/rendering/Shader*.cpp}); OpenGL loader generator (GLAD), Graphics Library Framework (GLFW) window\\
+Graphics application programming interface (API) & OpenGL 3.3 core profile, GLSL 330 (shaders embedded in \code{src/rendering/Shader*.cpp}); OpenGL loader generator (GLAD), Graphics Library Framework (GLFW) window\\
 Own libraries & \code{math/Math3D} (vectors, column-major $4\times4$ matrices, \code{lookAt}, \code{perspective}, \code{ortho}); no OpenGL Mathematics (GLM)\\
 Third-party & GLFW, GLAD, cgltf, stb\_image, meshoptimizer (vegetation assets only); ffmpeg for video\\
 Assets & primitives are procedural; the EPIC vegetation uses Creative Commons Zero (CC0) Poly Haven models (\code{assets/LICENSES.md})\\
 Graphics processing unit (GPU) & NVIDIA GeForce RTX 4070. Captures, plots and the benchmark run headless under Windows Subsystem for Linux 2 (WSL2) (Mesa d3d12 driver on the
 same GPU); the interactive game runs natively on Windows\\
 Central processing unit (CPU), memory & Intel Core i9-13900K (32 threads), 16 GB visible to WSL2\\
-Resolution, preset & 1920$\times$1080, EPIC preset (multisample anti-aliasing (MSAA), temporal anti-aliasing (TAA), ground-truth ambient occlusion (GTAO), percentage-closer soft shadows (PCSS), screen-space reflections (SSR), volumetric fog, bloom, AgX tone mapping), seed 1\\
+Resolution, preset & 1920$\times$1080, EPIC preset (multisample anti-aliasing (MSAA), temporal anti-aliasing (TAA), ground-truth ambient occlusion (GTAO), PCSS, screen-space reflections (SSR), volumetric fog, bloom, AgX tone mapping), seed 1\\
 Evidence tools & \code{--capture} (named shots), \code{--benchmark}, \code{--export-docs} (every part and matrix as JavaScript Object Notation (JSON)),
 \code{--record} (2-minute director cut), F9 session recording with \code{--replay}\\
 \bottomrule

@@ -10,6 +10,34 @@ whole parts are culled against the frustum before they are submitted, and grass 
 \label{eq:cull}
 \end{equation}
 The six planes come from the rows of $PV$ (Gribb--Hartmann): left $=\text{row}_4+\text{row}_1$, right $=\text{row}_4-\text{row}_1$, and so on.
+\begin{gather}
+\text{Cohen--Sutherland: }c(\vect p)=8[y>y_{\max}]+4[y<y_{\min}]+2[x>x_{\max}]+[x<x_{\min}]\nonumber\\
+c_0\lor c_1=0\Rightarrow\text{accept},\qquad c_0\land c_1\ne0\Rightarrow\text{reject},\qquad\text{else intersect and repeat}\nonumber\\
+\text{Liang--Barsky: }\vect p(t)=\vect p_0+t\,\Delta\vect p,\ \ t_k=\frac{q_k}{p_k},\ \ t_0=\max_{p_k<0}(0,t_k),\ \ t_1=\min_{p_k>0}(1,t_k),\ \ \text{visible iff } t_0\le t_1\label{eq:clipalgs}\\
+\text{Sutherland--Hodgman (one plane, clip space): }d=w+x\ \text{(left)},\ \ \vect p_{\text{new}}=\vect s+\frac{d_s}{d_s-d_e}(\vect e-\vect s)\nonumber
+\end{gather}
+\begin{itemize}
+\item Liang--Barsky uses $p_{1,2}=\mp\Delta x$, $q_{1,2}=\pm(x_0-x_{\min/\max})$ and the same for $y$; one division per edge.
+\item The GPU clips in homogeneous clip space, before the divide, so a vertex behind the eye ($w<0$) is never divided.
+\item The CPU culling test of Eq.~\eqref{eq:cull} uses planes normalised by $\lVert\vect a_i\rVert$, so $\vect a_i\cdot\vect c+d_i$ is a
+distance in metres that can be compared with the radius $r$.
+\end{itemize}
+\begin{lstlisting}[language=C++,caption={Frustum planes from the view-projection matrix and the sphere test (\code{src/math/Frustum.cpp}).}]
+for (int i = 0; i < 6; ++i) {                      // planes: row3 +- row0, row3 +- row1, row3 +- row2
+    const int row = i / 2;
+    const float sign = (i % 2 == 0) ? 1.0f : -1.0f;
+    Vec4 p{m.at(3, 0) + sign * m.at(row, 0), m.at(3, 1) + sign * m.at(row, 1), m.at(3, 2) + sign * m.at(row, 2),
+           m.at(3, 3) + sign * m.at(row, 3)};
+    const float len = std::sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+    if (len > 1e-8f) p = {p.x / len, p.y / len, p.z / len, p.w / len};
+    planes_[i] = p;
+}
+bool Frustum::intersects(const Vec3& c, float r) const {
+    for (const Vec4& p : planes_)
+        if (p.x * c.x + p.y * c.y + p.z * c.z + p.w < -r) return false;   // outside one plane
+    return true;
+}
+\end{lstlisting}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_clipping.pdf}
@@ -57,6 +85,8 @@ Frustum culling & whole object against 6 planes (Eq.~\ref{eq:cull}) & 6 dot prod
 \end{tabularx}
 \end{table}
 
+The steps, from the scene's parts to the rasteriser, are drawn in Figure~\ref{fig:flow-clip} and written as Algorithm~\ref{alg:clip}.
+\flowClip
 \algClip
 
 \textbf{Limitation.} Frustum culling with bounding spheres is conservative: a long thin part (a wall) has a large

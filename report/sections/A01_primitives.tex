@@ -56,6 +56,33 @@ $(\vect{b}-\vect{a})\times(\vect{c}-\vect{a})$ points outwards and back-face cul
 generator mirrors half a mesh (the sphere's southern half), it swaps two indices of every mirrored triangle to keep this
 order.
 
+\textbf{The generator's equations (sphere, \code{primitives/Sphere.cpp: createSphere}).} With $r=0.5$, $s$ slices and
+$k$ stacks ($k$ even), ring $i$ and column $j$:
+\begin{gather}
+\vect n_{ij}=(\sin\theta_i\cos\varphi_j,\ \cos\theta_i,\ \sin\theta_i\sin\varphi_j),\quad \vect p_{ij}=r\,\vect n_{ij},\quad
+\theta_i=\frac{\pi i}{k},\quad \varphi_j=\frac{2\pi j}{s}\label{eq:spheregen}\\
+\text{index}(i,j)=1+(i-1)s+(j\bmod s),\qquad \text{band quad }(i,j):\ (a_0,a_1,b_0),\,(a_1,b_1,b_0)\nonumber\\
+V=s(k-1)+2,\qquad T=2s(k-1),\qquad V-E+T=2\quad (E=\tfrac32T)\nonumber
+\end{gather}
+\begin{itemize}
+\item The normal of a vertex on a sphere is its position over $r$; on a cylinder side it is $(\cos\varphi,\sin\varphi,r_b-r_t)$
+normalised (\code{Cylinder.cpp}), on a cap $(0,0,\pm1)$.
+\item The flat shader ignores the stored normals and uses the face normal
+$\vect n_f=\frac{(\vect b-\vect a)\times(\vect c-\vect a)}{\lVert(\vect b-\vect a)\times(\vect c-\vect a)\rVert}$ (Section~\ref{sec:shading}).
+\item Euler's formula $V-E+F=2$ holds for every closed mesh with shared vertices; it is a check on the counts of Table~\ref{tab:prims}.
+\end{itemize}
+\begin{lstlisting}[language=C++,caption={The northern rings of the sphere and the index of a ring vertex (\code{src/primitives/Sphere.cpp}).}]
+for (int k = 1; k <= half; ++k) {
+    const float theta = PI * static_cast<float>(k) / static_cast<float>(stacks);
+    for (int j = 0; j < slices; ++j) {
+        const float phi = 2.0f * PI * static_cast<float>(j) / static_cast<float>(slices);
+        const Vec3 n{std::sin(theta) * std::cos(phi), std::cos(theta), std::sin(theta) * std::sin(phi)};
+        mesh.vertices.push_back({n * r, n});            // position = r * normal
+    }
+}
+auto ring = [slices](int k, int j) { return static_cast<uint32_t>(1 + (k - 1) * slices + (j % slices)); };
+\end{lstlisting}
+
 \subsection{The primitive cards}
 \label{sec:primcards}
 Each card describes one generator. (a) is the scene mesh as the renderer draws it, with its triangle edges. (b) is

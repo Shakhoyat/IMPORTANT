@@ -8,6 +8,45 @@ Gouraud: at the vertices, colours interpolated. Phong: normals interpolated and 
 \text{Phong: } I(\vect x)=I\Big(\frac{\sum_k\lambda_k\vect N_k}{\lVert\sum_k\lambda_k\vect N_k\rVert}\Big)
 \label{eq:shading}
 \end{equation}
+\begin{equation}
+\text{Flat: } I=I\Big(\vect n_f,\ \tfrac{\vect a+\vect b+\vect c}{3}\Big),\ \ \vect n_f=\frac{(\vect b-\vect a)\times(\vect c-\vect a)}{\lVert(\vect b-\vect a)\times(\vect c-\vect a)\rVert};\qquad
+\vect N_k=\frac{N\,\vect n_k}{\lVert N\,\vect n_k\rVert}\ \ (\text{Eq.~\eqref{eq:normalmat}})\label{eq:flat}
+\end{equation}
+Here $I(\cdot)$ is the whole illumination model of Eq.~\eqref{eq:illumcode}, evaluated by the same GLSL function
+\code{computeLight} in all three cases; only the shader stage that calls it differs (Listing below, Table~\ref{tab:shadecode}).
+\begin{lstlisting}[language=C++,caption={Where \code{computeLight} runs in each model (\code{src/rendering/ShaderSources.cpp}, GLSL).}]
+// Flat (geometry shader kFlatGeom): one normal per triangle from its own edges, lit once at the centroid
+vec3 cr = cross(b - a, c - a);
+vec3 N = length(cr) > 1e-12 ? normalize(cr) : vec3(0.0, 1.0, 0.0);
+Terms t = computeLight((a + b + c) / 3.0, N);          // the same terms for all three vertices ('flat' varyings)
+
+// Gouraud (vertex shader kGouraudVert): lit per VERTEX, the terms are interpolated
+vec3 N = normalize(uNormalMat * aNormal);
+Terms t = computeLight(w.xyz, N);
+
+// Phong (vertex shader kPhongVert + fragment shader kPhongFrag): the NORMAL is interpolated, lit per FRAGMENT
+vNormal = uNormalMat * aNormal;                         // vertex shader
+vec3 N = normalize(vNormal);                            // fragment shader: renormalise
+if (!gl_FrontFacing) N = -N;
+FragColor = shadeFragment(computeLight(vWorld, N), vWorld, N);
+\end{lstlisting}
+\begin{table}[htbp]
+\caption{The three shading models in the code.}\label{tab:shadecode}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXXl@{}}
+\toprule
+Model & Lighting evaluated in & Interpolated across the triangle & Shaders\\\midrule
+Flat & geometry shader, once at the centroid & nothing (\code{flat} varyings) & \code{kFlatVert}, \code{kFlatGeom}, \code{kFlatFrag}\\
+Gouraud & vertex shader, at each vertex & the light terms (perspective-correct) & \code{kGouraudVert}, \code{kGouraudFrag}\\
+Phong & fragment shader, every pixel & world position and normal & \code{kPhongVert}, \code{kPhongFrag}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+\begin{itemize}
+\item In all three, shadows, ambient occlusion and fog are looked up per fragment (\code{shadeFragment}); only the light
+terms of Eq.~\eqref{eq:illumcode} follow the model.
+\item The model per part is the export's \code{shading} field; \key{O} overrides it for the whole scene.
+\end{itemize}
 
 \begin{figure}[htbp]
 \centering

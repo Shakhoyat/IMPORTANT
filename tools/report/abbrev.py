@@ -80,7 +80,7 @@ ABBR = {
     "SAH": ("surface area heuristic", ""),
     "SAM": ("surface-to-air missile", ""),
     "SH": ("spherical harmonics", ""),
-    "sRGB": ("standard RGB colour space", ""),
+    "sRGB": ("standard red, green, blue colour space", ""),
     "SSAO": ("screen-space ambient occlusion", ""),
     "SSR": ("screen-space reflections", ""),
     "TAA": ("temporal anti-aliasing", ""),
@@ -126,10 +126,12 @@ def expand_first(text, seen):
     for a in ABBR:
         if a in seen or a in NO_EXPAND:
             continue
-        if re.search(r"\(%ss?\)|%s \(%s\)" % (re.escape(a), re.escape(a), re.escape(ABBR[a][0])), text):
+        spans = masked(text)
+        done = [m for m in re.finditer(r"\(%ss?\)|%s \(%s\)" % (re.escape(a), re.escape(a), re.escape(ABBR[a][0])), text)
+                if not any(s <= m.start() < e for s, e in spans)]
+        if done:
             seen.add(a)
             continue
-        spans = masked(text)
         for m in re.finditer(r"(?<![A-Za-z\\{/_-])%s(s)?(?![A-Za-z0-9}_])" % re.escape(a), text):
             if any(s <= m.start() < e for s, e in spans):
                 continue

@@ -7,6 +7,18 @@ parent's world matrix times the local one. Animation then only changes a few loc
 W_{\text{node}} = W_{\text{parent}}\,M_{\text{node}} = M_{\text{root}}\,M_1\,M_2\cdots M_{\text{node}}
 \label{eq:world}
 \end{equation}
+\begin{itemize}
+\item Depth-first traversal: a parent's $W$ is ready before its children use it; one matrix product per node, $O(n)$ for $n$ nodes.
+\item A group node has a matrix and no mesh; a pivot is a group whose origin is the hinge (Eq.~\eqref{eq:pivot}).
+\end{itemize}
+\begin{lstlisting}[language=C++,caption={The whole scene-graph update: Eq.~\eqref{eq:world} applied recursively (\code{src/scene/Scene.cpp: updateNode}).}]
+void updateNode(SceneNode& node, const Mat4& parentWorld, float explode) {
+    Transform t = node.local;
+    if (explode > 0.0f && node.explodable) t.translation = t.translation * (1.0f + 0.7f * explode);
+    node.world = parentWorld * t.matrix();                  // W = W_parent * T * Ry * Rx * Rz * S
+    for (auto& c : node.children) updateNode(*c, node.world, explode);
+}
+\end{lstlisting}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_hierarchy.pdf}

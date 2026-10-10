@@ -19,6 +19,20 @@ S_x=\begin{bmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{bmatrix},\quad
 \lVert\nabla I\rVert=\sqrt{(S_x\ast I)^2+(S_y\ast I)^2},\quad s=c\,r^\gamma
 \label{eq:kernels}
 \end{equation}
+\begin{gather}
+g(x,y)=\sum_{j=-r}^{r}\sum_{i=-r}^{r}h(i,j)\,f(x+i,y+j)\quad\text{(clamp at the border)}\label{eq:conv}\\
+h=\vect h_c\,\vect h_r^{\top}\ \Rightarrow\ g=\vect h_c\ast(\vect h_r^{\top}\ast f):\quad (2r+1)^2\to2(2r+1)\ \text{multiply-adds per pixel}\nonumber\\
+\text{equalisation: } s_k=\operatorname{round}\Big(255\sum_{j=0}^{k}\frac{n_j}{N}\Big)\nonumber\\
+\text{Otsu: } t^\ast=\arg\max_t\ \omega_0(t)\,\omega_1(t)\big(\mu_0(t)-\mu_1(t)\big)^2,\qquad \omega_0=\sum_{i\le t}p_i,\quad \mu_0=\frac{1}{\omega_0}\sum_{i\le t}i\,p_i\nonumber
+\end{gather}
+\begin{itemize}
+\item The code applies the kernel without flipping it (\code{ExplorerMath.cpp: convolve}); for the symmetric Gaussian and
+binomial kernels this equals convolution, for Sobel it flips the sign of the gradient only.
+\item The sensor's binomial point spread function $\frac1{16}[1\,2\,1]^\top[1\,2\,1]$ is separable and runs as a row pass and
+a column pass (Section~\ref{sec:hard}).
+\item Otsu's sweep keeps running sums of $n_t$ and $t\,n_t$, so the 256 candidate thresholds cost one pass over the histogram
+(\code{CvPipeline.cpp: otsuThreshold}); the CV then uses $t=\max(204,\,t^\ast+1)$ (Figure~\ref{fig:cv}c).
+\end{itemize}
 
 \begin{figure}[htbp]
 \centering
@@ -75,6 +89,8 @@ operator sees it in the game.}\end{subfigure}
 \label{fig:thermal}
 \end{figure}
 
+Figure~\ref{fig:flow-cv} traces one UAV frame through the pipeline; Algorithm~\ref{alg:cv} gives the steps and their cost.
+\flowCv
 \algCv
 
 \textbf{Limitation.} The stages are shown in the lab figures and in the Frame Explorer's image lab (kernel and gamma

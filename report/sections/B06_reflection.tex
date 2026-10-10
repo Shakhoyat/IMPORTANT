@@ -1,7 +1,7 @@
 \section{Reflection: approximated and traced}
 \label{sec:rtadv}
 \here{10}
-The raster renderer approximates mirror reflection with screen-space reflections (SSR): for a reflective pixel it
+The raster renderer approximates mirror reflection with SSR: for a reflective pixel it
 marches the reflected ray through the depth buffer and copies the colour where the ray passes behind a stored depth.
 It can only reflect what is on screen. The hybrid mode replaces that with real reflection rays against a BVH of the
 scene; Whitted, path and light tracing render the whole image with rays. The reflection weight is a Fresnel term.

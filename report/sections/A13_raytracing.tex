@@ -14,6 +14,55 @@ refraction rays, Whitted \cite{whitted1980}). A CPU/GPU ray tracer with a BVH ru
 \vect t=\eta\,\vect d+\big(\eta\cos\theta_i-\sqrt{1-\eta^2(1-\cos^2\theta_i)}\big)\vect n,\ \eta=\tfrac{n_1}{n_2}
 \label{eq:reflref}
 \end{equation}
+\textbf{The intersection routines} (\code{raytrace/Intersect.cpp}, \code{Heightfield.cpp}, \code{RtScene.cpp}). Every part is
+a unit shape under its world matrix $W$, so the ray is moved into the part's own frame instead of moving the shape:
+\begin{gather}
+\vect o'=W^{-1}\vect o,\quad \vect d'=W^{-1}\vect d\ \ (w=0),\qquad \vect n_{\text{world}}=\operatorname{normalize}\big((W^{-1})^\top\vect n'\big)\label{eq:rtobj}\\
+\text{box (slabs): } t_{\text{near}}=\max_a\min\Big(\frac{-\frac12-o_a}{d_a},\frac{\frac12-o_a}{d_a}\Big),\quad
+t_{\text{far}}=\min_a\max(\cdot),\quad \text{hit iff } t_{\text{near}}\le t_{\text{far}}\nonumber\\
+\text{cylinder side: } (o_x+td_x)^2+(o_y+td_y)^2=\tfrac14,\ |o_z+td_z|\le\tfrac12;\qquad
+\text{caps: } t=\frac{\pm\frac12-o_z}{d_z},\ x^2+y^2\le\tfrac14\nonumber\\
+\text{triangle (M\"oller--Trumbore): } \vect e_1=\vect b-\vect a,\quad \vect e_2=\vect c-\vect a,\quad \vect P=\vect d\times\vect e_2,\quad \vect Q=(\vect o-\vect a)\times\vect e_1\nonumber\\
+u=\frac{(\vect o-\vect a)\cdot\vect P}{\vect e_1\cdot\vect P},\quad v=\frac{\vect d\cdot\vect Q}{\vect e_1\cdot\vect P},\quad
+t=\frac{\vect e_2\cdot\vect Q}{\vect e_1\cdot\vect P},\qquad\text{hit iff } u,v\ge0,\ u+v\le1\nonumber
+\end{gather}
+\begin{gather}
+F_{\text{exact}}=\tfrac12\big(r_s^2+r_p^2\big),\quad r_s=\frac{\eta\cos\theta_i-\cos\theta_t}{\eta\cos\theta_i+\cos\theta_t},\quad
+r_p=\frac{\cos\theta_i-\eta\cos\theta_t}{\cos\theta_i+\eta\cos\theta_t}\label{eq:fresnelexact}\\
+F_{\text{Schlick}}=F_0+(1-F_0)(1-\cos\theta)^5,\qquad \text{total internal reflection iff } \eta^2(1-\cos^2\theta_i)>1\nonumber\\
+\text{SAH: } C=C_t+C_i\,\frac{A_L\,n_L+A_R\,n_R}{A_P},\qquad C_t=1,\ C_i=1.5,\ 16 \text{ bins per axis, leaves of }\le4\label{eq:sah}
+\end{gather}
+\begin{itemize}
+\item Quadratics are solved in the stable form $q=-(b+\operatorname{sign}(b)\sqrt{b^2-ac})$, roots $q/a$ and $c/q$, from the point of
+closest approach, so a 1\,cm wire 60\,m away keeps its precision.
+\item The terrain is a height field of triangles walked cell by cell with the 3D DDA of Section~\ref{sec:raster}; glass uses
+the exact Fresnel term with $\eta=1/1.5$ entering and $1.5$ leaving; smooth metal and wet surfaces use Schlick with
+$F_0=\operatorname{mix}(0.04,\boldsymbol\rho,m)$ (Figure~\ref{fig:fresnel}).
+\item The BVH split minimises $C$ over the 15 bin boundaries of each axis: $A$ are box surface areas, $n$ primitive counts.
+\end{itemize}
+\begin{figure}[htbp]
+\centering\plot{p_fresnel}{\linewidth}
+\caption{Reflectance of glass ($\eta=1.5$) with the exact Fresnel equations of Eq.~\eqref{eq:fresnelexact} and with
+Schlick's approximation: (a) entering, where the two agree; (b) leaving, where only the exact form shows total internal
+reflection beyond $41.8^\circ$.}
+\label{fig:fresnel}
+\end{figure}
+\begin{table}[htbp]
+\caption{Ray-tracing equations and their code (\code{src/raytrace/}).}\label{tab:rtcode}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Operation & Equation & Code\\\midrule
+Ray into the part's frame & Eq.~\eqref{eq:rtobj} & \code{RtScene.cpp}: \code{transformPoint(p.inv, r.o)}, \code{normalToWorld}\\
+Sphere, cylinder, cone & quadratic in $t$ (Eq.~\eqref{eq:rays}) & \code{intersectUnitSphere}, \code{...Cylinder}, \code{...Cone}\\
+Box, BVH node & slab test & \code{intersectUnitBox}, \code{Aabb::hit}\\
+Terrain triangle & M\"oller--Trumbore, 3D DDA & \code{Heightfield.cpp: triangle}, \code{intersect}\\
+Reflection, refraction & Eq.~\eqref{eq:reflref} & \code{Optics.h: reflectDir}, \code{refractDir}\\
+Fresnel & Eq.~\eqref{eq:fresnelexact} & \code{fresnelDielectric}, \code{fresnelSchlick}\\
+BVH build & surface area heuristic (SAH), Eq.~\eqref{eq:sah} & \code{Bvh.cpp} (\code{kBins = 16}, \code{kMaxLeaf = 4})\\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_raytrace.pdf}
@@ -21,6 +70,8 @@ refraction rays, Whitted \cite{whitted1980}). A CPU/GPU ray tracer with a BVH ru
 \label{fig:d-rt}
 \end{figure}
 
+Figure~\ref{fig:flow-whitted} shows one pixel of the Whitted mode as a flow; Algorithm~\ref{alg:whitted} gives the steps.
+\flowWhitted
 \algWhitted
 
 \begin{figure}[htbp]

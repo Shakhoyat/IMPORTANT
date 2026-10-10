@@ -451,19 +451,27 @@ def fnum(v, nd=2):
     return t[1:] if t.startswith("-") and float(t) == 0 else t
 
 
+def mnum(v, nd=3):
+    if abs(v) < 5e-4:
+        return "0"
+    if abs(v - round(v)) < 5e-4:
+        return "%d" % round(v)
+    return fnum(v, nd)
+
+
 def bmat(M, nd=3):
-    rows = [" & ".join(fnum(v, nd) for v in r) for r in M]
+    rows = [" & ".join(mnum(v, nd) for v in r) for r in M]
     return "\\begin{bmatrix}" + "\\\\".join(rows) + "\\end{bmatrix}"
 
 
 def factors(c):
     t, r, sc = c["T"], c["R_deg"], c["S"]
-    parts = ["T(%s)" % ",".join(fnum(v) for v in t)]
+    parts = ["T(%s)" % ",".join(fnum(v, 3) for v in t)]
     for ax, nm in [(1, "y"), (0, "x"), (2, "z")]:
         if abs(r[ax]) > 0.05:
             parts.append("R_%s(%s^\\circ)" % (nm, fnum(r[ax], 1)))
     if any(abs(v - 1) > 1e-4 for v in sc):
-        parts.append("S(%s)" % ",".join(fnum(v) for v in sc))
+        parts.append("S(%s)" % ",".join(fnum(v, 3) for v in sc))
     return "\\,".join(parts)
 
 
@@ -484,26 +492,35 @@ def chain_block(d):
     chain_check(root)
     chain_check(part)
     par = BY_ID.get(root["parent_id"])
-    Wp = mat(par["world_matrix"]) if par else np.eye(4)
-    lead = "W_{\\text{root}}=" + ("W_{\\text{%s}}\\," % tex(par["name"]) if par else "") + factors(root)
+    sl = slug(d["name"])
+    rootf = ("W_{\\text{%s}}\\," % tex(par["name"]) if par else "") + factors(root)
+
+    def line(lhs, rhs_sym, M, label):
+        plain = re.sub(r"\\\\[a-zA-Z]+|[{}^_]", "", rhs_sym)
+        if len(plain) <= 46:
+            return ["%s&=%s=%s\\label{%s}" % (lhs, rhs_sym, bmat(M), label)]
+        return ["%s&=%s\\nonumber" % (lhs, rhs_sym), "&=%s\\label{%s}" % (bmat(M), label)]
+
+    eqs = line("W_{\\text{root}}", rootf, mat(root["world_matrix"]), "eq:ch-%s" % sl)
     if part is root:
-        mid = ""
-        eq = ("$$%s=%s$$" % ("W_{\\text{root}}", bmat(mat(root["world_matrix"]))))
-        what = "The design is one part: its world matrix is the root's."
+        txt = ("\\textbf{Transformation chain.} The design is one part, placed by Eq.~\\eqref{eq:ch-%s} (instance 1, %s; "
+               "lengths in metres); its world matrix is the root's." % (sl, tex(inst["root_name"])))
     else:
         path = ancestors(part)
-        k = path.index(root)
-        groups = path[k + 1:-1]
-        chain = "W_{\\text{root}}\\," + "".join(mname(g) + "\\," for g in groups) + "M"
-        mid = ("\\\\Part: %s (%s). \\ $W=%s$, \\quad $M=%s$." % (tex(part["name"]), prim_key(part).lower(), chain, factors(part)))
-        eq = ("\\[W_{\\text{root}}=%s\\qquad M=%s\\qquad W=%s\\]" % (bmat(mat(root["world_matrix"])), bmat(mat(part["local_matrix"])),
-                                                                    bmat(mat(part["world_matrix"]))))
-        what = ""
-    return ("\\par\\noindent\\fcolorbox{black!25}{black!2}{\\begin{minipage}{\\dimexpr\\linewidth-2\\fboxsep-2\\fboxrule\\relax}"
-            "\\raggedright\\fontsize{7.5}{9}\\selectfont\\setlength{\\abovedisplayskip}{2pt}\\setlength{\\belowdisplayskip}{1pt}"
-            "\\setlength{\\arraycolsep}{2.5pt}\\renewcommand{\\arraystretch}{0.95}"
-            "\\textbf{Transformation chain} (instance 1, %s; lengths in m).\\\\Root: $%s$. %s%s%s"
-            "\\end{minipage}}\\par\\smallskip" % (tex(inst["root_name"]), lead, mid, what, eq))
+        groups = path[path.index(root) + 1:-1]
+        names = ["W_{\\text{root}}"] + [mname(g) for g in groups] + ["M"]
+        rows = [names[i:i + 5] for i in range(0, len(names), 5)]
+        eqs += line("M", factors(part), mat(part["local_matrix"]), "eq:chm-%s" % sl)
+        eqs.append("W_{\\text{part}}&=%s\\nonumber" % "\\,".join(rows[0]))
+        for r in rows[1:]:
+            eqs.append("&\\quad\\,%s\\nonumber" % "\\,".join(r))
+        eqs.append("&=%s\\label{eq:chw-%s}" % (bmat(mat(part["world_matrix"])), sl))
+        txt = ("\\textbf{Transformation chain.} Instance 1 (%s) is placed in the world by Eq.~\\eqref{eq:ch-%s}. The part %s (%s) "
+               "has the local matrix $M$ of Eq.~\\eqref{eq:chm-%s} and reaches the world through %s, Eq.~\\eqref{eq:chw-%s}. "
+               "Lengths in metres; the products are checked against the exported world matrices."
+               % (tex(inst["root_name"]), sl, tex(part["name"]), prim_key(part).lower(), sl,
+                  "%d group%s" % (len(groups), "" if len(groups) == 1 else "s") if groups else "the root alone", sl))
+    return txt + "\n\\begin{align}\n" + "\\\\\n".join(eqs) + "\n\\end{align}"
 
 
 # ------------------------------------------------------------------------------------------------ vegetation note

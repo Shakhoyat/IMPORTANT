@@ -9,6 +9,68 @@ material property. A procedural texture computes the value with a function inste
 \text{mip level: }\ \lambda=\log_2\max\Big(\Big\lVert\tfrac{\partial(u,v)}{\partial x}\Big\rVert,\Big\lVert\tfrac{\partial(u,v)}{\partial y}\Big\rVert\Big)
 \label{eq:tex}
 \end{equation}
+\textbf{The texture equations in the code.}
+\begin{gather}
+(u,v)=\begin{cases}(x,z) & |N_y|>0.7\\(z,y) & |N_x|>|N_z|\\(x,y) & \text{else}\end{cases}\quad\text{(box projection)},\quad
+\text{noise}(\vect q)=\operatorname{lerp}\big(\operatorname{lerp}(h_{00},h_{10},s_x),\operatorname{lerp}(h_{01},h_{11},s_x),s_y\big)\label{eq:noise}\\
+s=3f^2-2f^3,\quad f=\vect q-\lfloor\vect q\rfloor,\qquad
+\operatorname{fbm}(\vect q)=\sum_{o=0}^{3}0.5^{\,o+1}\,\text{noise}\big(2.03^{\,o}\vect q+\vect c_o\big)\nonumber\\
+\text{bump: } \frac{\partial h}{\partial u}\approx\frac{h(u+e)-h(u-e)}{2e},\ e=4\,\text{mm},\qquad
+\vect N'=\operatorname{normalize}\Big(\vect N-k\Big(\frac{\partial h}{\partial u}\vect T+\frac{\partial h}{\partial v}\vect B\Big)\Big)\nonumber
+\end{gather}
+\begin{gather}
+\text{bilinear: } c=\operatorname{lerp}\big(\operatorname{lerp}(c_{00},c_{10},\alpha),\,\operatorname{lerp}(c_{01},c_{11},\alpha),\,\beta\big)\label{eq:filter}\\
+\text{trilinear: } c=\operatorname{lerp}\big(c_{\lfloor\lambda\rfloor},\,c_{\lfloor\lambda\rfloor+1},\,\lambda-\lfloor\lambda\rfloor\big)\nonumber
+\end{gather}
+\begin{itemize}
+\item $h_{ij}$: an integer hash of the lattice corner (\code{latticeHash}, a 32-bit mix), the same on every GPU and on the
+CPU mirror; $\vect c_o$: a fixed offset per octave; $k$ fades the relief from 12 to 40\,m.
+\item Box projection picks the plane of the largest normal component, so a primitive needs no stored $(u,v)$ and a
+pattern never stretches; it is used for the albedo patterns (\code{surfaceAlbedo}) and the relief (\code{surfaceBump}).
+\item Image textures (imported trees, the ground map, the font) are mip-mapped by the GPU: \code{glGenerateMipmap} builds the
+box-filtered levels and \code{GL\_LINEAR\_MIPMAP\_LINEAR} selects $\lambda$ of Eq.~\eqref{eq:tex} and blends as in
+Eq.~\eqref{eq:filter}. This lookup is fixed-function; the procedural patterns are the project's own code.
+\end{itemize}
+\begin{lstlisting}[language=C++,caption={Value noise and its fractal sum (\code{src/rendering/ShaderSources.cpp}, GLSL).}]
+float valueNoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);                       // smoothstep fade
+    float a = latticeHash(i), b = latticeHash(i + vec2(1, 0)), c = latticeHash(i + vec2(0, 1)), d = latticeHash(i + vec2(1, 1));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);   // bilinear blend of the four corners
+}
+float fbm(vec2 p) {
+    float s = 0.0, a = 0.5;
+    for (int i = 0; i < 4; ++i) { s += a * valueNoise(p); p = p * 2.03 + vec2(17.1, 9.7); a *= 0.5; }
+    return s;
+}
+\end{lstlisting}
+\begin{figure}[htbp]
+\centering\plot{p_noise}{\linewidth}
+\caption{The procedural texture basis, computed with the shader's own hash: (a) value noise along one row with the
+smoothstep fade against linear weights; (b) one octave; (c) the four-octave fractal sum used by the materials
+(Eq.~\eqref{eq:noise}).}
+\label{fig:noise}
+\end{figure}
+\begin{figure}[htbp]
+\centering\raw{lab/bump_on_off}{0.6\linewidth}
+\caption{Bump mapping in the renderer: six procedural materials with the relief off (top) and on (bottom). Only the
+normal changes (Eq.~\eqref{eq:noise}); the faces stay flat.}
+\label{fig:bump}
+\end{figure}
+\begin{table}[htbp]
+\caption{Texture techniques and where they run.}\label{tab:texcode}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Technique & Used on & Code\\\midrule
+Box projection $(u,v)$ & every primitive part & \code{surfaceAlbedo}, \code{surfaceBump}\\
+Value noise, fractal sum & concrete, ground, rock, paint, camouflage, clouds & \code{valueNoise}, \code{fbm}\\
+Cellular (Worley) noise & pebbles and stones of the terrain & \code{cellular}\\
+Bump mapping (central differences) & ribs, seams, rivets, mesh, bark, pores & \code{surfaceBump}, \code{terrainShade}\\
+UV-mapped images, mip-maps, alpha test & imported trees, grass blades, the font & \code{VegetationRenderer.cpp}, \code{Grass.cpp}\\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_texture.pdf}

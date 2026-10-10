@@ -1,0 +1,96 @@
+\section{Fog, exposure, tone mapping and gamma}
+\label{sec:post}
+\here{9}
+Lighting produces linear high-dynamic-range radiance. Before it reaches the screen the image passes through the
+post-processing chain of \code{ShadersPost.cpp} and \code{ShadersPostFx.cpp}, every step a shader of the project:
+\begin{itemize}
+\item ambient occlusion (SSAO / GTAO) $\to$ lighting $\to$ combine: volumetric fog, reflections, aerial perspective $\to$ TAA
+$\to$ frame statistics (auto-exposure) $\to$ bloom $\to$ composite: exposure, grade, tone curve, standard red, green, blue colour space (sRGB) encoding.
+\end{itemize}
+
+\textbf{Fog.} Each surface is mixed towards the fog colour by a factor that grows with distance $d$ from the eye
+(\code{ShaderSources.cpp: fogAmount}); the volumetric pass integrates light scattered by the air along the view ray
+(\code{ShadersPost.cpp: kFogFrag}):
+\begin{gather}
+\vect c'=\operatorname{lerp}(\vect c,\ \vect c_{\text{fog}},\ f),\qquad f=1-e^{-(\rho d)^2},\quad \rho=0.018\ \text{(night)}\ \ldots\ 0.0042\,\text{m}^{-1}\ \text{(day)}\label{eq:fog}\\
+\sigma(\vect x)=\sigma_0\,e^{-0.22\,y}\big(0.45+1.1\,\text{noise}\big),\qquad T_{i+1}=T_i\,e^{-\sigma_i\Delta s}\nonumber\\
+\vect L_{\text{in}}\mathrel{+}=T_i\,\vect L_{\text{light}}\,p_{\text{HG}}(\cos\theta)\,\big(1-e^{-\sigma_i\Delta s}\big),\qquad
+\vect c'=\vect c\,T+\vect L_{\text{in}}\nonumber
+\end{gather}
+\begin{itemize}
+\item The squared exponent ($\exp^2$ fog) keeps the near field clear and closes in faster than plain $\exp$ fog
+(Figure~\ref{fig:fogcurve}); $\rho$ is interpolated between the night and day values by the solar model.
+\item The volumetric march takes 24--64 steps (preset) with a per-pixel jitter; $p_{\text{HG}}(c)=\frac{1-g^2}{4\pi(1+g^2-2gc)^{3/2}}$
+is the Henyey--Greenstein phase function ($g=0.55$ moon, $0.35$ searchlight); the searchlight shaft is marched only
+inside its cone (an analytic ray--cone interval).
+\end{itemize}
+
+\textbf{Exposure and tone mapping} (\code{ShadersPostFx.cpp: kCompositeFrag}, CPU mirror \code{math/ToneMap.cpp}):
+\begin{gather}
+k=k_0\,2^{\operatorname{clamp}(\kappa-\overline{\log_2 Y},\,-1.5,\,1.5)},\qquad Y=0.2126R+0.7152G+0.0722B\label{eq:tonemap}\\
+\text{ACES fit: } \vect x\mapsto M_{\text{out}}\,\frac{\vect v(\vect v+0.0245786)-0.000090537}{\vect v(0.983729\,\vect v+0.432951)+0.238081},\qquad \vect v=M_{\text{in}}\vect x\nonumber\\
+\text{AgX: } \vect v=M_{\text{inset}}\vect x,\ \ \ell=\frac{\operatorname{clamp}(\log_2\vect v,-12.47,4.03)+12.47}{16.5},\ \ 
+\vect y=\Big(M_{\text{outset}}\sum_{j=0}^{6}a_j\ell^{\,j}\Big)^{2.2}\nonumber
+\end{gather}
+\begin{itemize}
+\item $\overline{\log_2Y}$ is the centre-weighted mean of the frame's log luminance, reduced on the GPU to one texel and
+adapted over time; $\kappa$ (the key) follows the time of day.
+\item By day the AgX curve (log encoding, a sixth-order sigmoid fit, $a_j$ in \code{ToneMap.h}) desaturates very bright
+light towards white; at night the Academy Color Encoding System (ACES) fit; the two cross-fade through twilight. Both compress any radiance into $[0,1]$
+(Figure~\ref{fig:tonecurve}a).
+\end{itemize}
+
+\textbf{Gamma: linear to sRGB and back.}
+\begin{equation}
+\text{encode: } c_s=\begin{cases}12.92\,c & c\le0.0031308\\ 1.055\,c^{1/2.4}-0.055 & \text{else}\end{cases},\qquad
+\text{decode of a base colour: } \rho=c_s^{\,2.2}\ \ (\code{toLinear})\label{eq:gamma}
+\end{equation}
+\begin{itemize}
+\item The composite pass encodes once, at the very end (\code{linearToSrgb}); the default framebuffer is not an sRGB
+framebuffer, so the GPU does no conversion of its own.
+\item Material colours are authored in sRGB and decoded with the power 2.2 (close to the exact sRGB curve, Eq.~\eqref{eq:srgb}),
+so lighting and blending happen in linear space (Figure~\ref{fig:tonecurve}b).
+\end{itemize}
+
+\textbf{Bloom.} Pixels above a threshold $\tau$ glow: a soft knee
+$s=\operatorname{clamp}(m-\tau+\tfrac\tau2,0,\tau)^2/(2\tau)$ with $m=\max(R,G,B)$ keeps $\max(s,m-\tau)/m$ of each pixel,
+which is then blurred down a chain of six half-size levels (13-tap filter) and back up ($3\times3$ tent, weights
+$\frac1{16}[1\,2\,1;2\,4\,2;1\,2\,1]$), and added before exposure.
+\begin{figure}[htbp]
+\centering\plot{p_fog}{0.5\linewidth}
+\caption{The fog factor of Eq.~\eqref{eq:fog} for the night and day densities, against plain exponential fog.}
+\label{fig:fogcurve}
+\end{figure}
+\begin{figure}[htbp]
+\centering\plot{p_tonemap}{\linewidth}
+\caption{(a) The tone curves of Eq.~\eqref{eq:tonemap} on the grey axis after each one's exposure, with a hard clip for
+comparison; (b) the sRGB encoding of Eq.~\eqref{eq:gamma} against a pure power $1/2.2$, and the decoding of base colours.}
+\label{fig:tonecurve}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}{0.49\linewidth}\raw{lab/explorer_stage_12_fog}{\linewidth}\caption{Fog stage: in-scattered light and
+transmittance along each ray.}\end{subfigure}\hfill
+\begin{subfigure}{0.49\linewidth}\raw{lab/explorer_stage_14_tonemap}{\linewidth}\caption{Tone-mapping stage: linear clip
+(left of the wipe) against the filmic curve, with the luminance histogram.}\end{subfigure}
+\caption{The two stages in the Frame Explorer.}
+\label{fig:poststages}
+\end{figure}
+\begin{table}[htbp]
+\caption{Post-processing equations and their code.}\label{tab:postcode}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Step & Equation & Code\\\midrule
+Distance fog & $f=1-e^{-(\rho d)^2}$ & \code{fogAmount}: \code{1.0 - exp(-pow(uFogDensity * dist, 2.0))}\\
+Volumetric fog & Eq.~\eqref{eq:fog}, $T\gets T\,e^{-\sigma\Delta s}$ & \code{kFogFrag}\\
+Auto-exposure & Eq.~\eqref{eq:tonemap}, key $\pm1.5$ stops & \code{kReduceFrag}, \code{kCompositeFrag}\\
+Tone curve & ACES fit / AgX & \code{acesFitted}, \code{agxDisplay}\\
+sRGB encoding & Eq.~\eqref{eq:gamma} & \code{linearToSrgb}\\
+Bloom & soft knee, 6 levels & \code{kBloomDownFrag}, \code{kBloomUpFrag}\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Limitation.} The image is stored in 8 bits per channel after the tone curve; dark gradients can band, and only
+the film grain added in the last pass breaks the steps up.

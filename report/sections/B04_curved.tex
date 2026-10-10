@@ -26,6 +26,29 @@ Eq.~\eqref{eq:tess}; smooth shading hides the facets inside the outline, not on 
 Elsewhere: tyres and muzzle rings are tori, helmets and the bunker's berm hemispheres, rotor blur discs flat cylinders,
 and the walking and patrol paths are curves too (Catmull--Rom splines, Section~\ref{sec:paths}).
 
+\textbf{Curves.} Paths are curves through points (\code{math/Spline.cpp}, \code{ai/HideController.cpp}):
+\begin{gather}
+t_{i+1}=t_i+\lVert\vect P_{i+1}-\vect P_i\rVert^{\alpha},\ \alpha=0.5;\qquad
+\vect P(u)=h_{00}(u)\vect P_1+h_{10}(u)\vect m_1+h_{01}(u)\vect P_2+h_{11}(u)\vect m_2,\ u\in[0,1]\label{eq:catmull}\\
+\vect m_1=(t_2-t_1)\Big(\frac{\vect P_1-\vect P_0}{t_1-t_0}-\frac{\vect P_2-\vect P_0}{t_2-t_0}+\frac{\vect P_2-\vect P_1}{t_2-t_1}\Big)\nonumber\\
+h_{00}=2u^3-3u^2+1,\quad h_{10}=u^3-2u^2+u,\quad h_{01}=-2u^3+3u^2,\quad h_{11}=u^3-u^2\nonumber\\
+\text{Chaikin: } \vect Q_{2i}=\tfrac34\vect P_i+\tfrac14\vect P_{i+1},\quad \vect Q_{2i+1}=\tfrac14\vect P_i+\tfrac34\vect P_{i+1}\quad(\text{3 passes, end points kept})\nonumber
+\end{gather}
+\begin{itemize}
+\item Centripetal Catmull--Rom ($\alpha=0.5$, soldiers' routes) passes through every waypoint with a continuous tangent and,
+unlike the uniform form ($\alpha=0$), never loops or forms a cusp between close points (Figure~\ref{fig:curves}a);
+$\vect m_2$ is $\vect m_1$ with every index raised by one.
+\item Chaikin's corner cutting (rovers' guide lines) doubles the points per pass and converges to a quadratic B-spline; it
+does not pass through the inner points (Figure~\ref{fig:curves}b).
+\item Arc length: a table of chords per segment, then binary search, so a soldier walks at constant speed along the curve.
+\end{itemize}
+\begin{figure}[htbp]
+\centering\plot{p_curves}{\linewidth}
+\caption{(a) Catmull--Rom curves through the same waypoints for $\alpha=0$, 0.5 (used) and 1 (Eq.~\eqref{eq:catmull});
+(b) Chaikin corner cutting of a grid path, one and three passes.}
+\label{fig:curves}
+\end{figure}
+
 \textbf{Limitation.} The primitives have no level of detail: all \nSphereInst{} sphere parts use \nSphereTri{}
 triangles each (about \sphereTriTotal{} million triangles), and a distant sphere costs the same as a close one. Choosing
 $s$ from the projected size (for example $s\propto\sqrt{\text{pixels}}$) would cut the sphere triangles by a large

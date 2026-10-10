@@ -32,8 +32,9 @@ error is positive and the rover turns left.}
 \label{fig:wb-lfr}
 \end{figure}
 
-Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a UAV can see. Algorithm~\ref{alg:intruder} is
-the whole controller of one rover.
+Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a UAV can see. Figure~\ref{fig:flow-rover} and
+Algorithm~\ref{alg:intruder} give the whole controller of one rover.
+\flowRover
 \begin{algorithm}[htbp]
 \caption{Intruder rover, one tick (\code{ai/HideController.cpp}). Flood fill $O(C)$ and Dijkstra $O(C\log C)$ for $C=80^2$ cells per re-plan; Chaikin $O(3n)$ for $n$ path points; line following $O(1)$ per tick.}
 \label{alg:intruder}
@@ -82,6 +83,8 @@ cannot see.}
 \label{fig:paths}
 \end{figure}
 
+Figure~\ref{fig:flow-soldier} and Algorithm~\ref{alg:soldier} plan one soldier route.
+\flowSoldier
 \algSoldier
 
 \begin{figure}[htbp]

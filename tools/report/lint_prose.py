@@ -51,6 +51,8 @@ def files(rev):
 
 
 def strip_comments(t):
+    """Comments and code listings (quoted source, e.g. variables v0, v1, v2) are not prose."""
+    t = re.sub(r"\\begin\{lstlisting\}.*?\\end\{lstlisting\}", "", t, flags=re.S)
     return "\n".join(re.sub(r"(?<!\\)%.*", "", line) for line in t.splitlines())
 
 

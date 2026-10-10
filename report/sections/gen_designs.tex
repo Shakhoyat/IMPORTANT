@@ -166,7 +166,14 @@
 \end{center}\vspace{-3mm}
 \noindent\textbf{Soldier.}\label{des:soldier} On-duty soldier of the camp garrison (friendly, possessable). 8 instances; the first stands 21\,m north of the bunker. Placement of the first: $T(-0.80,\allowbreak\,-0.30,\allowbreak\,21.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Soldier 1; lengths in m).\\Root: $W_{\text{root}}=T(-0.80,-0.30,21.00)$. \\Part: Hand (sphere). \ $W=W_{\text{root}}\,M_{\text{Pelvis}}\,M_{\text{Spine}}\,M_{\text{Chest}}\,M_{\text{Shoulder L}}\,M_{\text{Elbow L}}\,M_{\text{Wrist L}}\,M$, \quad $M=T(0.00,-0.05,0.00)\,S(0.09,0.12,0.08)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -0.800\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 21.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.090 & 0.000 & 0.000 & 0.000\\0.000 & 0.120 & 0.000 & -0.050\\0.000 & 0.000 & 0.080 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.044 & 0.081 & -0.044 & -0.957\\0.033 & 0.051 & 0.066 & 0.888\\0.072 & -0.073 & -0.003 & 21.458\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Soldier 1) is placed in the world by Eq.~\eqref{eq:ch-soldier}. The part Hand (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-soldier} and reaches the world through 6 groups, Eq.~\eqref{eq:chw-soldier}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(-0.800,-0.300,21.000)=\begin{bmatrix}1 & 0 & 0 & -0.800\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 21\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-soldier}\\
+M&=T(0.000,-0.050,0.000)\,S(0.090,0.120,0.080)=\begin{bmatrix}0.090 & 0 & 0 & 0\\0 & 0.120 & 0 & -0.050\\0 & 0 & 0.080 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-soldier}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Pelvis}}\,M_{\text{Spine}}\,M_{\text{Chest}}\,M_{\text{Shoulder L}}\nonumber\\
+&\quad\,M_{\text{Elbow L}}\,M_{\text{Wrist L}}\,M\nonumber\\
+&=\begin{bmatrix}0.044 & 0.081 & -0.044 & -0.957\\0.033 & 0.051 & 0.066 & 0.888\\0.072 & -0.073 & -0.003 & 21.458\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-soldier}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -252,7 +259,14 @@ Radio antenna & \primchip{cylinder} & $0.8{\times}\allowbreak 0.8{\times}\allowb
 \end{center}\vspace{-3mm}
 \noindent\textbf{Main battle tank.}\label{des:main_battle_tank} User-controllable tracked tank (skid steer, stabilised turret). 3 instances; the first stands 27\,m south-west of the bunker. Placement of the first: $T(-22.00,\allowbreak\,-0.30,\allowbreak\,-16.00)\allowbreak\,R_y(45^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Main Battle Tank; lengths in m).\\Root: $W_{\text{root}}=T(-22.00,-0.30,-16.00)\,R_y(45.0^\circ)$. \\Part: machine gun (MG) receiver (cuboid). \ $W=W_{\text{root}}\,M_{\text{Hull}}\,M_{\text{Turret yaw}}\,M_{\text{MG ring}}\,M_{\text{MG elevation}}\,M$, \quad $M=T(0.00,0.00,0.25)\,S(0.12,0.16,0.70)$.\[W_{\text{root}}=\begin{bmatrix}0.707 & 0.000 & 0.707 & -22.000\\0.000 & 1.000 & 0.000 & -0.300\\-0.707 & 0.000 & 0.707 & -16.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.120 & 0.000 & 0.000 & 0.000\\0.000 & 0.160 & 0.000 & 0.000\\0.000 & 0.000 & 0.700 & 0.250\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.085 & 0.000 & 0.495 & -21.859\\0.000 & 0.160 & 0.000 & 2.200\\-0.085 & 0.000 & 0.495 & -16.778\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Main Battle Tank) is placed in the world by Eq.~\eqref{eq:ch-main_battle_tank}. The part machine gun (MG) receiver (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-main_battle_tank} and reaches the world through 4 groups, Eq.~\eqref{eq:chw-main_battle_tank}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(-22.000,-0.300,-16.000)\,R_y(45.0^\circ)=\begin{bmatrix}0.707 & 0 & 0.707 & -22\\0 & 1 & 0 & -0.300\\-0.707 & 0 & 0.707 & -16\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-main_battle_tank}\\
+M&=T(0.000,0.000,0.250)\,S(0.120,0.160,0.700)=\begin{bmatrix}0.120 & 0 & 0 & 0\\0 & 0.160 & 0 & 0\\0 & 0 & 0.700 & 0.250\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-main_battle_tank}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Hull}}\,M_{\text{Turret yaw}}\,M_{\text{MG ring}}\,M_{\text{MG elevation}}\nonumber\\
+&\quad\,M\nonumber\\
+&=\begin{bmatrix}0.085 & 0 & 0.495 & -21.859\\0 & 0.160 & 0 & 2.200\\-0.085 & 0 & 0.495 & -16.778\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-main_battle_tank}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -360,7 +374,13 @@ Loader hatch hinge & \primchip{cylinder} & $6{\times}\allowbreak 6{\times}\allow
 \end{center}\vspace{-3mm}
 \noindent\textbf{Autonomous UAV.}\label{des:autonomous_uav} Patrol quadcopter. 2 instances; the first stands 12\,m north of the bunker. Placement of the first: $T(0.00,\allowbreak\,7.50,\allowbreak\,12.50)\allowbreak\,R_y(-180^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Autonomous UAV; lengths in m).\\Root: $W_{\text{root}}=T(0.00,7.50,12.50)\,R_y(180.0^\circ)$. \\Part: Prop hub (sphere). \ $W=W_{\text{root}}\,M_{\text{Motor mount Front-left}}\,M_{\text{Rotor}}\,M$, \quad $M=T(0.00,0.00,0.00)\,S(0.03,0.03,0.03)$.\[W_{\text{root}}=\begin{bmatrix}-1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 7.500\\0.000 & 0.000 & -1.000 & 12.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.025 & 0.000 & 0.000 & 0.000\\0.000 & 0.025 & 0.000 & 0.000\\0.000 & 0.000 & 0.025 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.025 & 0.000 & 0.000 & -0.184\\0.000 & 0.025 & 0.000 & 7.557\\0.000 & 0.000 & -0.025 & 12.316\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Autonomous UAV) is placed in the world by Eq.~\eqref{eq:ch-autonomous_uav}. The part Prop hub (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-autonomous_uav} and reaches the world through 2 groups, Eq.~\eqref{eq:chw-autonomous_uav}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(0.000,7.500,12.500)\,R_y(180.0^\circ)=\begin{bmatrix}-1 & 0 & 0 & 0\\0 & 1 & 0 & 7.500\\0 & 0 & -1 & 12.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-autonomous_uav}\\
+M&=T(0.000,0.000,0.000)\,S(0.025,0.025,0.025)=\begin{bmatrix}0.025 & 0 & 0 & 0\\0 & 0.025 & 0 & 0\\0 & 0 & 0.025 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-autonomous_uav}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Motor mount Front-left}}\,M_{\text{Rotor}}\,M\nonumber\\
+&=\begin{bmatrix}-0.025 & 0 & 0 & -0.184\\0 & 0.025 & 0 & 7.557\\0 & 0 & -0.025 & 12.316\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-autonomous_uav}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -412,7 +432,14 @@ Rail strut $\times$2 & \primchip{cuboid} & $0.8{\times}\allowbreak 2{\times}\all
 \end{center}\vspace{-3mm}
 \noindent\textbf{UAV round.}\label{des:uav_round} One round on the rail. 8 instances; the first stands 13\,m north of the bunker, inside the autonomous UAV. Placement of the first: $T(-0.08,\allowbreak\,7.42,\allowbreak\,12.50)\allowbreak\,R_y(-180^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Round; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Launcher rail L}}\,T(-0.02,-0.01,0.00)$. \\Part: Round fin (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.00,-0.07)\,R_z(45.0^\circ)\,S(0.00,0.03,0.03)$.\[W_{\text{root}}=\begin{bmatrix}-1.000 & 0.000 & 0.000 & -0.083\\0.000 & 1.000 & 0.000 & 7.417\\0.000 & 0.000 & -1.000 & 12.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.001 & -0.021 & 0.000 & 0.000\\0.001 & 0.021 & 0.000 & 0.000\\0.000 & 0.000 & 0.030 & -0.070\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.001 & 0.021 & 0.000 & -0.083\\0.001 & 0.021 & 0.000 & 7.417\\0.000 & 0.000 & -0.030 & 12.570\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Round) is placed in the world by Eq.~\eqref{eq:ch-uav_round}. The part Round fin (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-uav_round} and reaches the world through the root alone, Eq.~\eqref{eq:chw-uav_round}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Launcher rail L}}\,T(-0.022,-0.008,0.000)=\begin{bmatrix}-1 & 0 & 0 & -0.083\\0 & 1 & 0 & 7.417\\0 & 0 & -1 & 12.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-uav_round}\\
+M&=T(0.000,0.000,-0.070)\,R_z(45.0^\circ)\,S(0.002,0.030,0.030)\nonumber\\
+&=\begin{bmatrix}0.001 & -0.021 & 0 & 0\\0.001 & 0.021 & 0 & 0\\0 & 0 & 0.030 & -0.070\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-uav_round}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.001 & 0.021 & 0 & -0.083\\0.001 & 0.021 & 0 & 7.417\\0 & 0 & -0.030 & 12.570\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-uav_round}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -443,7 +470,13 @@ Round fin $\times$4 & \primchip{cuboid} & $0.2{\times}\allowbreak 3{\times}\allo
 \end{center}\vspace{-3mm}
 \noindent\textbf{SAM launcher.}\label{des:sam_launcher} Trailer-mounted surface-to-air missile launcher with four canisters (user controlled). One instance, 26\,m east of the bunker. Placement of the first: $T(25.10,\allowbreak\,-0.30,\allowbreak\,6.70)\allowbreak\,R_y(60^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, SAM launcher; lengths in m).\\Root: $W_{\text{root}}=T(25.10,-0.30,6.70)\,R_y(60.0^\circ)$. \\Part: Canister tube (cuboid). \ $W=W_{\text{root}}\,M_{\text{Turntable}}\,M_{\text{Cradle}}\,M_{\text{Canister 1}}\,M$, \quad $M=T(0.00,0.00,0.70)\,S(0.44,0.44,3.40)$.\[W_{\text{root}}=\begin{bmatrix}0.500 & 0.000 & 0.866 & 25.100\\0.000 & 1.000 & 0.000 & -0.300\\-0.866 & 0.000 & 0.500 & 6.700\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.440 & 0.000 & 0.000 & 0.000\\0.000 & 0.440 & 0.000 & 0.000\\0.000 & 0.000 & 3.400 & 0.700\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.220 & 0.000 & 2.944 & 25.913\\0.000 & 0.440 & 0.000 & 2.700\\-0.381 & 0.000 & 1.700 & 7.492\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (SAM launcher) is placed in the world by Eq.~\eqref{eq:ch-sam_launcher}. The part Canister tube (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-sam_launcher} and reaches the world through 3 groups, Eq.~\eqref{eq:chw-sam_launcher}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(25.100,-0.300,6.700)\,R_y(60.0^\circ)=\begin{bmatrix}0.500 & 0 & 0.866 & 25.100\\0 & 1 & 0 & -0.300\\-0.866 & 0 & 0.500 & 6.700\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-sam_launcher}\\
+M&=T(0.000,0.000,0.700)\,S(0.440,0.440,3.400)=\begin{bmatrix}0.440 & 0 & 0 & 0\\0 & 0.440 & 0 & 0\\0 & 0 & 3.400 & 0.700\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-sam_launcher}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Turntable}}\,M_{\text{Cradle}}\,M_{\text{Canister 1}}\,M\nonumber\\
+&=\begin{bmatrix}0.220 & 0 & 2.944 & 25.913\\0 & 0.440 & 0 & 2.700\\-0.381 & 0 & 1.700 & 7.492\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-sam_launcher}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -505,7 +538,10 @@ Canister stencil $\times$4 & \primchip{cuboid} & $0.6{\times}\allowbreak 12{\tim
 \end{center}\vspace{-3mm}
 \noindent\textbf{SAM missile.}\label{des:sam_missile} Flying round of the launch effect (hidden while in the canister). One instance, 26\,m east of the bunker, inside the SAM launcher. Placement of the first: $T(25.10,\allowbreak\,-0.30,\allowbreak\,6.70)\allowbreak\,R_y(60^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, SAM round; lengths in m).\\Root: $W_{\text{root}}=W_{\text{SAM launcher}}\,T(0.00,0.00,0.00)$. The design is one part: its world matrix is the root's.$$W_{\text{root}}=\begin{bmatrix}0.500 & 0.000 & 0.866 & 25.100\\0.000 & 1.000 & 0.000 & -0.300\\-0.866 & 0.000 & 0.500 & 6.700\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}$$\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} The design is one part, placed by Eq.~\eqref{eq:ch-sam_missile} (instance 1, SAM round; lengths in metres); its world matrix is the root's.
+\begin{align}
+W_{\text{root}}&=W_{\text{SAM launcher}}\,T(0.000,0.000,0.000)=\begin{bmatrix}0.500 & 0 & 0.866 & 25.100\\0 & 1 & 0 & -0.300\\-0.866 & 0 & 0.500 & 6.700\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-sam_missile}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -539,7 +575,13 @@ Round flame\,$^\dagger$ & \primchip{sphere} & $36.4{\times}\allowbreak 36.4{\tim
 \end{center}\vspace{-3mm}
 \noindent\textbf{MLRS rocket truck.}\label{des:mlrs_rocket_truck} 6x2 rocket truck with a rotating, elevating 12-tube pod (user controlled). One instance, 25\,m north-west of the bunker. Placement of the first: $T(-11.50,\allowbreak\,-0.30,\allowbreak\,22.50)\allowbreak\,R_y(-15^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, MLRS rocket truck; lengths in m).\\Root: $W_{\text{root}}=T(-11.50,-0.30,22.50)\,R_y(-15.0^\circ)$. \\Part: Launch tube (cylinder). \ $W=W_{\text{root}}\,M_{\text{Mount}}\,M_{\text{Pod}}\,M_{\text{Tube 01}}\,M$, \quad $M=T(0.00,0.00,1.00)\,S(0.30,0.30,3.60)$.\[W_{\text{root}}=\begin{bmatrix}0.966 & 0.000 & -0.259 & -11.500\\0.000 & 1.000 & 0.000 & -0.300\\0.259 & 0.000 & 0.966 & 22.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.300 & 0.000 & 0.000 & 0.000\\0.000 & 0.300 & 0.000 & 0.000\\0.000 & 0.000 & 3.600 & 1.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.290 & 0.000 & -0.932 & -12.166\\0.000 & 0.300 & 0.000 & 2.720\\0.078 & 0.000 & 3.477 & 21.700\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (MLRS rocket truck) is placed in the world by Eq.~\eqref{eq:ch-mlrs_rocket_truck}. The part Launch tube (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-mlrs_rocket_truck} and reaches the world through 3 groups, Eq.~\eqref{eq:chw-mlrs_rocket_truck}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(-11.500,-0.300,22.500)\,R_y(-15.0^\circ)=\begin{bmatrix}0.966 & 0 & -0.259 & -11.500\\0 & 1 & 0 & -0.300\\0.259 & 0 & 0.966 & 22.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-mlrs_rocket_truck}\\
+M&=T(0.000,0.000,1.000)\,S(0.300,0.300,3.600)=\begin{bmatrix}0.300 & 0 & 0 & 0\\0 & 0.300 & 0 & 0\\0 & 0 & 3.600 & 1\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-mlrs_rocket_truck}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Mount}}\,M_{\text{Pod}}\,M_{\text{Tube 01}}\,M\nonumber\\
+&=\begin{bmatrix}0.290 & 0 & -0.932 & -12.166\\0 & 0.300 & 0 & 2.720\\0.078 & 0 & 3.477 & 21.700\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-mlrs_rocket_truck}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -595,7 +637,10 @@ Pod stencil $\times$2 & \primchip{cuboid} & $0.6{\times}\allowbreak 16{\times}\a
 \end{center}\vspace{-3mm}
 \noindent\textbf{MLRS rocket.}\label{des:mlrs_rocket} Flying round of the launch effect (hidden while in the canister). 6 instances; the first stands 25\,m north-west of the bunker, inside the MLRS rocket truck. Placement of the first: $T(-11.50,\allowbreak\,-0.30,\allowbreak\,22.50)\allowbreak\,R_y(-15^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Rocket 1; lengths in m).\\Root: $W_{\text{root}}=W_{\text{MLRS rocket truck}}\,T(0.00,0.00,0.00)$. The design is one part: its world matrix is the root's.$$W_{\text{root}}=\begin{bmatrix}0.966 & 0.000 & -0.259 & -11.500\\0.000 & 1.000 & 0.000 & -0.300\\0.259 & 0.000 & 0.966 & 22.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}$$\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} The design is one part, placed by Eq.~\eqref{eq:ch-mlrs_rocket} (instance 1, Rocket 1; lengths in metres); its world matrix is the root's.
+\begin{align}
+W_{\text{root}}&=W_{\text{MLRS rocket truck}}\,T(0.000,0.000,0.000)=\begin{bmatrix}0.966 & 0 & -0.259 & -11.500\\0 & 1 & 0 & -0.300\\0.259 & 0 & 0.966 & 22.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-mlrs_rocket}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -620,7 +665,13 @@ Round flame\,$^\dagger$ & \primchip{sphere} & $28.6{\times}\allowbreak 28.6{\tim
 \end{center}\vspace{-3mm}
 \noindent\textbf{AA Gatling gun.}\label{des:aa_gatling_gun} User-controllable anti-aircraft Gatling gun with radar dome. One instance, 28\,m south-east of the bunker. Placement of the first: $T(21.00,\allowbreak\,-0.30,\allowbreak\,-19.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, AA Gatling Gun; lengths in m).\\Root: $W_{\text{root}}=T(21.00,-0.30,-19.00)$. \\Part: Gatling barrel (cylinder). \ $W=W_{\text{root}}\,M_{\text{Mount yaw}}\,M_{\text{Cradle pitch}}\,M_{\text{Barrel cluster}}\,M$, \quad $M=T(0.00,0.14,1.00)\,S(0.07,0.07,2.00)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 21.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & -19.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.070 & 0.000 & 0.000 & 0.000\\0.000 & 0.070 & 0.000 & 0.140\\0.000 & 0.000 & 2.000 & 1.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.047 & -0.018 & 1.394 & 22.611\\0.000 & 0.066 & 0.684 & 2.867\\-0.052 & 0.016 & -1.261 & -20.458\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (AA Gatling Gun) is placed in the world by Eq.~\eqref{eq:ch-aa_gatling_gun}. The part Gatling barrel (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-aa_gatling_gun} and reaches the world through 3 groups, Eq.~\eqref{eq:chw-aa_gatling_gun}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(21.000,-0.300,-19.000)=\begin{bmatrix}1 & 0 & 0 & 21\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & -19\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-aa_gatling_gun}\\
+M&=T(0.000,0.140,1.000)\,S(0.070,0.070,2.000)=\begin{bmatrix}0.070 & 0 & 0 & 0\\0 & 0.070 & 0 & 0.140\\0 & 0 & 2 & 1\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-aa_gatling_gun}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Mount yaw}}\,M_{\text{Cradle pitch}}\,M_{\text{Barrel cluster}}\,M\nonumber\\
+&=\begin{bmatrix}-0.047 & -0.018 & 1.394 & 22.611\\0 & 0.066 & 0.684 & 2.867\\-0.052 & 0.016 & -1.261 & -20.458\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-aa_gatling_gun}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -676,7 +727,11 @@ Grab handle & \primchip{cylinder} & $4{\times}\allowbreak 4{\times}\allowbreak 5
 \end{center}\vspace{-3mm}
 \noindent\textbf{AA shell casing.}\label{des:aa_shell_casing} Ejected brass casing. 20 instances; the first stands 28\,m south-east of the bunker, inside the AA Gatling gun. Placement of the first: $T(21.00,\allowbreak\,-50.30,\allowbreak\,-19.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Shell casing; lengths in m).\\Root: $W_{\text{root}}=W_{\text{AA Gatling Gun}}\,T(0.00,-50.00,0.00)\,S(0.00,0.00,0.00)$. The design is one part: its world matrix is the root's.$$W_{\text{root}}=\begin{bmatrix}0.000 & 0.000 & 0.000 & 21.000\\0.000 & 0.000 & 0.000 & -50.300\\0.000 & 0.000 & 0.000 & -19.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}$$\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} The design is one part, placed by Eq.~\eqref{eq:ch-aa_shell_casing} (instance 1, Shell casing; lengths in metres); its world matrix is the root's.
+\begin{align}
+W_{\text{root}}&=W_{\text{AA Gatling Gun}}\,T(0.000,-50.000,0.000)\,S(0.000,0.000,0.000)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0 & 21\\0 & 0 & 0 & -50.300\\0 & 0 & 0 & -19\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-aa_shell_casing}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -710,7 +765,14 @@ Shell casing\,$^\dagger$ & \primchip{cylinder} & $3{\times}\allowbreak 3{\times}
 \end{center}\vspace{-3mm}
 \noindent\textbf{Scout helicopter.}\label{des:scout_helicopter} MH-6 style light helicopter (user-controllable). One instance, 26\,m north-east of the bunker. Placement of the first: $T(20.30,\allowbreak\,-0.18,\allowbreak\,17.00)\allowbreak\,R_y(-130^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Scout helicopter; lengths in m).\\Root: $W_{\text{root}}=T(20.30,-0.18,17.00)\,R_y(-129.9^\circ)$. \\Part: Blade 1 (cuboid). \ $W=W_{\text{root}}\,M_{\text{Body}}\,M_{\text{Rotor head}}\,M_{\text{Tip-path plane}}\,M_{\text{Main rotor}}\,M_{\text{Blade 1 pivot}}\,M_{\text{Blade 1 flap}}\,M$, \quad $M=T(0.00,0.00,1.95)\,S(0.22,0.03,3.90)$.\[W_{\text{root}}=\begin{bmatrix}-0.642 & 0.000 & -0.767 & 20.300\\0.000 & 1.000 & 0.000 & -0.180\\0.767 & 0.000 & -0.642 & 17.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.220 & 0.000 & 0.000 & 0.000\\0.000 & 0.030 & 0.000 & 0.000\\0.000 & 0.000 & 3.900 & 1.950\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.142 & -0.002 & -2.968 & 18.586\\0.011 & 0.030 & -0.475 & 2.382\\0.168 & -0.004 & -2.485 & 15.565\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Scout helicopter) is placed in the world by Eq.~\eqref{eq:ch-scout_helicopter}. The part Blade 1 (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-scout_helicopter} and reaches the world through 6 groups, Eq.~\eqref{eq:chw-scout_helicopter}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(20.300,-0.180,17.000)\,R_y(-129.9^\circ)=\begin{bmatrix}-0.642 & 0 & -0.767 & 20.300\\0 & 1 & 0 & -0.180\\0.767 & 0 & -0.642 & 17\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-scout_helicopter}\\
+M&=T(0.000,0.000,1.950)\,S(0.220,0.030,3.900)=\begin{bmatrix}0.220 & 0 & 0 & 0\\0 & 0.030 & 0 & 0\\0 & 0 & 3.900 & 1.950\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-scout_helicopter}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Body}}\,M_{\text{Rotor head}}\,M_{\text{Tip-path plane}}\,M_{\text{Main rotor}}\nonumber\\
+&\quad\,M_{\text{Blade 1 pivot}}\,M_{\text{Blade 1 flap}}\,M\nonumber\\
+&=\begin{bmatrix}-0.142 & -0.002 & -2.968 & 18.586\\0.011 & 0.030 & -0.475 & 2.382\\0.168 & -0.004 & -2.485 & 15.565\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-scout_helicopter}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -801,7 +863,15 @@ Searchlight cone & \primchip{frustum} & $100{\times}\allowbreak 100{\times}\allo
 \end{center}\vspace{-3mm}
 \noindent\textbf{Cargo truck.}\label{des:cargo_truck} 6x6 tactical truck, parked (local +Z = front). 2 instances; the first stands 26\,m south-west of the bunker, inside the motor pool. Placement of the first: $T(-15.64,\allowbreak\,-0.30,\allowbreak\,-20.38)\allowbreak\,R_y(45^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Cargo truck; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Motor pool}}\,T(6.36,0.00,-4.38)\,R_y(45.0^\circ)$. \\Part: Wheel (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(-1.10,0.53,2.75)\,R_y(90.0^\circ)\,S(1.05,1.05,0.40)$.\[W_{\text{root}}=\begin{bmatrix}0.707 & 0.000 & 0.707 & -15.636\\0.000 & 1.000 & 0.000 & -0.300\\-0.707 & 0.000 & 0.707 & -20.384\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.000 & 0.000 & 0.400 & -1.100\\0.000 & 1.050 & 0.000 & 0.530\\-1.050 & 0.000 & 0.000 & 2.750\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.742 & 0.000 & 0.283 & -14.469\\0.000 & 1.050 & 0.000 & 0.230\\-0.742 & 0.000 & -0.283 & -17.662\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Cargo truck) is placed in the world by Eq.~\eqref{eq:ch-cargo_truck}. The part Wheel (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-cargo_truck} and reaches the world through the root alone, Eq.~\eqref{eq:chw-cargo_truck}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Motor pool}}\,T(6.364,0.000,-4.384)\,R_y(45.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.707 & 0 & 0.707 & -15.636\\0 & 1 & 0 & -0.300\\-0.707 & 0 & 0.707 & -20.384\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-cargo_truck}\\
+M&=T(-1.100,0.530,2.750)\,R_y(90.0^\circ)\,S(1.050,1.050,0.400)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.400 & -1.100\\0 & 1.050 & 0 & 0.530\\-1.050 & 0 & 0 & 2.750\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-cargo_truck}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.742 & 0 & 0.283 & -14.469\\0 & 1.050 & 0 & 0.230\\-0.742 & 0 & -0.283 & -17.662\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-cargo_truck}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -833,7 +903,14 @@ Exhaust stack & \primchip{cylinder} & $12{\times}\allowbreak 12{\times}\allowbre
 \end{center}\vspace{-3mm}
 \noindent\textbf{Target rover.}\label{des:target_rover} Ground robot hiding from the UAV. 6 instances; the first stands 10\,m north-east of the bunker. Placement of the first: $T(6.00,\allowbreak\,0.14,\allowbreak\,7.50)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Target Rover; lengths in m).\\Root: $W_{\text{root}}=T(6.00,0.14,7.50)\,R_x(6.4^\circ)\,R_z(2.9^\circ)$. \\Part: Scanner head (sphere). \ $W=W_{\text{root}}\,M_{\text{Scanner pivot}}\,M$, \quad $M=T(0.00,0.00,0.00)\,S(0.07,0.07,0.07)$.\[W_{\text{root}}=\begin{bmatrix}0.999 & -0.051 & 0.000 & 6.000\\0.050 & 0.992 & -0.112 & 0.137\\0.006 & 0.112 & 0.994 & 7.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.070 & 0.000 & 0.000 & 0.000\\0.000 & 0.070 & 0.000 & 0.000\\0.000 & 0.000 & 0.070 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.070 & -0.004 & 0.000 & 6.057\\0.004 & 0.069 & -0.008 & 0.587\\0.000 & 0.008 & 0.070 & 7.651\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Target Rover) is placed in the world by Eq.~\eqref{eq:ch-target_rover}. The part Scanner head (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-target_rover} and reaches the world through 1 group, Eq.~\eqref{eq:chw-target_rover}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(6.000,0.137,7.500)\,R_x(6.4^\circ)\,R_z(2.9^\circ)\nonumber\\
+&=\begin{bmatrix}0.999 & -0.051 & 0 & 6\\0.050 & 0.992 & -0.112 & 0.137\\0.006 & 0.112 & 0.994 & 7.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-target_rover}\\
+M&=T(0.000,0.000,0.000)\,S(0.070,0.070,0.070)=\begin{bmatrix}0.070 & 0 & 0 & 0\\0 & 0.070 & 0 & 0\\0 & 0 & 0.070 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-target_rover}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Scanner pivot}}\,M\nonumber\\
+&=\begin{bmatrix}0.070 & -0.004 & 0 & 6.057\\0.004 & 0.069 & -0.008 & 0.587\\0 & 0.008 & 0.070 & 7.651\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-target_rover}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -883,7 +960,14 @@ Scanner window & \primchip{cuboid} & $5{\times}\allowbreak 3{\times}\allowbreak 
 \end{center}\vspace{-3mm}
 \noindent\textbf{Command bunker.}\label{des:command_bunker} Underground command bunker with its surface installations. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,0.00,\allowbreak\,0.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Command Bunker; lengths in m).\\Root: $W_{\text{root}}=T(0.00,0.00,0.00)$. \\Part: Handle rose (cylinder). \ $W=W_{\text{root}}\,M_{\text{Generator room}}\,M_{\text{GENERATOR ROOM DOOR hinge}}\,M$, \quad $M=T(-0.07,1.02,1.10)\,R_y(90.0^\circ)\,S(0.06,0.06,0.01)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.000 & 0.000 & 0.012 & -0.068\\0.000 & 0.065 & 0.000 & 1.020\\-0.065 & 0.000 & 0.000 & 1.105\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.000 & 0.000 & 0.012 & 1.722\\0.000 & 0.065 & 0.000 & -2.380\\-0.065 & 0.000 & 0.000 & 1.715\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Command Bunker) is placed in the world by Eq.~\eqref{eq:ch-command_bunker}. The part Handle rose (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-command_bunker} and reaches the world through 2 groups, Eq.~\eqref{eq:chw-command_bunker}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-command_bunker}\\
+M&=T(-0.068,1.020,1.105)\,R_y(90.0^\circ)\,S(0.065,0.065,0.012)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.012 & -0.068\\0 & 0.065 & 0 & 1.020\\-0.065 & 0 & 0 & 1.105\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-command_bunker}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Generator room}}\,M_{\text{GENERATOR ROOM DOOR hinge}}\,M\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.012 & 1.722\\0 & 0.065 & 0 & -2.380\\-0.065 & 0 & 0 & 1.715\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-command_bunker}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1107,7 +1191,14 @@ Sandbag $\times$9 & \primchip{capsule} & $24{\times}\allowbreak 18{\times}\allow
 \end{center}\vspace{-3mm}
 \noindent\textbf{Barracks hall.}\label{des:barracks_hall} Enterable prefab barracks: bunks, lockers, mess table, gym corner. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,0.00,\allowbreak\,0.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Barracks hall; lengths in m).\\Root: $W_{\text{root}}=T(0.00,0.00,0.00)$. \\Part: Handle rose (cylinder). \ $W=W_{\text{root}}\,M_{\text{BARRACKS DOOR hinge}}\,M$, \quad $M=T(-0.09,1.01,1.21)\,R_y(90.0^\circ)\,S(0.06,0.06,0.01)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.000 & 0.000 & 0.012 & -0.093\\0.000 & 0.065 & 0.000 & 1.012\\-0.065 & 0.000 & 0.000 & 1.215\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.065 & 0.000 & 0.000 & 22.935\\0.000 & 0.065 & 0.000 & 0.832\\0.000 & 0.000 & 0.012 & -8.678\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Barracks hall) is placed in the world by Eq.~\eqref{eq:ch-barracks_hall}. The part Handle rose (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-barracks_hall} and reaches the world through 1 group, Eq.~\eqref{eq:chw-barracks_hall}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-barracks_hall}\\
+M&=T(-0.093,1.012,1.215)\,R_y(90.0^\circ)\,S(0.065,0.065,0.012)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.012 & -0.093\\0 & 0.065 & 0 & 1.012\\-0.065 & 0 & 0 & 1.215\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-barracks_hall}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{BARRACKS DOOR hinge}}\,M\nonumber\\
+&=\begin{bmatrix}0.065 & 0 & 0 & 22.935\\0 & 0.065 & 0 & 0.832\\0 & 0 & 0.012 & -8.678\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-barracks_hall}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1208,7 +1299,14 @@ Ladder rung $\times$12 & \primchip{cylinder} & $2.5{\times}\allowbreak 2.5{\time
 \end{center}\vspace{-3mm}
 \noindent\textbf{Air-defence radar.}\label{des:air_defence_radar} Surveillance radar site (user-controllable). One instance, 29\,m east of the bunker. Placement of the first: $T(29.00,\allowbreak\,-0.30,\allowbreak\,-3.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Air-defence radar; lengths in m).\\Root: $W_{\text{root}}=T(29.00,-0.30,-3.00)$. \\Part: Array tile c1 r1 (cuboid). \ $W=W_{\text{root}}\,M_{\text{Azimuth head}}\,M_{\text{Elevation yoke}}\,M_{\text{Antenna array}}\,M$, \quad $M=T(-1.91,-0.80,0.38)\,R_y(22.5^\circ)\,S(0.64,0.78,0.05)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 29.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & -3.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.591 & 0.000 & 0.019 & -1.913\\0.000 & 0.780 & 0.000 & -0.800\\-0.245 & 0.000 & 0.046 & 0.381\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.591 & 0.000 & 0.019 & 27.087\\-0.017 & 0.778 & 0.003 & 4.898\\-0.244 & -0.054 & 0.046 & -1.567\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Air-defence radar) is placed in the world by Eq.~\eqref{eq:ch-air_defence_radar}. The part Array tile c1 r1 (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-air_defence_radar} and reaches the world through 3 groups, Eq.~\eqref{eq:chw-air_defence_radar}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(29.000,-0.300,-3.000)=\begin{bmatrix}1 & 0 & 0 & 29\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & -3\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-air_defence_radar}\\
+M&=T(-1.913,-0.800,0.381)\,R_y(22.5^\circ)\,S(0.640,0.780,0.050)\nonumber\\
+&=\begin{bmatrix}0.591 & 0 & 0.019 & -1.913\\0 & 0.780 & 0 & -0.800\\-0.245 & 0 & 0.046 & 0.381\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-air_defence_radar}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Azimuth head}}\,M_{\text{Elevation yoke}}\,M_{\text{Antenna array}}\,M\nonumber\\
+&=\begin{bmatrix}0.591 & 0 & 0.019 & 27.087\\-0.017 & 0.778 & 0.003 & 4.898\\-0.244 & -0.054 & 0.046 & -1.567\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-air_defence_radar}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1290,7 +1388,14 @@ IFF dipole $\times$6 & \primchip{cuboid} & $4{\times}\allowbreak 20{\times}\allo
 \end{center}\vspace{-3mm}
 \noindent\textbf{Motor pool.}\label{des:motor_pool} Vehicle park around the tank spot. One instance, 27\,m south-west of the bunker. Placement of the first: $T(-22.00,\allowbreak\,-0.30,\allowbreak\,-16.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Motor pool; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(-22.00,-0.30,-16.00)$. \\Part: Floodlight pole (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,2.60,7.92)\,R_x(90.0^\circ)\,S(0.16,0.16,5.20)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -22.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & -16.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.160 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -5.200 & 2.600\\0.000 & 0.160 & 0.000 & 7.920\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.160 & 0.000 & 0.000 & -22.000\\0.000 & 0.000 & -5.200 & 2.300\\0.000 & 0.160 & 0.000 & -8.080\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Motor pool) is placed in the world by Eq.~\eqref{eq:ch-motor_pool}. The part Floodlight pole (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-motor_pool} and reaches the world through the root alone, Eq.~\eqref{eq:chw-motor_pool}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(-22.000,-0.300,-16.000)=\begin{bmatrix}1 & 0 & 0 & -22\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & -16\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-motor_pool}\\
+M&=T(0.000,2.600,7.920)\,R_x(90.0^\circ)\,S(0.160,0.160,5.200)\nonumber\\
+&=\begin{bmatrix}0.160 & 0 & 0 & 0\\0 & 0 & -5.200 & 2.600\\0 & 0.160 & 0 & 7.920\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-motor_pool}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.160 & 0 & 0 & -22\\0 & 0 & -5.200 & 2.300\\0 & 0.160 & 0 & -8.080\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-motor_pool}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1313,7 +1418,14 @@ Floodlight lens & \primchip{sphere} & $38{\times}\allowbreak 38{\times}\allowbre
 \end{center}\vspace{-3mm}
 \noindent\textbf{Helipad.}\label{des:helipad} Concrete landing pad with markings and lights. One instance, 26\,m north-east of the bunker. Placement of the first: $T(20.30,\allowbreak\,-0.30,\allowbreak\,17.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Helipad; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(20.30,-0.30,17.00)$. \\Part: Helipad disc (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.04,0.00)\,R_x(90.0^\circ)\,S(10.00,10.00,0.08)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 20.300\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 17.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}10.000 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -0.080 & 0.040\\0.000 & 10.000 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}10.000 & 0.000 & 0.000 & 20.300\\0.000 & 0.000 & -0.080 & -0.260\\0.000 & 10.000 & 0.000 & 17.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Helipad) is placed in the world by Eq.~\eqref{eq:ch-helipad}. The part Helipad disc (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-helipad} and reaches the world through the root alone, Eq.~\eqref{eq:chw-helipad}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(20.300,-0.300,17.000)=\begin{bmatrix}1 & 0 & 0 & 20.300\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 17\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-helipad}\\
+M&=T(0.000,0.040,0.000)\,R_x(90.0^\circ)\,S(10.000,10.000,0.080)\nonumber\\
+&=\begin{bmatrix}10 & 0 & 0 & 0\\0 & 0 & -0.080 & 0.040\\0 & 10 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-helipad}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}10 & 0 & 0 & 20.300\\0 & 0 & -0.080 & -0.260\\0 & 10 & 0 & 17\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-helipad}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1338,7 +1450,14 @@ Pad floodlight lens & \primchip{sphere} & $32{\times}\allowbreak 32{\times}\allo
 \end{center}\vspace{-3mm}
 \noindent\textbf{Ammunition bunker.}\label{des:ammunition_bunker} Earth-covered ammunition store; entrance towards local +Z. One instance, 28\,m north of the bunker. Placement of the first: $T(10.50,\allowbreak\,-0.30,\allowbreak\,26.20)\allowbreak\,R_y(-90^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Ammunition bunker; lengths in m).\\Root: $W_{\text{root}}=T(10.50,-0.30,26.20)\,R_y(270.0^\circ)$. \\Part: Earth mound lobe (sphere). \ $W=W_{\text{root}}\,M$, \quad $M=T(-2.20,0.10,-1.80)\,R_y(20.0^\circ)\,S(4.20,2.40,3.40)$.\[W_{\text{root}}=\begin{bmatrix}0.000 & 0.000 & -1.000 & 10.500\\0.000 & 1.000 & 0.000 & -0.300\\1.000 & 0.000 & 0.000 & 26.200\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}3.947 & 0.000 & 1.163 & -2.200\\0.000 & 2.400 & 0.000 & 0.100\\-1.436 & 0.000 & 3.195 & -1.800\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}1.436 & 0.000 & -3.195 & 12.300\\0.000 & 2.400 & 0.000 & -0.200\\3.947 & 0.000 & 1.163 & 24.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Ammunition bunker) is placed in the world by Eq.~\eqref{eq:ch-ammunition_bunker}. The part Earth mound lobe (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-ammunition_bunker} and reaches the world through the root alone, Eq.~\eqref{eq:chw-ammunition_bunker}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(10.500,-0.300,26.200)\,R_y(270.0^\circ)=\begin{bmatrix}0 & 0 & -1 & 10.500\\0 & 1 & 0 & -0.300\\1 & 0 & 0 & 26.200\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-ammunition_bunker}\\
+M&=T(-2.200,0.100,-1.800)\,R_y(20.0^\circ)\,S(4.200,2.400,3.400)\nonumber\\
+&=\begin{bmatrix}3.947 & 0 & 1.163 & -2.200\\0 & 2.400 & 0 & 0.100\\-1.436 & 0 & 3.195 & -1.800\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-ammunition_bunker}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}1.436 & 0 & -3.195 & 12.300\\0 & 2.400 & 0 & -0.200\\3.947 & 0 & 1.163 & 24\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-ammunition_bunker}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1374,7 +1493,15 @@ Vent cap $\times$2 & \primchip{cylinder} & $34{\times}\allowbreak 34{\times}\all
 \end{center}\vspace{-3mm}
 \noindent\textbf{Guard tower.}\label{des:guard_tower} Perimeter guard tower; local +Z points into the base. 4 instances; the first stands 32\,m north-east of the bunker. Placement of the first: $T(16.20,\allowbreak\,-0.30,\allowbreak\,28.06)\allowbreak\,R_y(-150^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Guard tower 1; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(16.20,-0.30,28.06)\,R_y(-150.0^\circ)$. \\Part: Tower leg (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(1.09,1.90,1.09)\,R_y(-135.0^\circ)\,R_x(-87.6^\circ)\,S(0.16,0.16,4.20)$.\[W_{\text{root}}=\begin{bmatrix}-0.866 & 0.000 & -0.500 & 16.200\\0.000 & 1.000 & 0.000 & -0.300\\0.500 & 0.000 & -0.866 & 28.059\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-0.113 & 0.113 & -0.126 & 1.093\\0.000 & 0.007 & 4.200 & 1.900\\0.113 & 0.113 & -0.126 & 1.093\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.041 & -0.154 & 0.172 & 14.707\\0.000 & 0.007 & 4.200 & 1.600\\-0.155 & -0.041 & 0.046 & 27.659\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Guard tower 1) is placed in the world by Eq.~\eqref{eq:ch-guard_tower}. The part Tower leg (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-guard_tower} and reaches the world through the root alone, Eq.~\eqref{eq:chw-guard_tower}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(16.200,-0.300,28.059)\,R_y(-150.0^\circ)\nonumber\\
+&=\begin{bmatrix}-0.866 & 0 & -0.500 & 16.200\\0 & 1 & 0 & -0.300\\0.500 & 0 & -0.866 & 28.059\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-guard_tower}\\
+M&=T(1.093,1.900,1.093)\,R_y(-135.0^\circ)\,R_x(-87.6^\circ)\,S(0.160,0.160,4.204)\nonumber\\
+&=\begin{bmatrix}-0.113 & 0.113 & -0.126 & 1.093\\0 & 0.007 & 4.200 & 1.900\\0.113 & 0.113 & -0.126 & 1.093\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-guard_tower}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.041 & -0.154 & 0.172 & 14.707\\0 & 0.007 & 4.200 & 1.600\\-0.155 & -0.041 & 0.046 & 27.659\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-guard_tower}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1411,7 +1538,14 @@ Radio LED & \primchip{sphere} & $3.5{\times}\allowbreak 3.5{\times}\allowbreak 2
 \end{center}\vspace{-3mm}
 \noindent\textbf{Watchtower.}\label{des:watchtower} Guard tower with floodlight. One instance, 14\,m north-east of the bunker. Placement of the first: $T(10.50,\allowbreak\,0.06,\allowbreak\,10.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Watchtower; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(10.50,0.06,10.00)$. \\Part: Tower leg (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.95,2.35,0.95)\,R_y(-135.0^\circ)\,R_x(-86.9^\circ)\,S(0.14,0.14,5.31)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 10.500\\0.000 & 1.000 & 0.000 & 0.063\\0.000 & 0.000 & 1.000 & 10.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-0.099 & 0.099 & -0.200 & 0.950\\0.000 & 0.007 & 5.300 & 2.350\\0.099 & 0.099 & -0.200 & 0.950\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.099 & 0.099 & -0.200 & 11.450\\0.000 & 0.007 & 5.300 & 2.413\\0.099 & 0.099 & -0.200 & 10.950\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Watchtower) is placed in the world by Eq.~\eqref{eq:ch-watchtower}. The part Tower leg (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-watchtower} and reaches the world through the root alone, Eq.~\eqref{eq:chw-watchtower}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(10.500,0.063,10.000)=\begin{bmatrix}1 & 0 & 0 & 10.500\\0 & 1 & 0 & 0.063\\0 & 0 & 1 & 10\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-watchtower}\\
+M&=T(0.950,2.350,0.950)\,R_y(-135.0^\circ)\,R_x(-86.9^\circ)\,S(0.140,0.140,5.308)\nonumber\\
+&=\begin{bmatrix}-0.099 & 0.099 & -0.200 & 0.950\\0 & 0.007 & 5.300 & 2.350\\0.099 & 0.099 & -0.200 & 0.950\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-watchtower}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.099 & 0.099 & -0.200 & 11.450\\0 & 0.007 & 5.300 & 2.413\\0.099 & 0.099 & -0.200 & 10.950\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-watchtower}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1440,7 +1574,14 @@ Floodlight lens & \primchip{sphere} & $30{\times}\allowbreak 30{\times}\allowbre
 \end{center}\vspace{-3mm}
 \noindent\textbf{Fuel depot.}\label{des:fuel_depot} Bladders in a sandbag dike, pump, generator. One instance, 29\,m south of the bunker. Placement of the first: $T(-6.00,\allowbreak\,-0.30,\allowbreak\,-28.50)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Fuel depot; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(-6.00,-0.30,-28.50)$. \\Part: Exhaust stack (cylinder). \ $W=W_{\text{root}}\,M_{\text{Generator}}\,M$, \quad $M=T(0.30,1.60,0.80)\,R_x(90.0^\circ)\,S(0.10,0.10,0.70)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -6.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & -28.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.100 & 0.000 & 0.000 & 0.300\\0.000 & 0.000 & -0.700 & 1.600\\0.000 & 0.100 & 0.000 & 0.800\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.000 & 0.100 & 0.000 & 2.000\\0.000 & 0.000 & -0.700 & 1.300\\-0.100 & 0.000 & 0.000 & -29.400\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Fuel depot) is placed in the world by Eq.~\eqref{eq:ch-fuel_depot}. The part Exhaust stack (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-fuel_depot} and reaches the world through 1 group, Eq.~\eqref{eq:chw-fuel_depot}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(-6.000,-0.300,-28.500)=\begin{bmatrix}1 & 0 & 0 & -6\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & -28.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-fuel_depot}\\
+M&=T(0.300,1.600,0.800)\,R_x(90.0^\circ)\,S(0.100,0.100,0.700)\nonumber\\
+&=\begin{bmatrix}0.100 & 0 & 0 & 0.300\\0 & 0 & -0.700 & 1.600\\0 & 0.100 & 0 & 0.800\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-fuel_depot}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Generator}}\,M\nonumber\\
+&=\begin{bmatrix}0 & 0.100 & 0 & 2\\0 & 0 & -0.700 & 1.300\\-0.100 & 0 & 0 & -29.400\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-fuel_depot}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1469,7 +1610,15 @@ Power cable & \primchip{cylinder} & $6{\times}\allowbreak 6{\times}\allowbreak 2
 \end{center}\vspace{-3mm}
 \noindent\textbf{Quonset hut.}\label{des:quonset_hut} Half-buried cylinder hut; local +Z faces the compound. 3 instances; the first stands 27\,m north-west of the bunker. Placement of the first: $T(-22.03,\allowbreak\,-0.30,\allowbreak\,15.61)\allowbreak\,R_y(125^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Quonset hut 1; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Barracks}}\,T(-22.03,0.00,15.61)\,R_y(125.3^\circ)$. \\Part: Hut flank window (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(-1.87,1.32,-2.40)\,R_z(58.0^\circ)\,S(0.70,0.03,0.50)$.\[W_{\text{root}}=\begin{bmatrix}-0.578 & 0.000 & 0.816 & -22.029\\0.000 & 1.000 & 0.000 & -0.300\\-0.816 & 0.000 & -0.578 & 15.611\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.371 & -0.025 & 0.000 & -1.874\\0.594 & 0.016 & 0.000 & 1.321\\0.000 & 0.000 & 0.500 & -2.400\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.214 & 0.015 & 0.408 & -22.904\\0.594 & 0.016 & 0.000 & 1.021\\-0.303 & 0.021 & -0.289 & 18.528\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Quonset hut 1) is placed in the world by Eq.~\eqref{eq:ch-quonset_hut}. The part Hut flank window (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-quonset_hut} and reaches the world through the root alone, Eq.~\eqref{eq:chw-quonset_hut}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Barracks}}\,T(-22.029,0.000,15.611)\,R_y(125.3^\circ)\nonumber\\
+&=\begin{bmatrix}-0.578 & 0 & 0.816 & -22.029\\0 & 1 & 0 & -0.300\\-0.816 & 0 & -0.578 & 15.611\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-quonset_hut}\\
+M&=T(-1.874,1.321,-2.400)\,R_z(58.0^\circ)\,S(0.700,0.030,0.500)\nonumber\\
+&=\begin{bmatrix}0.371 & -0.025 & 0 & -1.874\\0.594 & 0.016 & 0 & 1.321\\0 & 0 & 0.500 & -2.400\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-quonset_hut}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.214 & 0.015 & 0.408 & -22.904\\0.594 & 0.016 & 0 & 1.021\\-0.303 & 0.021 & -0.289 & 18.528\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-quonset_hut}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1497,7 +1646,14 @@ Blast wall course $\times$3 & \primchip{cuboid} & $240..300{\times}\allowbreak 4
 \end{center}\vspace{-3mm}
 \noindent\textbf{Radio mast.}\label{des:radio_mast} Guyed lattice mast. One instance, 14\,m north-west of the bunker. Placement of the first: $T(-13.00,\allowbreak\,0.00,\allowbreak\,6.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Radio mast; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(-13.00,0.00,6.00)$. \\Part: Mast leg (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,4.50,0.27)\,R_y(180.0^\circ)\,R_x(-88.3^\circ)\,S(0.07,0.07,9.00)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -13.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 6.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-0.070 & 0.000 & 0.000 & 0.000\\0.000 & 0.002 & 9.000 & 4.500\\0.000 & 0.070 & -0.260 & 0.270\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.070 & 0.000 & 0.000 & -13.000\\0.000 & 0.002 & 9.000 & 4.500\\0.000 & 0.070 & -0.260 & 6.270\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Radio mast) is placed in the world by Eq.~\eqref{eq:ch-radio_mast}. The part Mast leg (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-radio_mast} and reaches the world through the root alone, Eq.~\eqref{eq:chw-radio_mast}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(-13.000,0.000,6.000)=\begin{bmatrix}1 & 0 & 0 & -13\\0 & 1 & 0 & 0\\0 & 0 & 1 & 6\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-radio_mast}\\
+M&=T(0.000,4.500,0.270)\,R_y(180.0^\circ)\,R_x(-88.3^\circ)\,S(0.070,0.070,9.004)\nonumber\\
+&=\begin{bmatrix}-0.070 & 0 & 0 & 0\\0 & 0.002 & 9 & 4.500\\0 & 0.070 & -0.260 & 0.270\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-radio_mast}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.070 & 0 & 0 & -13\\0 & 0.002 & 9 & 4.500\\0 & 0.070 & -0.260 & 6.270\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-radio_mast}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1521,7 +1677,15 @@ Guy anchor $\times$3 & \primchip{cuboid} & $30{\times}\allowbreak 25{\times}\all
 \end{center}\vspace{-3mm}
 \noindent\textbf{Camouflaged tent.}\label{des:camouflaged_tent} A-frame tent under a net. One instance, 10\,m west of the bunker. Placement of the first: $T(-9.20,\allowbreak\,-0.15,\allowbreak\,-3.80)\allowbreak\,R_y(20^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Camouflaged tent; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(-9.20,-0.15,-3.80)\,R_y(20.0^\circ)$. \\Part: Ridge pole (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,1.70,0.00)\,R_y(90.0^\circ)\,S(0.07,0.07,3.20)$.\[W_{\text{root}}=\begin{bmatrix}0.940 & 0.000 & 0.342 & -9.200\\0.000 & 1.000 & 0.000 & -0.147\\-0.342 & 0.000 & 0.940 & -3.800\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.000 & 0.000 & 3.200 & 0.000\\0.000 & 0.070 & 0.000 & 1.700\\-0.070 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.024 & 0.000 & 3.007 & -9.200\\0.000 & 0.070 & 0.000 & 1.553\\-0.066 & 0.000 & -1.094 & -3.800\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Camouflaged tent) is placed in the world by Eq.~\eqref{eq:ch-camouflaged_tent}. The part Ridge pole (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-camouflaged_tent} and reaches the world through the root alone, Eq.~\eqref{eq:chw-camouflaged_tent}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(-9.200,-0.147,-3.800)\,R_y(20.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.940 & 0 & 0.342 & -9.200\\0 & 1 & 0 & -0.147\\-0.342 & 0 & 0.940 & -3.800\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-camouflaged_tent}\\
+M&=T(0.000,1.700,0.000)\,R_y(90.0^\circ)\,S(0.070,0.070,3.200)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 3.200 & 0\\0 & 0.070 & 0 & 1.700\\-0.070 & 0 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-camouflaged_tent}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.024 & 0 & 3.007 & -9.200\\0 & 0.070 & 0 & 1.553\\-0.066 & 0 & -1.094 & -3.800\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-camouflaged_tent}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1544,7 +1708,15 @@ Lantern & \primchip{sphere} & $12{\times}\allowbreak 16{\times}\allowbreak 12$ &
 \end{center}\vspace{-3mm}
 \noindent\textbf{Container.}\label{des:container} International Organization for Standardization (ISO) shipping container (20 ft). 2 instances; the first stands 30\,m west of the bunker, inside the motor pool. Placement of the first: $T(-28.08,\allowbreak\,-0.30,\allowbreak\,-11.33)\allowbreak\,R_y(45^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Container A; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Motor pool}}\,T(-6.08,0.00,4.67)\,R_y(45.0^\circ)$. \\Part: Door bar (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(-0.55,1.30,3.06)\,R_x(90.0^\circ)\,S(0.05,0.05,2.40)$.\[W_{\text{root}}=\begin{bmatrix}0.707 & 0.000 & 0.707 & -28.081\\0.000 & 1.000 & 0.000 & -0.300\\-0.707 & 0.000 & 0.707 & -11.333\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.045 & 0.000 & 0.000 & -0.550\\0.000 & 0.000 & -2.400 & 1.300\\0.000 & 0.045 & 0.000 & 3.060\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.032 & 0.032 & 0.000 & -26.306\\0.000 & 0.000 & -2.400 & 1.000\\-0.032 & 0.032 & 0.000 & -8.780\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Container A) is placed in the world by Eq.~\eqref{eq:ch-container}. The part Door bar (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-container} and reaches the world through the root alone, Eq.~\eqref{eq:chw-container}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Motor pool}}\,T(-6.081,0.000,4.667)\,R_y(45.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.707 & 0 & 0.707 & -28.081\\0 & 1 & 0 & -0.300\\-0.707 & 0 & 0.707 & -11.333\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-container}\\
+M&=T(-0.550,1.300,3.060)\,R_x(90.0^\circ)\,S(0.045,0.045,2.400)\nonumber\\
+&=\begin{bmatrix}0.045 & 0 & 0 & -0.550\\0 & 0 & -2.400 & 1.300\\0 & 0.045 & 0 & 3.060\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-container}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.032 & 0.032 & 0 & -26.306\\0 & 0 & -2.400 & 1\\-0.032 & 0.032 & 0 & -8.780\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-container}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1565,7 +1737,14 @@ Container ID & \primchip{cuboid} & $1{\times}\allowbreak 30{\times}\allowbreak 1
 \end{center}\vspace{-3mm}
 \noindent\textbf{Guard booth.}\label{des:guard_booth} Corrugated checkpoint booth. One instance, 32\,m north of the bunker, inside the outer gate. Placement of the first: $T(5.40,\allowbreak\,-0.30,\allowbreak\,31.60)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Guard booth; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Outer gate}}\,T(5.40,0.00,-2.40)$. \\Part: Booth AC unit (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(1.25,1.10,-0.50)\,R_y(90.0^\circ)\,S(0.70,0.50,0.35)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 5.400\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 31.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.000 & 0.000 & 0.350 & 1.250\\0.000 & 0.500 & 0.000 & 1.100\\-0.700 & 0.000 & 0.000 & -0.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.000 & 0.000 & 0.350 & 6.650\\0.000 & 0.500 & 0.000 & 0.800\\-0.700 & 0.000 & 0.000 & 31.100\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Guard booth) is placed in the world by Eq.~\eqref{eq:ch-guard_booth}. The part Booth AC unit (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-guard_booth} and reaches the world through the root alone, Eq.~\eqref{eq:chw-guard_booth}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Outer gate}}\,T(5.400,0.000,-2.400)=\begin{bmatrix}1 & 0 & 0 & 5.400\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 31.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-guard_booth}\\
+M&=T(1.250,1.100,-0.500)\,R_y(90.0^\circ)\,S(0.700,0.500,0.350)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.350 & 1.250\\0 & 0.500 & 0 & 1.100\\-0.700 & 0 & 0 & -0.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-guard_booth}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.350 & 6.650\\0 & 0.500 & 0 & 0.800\\-0.700 & 0 & 0 & 31.100\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-guard_booth}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1591,7 +1770,14 @@ Checkpoint placard & \primchip{cuboid} & $1{\times}\allowbreak 30{\times}\allowb
 \end{center}\vspace{-3mm}
 \noindent\textbf{UAV pad.}\label{des:uav_pad} Pad of UAV-1. 2 instances; the first stands 3\,m south-west of the bunker. Placement of the first: $T(-2.00,\allowbreak\,0.00,\allowbreak\,-2.20)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, UAV pad 1; lengths in m).\\Root: $W_{\text{root}}=W_{\text{UAV pads}}\,T(-2.00,0.00,-2.20)$. \\Part: Pad slab (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.02,0.00)\,R_x(90.0^\circ)\,S(1.30,1.30,0.04)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -2.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & -2.200\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}1.300 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -0.040 & 0.020\\0.000 & 1.300 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}1.300 & 0.000 & 0.000 & -2.000\\0.000 & 0.000 & -0.040 & 0.020\\0.000 & 1.300 & 0.000 & -2.200\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (UAV pad 1) is placed in the world by Eq.~\eqref{eq:ch-uav_pad}. The part Pad slab (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-uav_pad} and reaches the world through the root alone, Eq.~\eqref{eq:chw-uav_pad}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{UAV pads}}\,T(-2.000,0.000,-2.200)=\begin{bmatrix}1 & 0 & 0 & -2\\0 & 1 & 0 & 0\\0 & 0 & 1 & -2.200\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-uav_pad}\\
+M&=T(0.000,0.020,0.000)\,R_x(90.0^\circ)\,S(1.300,1.300,0.040)\nonumber\\
+&=\begin{bmatrix}1.300 & 0 & 0 & 0\\0 & 0 & -0.040 & 0.020\\0 & 1.300 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-uav_pad}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}1.300 & 0 & 0 & -2\\0 & 0 & -0.040 & 0.020\\0 & 1.300 & 0 & -2.200\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-uav_pad}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1615,7 +1801,14 @@ Pad light $\times$4 & \primchip{sphere} & $5{\times}\allowbreak 3{\times}\allowb
 
 Generation rule: $N=\mathrm{round}(2\pi r/1\,\mathrm{m})$ slots around a circle of radius $r=34.0$\,m; slot $i$ holds a 1.03$\times$1.40$\times$1.06\,m cell at angle $2\pi(i+\frac12)/N$, turned along the tangent; slots in the gate opening are empty, slots beside the gate and the four towers get a second cell on top (204 lower + 40 upper cells).
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, HESCO perimeter; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(0.00,-0.30,0.00)$. \\Part: HESCO cell (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(34.00,0.70,0.50)\,R_y(-90.8^\circ)\,S(1.03,1.40,1.06)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-0.015 & 0.000 & -1.060 & 33.996\\0.000 & 1.400 & 0.000 & 0.700\\1.030 & 0.000 & -0.016 & 0.499\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.015 & 0.000 & -1.060 & 33.996\\0.000 & 1.400 & 0.000 & 0.400\\1.030 & 0.000 & -0.016 & 0.499\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (HESCO perimeter) is placed in the world by Eq.~\eqref{eq:ch-hesco_perimeter}. The part HESCO cell (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-hesco_perimeter} and reaches the world through the root alone, Eq.~\eqref{eq:chw-hesco_perimeter}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(0.000,-0.300,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-hesco_perimeter}\\
+M&=T(33.996,0.700,0.499)\,R_y(-90.8^\circ)\,S(1.030,1.400,1.060)\nonumber\\
+&=\begin{bmatrix}-0.015 & 0 & -1.060 & 33.996\\0 & 1.400 & 0 & 0.700\\1.030 & 0 & -0.016 & 0.499\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-hesco_perimeter}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.015 & 0 & -1.060 & 33.996\\0 & 1.400 & 0 & 0.400\\1.030 & 0 & -0.016 & 0.499\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-hesco_perimeter}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1635,7 +1828,14 @@ HESCO cell (upper) $\times$40 & \primchip{cuboid} & $103{\times}\allowbreak 140{
 
 Generation rule: one helix coil on every 4th wall slot (axis along the wall tangent, 0.40\,m above the cell top), 52 coils at radius 34.0\,m; neighbouring coils are tied by a razor strand (a thin cylinder from coil top to coil top, 50 strands; none across the gate).
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Concertina wire; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(0.00,-0.30,0.00)$. \\Part: Wire coil (helix). \ $W=W_{\text{root}}\,M$, \quad $M=T(34.00,1.80,0.50)\,R_y(-0.8^\circ)\,S(0.80,0.80,0.88)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.800 & 0.000 & -0.013 & 33.996\\0.000 & 0.800 & 0.000 & 1.800\\0.012 & 0.000 & 0.884 & 0.499\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.800 & 0.000 & -0.013 & 33.996\\0.000 & 0.800 & 0.000 & 1.500\\0.012 & 0.000 & 0.884 & 0.499\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Concertina wire) is placed in the world by Eq.~\eqref{eq:ch-concertina_wire}. The part Wire coil (helix) has the local matrix $M$ of Eq.~\eqref{eq:chm-concertina_wire} and reaches the world through the root alone, Eq.~\eqref{eq:chw-concertina_wire}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(0.000,-0.300,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-concertina_wire}\\
+M&=T(33.996,1.800,0.499)\,R_y(-0.8^\circ)\,S(0.800,0.800,0.884)\nonumber\\
+&=\begin{bmatrix}0.800 & 0 & -0.013 & 33.996\\0 & 0.800 & 0 & 1.800\\0.012 & 0 & 0.884 & 0.499\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-concertina_wire}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.800 & 0 & -0.013 & 33.996\\0 & 0.800 & 0 & 1.500\\0.012 & 0 & 0.884 & 0.499\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-concertina_wire}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1655,7 +1855,14 @@ Razor strand $\times$50 & \primchip{cylinder} & $3{\times}\allowbreak 3{\times}\
 
 Generation rule: 20 posts every 18$^\circ$ on a circle of radius 19.0\,m (the two ends are steel gate posts), three wire strands (thin cylinders) across every bay but the gate bay (57 wires), two gate leaves of a frame and a cross brace.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Perimeter fence; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(0.00,0.00,0.00)$. \\Part: Gate stile (cylinder). \ $W=W_{\text{root}}\,M_{\text{Gate leaf}}\,M$, \quad $M=T(0.00,0.80,2.82)\,R_x(90.0^\circ)\,S(0.06,0.06,1.20)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.060 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -1.200 & 0.800\\0.000 & 0.060 & 0.000 & 2.823\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.056 & -0.021 & 0.000 & 2.007\\0.000 & 0.000 & -1.200 & 0.738\\0.021 & -0.056 & 0.000 & 16.114\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Perimeter fence) is placed in the world by Eq.~\eqref{eq:ch-perimeter_fence}. The part Gate stile (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-perimeter_fence} and reaches the world through 1 group, Eq.~\eqref{eq:chw-perimeter_fence}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-perimeter_fence}\\
+M&=T(0.000,0.800,2.823)\,R_x(90.0^\circ)\,S(0.060,0.060,1.200)\nonumber\\
+&=\begin{bmatrix}0.060 & 0 & 0 & 0\\0 & 0 & -1.200 & 0.800\\0 & 0.060 & 0 & 2.823\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-perimeter_fence}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Gate leaf}}\,M\nonumber\\
+&=\begin{bmatrix}-0.056 & -0.021 & 0 & 2.007\\0 & 0 & -1.200 & 0.738\\0.021 & -0.056 & 0 & 16.114\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-perimeter_fence}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1681,7 +1888,14 @@ Gate brace $\times$2 & \primchip{cylinder} & $4{\times}\allowbreak 4{\times}\all
 \end{center}\vspace{-3mm}
 \noindent\textbf{Outer gate.}\label{des:outer_gate} Checkpoint: posts, booth, barriers, signs. One instance, 34\,m north of the bunker. Placement of the first: $T(0.00,\allowbreak\,-0.30,\allowbreak\,34.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Outer gate; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(0.00,-0.30,34.00)$. \\Part: Sandbag (capsule). \ $W=W_{\text{root}}\,M$, \quad $M=T(4.16,0.09,-3.90)\,R_y(90.0^\circ)\,S(0.26,0.17,0.50)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 34.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.000 & 0.000 & 0.500 & 4.158\\0.000 & 0.170 & 0.000 & 0.090\\-0.260 & 0.000 & 0.000 & -3.900\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.000 & 0.000 & 0.500 & 4.158\\0.000 & 0.170 & 0.000 & -0.210\\-0.260 & 0.000 & 0.000 & 30.100\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Outer gate) is placed in the world by Eq.~\eqref{eq:ch-outer_gate}. The part Sandbag (capsule) has the local matrix $M$ of Eq.~\eqref{eq:chm-outer_gate} and reaches the world through the root alone, Eq.~\eqref{eq:chw-outer_gate}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(0.000,-0.300,34.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 34\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-outer_gate}\\
+M&=T(4.158,0.090,-3.900)\,R_y(90.0^\circ)\,S(0.260,0.170,0.500)\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.500 & 4.158\\0 & 0.170 & 0 & 0.090\\-0.260 & 0 & 0 & -3.900\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-outer_gate}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0 & 0 & 0.500 & 4.158\\0 & 0.170 & 0 & -0.210\\-0.260 & 0 & 0 & 30.100\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-outer_gate}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1714,7 +1928,14 @@ Gate post marker $\times$2 & \primchip{sphere} & $10{\times}\allowbreak 10{\time
 
 Generation rule: a $w\times d$ net is cut into a grid of about 1.15\,m panels (thin boxes) that sag as $h(u,v)=h_0-s\sin\pi u\sin\pi v$ and tilt with the slope; 12\,\% of the panels are left out at random; poles at the corners (and mid-edge for sides over 5.5\,m), four edge ropes. The 7 instances differ in size: 37, 55, 49, 37, 60, 57, 84 parts.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Camouflage net; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Entrance trench}}\,T(0.00,0.16,9.00)$. \\Part: Camo net panel (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(-1.88,3.87,-3.43)\,R_y(-1.1^\circ)\,R_x(2.9^\circ)\,R_z(-2.6^\circ)\,S(1.14,0.04,1.04)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.161\\0.000 & 0.000 & 1.000 & 9.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}1.136 & 0.002 & -0.020 & -1.875\\-0.051 & 0.035 & -0.053 & 3.870\\0.019 & 0.002 & 1.038 & -3.429\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}1.136 & 0.002 & -0.020 & -1.875\\-0.051 & 0.035 & -0.053 & 4.031\\0.019 & 0.002 & 1.038 & 5.571\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Camouflage net) is placed in the world by Eq.~\eqref{eq:ch-camouflage_net}. The part Camo net panel (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-camouflage_net} and reaches the world through the root alone, Eq.~\eqref{eq:chw-camouflage_net}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Entrance trench}}\,T(0.000,0.161,9.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0.161\\0 & 0 & 1 & 9\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-camouflage_net}\\
+M&=T(-1.875,3.870,-3.429)\,R_y(-1.1^\circ)\,R_x(2.9^\circ)\,R_z(-2.6^\circ)\,S(1.137,0.035,1.040)\nonumber\\
+&=\begin{bmatrix}1.136 & 0.002 & -0.020 & -1.875\\-0.051 & 0.035 & -0.053 & 3.870\\0.019 & 0.002 & 1.038 & -3.429\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-camouflage_net}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}1.136 & 0.002 & -0.020 & -1.875\\-0.051 & 0.035 & -0.053 & 4.031\\0.019 & 0.002 & 1.038 & 5.571\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-camouflage_net}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1735,7 +1956,15 @@ Net edge rope $\times$4 & \primchip{cylinder} & $2{\times}\allowbreak 2{\times}\
 
 Generation rule: a U of three earth walls (core box, outer slope tilted 28$^\circ$, inner face tilted 10$^\circ$) with a course of capsule sandbags every 0.55\,m along each crest. Instances: 52, 56, 48, 48, 60 parts.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Earth revetment; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Camp camouflage}}\,T(25.10,-0.30,6.70)\,R_y(60.0^\circ)$. \\Part: Revetment slope (outer) (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(-3.27,0.58,0.00)\,R_z(-28.0^\circ)\,S(0.55,1.36,9.20)$.\[W_{\text{root}}=\begin{bmatrix}0.500 & 0.000 & 0.866 & 25.100\\0.000 & 1.000 & 0.000 & -0.300\\-0.866 & 0.000 & 0.500 & 6.700\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.486 & 0.641 & 0.000 & -3.270\\-0.258 & 1.205 & 0.000 & 0.585\\0.000 & 0.000 & 9.200 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.243 & 0.320 & 7.967 & 23.465\\-0.258 & 1.205 & 0.000 & 0.285\\-0.421 & -0.555 & 4.600 & 9.532\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Earth revetment) is placed in the world by Eq.~\eqref{eq:ch-earth_revetment}. The part Revetment slope (outer) (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-earth_revetment} and reaches the world through the root alone, Eq.~\eqref{eq:chw-earth_revetment}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Camp camouflage}}\,T(25.100,-0.300,6.700)\,R_y(60.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.500 & 0 & 0.866 & 25.100\\0 & 1 & 0 & -0.300\\-0.866 & 0 & 0.500 & 6.700\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-earth_revetment}\\
+M&=T(-3.270,0.585,0.000)\,R_z(-28.0^\circ)\,S(0.550,1.365,9.200)\nonumber\\
+&=\begin{bmatrix}0.486 & 0.641 & 0 & -3.270\\-0.258 & 1.205 & 0 & 0.585\\0 & 0 & 9.200 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-earth_revetment}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.243 & 0.320 & 7.967 & 23.465\\-0.258 & 1.205 & 0 & 0.285\\-0.421 & -0.555 & 4.600 & 9.532\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-earth_revetment}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1757,7 +1986,14 @@ Revetment sandbag $\times$43 & \primchip{capsule} & $28{\times}\allowbreak 17{\t
 
 Generation rule: a square fence of posts and two wire strands per bay around the concrete pad, with one warning sign.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Radar surround; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(29.00,-0.30,-3.00)$. \\Part: Fence post (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(3.30,1.00,3.30)\,R_x(90.0^\circ)\,S(0.08,0.08,2.00)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 29.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & -3.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.080 & 0.000 & 0.000 & 3.300\\0.000 & 0.000 & -2.000 & 1.000\\0.000 & 0.080 & 0.000 & 3.300\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.080 & 0.000 & 0.000 & 32.300\\0.000 & 0.000 & -2.000 & 0.700\\0.000 & 0.080 & 0.000 & 0.300\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Radar surround) is placed in the world by Eq.~\eqref{eq:ch-radar_surround}. The part Fence post (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-radar_surround} and reaches the world through the root alone, Eq.~\eqref{eq:chw-radar_surround}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(29.000,-0.300,-3.000)=\begin{bmatrix}1 & 0 & 0 & 29\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & -3\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-radar_surround}\\
+M&=T(3.300,1.000,3.300)\,R_x(90.0^\circ)\,S(0.080,0.080,2.000)\nonumber\\
+&=\begin{bmatrix}0.080 & 0 & 0 & 3.300\\0 & 0 & -2 & 1\\0 & 0.080 & 0 & 3.300\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-radar_surround}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.080 & 0 & 0 & 32.300\\0 & 0 & -2 & 0.700\\0 & 0.080 & 0 & 0.300\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-radar_surround}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1779,7 +2015,14 @@ Radar warning sign & \primchip{cuboid} & $60{\times}\allowbreak 40{\times}\allow
 
 Generation rule: a ring of capsule sandbags around the round pad (one running course), three ammunition crates outside.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, AA gun surround; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(21.00,-0.30,-19.00)$. \\Part: AA pad (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.02,0.00)\,R_x(90.0^\circ)\,S(7.00,7.00,0.04)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 21.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & -19.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}7.000 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -0.040 & 0.020\\0.000 & 7.000 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}7.000 & 0.000 & 0.000 & 21.000\\0.000 & 0.000 & -0.040 & -0.280\\0.000 & 7.000 & 0.000 & -19.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (AA gun surround) is placed in the world by Eq.~\eqref{eq:ch-aa_gun_surround}. The part AA pad (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-aa_gun_surround} and reaches the world through the root alone, Eq.~\eqref{eq:chw-aa_gun_surround}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(21.000,-0.300,-19.000)=\begin{bmatrix}1 & 0 & 0 & 21\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & -19\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-aa_gun_surround}\\
+M&=T(0.000,0.020,0.000)\,R_x(90.0^\circ)\,S(7.000,7.000,0.040)\nonumber\\
+&=\begin{bmatrix}7 & 0 & 0 & 0\\0 & 0 & -0.040 & 0.020\\0 & 7 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-aa_gun_surround}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}7 & 0 & 0 & 21\\0 & 0 & -0.040 & -0.280\\0 & 7 & 0 & -19\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-aa_gun_surround}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1800,7 +2043,14 @@ Ammo crate $\times$3 & \primchip{cuboid} & $70{\times}\allowbreak 40{\times}\all
 
 Generation rule: an arc of capsules; row $r$ has one bag fewer than the row below and is shifted by half a bag (running bond), each bag turned along the arc. Instances: 18, 15, 24 parts.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Sandbag wall; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(0.00,0.00,0.00)$. \\Part: Sandbag (capsule). \ $W=W_{\text{root}}\,M$, \quad $M=T(6.35,0.11,15.80)\,R_y(-35.0^\circ)\,S(0.26,0.17,0.50)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.213 & 0.000 & -0.287 & 6.347\\0.000 & 0.170 & 0.000 & 0.113\\0.149 & 0.000 & 0.410 & 15.803\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.213 & 0.000 & -0.287 & 6.347\\0.000 & 0.170 & 0.000 & 0.113\\0.149 & 0.000 & 0.410 & 15.803\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Sandbag wall) is placed in the world by Eq.~\eqref{eq:ch-sandbag_wall}. The part Sandbag (capsule) has the local matrix $M$ of Eq.~\eqref{eq:chm-sandbag_wall} and reaches the world through the root alone, Eq.~\eqref{eq:chw-sandbag_wall}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-sandbag_wall}\\
+M&=T(6.347,0.113,15.803)\,R_y(-35.0^\circ)\,S(0.260,0.170,0.500)\nonumber\\
+&=\begin{bmatrix}0.213 & 0 & -0.287 & 6.347\\0 & 0.170 & 0 & 0.113\\0.149 & 0 & 0.410 & 15.803\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-sandbag_wall}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.213 & 0 & -0.287 & 6.347\\0 & 0.170 & 0 & 0.113\\0.149 & 0 & 0.410 & 15.803\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-sandbag_wall}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1817,7 +2067,13 @@ Sandbag $\times$18 & \primchip{capsule} & $26{\times}\allowbreak 17{\times}\allo
 \end{center}\vspace{-3mm}
 \noindent\textbf{Boom barrier.}\label{des:boom_barrier} Counterweighted boom at the outer gate (user controlled). One instance, 32\,m north of the bunker. Placement of the first: $T(2.90,\allowbreak\,-0.30,\allowbreak\,31.60)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Boom barrier; lengths in m).\\Root: $W_{\text{root}}=T(2.90,-0.30,31.60)$. \\Part: Boom stripe (red) (cuboid). \ $W=W_{\text{root}}\,M_{\text{Boom arm}}\,M$, \quad $M=T(-0.55,0.00,0.00)\,S(0.50,0.12,0.10)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 2.900\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 31.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.500 & 0.000 & 0.000 & -0.550\\0.000 & 0.120 & 0.000 & 0.000\\0.000 & 0.000 & 0.100 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.500 & 0.000 & 0.000 & 2.350\\0.000 & 0.120 & 0.000 & 0.750\\0.000 & 0.000 & 0.100 & 31.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Boom barrier) is placed in the world by Eq.~\eqref{eq:ch-boom_barrier}. The part Boom stripe (red) (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-boom_barrier} and reaches the world through 1 group, Eq.~\eqref{eq:chw-boom_barrier}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(2.900,-0.300,31.600)=\begin{bmatrix}1 & 0 & 0 & 2.900\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 31.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-boom_barrier}\\
+M&=T(-0.550,0.000,0.000)\,S(0.500,0.120,0.100)=\begin{bmatrix}0.500 & 0 & 0 & -0.550\\0 & 0.120 & 0 & 0\\0 & 0 & 0.100 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-boom_barrier}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Boom arm}}\,M\nonumber\\
+&=\begin{bmatrix}0.500 & 0 & 0 & 2.350\\0 & 0.120 & 0 & 0.750\\0 & 0 & 0.100 & 31.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-boom_barrier}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1847,7 +2103,14 @@ Boom tip lamp & \primchip{sphere} & $12{\times}\allowbreak 12{\times}\allowbreak
 \end{center}\vspace{-3mm}
 \noindent\textbf{HESCO blocks.}\label{des:hesco_blocks} Sand-filled bastion cells. 2 instances; the first stands 18\,m north of the bunker. Placement of the first: $T(-6.40,\allowbreak\,0.41,\allowbreak\,17.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, HESCO blocks; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military dressing}}\,T(-6.40,0.41,17.00)$. \\Part: HESCO cell (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(-1.05,0.70,0.00)\,S(1.03,1.40,1.06)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -6.400\\0.000 & 1.000 & 0.000 & 0.411\\0.000 & 0.000 & 1.000 & 17.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}1.030 & 0.000 & 0.000 & -1.050\\0.000 & 1.400 & 0.000 & 0.700\\0.000 & 0.000 & 1.060 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}1.030 & 0.000 & 0.000 & -7.450\\0.000 & 1.400 & 0.000 & 1.111\\0.000 & 0.000 & 1.060 & 17.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (HESCO blocks) is placed in the world by Eq.~\eqref{eq:ch-hesco_blocks}. The part HESCO cell (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-hesco_blocks} and reaches the world through the root alone, Eq.~\eqref{eq:chw-hesco_blocks}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military dressing}}\,T(-6.400,0.411,17.000)\nonumber\\
+&=\begin{bmatrix}1 & 0 & 0 & -6.400\\0 & 1 & 0 & 0.411\\0 & 0 & 1 & 17\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-hesco_blocks}\\
+M&=T(-1.050,0.700,0.000)\,S(1.030,1.400,1.060)=\begin{bmatrix}1.030 & 0 & 0 & -1.050\\0 & 1.400 & 0 & 0.700\\0 & 0 & 1.060 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-hesco_blocks}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}1.030 & 0 & 0 & -7.450\\0 & 1.400 & 0 & 1.111\\0 & 0 & 1.060 & 17\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-hesco_blocks}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1864,7 +2127,15 @@ HESCO cell $\times$6 & \primchip{cuboid} & $103{\times}\allowbreak 140{\times}\a
 \end{center}\vspace{-3mm}
 \noindent\textbf{Tank trap.}\label{des:tank_trap} Czech hedgehog anti-tank obstacle. 2 instances; the first stands 36\,m north of the bunker, inside the outer gate. Placement of the first: $T(-6.50,\allowbreak\,-0.30,\allowbreak\,34.90)\allowbreak\,R_y(-72^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Tank trap; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Outer gate}}\,T(-6.50,0.00,0.90)\,R_y(-71.5^\circ)$. \\Part: Trap beam (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.55,0.00)\,R_z(55.0^\circ)\,S(1.50,0.12,0.12)$.\[W_{\text{root}}=\begin{bmatrix}0.317 & 0.000 & -0.948 & -6.500\\0.000 & 1.000 & 0.000 & -0.300\\0.948 & 0.000 & 0.317 & 34.900\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.860 & -0.098 & 0.000 & 0.000\\1.229 & 0.069 & 0.000 & 0.550\\0.000 & 0.000 & 0.120 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.273 & -0.031 & -0.114 & -6.500\\1.229 & 0.069 & 0.000 & 0.250\\0.816 & -0.093 & 0.038 & 34.900\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Tank trap) is placed in the world by Eq.~\eqref{eq:ch-tank_trap}. The part Trap beam (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-tank_trap} and reaches the world through the root alone, Eq.~\eqref{eq:chw-tank_trap}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Outer gate}}\,T(-6.500,0.000,0.900)\,R_y(-71.5^\circ)\nonumber\\
+&=\begin{bmatrix}0.317 & 0 & -0.948 & -6.500\\0 & 1 & 0 & -0.300\\0.948 & 0 & 0.317 & 34.900\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-tank_trap}\\
+M&=T(0.000,0.550,0.000)\,R_z(55.0^\circ)\,S(1.500,0.120,0.120)\nonumber\\
+&=\begin{bmatrix}0.860 & -0.098 & 0 & 0\\1.229 & 0.069 & 0 & 0.550\\0 & 0 & 0.120 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-tank_trap}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.273 & -0.031 & -0.114 & -6.500\\1.229 & 0.069 & 0 & 0.250\\0.816 & -0.093 & 0.038 & 34.900\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-tank_trap}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1881,7 +2152,13 @@ Trap beam $\times$3 & \primchip{cuboid} & $150{\times}\allowbreak 12{\times}\all
 \end{center}\vspace{-3mm}
 \noindent\textbf{Jersey barrier.}\label{des:jersey_barrier} Precast vehicle barrier. 6 instances; the first stands 18\,m north of the bunker. Placement of the first: $T(3.30,\allowbreak\,0.20,\allowbreak\,17.60)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Jersey barrier; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military dressing}}\,T(3.30,0.20,17.60)$. \\Part: Jersey foot (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.15,0.00)\,S(0.60,0.30,3.00)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 3.300\\0.000 & 1.000 & 0.000 & 0.200\\0.000 & 0.000 & 1.000 & 17.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.600 & 0.000 & 0.000 & 0.000\\0.000 & 0.300 & 0.000 & 0.150\\0.000 & 0.000 & 3.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.600 & 0.000 & 0.000 & 3.300\\0.000 & 0.300 & 0.000 & 0.350\\0.000 & 0.000 & 3.000 & 17.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Jersey barrier) is placed in the world by Eq.~\eqref{eq:ch-jersey_barrier}. The part Jersey foot (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-jersey_barrier} and reaches the world through the root alone, Eq.~\eqref{eq:chw-jersey_barrier}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military dressing}}\,T(3.300,0.200,17.600)=\begin{bmatrix}1 & 0 & 0 & 3.300\\0 & 1 & 0 & 0.200\\0 & 0 & 1 & 17.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-jersey_barrier}\\
+M&=T(0.000,0.150,0.000)\,S(0.600,0.300,3.000)=\begin{bmatrix}0.600 & 0 & 0 & 0\\0 & 0.300 & 0 & 0.150\\0 & 0 & 3 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-jersey_barrier}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.600 & 0 & 0 & 3.300\\0 & 0.300 & 0 & 0.350\\0 & 0 & 3 & 17.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-jersey_barrier}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1902,7 +2179,15 @@ Jersey body & \primchip{cuboid} & $30{\times}\allowbreak 55{\times}\allowbreak 2
 
 Generation rule: size $s$; trunk cylinder $0.22s\times1.9s$; three limbs from 1.45$s$ at 120$^\circ$ steps; 12 sphere clumps on an ellipsoid shell around $(0,2.55s,0)$ on a golden-angle spiral, plus two inner fillers.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Tree; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(-6.20,-0.27,3.60)\,R_y(-229.4^\circ)$. \\Part: Trunk (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.95,0.00)\,R_x(90.0^\circ)\,S(0.22,0.22,1.90)$.\[W_{\text{root}}=\begin{bmatrix}-0.651 & 0.000 & 0.759 & -6.200\\0.000 & 1.000 & 0.000 & -0.266\\-0.759 & 0.000 & -0.651 & 3.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.220 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -1.900 & 0.950\\0.000 & 0.220 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.143 & 0.167 & 0.000 & -6.200\\0.000 & 0.000 & -1.900 & 0.684\\-0.167 & -0.143 & 0.000 & 3.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Tree) is placed in the world by Eq.~\eqref{eq:ch-broadleaf_tree}. The part Trunk (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-broadleaf_tree} and reaches the world through the root alone, Eq.~\eqref{eq:chw-broadleaf_tree}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(-6.200,-0.266,3.600)\,R_y(-229.4^\circ)\nonumber\\
+&=\begin{bmatrix}-0.651 & 0 & 0.759 & -6.200\\0 & 1 & 0 & -0.266\\-0.759 & 0 & -0.651 & 3.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-broadleaf_tree}\\
+M&=T(0.000,0.950,0.000)\,R_x(90.0^\circ)\,S(0.220,0.220,1.900)\nonumber\\
+&=\begin{bmatrix}0.220 & 0 & 0 & 0\\0 & 0 & -1.900 & 0.950\\0 & 0.220 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-broadleaf_tree}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.143 & 0.167 & 0 & -6.200\\0 & 0 & -1.900 & 0.684\\-0.167 & -0.143 & 0 & 3.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-broadleaf_tree}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1925,7 +2210,15 @@ Canopy top & \primchip{sphere} & $130{\times}\allowbreak 100{\times}\allowbreak 
 
 Generation rule: tree height $h$; trunk cylinder $0.045h+0.05$ wide and $0.8h$ tall; 5--7 cone whorls (7 above 3.8\,m, 6 above 3\,m) from the skirt at 0.6\,m to the tip, radius $0.33h(1-0.78k)$ for $k=0..1$, each turned and tilted by a few degrees with a seeded random generator.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Pine; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Forest patch}}\,T(14.10,-0.18,-1.32)\,R_y(126.5^\circ)$. \\Part: Pine trunk (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,1.25,0.00)\,R_x(90.0^\circ)\,S(0.19,0.19,2.50)$.\[W_{\text{root}}=\begin{bmatrix}-0.594 & 0.000 & 0.804 & 14.102\\0.000 & 1.000 & 0.000 & -0.180\\-0.804 & 0.000 & -0.594 & -1.321\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.190 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -2.496 & 1.248\\0.000 & 0.190 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.113 & 0.153 & 0.000 & 14.102\\0.000 & 0.000 & -2.496 & 1.068\\-0.153 & -0.113 & 0.000 & -1.321\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Pine) is placed in the world by Eq.~\eqref{eq:ch-pine}. The part Pine trunk (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-pine} and reaches the world through the root alone, Eq.~\eqref{eq:chw-pine}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Forest patch}}\,T(14.102,-0.180,-1.321)\,R_y(126.5^\circ)\nonumber\\
+&=\begin{bmatrix}-0.594 & 0 & 0.804 & 14.102\\0 & 1 & 0 & -0.180\\-0.804 & 0 & -0.594 & -1.321\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-pine}\\
+M&=T(0.000,1.248,0.000)\,R_x(90.0^\circ)\,S(0.190,0.190,2.496)\nonumber\\
+&=\begin{bmatrix}0.190 & 0 & 0 & 0\\0 & 0 & -2.496 & 1.248\\0 & 0.190 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-pine}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.113 & 0.153 & 0 & 14.102\\0 & 0 & -2.496 & 1.068\\-0.153 & -0.113 & 0 & -1.321\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-pine}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1945,7 +2238,15 @@ Pine crown $\times$6 & \primchip{cone} & $41.4..207{\times}\allowbreak 45.2..226
 
 Generation rule: $n=\max(3,\lfloor L/0.9\rfloor)$ branches along the vehicle side, each a stem cylinder leaning 14--28$^\circ$, a sphere of foliage and a cone tip; three sphere brush clumps at the foot.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Cut branches; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Camp camouflage}}\,T(24.27,-0.30,8.13)\,R_y(240.0^\circ)$. \\Part: Cut branch stem (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.03,0.96,-1.47)\,R_y(-78.9^\circ)\,R_x(-74.6^\circ)\,S(0.05,0.05,1.98)$.\[W_{\text{root}}=\begin{bmatrix}-0.500 & 0.000 & -0.866 & 24.275\\0.000 & 1.000 & 0.000 & -0.300\\0.866 & 0.000 & -0.500 & 8.129\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.010 & 0.047 & -0.517 & 0.027\\0.000 & 0.013 & 1.914 & 0.957\\0.049 & -0.009 & 0.101 & -1.473\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.047 & -0.016 & 0.171 & 25.537\\0.000 & 0.013 & 1.914 & 0.657\\-0.016 & 0.046 & -0.498 & 8.889\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Cut branches) is placed in the world by Eq.~\eqref{eq:ch-cut_branches}. The part Cut branch stem (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-cut_branches} and reaches the world through the root alone, Eq.~\eqref{eq:chw-cut_branches}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Camp camouflage}}\,T(24.275,-0.300,8.129)\,R_y(240.0^\circ)\nonumber\\
+&=\begin{bmatrix}-0.500 & 0 & -0.866 & 24.275\\0 & 1 & 0 & -0.300\\0.866 & 0 & -0.500 & 8.129\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-cut_branches}\\
+M&=T(0.027,0.957,-1.473)\,R_y(-78.9^\circ)\,R_x(-74.6^\circ)\,S(0.050,0.050,1.985)\nonumber\\
+&=\begin{bmatrix}0.010 & 0.047 & -0.517 & 0.027\\0 & 0.013 & 1.914 & 0.957\\0.049 & -0.009 & 0.101 & -1.473\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-cut_branches}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.047 & -0.016 & 0.171 & 25.537\\0 & 0.013 & 1.914 & 0.657\\-0.016 & 0.046 & -0.498 & 8.889\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-cut_branches}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1967,7 +2268,15 @@ Brush clump $\times$3 & \primchip{sphere} & $76.6..100{\times}\allowbreak 46..60
 
 Generation rule: 5--7 flattened spheres of radius $(0.28..0.48)s$ scattered within $0.38s$ of the centre (seeded).
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Bush; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Shrubs}}\,T(-12.00,0.08,-8.40)\,R_y(10.0^\circ)$. \\Part: Bush (sphere). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.06,0.35,0.09)\,R_y(80.3^\circ)\,S(0.90,0.63,0.90)$.\[W_{\text{root}}=\begin{bmatrix}0.985 & 0.000 & 0.174 & -12.000\\0.000 & 1.000 & 0.000 & 0.079\\-0.174 & 0.000 & 0.985 & -8.400\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.151 & 0.000 & 0.883 & 0.055\\0.000 & 0.627 & 0.000 & 0.347\\-0.883 & 0.000 & 0.151 & 0.089\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.005 & 0.000 & 0.896 & -11.930\\0.000 & 0.627 & 0.000 & 0.426\\-0.896 & 0.000 & -0.005 & -8.322\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Bush) is placed in the world by Eq.~\eqref{eq:ch-bush}. The part Bush (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-bush} and reaches the world through the root alone, Eq.~\eqref{eq:chw-bush}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Shrubs}}\,T(-12.000,0.079,-8.400)\,R_y(10.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.985 & 0 & 0.174 & -12\\0 & 1 & 0 & 0.079\\-0.174 & 0 & 0.985 & -8.400\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-bush}\\
+M&=T(0.055,0.347,0.089)\,R_y(80.3^\circ)\,S(0.896,0.627,0.896)\nonumber\\
+&=\begin{bmatrix}0.151 & 0 & 0.883 & 0.055\\0 & 0.627 & 0 & 0.347\\-0.883 & 0 & 0.151 & 0.089\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-bush}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.005 & 0 & 0.896 & -11.930\\0 & 0.627 & 0 & 0.426\\-0.896 & 0 & -0.005 & -8.322\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-bush}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -1986,7 +2295,15 @@ Bush $\times$6 & \primchip{sphere} & $61.3..91.9{\times}\allowbreak 42.9..64.3{\
 
 Generation rule: tree height $h$ per instance; lower cone $0.56h$ wide and $0.62h$ tall, upper cone $0.36h$ wide and $0.55h$ tall, turned 30$^\circ$. The 43 instances stand on a ring at 38--45\,m.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Treeline pine; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Treeline}}\,T(39.11,-0.35,-1.16)\,R_y(186.1^\circ)$. \\Part: Pine crown (cone). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,2.50,0.00)\,R_x(-90.0^\circ)\,S(4.52,4.52,5.00)$.\[W_{\text{root}}=\begin{bmatrix}-0.994 & 0.000 & -0.107 & 39.108\\0.000 & 1.000 & 0.000 & -0.350\\0.107 & 0.000 & -0.994 & -1.164\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}4.517 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & 5.000 & 2.500\\0.000 & -4.517 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-4.491 & 0.482 & 0.000 & 39.108\\0.000 & 0.000 & 5.000 & 2.150\\0.482 & 4.491 & 0.000 & -1.164\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Treeline pine) is placed in the world by Eq.~\eqref{eq:ch-treeline_pine}. The part Pine crown (cone) has the local matrix $M$ of Eq.~\eqref{eq:chm-treeline_pine} and reaches the world through the root alone, Eq.~\eqref{eq:chw-treeline_pine}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Treeline}}\,T(39.108,-0.350,-1.164)\,R_y(186.1^\circ)\nonumber\\
+&=\begin{bmatrix}-0.994 & 0 & -0.107 & 39.108\\0 & 1 & 0 & -0.350\\0.107 & 0 & -0.994 & -1.164\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-treeline_pine}\\
+M&=T(0.000,2.500,0.000)\,R_x(-90.0^\circ)\,S(4.517,4.517,5.000)\nonumber\\
+&=\begin{bmatrix}4.517 & 0 & 0 & 0\\0 & 0 & 5 & 2.500\\0 & -4.517 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-treeline_pine}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-4.491 & 0.482 & 0 & 39.108\\0 & 0 & 5 & 2.150\\0.482 & 4.491 & 0 & -1.164\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-treeline_pine}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2004,7 +2321,15 @@ Pine crown $\times$2 & \primchip{cone} & $294..452{\times}\allowbreak 294..452{\
 \end{center}\vspace{-3mm}
 \noindent\textbf{Flag.}\label{des:flag} Flag on the parade-ground pole (animated scenery). One instance, 27\,m north of the bunker. Placement of the first: $T(-4.50,\allowbreak\,-0.30,\allowbreak\,27.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Flagpole and flag; lengths in m).\\Root: $W_{\text{root}}=T(-4.50,-0.30,27.00)$. \\Part: Flag cloth (cuboid). \ $W=W_{\text{root}}\,M_{\text{Flag hoist}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M$, \quad $M=T(0.10,-0.25,0.00)\,S(0.20,0.50,0.02)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -4.500\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 27.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.200 & 0.000 & 0.000 & 0.100\\0.000 & 0.500 & 0.000 & -0.250\\0.000 & 0.000 & 0.020 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.165 & -0.026 & -0.011 & -6.319\\-0.006 & 0.499 & -0.001 & 8.313\\0.113 & -0.011 & -0.017 & 28.193\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Flagpole and flag) is placed in the world by Eq.~\eqref{eq:ch-flag}. The part Flag cloth (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-flag} and reaches the world through 13 groups, Eq.~\eqref{eq:chw-flag}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(-4.500,-0.300,27.000)=\begin{bmatrix}1 & 0 & 0 & -4.500\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 27\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-flag}\\
+M&=T(0.100,-0.250,0.000)\,S(0.200,0.500,0.020)=\begin{bmatrix}0.200 & 0 & 0 & 0.100\\0 & 0.500 & 0 & -0.250\\0 & 0 & 0.020 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-flag}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Flag hoist}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\nonumber\\
+&\quad\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\nonumber\\
+&\quad\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M_{\text{Flag strip}}\,M\nonumber\\
+&=\begin{bmatrix}-0.165 & -0.026 & -0.011 & -6.319\\-0.006 & 0.499 & -0.001 & 8.313\\0.113 & -0.011 & -0.017 & 28.193\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-flag}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2032,7 +2357,14 @@ Flag cloth $\times$36 & \primchip{cuboid} & $20{\times}\allowbreak 50{\times}\al
 \end{center}\vspace{-3mm}
 \noindent\textbf{Windsock.}\label{des:windsock} Wind indicator beside the road (animated scenery). One instance, 26\,m north-east of the bunker. Placement of the first: $T(12.50,\allowbreak\,-0.30,\allowbreak\,22.50)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Windsock; lengths in m).\\Root: $W_{\text{root}}=T(12.50,-0.30,22.50)$. \\Part: Sock cone (cylinder). \ $W=W_{\text{root}}\,M_{\text{Sock swivel}}\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\,M$, \quad $M=T(0.00,0.00,0.28)\,S(0.28,0.28,0.55)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 12.500\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 22.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.280 & 0.000 & 0.000 & 0.000\\0.000 & 0.280 & 0.000 & 0.000\\0.000 & 0.000 & 0.550 & 0.275\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.261 & -0.037 & -0.186 & 11.484\\-0.005 & 0.265 & -0.175 & 5.280\\0.101 & -0.081 & -0.487 & 20.296\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Windsock) is placed in the world by Eq.~\eqref{eq:ch-windsock}. The part Sock cone (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-windsock} and reaches the world through 6 groups, Eq.~\eqref{eq:chw-windsock}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(12.500,-0.300,22.500)=\begin{bmatrix}1 & 0 & 0 & 12.500\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 22.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-windsock}\\
+M&=T(0.000,0.000,0.275)\,S(0.280,0.280,0.550)=\begin{bmatrix}0.280 & 0 & 0 & 0\\0 & 0.280 & 0 & 0\\0 & 0 & 0.550 & 0.275\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-windsock}\\
+W_{\text{part}}&=W_{\text{root}}\,M_{\text{Sock swivel}}\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\nonumber\\
+&\quad\,M_{\text{Sock segment}}\,M_{\text{Sock segment}}\,M\nonumber\\
+&=\begin{bmatrix}-0.261 & -0.037 & -0.186 & 11.484\\-0.005 & 0.265 & -0.175 & 5.280\\0.101 & -0.081 & -0.487 & 20.296\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-windsock}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2055,7 +2387,15 @@ Sock cone $\times$5 & \primchip{cylinder} & $28..72{\times}\allowbreak 28..72{\t
 \end{center}\vspace{-3mm}
 \noindent\textbf{Supply cache.}\label{des:supply_cache} Crates and fuel drums. 7 instances; the first stands 7\,m west of the bunker. Placement of the first: $T(-7.30,\allowbreak\,-0.26,\allowbreak\,1.20)\allowbreak\,R_y(15^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Supply cache; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(-7.30,-0.26,1.20)\,R_y(15.0^\circ)$. \\Part: Crate (cube). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.65,0.30,0.05)\,R_y(12.0^\circ)\,S(0.60,0.60,0.60)$.\[W_{\text{root}}=\begin{bmatrix}0.966 & 0.000 & 0.259 & -7.300\\0.000 & 1.000 & 0.000 & -0.256\\-0.259 & 0.000 & 0.966 & 1.200\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.587 & 0.000 & 0.125 & 0.650\\0.000 & 0.600 & 0.000 & 0.300\\-0.125 & 0.000 & 0.587 & 0.050\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.535 & 0.000 & 0.272 & -6.659\\0.000 & 0.600 & 0.000 & 0.044\\-0.272 & 0.000 & 0.535 & 1.080\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Supply cache) is placed in the world by Eq.~\eqref{eq:ch-supply_cache}. The part Crate (cube) has the local matrix $M$ of Eq.~\eqref{eq:chm-supply_cache} and reaches the world through the root alone, Eq.~\eqref{eq:chw-supply_cache}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(-7.300,-0.256,1.200)\,R_y(15.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.966 & 0 & 0.259 & -7.300\\0 & 1 & 0 & -0.256\\-0.259 & 0 & 0.966 & 1.200\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-supply_cache}\\
+M&=T(0.650,0.300,0.050)\,R_y(12.0^\circ)\,S(0.600,0.600,0.600)\nonumber\\
+&=\begin{bmatrix}0.587 & 0 & 0.125 & 0.650\\0 & 0.600 & 0 & 0.300\\-0.125 & 0 & 0.587 & 0.050\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-supply_cache}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.535 & 0 & 0.272 & -6.659\\0 & 0.600 & 0 & 0.044\\-0.272 & 0 & 0.535 & 1.080\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-supply_cache}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2077,7 +2417,15 @@ Fuel drum $\times$2 & \primchip{cylinder} & $40{\times}\allowbreak 40{\times}\al
 
 Generation rule: 3--4 squashed, rotated spheres, the first full size, the others 45--75\,\% of it, partly buried (seeded).
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Boulder; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Rocks}}\,T(7.40,-0.10,-4.60)\,R_y(20.0^\circ)$. \\Part: Rock (sphere). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.12,0.00)\,R_y(186.5^\circ)\,R_x(-4.8^\circ)\,R_z(23.1^\circ)\,S(1.20,0.54,0.97)$.\[W_{\text{root}}=\begin{bmatrix}0.940 & 0.000 & 0.342 & 7.400\\0.000 & 1.000 & 0.000 & -0.098\\-0.342 & 0.000 & 0.940 & -4.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-1.089 & 0.216 & -0.109 & 0.000\\0.467 & 0.498 & 0.081 & 0.119\\0.162 & 0.017 & -0.964 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.968 & 0.209 & -0.432 & 7.400\\0.467 & 0.498 & 0.081 & 0.021\\0.525 & -0.058 & -0.869 & -4.600\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Boulder) is placed in the world by Eq.~\eqref{eq:ch-boulder}. The part Rock (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-boulder} and reaches the world through the root alone, Eq.~\eqref{eq:chw-boulder}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Rocks}}\,T(7.400,-0.098,-4.600)\,R_y(20.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.940 & 0 & 0.342 & 7.400\\0 & 1 & 0 & -0.098\\-0.342 & 0 & 0.940 & -4.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-boulder}\\
+M&=T(0.000,0.119,0.000)\,R_y(186.5^\circ)\,R_x(-4.8^\circ)\,R_z(23.1^\circ)\,S(1.196,0.543,0.974)\nonumber\\
+&=\begin{bmatrix}-1.089 & 0.216 & -0.109 & 0\\0.467 & 0.498 & 0.081 & 0.119\\0.162 & 0.017 & -0.964 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-boulder}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.968 & 0.209 & -0.432 & 7.400\\0.467 & 0.498 & 0.081 & 0.021\\0.525 & -0.058 & -0.869 & -4.600\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-boulder}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2094,7 +2442,14 @@ Rock $\times$4 & \primchip{sphere} & $56.5..120{\times}\allowbreak 24.6..54.3{\t
 \end{center}\vspace{-3mm}
 \noindent\textbf{Lamp post.}\label{des:lamp_post} Sodium street lamp. 2 instances; the first stands 7\,m north-east of the bunker. Placement of the first: $T(3.60,\allowbreak\,0.25,\allowbreak\,6.50)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Lamp post; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Lamp posts}}\,T(3.60,0.25,6.50)$. \\Part: Lamp pole (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,1.60,0.00)\,R_x(90.0^\circ)\,S(0.09,0.09,3.20)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 3.600\\0.000 & 1.000 & 0.000 & 0.249\\0.000 & 0.000 & 1.000 & 6.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.090 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -3.200 & 1.600\\0.000 & 0.090 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.090 & 0.000 & 0.000 & 3.600\\0.000 & 0.000 & -3.200 & 1.849\\0.000 & 0.090 & 0.000 & 6.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Lamp post) is placed in the world by Eq.~\eqref{eq:ch-lamp_post}. The part Lamp pole (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-lamp_post} and reaches the world through the root alone, Eq.~\eqref{eq:chw-lamp_post}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Lamp posts}}\,T(3.600,0.249,6.500)=\begin{bmatrix}1 & 0 & 0 & 3.600\\0 & 1 & 0 & 0.249\\0 & 0 & 1 & 6.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-lamp_post}\\
+M&=T(0.000,1.600,0.000)\,R_x(90.0^\circ)\,S(0.090,0.090,3.200)\nonumber\\
+&=\begin{bmatrix}0.090 & 0 & 0 & 0\\0 & 0 & -3.200 & 1.600\\0 & 0.090 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-lamp_post}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.090 & 0 & 0 & 3.600\\0 & 0 & -3.200 & 1.849\\0 & 0.090 & 0 & 6.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-lamp_post}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2114,7 +2469,15 @@ Dim red lamp & \primchip{sphere} & $16{\times}\allowbreak 16{\times}\allowbreak 
 \end{center}\vspace{-3mm}
 \noindent\textbf{Track sign.}\label{des:track_sign} TRACKED VEHICLES sign. One instance, 8\,m north-west of the bunker. Placement of the first: $T(-3.40,\allowbreak\,-0.13,\allowbreak\,7.50)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Track sign; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military dressing}}\,T(-3.40,-0.13,7.50)$. \\Part: Sign post (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.95,0.00)\,R_x(90.0^\circ)\,S(0.07,0.07,1.90)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & -3.400\\0.000 & 1.000 & 0.000 & -0.127\\0.000 & 0.000 & 1.000 & 7.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.070 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -1.900 & 0.950\\0.000 & 0.070 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.070 & 0.000 & 0.000 & -3.400\\0.000 & 0.000 & -1.900 & 0.823\\0.000 & 0.070 & 0.000 & 7.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Track sign) is placed in the world by Eq.~\eqref{eq:ch-track_sign}. The part Sign post (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-track_sign} and reaches the world through the root alone, Eq.~\eqref{eq:chw-track_sign}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military dressing}}\,T(-3.400,-0.127,7.500)\nonumber\\
+&=\begin{bmatrix}1 & 0 & 0 & -3.400\\0 & 1 & 0 & -0.127\\0 & 0 & 1 & 7.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-track_sign}\\
+M&=T(0.000,0.950,0.000)\,R_x(90.0^\circ)\,S(0.070,0.070,1.900)\nonumber\\
+&=\begin{bmatrix}0.070 & 0 & 0 & 0\\0 & 0 & -1.900 & 0.950\\0 & 0.070 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-track_sign}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.070 & 0 & 0 & -3.400\\0 & 0 & -1.900 & 0.823\\0 & 0.070 & 0 & 7.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-track_sign}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2134,7 +2497,14 @@ Sign arrow head & \primchip{cuboid} & $16{\times}\allowbreak 16{\times}\allowbre
 \end{center}\vspace{-3mm}
 \noindent\textbf{Fire barrel.}\label{des:fire_barrel} Guards' brazier. One instance, 16\,m north of the bunker. Placement of the first: $T(5.30,\allowbreak\,-0.21,\allowbreak\,15.35)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Fire barrel; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(5.30,-0.21,15.35)$. \\Part: Barrel (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.39,0.00)\,R_x(90.0^\circ)\,S(0.50,0.50,0.78)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 5.300\\0.000 & 1.000 & 0.000 & -0.206\\0.000 & 0.000 & 1.000 & 15.350\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}0.500 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -0.780 & 0.390\\0.000 & 0.500 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}0.500 & 0.000 & 0.000 & 5.300\\0.000 & 0.000 & -0.780 & 0.184\\0.000 & 0.500 & 0.000 & 15.350\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Fire barrel) is placed in the world by Eq.~\eqref{eq:ch-fire_barrel}. The part Barrel (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-fire_barrel} and reaches the world through the root alone, Eq.~\eqref{eq:chw-fire_barrel}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(5.300,-0.206,15.350)=\begin{bmatrix}1 & 0 & 0 & 5.300\\0 & 1 & 0 & -0.206\\0 & 0 & 1 & 15.350\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-fire_barrel}\\
+M&=T(0.000,0.390,0.000)\,R_x(90.0^\circ)\,S(0.500,0.500,0.780)\nonumber\\
+&=\begin{bmatrix}0.500 & 0 & 0 & 0\\0 & 0 & -0.780 & 0.390\\0 & 0.500 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-fire_barrel}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}0.500 & 0 & 0 & 5.300\\0 & 0 & -0.780 & 0.184\\0 & 0.500 & 0 & 15.350\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-fire_barrel}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2153,7 +2523,10 @@ Fire embers & \primchip{sphere} & $42{\times}\allowbreak 16{\times}\allowbreak 4
 \end{center}\vspace{-3mm}
 \noindent\textbf{Sky clock (sun).}\label{des:sky_clock_sun} Time of day: carries the sun along its daily path. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,0.00,\allowbreak\,0.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Sky clock; lengths in m).\\Root: $W_{\text{root}}=T(0.00,0.00,0.00)$. The design is one part: its world matrix is the root's.$$W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}$$\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} The design is one part, placed by Eq.~\eqref{eq:ch-sky_clock_sun} (instance 1, Sky clock; lengths in metres); its world matrix is the root's.
+\begin{align}
+W_{\text{root}}&=T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-sky_clock_sun}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2171,7 +2544,11 @@ Sun\,$^\dagger$ & \primchip{sphere} & $900{\times}\allowbreak 900{\times}\allowb
 \end{center}\vspace{-3mm}
 \noindent\textbf{Moon.}\label{des:moon} Visual source of directional light L0. One instance, 277\,m south-east of the bunker. Placement of the first: $T(167.94,\allowbreak\,116.03,\allowbreak\,-219.85)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Moon; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Environment}}\,T(167.94,116.03,-219.85)\,S(14.00,14.00,14.00)$. The design is one part: its world matrix is the root's.$$W_{\text{root}}=\begin{bmatrix}14.000 & 0.000 & 0.000 & 167.939\\0.000 & 14.000 & 0.000 & 116.031\\0.000 & 0.000 & 14.000 & -219.848\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}$$\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} The design is one part, placed by Eq.~\eqref{eq:ch-moon} (instance 1, Moon; lengths in metres); its world matrix is the root's.
+\begin{align}
+W_{\text{root}}&=W_{\text{Environment}}\,T(167.939,116.031,-219.848)\,S(14.000,14.000,14.000)\nonumber\\
+&=\begin{bmatrix}14 & 0 & 0 & 167.939\\0 & 14 & 0 & 116.031\\0 & 0 & 14 & -219.848\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-moon}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2189,7 +2566,13 @@ Moon & \primchip{sphere} & $1.4e+03{\times}\allowbreak 1.4e+03{\times}\allowbrea
 \end{center}\vspace{-3mm}
 \noindent\textbf{Terrain disc.}\label{des:terrain_disc} Ground of the patrol area. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,0.00,\allowbreak\,0.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Terrain; lengths in m).\\Root: $W_{\text{root}}=T(0.00,0.00,0.00)$. \\Part: Ground disc (terrain disc). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.00,0.00)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Terrain) is placed in the world by Eq.~\eqref{eq:ch-terrain_disc}. The part Ground disc (terrain disc) has the local matrix $M$ of Eq.~\eqref{eq:chm-terrain_disc} and reaches the world through the root alone, Eq.~\eqref{eq:chw-terrain_disc}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-terrain_disc}\\
+M&=T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-terrain_disc}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-terrain_disc}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2206,7 +2589,11 @@ Ground disc & \primchip{terraindisc} & $100{\times}\allowbreak 100{\times}\allow
 \end{center}\vspace{-3mm}
 \noindent\textbf{Far ground.}\label{des:far_ground} Ground plane beyond the disc. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,-0.40,\allowbreak\,0.00)\allowbreak\,R_y(180^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Far ground; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Backdrop}}\,T(0.00,-0.40,0.00)\,R_x(90.0^\circ)\,S(400.00,400.00,0.10)$. The design is one part: its world matrix is the root's.$$W_{\text{root}}=\begin{bmatrix}400.000 & 0.000 & 0.000 & 0.000\\0.000 & 0.000 & -0.100 & -0.400\\0.000 & 400.000 & 0.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}$$\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} The design is one part, placed by Eq.~\eqref{eq:ch-far_ground} (instance 1, Far ground; lengths in metres); its world matrix is the root's.
+\begin{align}
+W_{\text{root}}&=W_{\text{Backdrop}}\,T(0.000,-0.400,0.000)\,R_x(90.0^\circ)\,S(400.000,400.000,0.100)\nonumber\\
+&=\begin{bmatrix}400 & 0 & 0 & 0\\0 & 0 & -0.100 & -0.400\\0 & 400 & 0 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-far_ground}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2225,7 +2612,14 @@ Far ground & \primchip{cylinder} & $4e+04{\times}\allowbreak 4e+04{\times}\allow
 
 Generation rule: two rings of flattened spheres, half buried: 12 hills at 55--69\,m and 9 far hills at 86--98\,m from the centre, evenly spaced with a random jitter of $\pm8^\circ$, each turned along the tangent.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Distant hills; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Backdrop}}\,T(0.00,0.00,0.00)$. \\Part: Hill (sphere). \ $W=W_{\text{root}}\,M$, \quad $M=T(56.04,-0.65,-3.55)\,R_y(-86.4^\circ)\,S(44.25,12.07,26.00)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & 0.000\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}2.795 & 0.000 & -25.948 & 56.040\\0.000 & 12.068 & 0.000 & -0.650\\44.164 & 0.000 & 1.642 & -3.547\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}2.795 & 0.000 & -25.948 & 56.040\\0.000 & 12.068 & 0.000 & -0.650\\44.164 & 0.000 & 1.642 & -3.547\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Distant hills) is placed in the world by Eq.~\eqref{eq:ch-distant_hills}. The part Hill (sphere) has the local matrix $M$ of Eq.~\eqref{eq:chm-distant_hills} and reaches the world through the root alone, Eq.~\eqref{eq:chw-distant_hills}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Backdrop}}\,T(0.000,0.000,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & 0\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-distant_hills}\\
+M&=T(56.040,-0.650,-3.547)\,R_y(-86.4^\circ)\,S(44.252,12.068,26.000)\nonumber\\
+&=\begin{bmatrix}2.795 & 0 & -25.948 & 56.040\\0 & 12.068 & 0 & -0.650\\44.164 & 0 & 1.642 & -3.547\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-distant_hills}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}2.795 & 0 & -25.948 & 56.040\\0 & 12.068 & 0 & -0.650\\44.164 & 0 & 1.642 & -3.547\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-distant_hills}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2243,7 +2637,15 @@ Far hill $\times$9 & \primchip{sphere} & $7.32e+03..9.8e+03{\times}\allowbreak 2
 \end{center}\vspace{-3mm}
 \noindent\textbf{Far radio tower.}\label{des:far_radio_tower} Distant lattice tower. One instance, 100\,m north-west of the bunker. Placement of the first: $T(-76.60,\allowbreak\,-0.35,\allowbreak\,64.28)\allowbreak\,R_y(20^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Far radio tower; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Backdrop}}\,T(-76.60,-0.35,64.28)\,R_y(20.0^\circ)$. \\Part: Tower leg (cylinder). \ $W=W_{\text{root}}\,M$, \quad $M=T(1.15,19.00,1.15)\,R_y(-135.0^\circ)\,R_x(-86.4^\circ)\,S(0.30,0.30,38.08)$.\[W_{\text{root}}=\begin{bmatrix}0.940 & 0.000 & 0.342 & -76.604\\0.000 & 1.000 & 0.000 & -0.350\\-0.342 & 0.000 & 0.940 & 64.279\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-0.212 & 0.212 & -1.700 & 1.150\\0.000 & 0.019 & 38.000 & 19.000\\0.212 & 0.212 & -1.700 & 1.150\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.127 & 0.271 & -2.179 & -75.130\\0.000 & 0.019 & 38.000 & 18.650\\0.272 & 0.127 & -1.016 & 64.966\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Far radio tower) is placed in the world by Eq.~\eqref{eq:ch-far_radio_tower}. The part Tower leg (cylinder) has the local matrix $M$ of Eq.~\eqref{eq:chm-far_radio_tower} and reaches the world through the root alone, Eq.~\eqref{eq:chw-far_radio_tower}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Backdrop}}\,T(-76.604,-0.350,64.279)\,R_y(20.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.940 & 0 & 0.342 & -76.604\\0 & 1 & 0 & -0.350\\-0.342 & 0 & 0.940 & 64.279\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-far_radio_tower}\\
+M&=T(1.150,19.000,1.150)\,R_y(-135.0^\circ)\,R_x(-86.4^\circ)\,S(0.300,0.300,38.076)\nonumber\\
+&=\begin{bmatrix}-0.212 & 0.212 & -1.700 & 1.150\\0 & 0.019 & 38 & 19\\0.212 & 0.212 & -1.700 & 1.150\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-far_radio_tower}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.127 & 0.271 & -2.179 & -75.130\\0 & 0.019 & 38 & 18.650\\0.272 & 0.127 & -1.016 & 64.966\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-far_radio_tower}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2263,7 +2665,13 @@ Aviation light $\times$3 & \primchip{sphere} & $60{\times}\allowbreak 60{\times}
 \end{center}\vspace{-3mm}
 \noindent\textbf{Road.}\label{des:road} Asphalt road from the inner gate to the outer gate. One instance, at the origin of the camp. Placement of the first: $T(0.00,\allowbreak\,-0.30,\allowbreak\,0.00)\allowbreak\,R_y(0^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Road; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(0.00,-0.30,0.00)$. \\Part: Asphalt (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.03,27.25)\,S(4.40,0.06,15.50)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}4.400 & 0.000 & 0.000 & 0.000\\0.000 & 0.060 & 0.000 & 0.030\\0.000 & 0.000 & 15.500 & 27.250\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}4.400 & 0.000 & 0.000 & 0.000\\0.000 & 0.060 & 0.000 & -0.270\\0.000 & 0.000 & 15.500 & 27.250\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Road) is placed in the world by Eq.~\eqref{eq:ch-road}. The part Asphalt (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-road} and reaches the world through the root alone, Eq.~\eqref{eq:chw-road}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(0.000,-0.300,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-road}\\
+M&=T(0.000,0.030,27.250)\,S(4.400,0.060,15.500)=\begin{bmatrix}4.400 & 0 & 0 & 0\\0 & 0.060 & 0 & 0.030\\0 & 0 & 15.500 & 27.250\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-road}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}4.400 & 0 & 0 & 0\\0 & 0.060 & 0 & -0.270\\0 & 0 & 15.500 & 27.250\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-road}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2285,7 +2693,14 @@ Stop line & \primchip{cuboid} & $390{\times}\allowbreak 1.2{\times}\allowbreak 4
 
 Generation rule: two arcs of the service ring (radius 21.4\,m), cut into steps of at most 6$^\circ$; each step is a pair of thin boxes (ruts) at $r\pm0.6$\,m turned along the tangent (50 ruts).
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Tyre tracks; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(0.00,-0.30,0.00)$. \\Part: Tyre track (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(-1.84,0.01,20.72)\,R_y(-95.1^\circ)\,S(0.24,0.01,2.45)$.\[W_{\text{root}}=\begin{bmatrix}1.000 & 0.000 & 0.000 & 0.000\\0.000 & 1.000 & 0.000 & -0.300\\0.000 & 0.000 & 1.000 & 0.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}-0.021 & 0.000 & -2.437 & -1.840\\0.000 & 0.012 & 0.000 & 0.006\\0.239 & 0.000 & -0.216 & 20.718\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}-0.021 & 0.000 & -2.437 & -1.840\\0.000 & 0.012 & 0.000 & -0.294\\0.239 & 0.000 & -0.216 & 20.718\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Tyre tracks) is placed in the world by Eq.~\eqref{eq:ch-tyre_tracks}. The part Tyre track (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-tyre_tracks} and reaches the world through the root alone, Eq.~\eqref{eq:chw-tyre_tracks}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(0.000,-0.300,0.000)=\begin{bmatrix}1 & 0 & 0 & 0\\0 & 1 & 0 & -0.300\\0 & 0 & 1 & 0\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-tyre_tracks}\\
+M&=T(-1.840,0.006,20.718)\,R_y(-95.1^\circ)\,S(0.240,0.012,2.447)\nonumber\\
+&=\begin{bmatrix}-0.021 & 0 & -2.437 & -1.840\\0 & 0.012 & 0 & 0.006\\0.239 & 0 & -0.216 & 20.718\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-tyre_tracks}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}-0.021 & 0 & -2.437 & -1.840\\0 & 0.012 & 0 & -0.294\\0.239 & 0 & -0.216 & 20.718\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-tyre_tracks}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead
@@ -2302,7 +2717,14 @@ Tyre track $\times$50 & \primchip{cuboid} & $24{\times}\allowbreak 1.2{\times}\a
 \end{center}\vspace{-3mm}
 \noindent\textbf{Tank spot marking.}\label{des:tank_spot_marking} Painted parking box. One instance, 27\,m south-west of the bunker. Placement of the first: $T(-22.00,\allowbreak\,-0.30,\allowbreak\,-16.00)\allowbreak\,R_y(45^\circ)\allowbreak\,S(1)$.
 
-\par\noindent\fcolorbox{black!25}{black!2}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}\raggedright\fontsize{7.5}{9}\selectfont\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{1pt}\setlength{\arraycolsep}{2.5pt}\renewcommand{\arraystretch}{0.95}\textbf{Transformation chain} (instance 1, Tank spot marking; lengths in m).\\Root: $W_{\text{root}}=W_{\text{Military base}}\,T(-22.00,-0.30,-16.00)\,R_y(45.0^\circ)$. \\Part: Spot line (cuboid). \ $W=W_{\text{root}}\,M$, \quad $M=T(0.00,0.01,4.50)\,S(6.00,0.01,0.12)$.\[W_{\text{root}}=\begin{bmatrix}0.707 & 0.000 & 0.707 & -22.000\\0.000 & 1.000 & 0.000 & -0.300\\-0.707 & 0.000 & 0.707 & -16.000\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad M=\begin{bmatrix}6.000 & 0.000 & 0.000 & 0.000\\0.000 & 0.012 & 0.000 & 0.012\\0.000 & 0.000 & 0.120 & 4.500\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\qquad W=\begin{bmatrix}4.243 & 0.000 & 0.085 & -18.818\\0.000 & 0.012 & 0.000 & -0.288\\-4.243 & 0.000 & 0.085 & -12.818\\0.000 & 0.000 & 0.000 & 1.000\end{bmatrix}\]\end{minipage}}\par\smallskip
+\textbf{Transformation chain.} Instance 1 (Tank spot marking) is placed in the world by Eq.~\eqref{eq:ch-tank_spot_marking}. The part Spot line (cuboid) has the local matrix $M$ of Eq.~\eqref{eq:chm-tank_spot_marking} and reaches the world through the root alone, Eq.~\eqref{eq:chw-tank_spot_marking}. Lengths in metres; the products are checked against the exported world matrices.
+\begin{align}
+W_{\text{root}}&=W_{\text{Military base}}\,T(-22.000,-0.300,-16.000)\,R_y(45.0^\circ)\nonumber\\
+&=\begin{bmatrix}0.707 & 0 & 0.707 & -22\\0 & 1 & 0 & -0.300\\-0.707 & 0 & 0.707 & -16\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:ch-tank_spot_marking}\\
+M&=T(0.000,0.012,4.500)\,S(6.000,0.012,0.120)=\begin{bmatrix}6 & 0 & 0 & 0\\0 & 0.012 & 0 & 0.012\\0 & 0 & 0.120 & 4.500\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chm-tank_spot_marking}\\
+W_{\text{part}}&=W_{\text{root}}\,M\nonumber\\
+&=\begin{bmatrix}4.243 & 0 & 0.085 & -18.818\\0 & 0.012 & 0 & -0.288\\-4.243 & 0 & 0.085 & -12.818\\0 & 0 & 0 & 1\end{bmatrix}\label{eq:chw-tank_spot_marking}
+\end{align}
 {\fontsize{7}{8.2}\selectfont\setlength{\tabcolsep}{2.6pt}\renewcommand{\arraystretch}{1.02}
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.0cm}l>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.0cm}>{\raggedright\arraybackslash}p{2.2cm}>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule Part ($\times n$) & Shape & Size $S$ (cm) & Position $T$ (cm, design frame) & Rotation $R$ ($^\circ$) & Parent\\\midrule\endhead

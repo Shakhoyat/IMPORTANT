@@ -13,6 +13,54 @@ P_{\text{ortho}}=\begin{bmatrix}\frac{2}{r-l}&0&0&-\frac{r+l}{r-l}\\0&\frac{2}{t
 \end{equation}
 Isometric view direction: elevation $\arctan(1/\sqrt2)=35.26^\circ$, azimuth $45^\circ$; each axis is foreshortened by
 $\sqrt{2/3}=0.816$.
+\begin{gather}
+x_n=\frac{f}{a}\,\frac{x_e}{-z_e},\quad y_n=f\,\frac{y_e}{-z_e},\qquad f=\cot\frac{\text{fov}_y}{2},\quad a=\frac{W}{H}\qquad\text{(perspective, after the divide)}\label{eq:fov}\\
+P_{\text{oblique}}=P_{\text{ortho}}\begin{bmatrix}1&0&-L\cos\phi&0\\0&1&-L\sin\phi&0\\0&0&1&0\\0&0&0&1\end{bmatrix},\quad
+L=1\ \text{(cavalier)},\ L=\tfrac12\ \text{(cabinet)}\nonumber
+\end{gather}
+\begin{itemize}
+\item $f$ is the focal length in units of half the screen height: fov $50^\circ$ gives $f=2.14$, $60^\circ$ gives $f=1.73$.
+\item The third row of $P_{\text{persp}}$ maps $z_e=-N\mapsto z_n=-1$ and $z_e=-F\mapsto z_n=+1$; the fourth row copies $-z_e$
+into $w$, which the divide of Section~\ref{sec:projective} uses.
+\item Oblique projections (a shear, then orthographic) are not used by ThermalSense; they are listed for comparison.
+\end{itemize}
+\begin{lstlisting}[language=C++,caption={The two projection matrices of Eq.~\eqref{eq:proj} (\code{src/math/Math3D.cpp}).}]
+Mat4 perspective(float fovy, float aspect, float n, float f) {
+    Mat4 r;
+    const float t = 1.0f / std::tan(fovy * 0.5f);   // f = cot(fov/2)
+    r.at(0, 0) = t / aspect;
+    r.at(1, 1) = t;
+    r.at(2, 2) = -(f + n) / (f - n);
+    r.at(2, 3) = -2.0f * f * n / (f - n);
+    r.at(3, 2) = -1.0f;                              // w_c = -z_e
+    r.at(3, 3) = 0.0f;
+    return r;
+}
+Mat4 ortho(float l, float r, float b, float t, float n, float f) {
+    Mat4 m;
+    m.at(0, 0) = 2.0f / (r - l);
+    m.at(1, 1) = 2.0f / (t - b);
+    m.at(2, 2) = -2.0f / (f - n);
+    m.at(0, 3) = -(r + l) / (r - l);
+    m.at(1, 3) = -(t + b) / (t - b);
+    m.at(2, 3) = -(f + n) / (f - n);
+    return m;
+}
+\end{lstlisting}
+\begin{table}[htbp]
+\caption{Every projection matrix ThermalSense builds, with its parameters.}\label{tab:projs}
+\centering\small
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.3cm}lX>{\raggedright\arraybackslash}p{3.2cm}@{}}
+\toprule
+View & Matrix & Parameters & Code\\\midrule
+Player cameras & perspective & fov $50^\circ$ (orbit), $60^\circ$ (walk), $a=16/9$, $N=0.05$\,m, $F=600$\,m & \code{scene/Camera.cpp}\\
+UAV thermal camera & perspective & fov \gv{kCvFovYDeg}$^\circ$, $a=4/3$ (\gv{kCvWidth}$\times$240) & \code{uavCameraView}\\
+Top, front, side, isometric & orthographic & half height 30\,m (22\,m front/side), slab 110--190\,m from the eye & \code{App::composeView}\\
+Sun / moon shadow cascades & orthographic & a cube around the near view slice and around the base (39\,m) & \code{ShadowMath.cpp}\\
+Searchlight shadow & perspective & fov $2\cdot14^\circ+4^\circ=32^\circ$, $a=1$, 0.05--40\,m & \code{spotShadowMatrix}\\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_projections.pdf}
