@@ -22,19 +22,17 @@ the sky bodies, the terrain disc and the parts hidden at the start are left out.
 \end{figure}
 
 \begin{table}[tbp]
-\centering\footnotesize\setlength{\tabcolsep}{3pt}
-\resizebox{\linewidth}{!}{\primtable}
 \caption{The primitive library. Instances are counted over the whole scene. $V$ and $T$ are given as formulas of the
 generator parameters ($s$ slices, $k$ stacks or rings, $u\times v$ torus grid, $c$ cap stacks, $n$ segments, $m$ tube
-sides) and as the counts of the meshes the scene uses.}
-\label{tab:prims}
+sides) and as the counts of the meshes the scene uses.}\label{tab:prims}
+\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{\primtable}
 \end{table}
 
 \begin{table}[tbp]
+\caption{Where each primitive is used: number of scene parts and the most frequent part kinds.}\label{tab:primuse}
 \centering\footnotesize
 \primusetable
-\caption{Where each primitive is used: number of scene parts and the most frequent part kinds.}
-\label{tab:primuse}
 \end{table}
 
 \subsection{How a generator builds a mesh}

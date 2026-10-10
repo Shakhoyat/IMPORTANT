@@ -1,22 +1,21 @@
 \section{Performance evaluation}
 \label{sec:perf}
-\textbf{Setup.} 1920$\times$1080, EPIC, seed 1, the same orbit camera for every configuration (the command is in
-Appendix~\ref{app:repro}). Each configuration first settles for 2\,s of simulation after a clock change, then is
+\textbf{Setup.} 1920$\times$1080, EPIC, seed 1, the same orbit camera for every configuration. Each configuration first settles for 2\,s of simulation after a clock change, then is
 timed in 3 interleaved rounds of 10\,s. A frame includes the simulation tick, both UAV camera renders, the main frame
 and the HUD. Mean and 95th-percentile frame times come from every timed frame; draw calls include shadow passes.
 Headless runs use the RTX\,4070 through the WSL2 d3d12 driver, which is slower than the native Windows driver
 (54--73\,fps headless against 80--101\,fps natively on the same shots).
 
 \begin{table}[htbp]
+\caption{Benchmark. Day = 10:30, no enemies, UAVs docked; night = 23:00 with intruder waves, both UAVs flying and
+searchlights on.}\label{tab:bench}
 \centering\small
 \benchtable
-\caption{Benchmark. Day = 10:30, no enemies, UAVs docked; night = 23:00 with intruder waves, both UAVs flying and
-searchlights on.}
-\label{tab:bench}
 \end{table}
 \begin{figure}[htbp]
 \centering\plot{p_benchmark}{\linewidth}
-\caption{Frame time per configuration (bars: mean; ticks: 95th percentile; dotted line: 60\,fps).}
+\caption{(a) Frame time per configuration, grouped by kind (bars: mean; ticks: 95th percentile; labels: mean fps;
+green band: under 16.7\,ms). (b) Draw calls per frame on a log axis, labelled with the triangles drawn.}
 \label{fig:bench}
 \end{figure}
 \input{sections/gen_bench_text}

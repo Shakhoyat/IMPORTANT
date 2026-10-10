@@ -1,12 +1,10 @@
 \section{Game mode}
 \label{sec:game}
-At night intruder rovers attack from the perimeter in waves; two UAVs patrol, detect them in their thermal images,
-hold a lock (lead \gv{kSquadLeadLock}\,s, wing \gv{kSquadWingLock}\,s) and launch guided rounds. The player can join in by taking control of a soldier, a tank, the AA
-gun or a launcher. Hits are ray tests: each tick a projectile's path segment (previous to current position) is
-intersected with every target's bounding sphere and with the static solids' boxes, so a fast round cannot tunnel
-through a target between two ticks; an explosion then damages targets inside its blast radius.
-The squad never reads a rover's position from the scene: everything it knows comes out of its own two cameras,
-through the chain of Figure~\ref{fig:cvchain}, so the game is a working computer-vision system on top of the renderer.
+\here{10}
+At night intruder rovers attack in waves; two UAVs patrol, find them in their thermal images, lock on and launch guided
+rounds, and the player can take over a soldier, a tank, the AA gun or a launcher. The squad never reads a rover's
+position from the scene: everything it knows comes from its own two cameras (Figure~\ref{fig:cvchain}). Hits are ray
+tests of each projectile's path segment per tick against target spheres and solid boxes, so a fast round cannot tunnel.
 
 \subsection{From pixels to a target: the detection chain}
 \begin{figure}[htbp]
@@ -34,6 +32,7 @@ squad's one shared track picture.}
 \end{figure}
 
 \begin{table}[htbp]
+\caption{Computer-vision concepts used by the UAVs.}\label{tab:cv}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXl@{}}
 \toprule
@@ -46,8 +45,6 @@ Classification & target: hot engine core $\geq$\gv{core}, elongation $\leq$\gv{m
 Back-projection & the centroid's pixel ray hits the terrain \code{0.2}\,m above ground (a rover's hot body) & $\sigma=0.12+0.015\,d$\\
 \bottomrule
 \end{tabularx}
-\caption{Computer-vision concepts used by the UAVs.}
-\label{tab:cv}
 \end{table}
 
 \subsection{How the two UAVs work together}
@@ -85,26 +82,20 @@ triangulation of Figure~\ref{fig:triang}a, and the launch delays of a time-on-ta
 \label{fig:wb-tracking}
 \end{figure}
 
-With a confirmed target (the track most threatening to a camp asset), the UAV with the longer lock becomes
-\textbf{LEAD} and keeps its bearing; the other becomes \textbf{WING} and flies about $90^\circ$ around the target, at
-\gv{kSquadStandOff}\,m stand-off and \gv{kSquadEngageAlt}\,m height: two viewing directions at right angles give the best
-triangulation and a second attack axis. When the lead has held the target \gv{kSquadLeadLock}\,s and the wing
-\gv{kSquadWingLock}\,s, they make a \textbf{combined strike} timed so both rounds arrive together (time on target): each
-round's flight time $T_k$ is predicted from the motor model (\gv{flight_launch_speed}\,m/s at launch, \gv{flight_cruise_speed}\,m/s after
-\gv{flight_ramp_time}\,s), the farther UAV launches first and the nearer one waits $T_{\mathrm{far}}-T_k$; each round homes on the target's
-predicted position at its own arrival. If the wing cannot lock within \gv{kSquadWingWait}\,s, the lead strikes alone
-after \gv{kSquadSoloLock}\,s. A target lost behind cover is searched for \gv{kSquadReacquireTime}\,s: both UAVs circle its last
-known position on opposite sides and different radii to look around the occluder.
+On a confirmed target the UAV with the longer lock becomes \textbf{LEAD}; the other, \textbf{WING}, flies about
+$90^\circ$ around the target at \gv{kSquadStandOff}\,m stand-off for the best triangulation. After \gv{kSquadLeadLock}\,s
+(lead) and \gv{kSquadWingLock}\,s (wing) of lock they make a \textbf{combined strike}: each round's flight time $T_k$ is
+predicted, the farther UAV launches first and both rounds arrive together (Eq.~\eqref{eq:tot}). A target lost behind
+cover is searched for \gv{kSquadReacquireTime}\,s by circling its last known position from both sides.
 \begin{equation}
 t_{\mathrm{launch},k}=t_0+\big(\max_j T_j-T_k\big),\qquad
 \mathbf{a}=\mathbf{x}_{\mathrm{track}}+\mathbf{v}_{\mathrm{track}}\max_j T_j
 \label{eq:tot}
 \end{equation}
 \begin{table}[htbp]
+\caption{Predicted round flight time against distance.}\label{tab:flight}
 \centering\footnotesize\setlength{\tabcolsep}{3.5pt}
 \flighttimetable
-\caption{Predicted round flight time against distance.}
-\label{tab:flight}
 \end{table}
 The rounds themselves steer by proportional navigation: the turn rate is
 $\boldsymbol\omega=4\,|\mathbf{v}|\,(\hat{\mathbf{v}}\times\mathbf{r})/|\mathbf{r}|^2+2\,\hat{\mathbf{v}}\times\hat{\mathbf{r}}$,
@@ -212,16 +203,6 @@ shift.}
 \label{fig:fsm}
 \end{figure}
 
-\begin{figure}[htbp]
-\centering
-\begin{subfigure}{0.325\linewidth}\raw{v5/thermal_fpv}{\linewidth}\caption{Detect and track (gimbal).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{v5/tank_fire}{\linewidth}\caption{Ground fire.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{v5/aa_gun_burst}{\linewidth}\caption{AA gun burst.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.49\linewidth}\raw{scene/dusk_shift_change}{\linewidth}\caption{Shift change at dusk.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{scene/dawn_withdraw}{\linewidth}\caption{Dawn: survivors withdraw.}\end{subfigure}
-\caption{Game events; in (a) the HUD shows the lock ring and the track ID from the CV tracker.}
-\label{fig:events}
-\end{figure}
 
 \begin{figure}[htbp]
 \centering\wbblock{Duty_Cycle}{roster}\\[1mm]

@@ -2,10 +2,11 @@
 \label{sec:setup}
 Every image in this report is a capture made by the program, a plot of the code's own formulas or a block of the
 formula-driven workbook \code{report/workbooks/cg\_workbook.xlsx}. Every count, size and coordinate comes from the
-program's scene export (\code{ts --export-docs}) through a script; none is typed by hand.
-Appendix~\ref{app:repro} lists the commands that regenerate them.
+program's scene export (\code{ts --export-docs}) through a script (\code{tools/v10}, \code{tools/report}); none is
+typed by hand.
 
 \begin{table}[htbp]
+\caption{Tools and setup.}\label{tab:setup}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
@@ -22,8 +23,6 @@ Evidence tools & \code{--capture} (named shots), \code{--benchmark}, \code{--exp
 \code{--record} (2-minute director cut), F9 session recording with \code{--replay}\\
 \bottomrule
 \end{tabularx}
-\caption{Tools and setup.}
-\label{tab:setup}
 \end{table}
 
 \textbf{Time scale.} In automatic mode one in-game day lasts \daySeconds{}\,s (\dayMinutes{} real minutes): 10\,s per

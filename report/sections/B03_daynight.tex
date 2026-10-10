@@ -1,5 +1,6 @@
 \section{Day and night system}
 \label{sec:day}
+\here{8}
 The sun follows a solar-position model for the camp's latitude (Khulna, $\varphi=22.8^\circ$, early October,
 declination $\delta=-4.6^\circ$). It rises in the east, crosses the southern sky and sets in the west. Every lighting
 parameter is a function of its elevation $e$.
@@ -14,12 +15,13 @@ removed first near the horizon and the light turns orange.
 \begin{figure}[htbp]
 \centering\plot{p_day_cycle}{\linewidth}
 \caption{The solar model over 24 hours (Eq.~\eqref{eq:sun}): (a) sun elevation with the twilight bands where the
-phases switch, (b) the key light per channel.}
+phases switch, (b) the key light per channel, (c) the zenith, horizon and key-light colours the renderer uses, read from
+the renderer's export at 15-minute steps.}
 \label{fig:daycycle}
 \end{figure}
 
 The phases switch at night below $-6^\circ$ and day above $4^\circ$ (Figure~\ref{fig:daycycle}a). Red outlasts blue at
-both ends of the day (b): that is the sunset colour of Figure~\ref{fig:hero}b, produced by the formula.
+both ends of the day (b): that is the sunset colour of Figure~\ref{fig:hero}a and the warm horizon band at 6:00 and 18:00 in (c), produced by the formula.
 \begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{scene/dawn_withdraw}{\linewidth}\caption{Dawn: the intruders withdraw.}\end{subfigure}\hfill
@@ -32,6 +34,7 @@ both ends of the day (b): that is the sunset colour of Figure~\ref{fig:hero}b, p
 Fog and horizon agree because both come from the same analytic sky (Preetham model \cite{preetham1999}) evaluated for
 the current sun direction.
 \begin{table}[htbp]
+\caption{Everything that follows the sun's elevation.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
@@ -43,7 +46,6 @@ Practical lamps, searchlights & lamps on as $1-s_{[-4,2]}(e)$; UAV searchlights 
 Rules & intruder waves only at night (unless day ops); soldiers' day shift 06:24--17:36\\
 \bottomrule
 \end{tabularx}
-\caption{Everything that follows the sun's elevation.}
 \end{table}
 \textbf{Transitions.} The clock runs automatically (one day = \daySeconds\,s) or is scrubbed by hand (\key{,} \key{.}),
 jumps to the next phase (\key{/}) or to a preset in the pause menu; lighting follows continuously in every case.

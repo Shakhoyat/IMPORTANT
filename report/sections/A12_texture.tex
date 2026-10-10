@@ -18,16 +18,15 @@ material property. A procedural texture computes the value with a function inste
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{lab/relief_compare}{\linewidth}\caption{Procedural relief (bump) off / on.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{lab/material_grid}{\linewidth}\caption{Procedural materials on unit primitives.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.49\linewidth}\raw{scene/m6_grass_close}{\linewidth}\caption{Image textures: CC0 grass atlas on instanced blades.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{Image textures: glTF tree with alpha-tested leaf cards.}\end{subfigure}
-\caption{Procedural (a, b) and image textures (c, d); the leaves in (d) are cut out by alpha-to-coverage.}
+\begin{subfigure}{0.25\linewidth}\raw{lab/material_grid}{\linewidth}\caption{Procedural materials.}\end{subfigure}\hfill
+\begin{subfigure}{0.365\linewidth}\raw{scene/m6_grass_close}{\linewidth}\caption{CC0 grass atlas on blades.}\end{subfigure}\hfill
+\begin{subfigure}{0.365\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{glTF tree, alpha-tested leaves.}\end{subfigure}
+\caption{Procedural (a) and image textures (b, c); the leaves in (c) are cut out by alpha-to-coverage.}
 \label{fig:tex}
 \end{figure}
 
-In Figure~\ref{fig:tex}a the geometry is identical and only the normal is perturbed by Eq.~\eqref{eq:tex}: the
-silhouette stays straight while the lighting shows relief.
+A bump map perturbs only the normal (Eq.~\eqref{eq:tex}): the silhouette stays straight while the lighting shows
+relief.
 
 \textbf{Where coordinates come from.} Primitives carry no UV set. Their surfaces (concrete, camouflage, sandbags,
 wood, metal, terrain soil and grass) are procedural: noise and cellular patterns evaluated from the world position

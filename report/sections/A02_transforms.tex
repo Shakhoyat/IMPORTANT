@@ -62,17 +62,15 @@ exported one. \fullsheet{Transform_Trace}}
 \label{sec:worked}
 Four parts of the scene, followed by the same rule $\vect p_{\text{world}}=W\,\vect p_{\text{local}}$ with
 $W=W_{\text{parent}}\,T\,R_y\,R_x\,R_z\,S$ (Eqs.~\ref{eq:trs}, \ref{eq:world}). The matrices are composed from each
-part's $S$, $R$ and $T$ and reproduce its world matrix. The workbook sheet \code{Vertex\_Groups} (Appendix~\ref{app:wb-Vertex_Groups})
-holds the same groups as live formulas.
+part's $S$, $R$ and $T$ and reproduce its world matrix. The workbook sheet \code{Vertex\_Groups} holds the same groups as live formulas.
 
 \textbf{A. A bunker wall panel: the 8 corners of a cuboid.} Part \wgAname, child of \wgAparent; its local
 transform is $\wgAsrt$. The scale stretches the unit cube to the panel's size, the translation places it, and the
 parent's matrix carries it into the world.
 \[\scriptsize\wgAmats\]
 \begin{table}[htbp]
+\caption{Group A: the cube's corners $v_0..v_7$ (Figure~\ref{fig:card-cube}) and where they land in the world.}\label{tab:wgA}
 \centering\footnotesize\wgA
-\caption{Group A: the cube's corners $v_0..v_7$ (Figure~\ref{fig:card-cube}) and where they land in the world.}
-\label{tab:wgA}
 \end{table}
 
 \textbf{B. A tank road wheel: turning a torus onto the axle.} The torus is generated around the $z$ axis; the
@@ -80,11 +78,10 @@ road-wheel group (\wgBname) turns it with $R_y$ so that the tyre's axis follows 
 sets its radius and width: $\wgBsrt$.
 \[\scriptsize\wgBmats\]
 \begin{table}[htbp]
-\centering\footnotesize\wgB
 \caption{Group B: points of the unit torus through the tyre's and wheel's matrices, then into the world; the tyre's
 axis in world space is $\wgBaxle$. The wheel group also spins about this axis as the track moves (only its local
-angle changes).}
-\label{tab:wgB}
+angle changes).}\label{tab:wgB}
+\centering\footnotesize\wgB
 \end{table}
 
 \textbf{C. Joints and doors: only one local matrix changes.} Walking changes the soldier's hip and knee angles
@@ -92,21 +89,19 @@ angle changes).}
 changes one translation of the leaf group by \wgDoorSlide\,m. Every part below the changed node moves with it,
 with no other matrix touched.
 \begin{table}[htbp]
-\centering\footnotesize\wgC\\[2mm]\wgCdoor
 \caption{Group C. Top: soldier 1's left leg in the exported standing pose and at the gait phase with the most knee
 bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame. Bottom: the west blast-door leaf (its
-panel \wgDoorPanel) closed and open: two opposite corners of the panel.}
-\label{tab:wgC}
+panel \wgDoorPanel) closed and open: two opposite corners of the panel.}\label{tab:wgC}
+\centering\footnotesize\wgC\\[2mm]\wgCdoor
 \end{table}
 
 \textbf{D. The UAV's camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
 groups, $\wgDchain$. Its view axis is the camera frame's $+z$ direction, $W(0,0,1,0)^\top$ (a direction: $w=0$, so
 translations do not affect it).
 \begin{table}[htbp]
-\centering\footnotesize\wgD
 \caption{Group D: camera position and view axis of UAV~1 for the starting gimbal angles and two other settings; the
-pitch alone sets the angle below the horizon.}
-\label{tab:wgD}
+pitch alone sets the angle below the horizon.}\label{tab:wgD}
+\centering\footnotesize\wgD
 \end{table}
 The camera barely moves between the three settings: the gimbal turns it about points a few centimetres away.
 

@@ -1,5 +1,6 @@
 \section{Reflection: approximated and traced}
 \label{sec:rtadv}
+\here{10}
 The raster renderer approximates mirror reflection with screen-space reflections (SSR): for a reflective pixel it
 marches the reflected ray through the depth buffer and copies the colour where the ray passes behind a stored depth.
 It can only reflect what is on screen. The hybrid mode replaces that with real reflection rays against a BVH of the
@@ -11,23 +12,22 @@ L_{\text{out}}=(1-F)\,L_{\text{local}}+F\,L(\vect r)
 \end{equation}
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{lab/reflections_compare}{\linewidth}\caption{Reflections off / SSR on (wet ground, metal).}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{rt/raytrace_ssr}{\linewidth}\caption{SSR vs ray-traced reflections.}\end{subfigure}
-\caption{Approximate versus traced reflection.}
+\raw{rt/raytrace_ssr}{0.8\linewidth}
+\caption{Screen-space (left) against ray-traced reflections (right).}
 \label{fig:refl}
 \end{figure}
 
-Figure~\ref{fig:refl}b shows where SSR fails: objects outside the screen or hidden behind others are missing from the
+Figure~\ref{fig:refl} shows where SSR fails: objects outside the screen or hidden behind others are missing from the
 reflection, and the reflection fades towards the screen edge. The traced reflection has them.
 \begin{table}[htbp]
+\caption{Cost of each render mode at \rtperfsize{} on the RTX 4070. Hybrid traces at full size; Whitted,
+path and light tracing render at a reduced internal size and upscale.}\label{tab:rtperf}
 \centering\small
 \rtperftable
-\caption{Cost of each render mode at \rtperfsize{} on the RTX 4070. Hybrid traces at full size; Whitted,
-path and light tracing render at a reduced internal size and upscale.}
-\label{tab:rtperf}
 \end{table}
 
 \begin{table}[htbp]
+\caption{Differences between reflection methods.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -38,7 +38,6 @@ Whitted & exact mirrors, refraction, hard shadows; no indirect light & recursive
 Path / light tracing & soft shadows, indirect light, caustics (light) & many paths per pixel, noise, denoising & reference images\\
 \bottomrule
 \end{tabularx}
-\caption{Differences between reflection methods.}
 \end{table}
 
 \textbf{Limitation.} The hybrid mode traces only the reflection. The screen-space passes (SSAO/GTAO, fog, SSR) work on the primary

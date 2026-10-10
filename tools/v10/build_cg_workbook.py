@@ -31,7 +31,7 @@ SOFFICE = Path.home() / ".local/opt/squashfs-root/opt/libreoffice25.8/program/so
 UV = Path.home() / ".local/bin/uv"
 NSS_LIB = Path.home() / ".local/opt/nss/root/usr/lib/x86_64-linux-gnu"
 
-SHEETS = ["Primitives", "Decomposition", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
+SHEETS = ["Primitives", "Decomposition", "Designs", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
           "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
           "Performance"]
 
@@ -277,7 +277,9 @@ def sheet_primitives(wb, exp):
     s.finish(last_col=17, fit=False, scale=78)
 
 
-PRIM_ORDER = ["Cube", "Sphere", "Cylinder", "Cylinder (frustum)", "Cone", "Terrain disc"]
+# Every primitive type the scene's parts use (export 'primitive' names; cuboids are cube parts), in the report's key order.
+PRIM_ORDER = ["Cube", "Wedge", "Tapered box", "Pyramid", "Sphere", "Hemisphere", "Capsule", "Cylinder", "Cylinder (frustum)",
+              "Cone", "Torus", "Annulus", "Helix", "Terrain disc"]
 
 
 def sheet_decomposition(wb, exp):
@@ -296,7 +298,7 @@ def sheet_decomposition(wb, exp):
     # Page 1: object table (left) + COUNTIFS summary (right); part tables after it.
     n_obj = len(exp["objects"])
     obj_r = 5
-    sum_r, sc = 5, 14
+    sum_r, sc = 5, len(PRIM_ORDER) + 9   # to the right of the object table
     uav_r = obj_r + n_obj + 7
     sol_r = uav_r + len(uav) + 4
     uav_rng = (uav_r + 2, uav_r + 1 + len(uav))
@@ -307,7 +309,7 @@ def sheet_decomposition(wb, exp):
     s.heads(sum_r + 1, sc, ["Primitive", "UAV-1 COUNTIFS", "UAV-1 export", "check", "Soldier 1 COUNTIFS",
                             "Soldier 1 export", "check"], height=30)
     r = sum_r + 1
-    for p in PRIM_ORDER[:5]:
+    for p in PRIM_ORDER[:-1]:
         r += 1
         s.put(r, sc, p, bold=True)
         s.put(r, sc + 1, f'=COUNTIFS($C${uav_rng[0]}:$C${uav_rng[1]},{A(r, sc)})', fmt="0")
@@ -325,38 +327,42 @@ def sheet_decomposition(wb, exp):
     s.note(r + 2, sc, "UAV-1 export = controllable 'UAV-1 DRONE' (root UAV-00);")
     s.note(r + 3, sc, "the object 'Autonomous UAV' below counts both UAVs.")
 
-    # 2. object-level table
+    # 2. object-level table (one column per primitive type; cube parts include the cuboids)
+    n = len(PRIM_ORDER)
+    cS, cE, cK, cG, cA = 2 + n, 3 + n, 4 + n, 5 + n, 6 + n   # sum, export parts, check, groups, animated
     s.put(obj_r, 1, "1. Object-level primitive totals (whole scene, from the export)", border=False, bold=True)
     s.heads(obj_r + 1, 1, ["Object"] + PRIM_ORDER + ["parts (sum)", "parts export", "check", "groups", "animated nodes"],
-            height=30)
+            height=42)
     r = obj_r + 1
     for o in exp["objects"]:
         r += 1
         s.put(r, 1, o["object"], bold=True)
         for j, p in enumerate(PRIM_ORDER):
-            s.put(r, 2 + j, o["primitives"].get(p, 0), inp=True)
-        s.put(r, 8, f"=SUM(B{r}:G{r})", fmt="0")
-        s.put(r, 9, o["parts"], inp=True)
-        s.put(r, 10, f'=IF(H{r}=I{r},"OK","DIFF")', center=True)
-        s.put(r, 11, o["groups"], inp=True)
-        s.put(r, 12, o["animated_nodes"], inp=True)
+            v = o["primitives"].get(p, 0)
+            s.put(r, 2 + j, v if v else None, inp=bool(v), fmt="0")
+        s.put(r, cS, f"=SUM({A(r, 2)}:{A(r, 1 + n)})", fmt="0")
+        s.put(r, cE, o["parts"], inp=True)
+        s.put(r, cK, f'=IF({A(r, cS)}={A(r, cE)},"OK","DIFF")', center=True)
+        s.put(r, cG, o["groups"], inp=True)
+        s.put(r, cA, o["animated_nodes"], inp=True)
     o0, o1 = obj_r + 2, r
     r += 1
     s.put(r, 1, "Scene total", bold=True)
-    for c in range(2, 10):
-        s.put(r, c, f"=SUM({A(o0, c)}:{A(o1, c)})", fmt="0")
-    for c in (11, 12):
+    for c in list(range(2, cE + 1)) + [cG, cA]:
         s.put(r, c, f"=SUM({A(o0, c)}:{A(o1, c)})", fmt="0")
     r += 1
     s.put(r, 1, "Instances (export)", bold=True)
-    prims = {p["type"]: p for p in exp["primitives"]}
+    inst = {}
+    for p in exp["primitives"]:
+        t = "Cube" if p["name"] == "cuboid" else p["type"]   # the cuboid entry is the cube mesh
+        inst[t] = inst.get(t, 0) + p["instances"]
     for j, p in enumerate(PRIM_ORDER):
-        s.put(r, 2 + j, prims[p]["instances"], inp=True)
-    s.put(r, 8, f"=SUM(B{r}:G{r})", fmt="0")
-    s.put(r, 9, exp["leaf_count"], inp=True)
+        s.put(r, 2 + j, inst.get(p, 0), inp=True)
+    s.put(r, cS, f"=SUM({A(r, 2)}:{A(r, 1 + n)})", fmt="0")
+    s.put(r, cE, exp["leaf_count"], inp=True)
     r += 1
     s.put(r, 1, "check", bold=True)
-    for c in range(2, 10):
+    for c in range(2, cE + 1):
         s.put(r, c, f'=IF({A(r - 2, c)}={A(r - 1, c)},"OK","DIFF")', center=True)
     s.ws.row_breaks.append(Break(id=r + 1))
 
@@ -383,7 +389,79 @@ def sheet_decomposition(wb, exp):
                        "world = parent_world M (the export's object 'Autonomous UAV' holds 2 UAVs).", uav)
     s.ws.row_breaks.append(Break(id=end + 1))
     parts(sol_r, f"4. Soldier 1 (root SLD1-00): {len(sol)} drawn parts (joint angles live in the parent groups).", sol)
-    s.finish(fit_height=0, last_col=20, fit=False, scale=75)
+    s.finish(fit_height=0, last_col=len(PRIM_ORDER) + 15, fit=False, scale=62)
+
+
+def sheet_designs(wb, exp):
+    """Final report pass: the 62 designs of the scene (export 'designs') with their primitive counts over all instances,
+    totals as formulas checked against the scene's part count, and the report's primitive colour key with L* computed
+    from the sRGB inputs."""
+    import re as _re
+    s = Sheet(wb, "Designs", "Designs: every object design, its instances and its primitives",
+              "ts --export-docs 'designs' (src/report/Designs.cpp) and src/report/PrimitiveColors.h. "
+              "Section 19 of the report draws one card per design.")
+    keys = ["Cube", "Cuboid", "Wedge", "Tapered box", "Pyramid", "Sphere", "Hemisphere", "Capsule", "Cylinder",
+            "Cylinder (frustum)", "Cone", "Torus", "Annulus", "Helix", "Terrain disc"]
+    s.widths({"A": 20, "B": 13, "C": 7, "D": 9, "E": 9, "F": 10})
+    from openpyxl.utils import get_column_letter as gcl
+    for j in range(len(keys) + 3):
+        s.ws.column_dimensions[gcl(7 + j)].width = 7.5
+    r0 = 5
+    s.put(r0, 1, "1. Designs: parts by primitive over all instances (yellow: export), totals and checks (formulas)",
+          border=False, bold=True)
+    s.heads(r0 + 1, 1, ["Design", "Family", "x n", "parts / inst.", "parts total", "n x parts"] + keys + ["sum", "check"],
+            height=42)
+    r = r0 + 1
+    first = r + 1
+    for d in exp["designs"]:
+        r += 1
+        ppi = d["parts_per_instance"]
+        s.put(r, 1, d["name"], bold=True)
+        s.put(r, 2, d["family"])
+        s.put(r, 3, d["instances"], inp=True)
+        s.put(r, 4, ppi[0] if len(set(ppi)) == 1 else "%d..%d" % (min(ppi), max(ppi)), inp=True, center=True)
+        s.put(r, 5, d["parts_total"], inp=True)
+        # instances x parts where every instance has the same parts (else the export total stands)
+        s.put(r, 6, f"=IF(ISNUMBER({A(r, 4)}),{A(r, 3)}*{A(r, 4)},{A(r, 5)})", fmt="0")
+        for j, k in enumerate(keys):
+            v = d["primitives_total"].get(k, 0)
+            s.put(r, 7 + j, v if v else None, inp=bool(v), fmt="0")
+        cs, ce = 7, 6 + len(keys)
+        s.put(r, ce + 1, f"=SUM({A(r, cs)}:{A(r, ce)})", fmt="0")
+        s.put(r, ce + 2, f'=IF(AND({A(r, ce + 1)}={A(r, 5)},{A(r, 6)}={A(r, 5)}),"OK","DIFF")', center=True)
+    last = r
+    r += 1
+    s.put(r, 1, "Scene", bold=True)
+    s.put(r, 3, f"=SUM({A(first, 3)}:{A(last, 3)})", fmt="0")
+    for c in [5, 6] + list(range(7, 7 + len(keys) + 1)):
+        s.put(r, c, f"=SUM({A(first, c)}:{A(last, c)})", fmt="0")
+    r += 1
+    s.put(r, 1, "Scene parts (export leaf_count)", bold=True)
+    s.put(r, 5, exp["leaf_count"], inp=True)
+    s.put(r, 6, f'=IF({A(r - 1, 5)}={A(r, 5)},"OK","DIFF")', center=True)
+    # 2. colour key
+    hdr = open(ROOT / "src" / "report" / "PrimitiveColors.h").read()
+    rows = _re.findall(r'\{"([^"]+)", "([a-z]+)", "([^"]+)", "([a-z]+)", (\d+), (\d+), (\d+), ([\d.]+)\}', hdr)
+    r += 3
+    s.put(r, 1, "2. The report's primitive colour key: sRGB inputs, greyscale lightness L* by formula", border=False, bold=True)
+    s.heads(r + 1, 1, ["Primitive", "Family", "R", "G", "B", "colour", "Y (linear)", "L*"], height=30)
+    r += 1
+    def lin(cell):
+        return f"IF({cell}/255<=0.04045,{cell}/255/12.92,(({cell}/255+0.055)/1.055)^2.4)"
+    for key, tk, label, fam, R, G, B, _L in rows:
+        r += 1
+        s.put(r, 1, key, bold=True)
+        s.put(r, 2, fam)
+        for j, v in enumerate((R, G, B)):
+            s.put(r, 3 + j, int(v), inp=True)
+        c = s.ws.cell(row=r, column=6)
+        c.fill = PatternFill("solid", fgColor="%02X%02X%02X" % (int(R), int(G), int(B)))
+        c.border = BORDER
+        s.put(r, 7, f"=0.2126*{lin(A(r, 3))}+0.7152*{lin(A(r, 4))}+0.0722*{lin(A(r, 5))}")
+        s.put(r, 8, f"=IF({A(r, 7)}>0.008856,116*{A(r, 7)}^(1/3)-16,903.3*{A(r, 7)})", fmt="0.0")
+    s.note(r + 2, 1, "Each family has its own L* band (box 30-45, ring 50-57, special 60-61, cylinder 64-69, round 74-88), "
+                     "so the families stay apart in greyscale.")
+    s.finish(fit=False, scale=62)
 
 
 def sheet_view_projection(wb, exp):
@@ -1982,6 +2060,7 @@ def build(export_path):
     wb.remove(wb.active)
     sheet_primitives(wb, exp)
     sheet_decomposition(wb, exp)
+    sheet_designs(wb, exp)
     # View_Projection must exist before Transform_Trace references it; reorder afterwards.
     tt_placeholder = wb.create_sheet("Transform_Trace_tmp")
     vp = sheet_view_projection(wb, exp)

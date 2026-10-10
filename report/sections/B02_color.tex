@@ -1,5 +1,6 @@
 \section{Colour interpolation}
 \label{sec:color}
+\here{9}
 Colour is interpolated in four places: across a triangle (barycentric), between shading models (Gouraud vs Phong),
 between colour spaces (sRGB vs linear), and over time (sky and fog presets over the day). Each has a naive version
 that fails visibly.
@@ -31,6 +32,7 @@ colours, and the sky colours tabulated over the day. \fullsheet{Color_Interp}}
 \end{figure}
 
 \begin{table}[htbp]
+\caption{Colour interpolation: the naive method, how it fails, and the renderer's method.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -41,7 +43,6 @@ Colour space & blending sRGB values: mid-tones too dark, e.g.\ 50\,\% red/green 
 Sky over the day & linear mix of night and day presets: the night tint is swamped by the day value until very late & presets blended in log space (Eq.~\ref{eq:srgb}): equal steps are equal ratios, which the eye sees as even & Figs.~\ref{fig:hero}, \ref{fig:daycycle}\\
 \bottomrule
 \end{tabularx}
-\caption{Colour interpolation: the naive method, how it fails, and the renderer's method.}
 \end{table}
 
 \textbf{Limitation.} Log-space blending is undefined for a zero channel: every preset must stay strictly positive,

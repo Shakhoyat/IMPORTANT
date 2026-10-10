@@ -2,7 +2,7 @@
 Inputs: report/data/scene_export_v10.json (schema 9: designs, components with design / design_root), the shape-view
 captures in report/figures/raw/shapes/shapeview (tools/report/capture_shapes.py), report/data/vegetation_assets.json.
 Writes report/sections/gen_designs.tex:
-  \\designatlas            thumbnails of every design by family, "name - parts x instances"
+  \\designatlasA/B         thumbnails of every design by family, "name - parts x instances" (two float pages)
   \\designtable            Table 19.1: one row per design, x n, parts, primitive columns (key chips), totals
   \\designcards<Family>    the cards of one family (shape-view figure + legend, one sentence, parts table)
   \\munitionlineup         the munitions at one scale with a 10 cm scale bar
@@ -482,23 +482,64 @@ shapes = {d["name"]: shape(d["name"]) for d in order}
 for nm in CUT_DESIGNS:
     shapes[nm + "@cut"] = shape(nm, cut=True)
 
-# atlas
-rows = []
-for fam in FAMILIES:
-    ds = [d for d in order if d["family"] == fam]
-    cells = []
-    for d in ds:
-        j = shapes[d["name"]]
-        which = "prims" if d["name"] in SKY else "model"
-        cells.append("\\begin{tabular}[t]{@{}c@{}}\\imgbox{figures/img/shapes/%s_%s.jpg}{1.6cm}{0.9cm}\\\\[-0.7mm]"
-                     "\\parbox[t]{1.85cm}{\\centering\\fontsize{7}{7.4}\\selectfont %s\\\\%s$\\,\\times\\,$%d}\\end{tabular}"
-                     % (j["_slug"], which, tex(d["name"]), d["parts_first"] if len(set(d["parts_per_instance"])) == 1 else
-                        "%d..%d" % (min(d["parts_per_instance"]), max(d["parts_per_instance"])), d["instances"]))
-    lines = []
-    for k in range(0, len(cells), 9):
-        lines.append("\\noindent " + "\\hfill".join(cells[k:k + 9] + ["\\hspace{1.85cm}"] * (9 - len(cells[k:k + 9]))))
-    rows.append("{\\small\\textbf{%s}}\\\\[-0.5mm]\n%s" % (fam.capitalize(), "\\\\[0.3mm]\n".join(lines)))
-out.append("\\newcommand{\\designatlas}{%s}" % "\\\\[0.4mm]\n".join(rows))
+# atlas: two float pages (families split after "buildings"), 7 designs per row, each thumbnail cropped to its content
+# and padded to one aspect so the tiles line up
+ATLAS_W, ATLAS_H, ATLAS_N = 1.98, 1.5, 8
+ATLAS_PRIMS = {"Concertina wire", "Perimeter fence"}  # thin wire: the outlined primitive render reads, the model does not
+
+
+def atlas_thumb(src, dst, aspect=ATLAS_W / ATLAS_H):
+    im = np.asarray(Image.open(src).convert("RGB"), dtype=np.int16)
+    H, W = im.shape[:2]
+    t = np.linspace(0, 1, H)[:, None, None]
+    bg = (1 - t) * im[:1, :1] + t * im[-1:, :1]          # vertical background gradient from the corner pixels
+    ys, xs = np.nonzero(np.abs(im - bg).max(axis=2) > 18)
+    if len(xs) == 0:
+        x0, x1, y0, y1 = 0, W - 1, 0, H - 1
+    else:
+        x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+    cw, ch = (x1 - x0 + 1) * 1.12, (y1 - y0 + 1) * 1.12
+    cw, ch = max(cw, ch * aspect), max(ch, cw / aspect)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    px, py = int(max(0, cw - W) / 2 + 2), int(max(0, ch - H) / 2 + 2)
+    im = np.pad(im, ((py, py), (px, px), (0, 0)), mode="edge")   # extends the background gradient
+    bx, by = int(round(cx + px - cw / 2)), int(round(cy + py - ch / 2))
+    bx, by = min(max(bx, 0), im.shape[1] - int(cw)), min(max(by, 0), im.shape[0] - int(ch))
+    out = Image.fromarray(im[by:by + int(ch), bx:bx + int(cw)].astype(np.uint8))
+    out.thumbnail((520, 520), Image.LANCZOS)
+    out.save(dst, quality=90)
+
+
+def atlas_block(fams):
+    blocks = []
+    for fam in fams:
+        ds = [d for d in order if d["family"] == fam]
+        parts = sum(d["parts_first"] * d["instances"] if len(set(d["parts_per_instance"])) == 1 else sum(d["parts_per_instance"]) for d in ds)
+        imgs, labs = [], []
+        for d in ds:
+            j = shapes[d["name"]]
+            which = "prims" if d["name"] in SKY or d["name"] in ATLAS_PRIMS else "model"
+            th = "atlas_%s.jpg" % j["_slug"]
+            atlas_thumb(os.path.join(IMG, "%s_%s.jpg" % (j["_slug"], which)), os.path.join(IMG, th))
+            imgs.append("\\includegraphics[width=%.2fcm,height=%.2fcm]{figures/img/shapes/%s}" % (ATLAS_W, ATLAS_H, th))
+            ppi = d["parts_first"] if len(set(d["parts_per_instance"])) == 1 else "%d..%d" % (min(d["parts_per_instance"]), max(d["parts_per_instance"]))
+            labs.append("\\textbf{%s}\\par %s$\\,\\times\\,$%d" % (tex(d["name"]), ppi, d["instances"]))
+        rows = []
+        for k in range(0, len(imgs), ATLAS_N):
+            pad = [""] * (ATLAS_N - len(imgs[k:k + ATLAS_N]))
+            rows.append(" & ".join(imgs[k:k + ATLAS_N] + pad) + "\\\\[0.5mm]\n" + " & ".join(labs[k:k + ATLAS_N] + pad) + "\\\\[1.6mm]")
+        blocks.append("\\noindent\\begin{tabular}{@{}*{%d}{>{\\centering\\arraybackslash\\fontsize{7}{8}\\selectfont}p{%.2fcm}}@{}}\n"
+                      "\\multicolumn{%d}{@{}l@{}}{\\small\\bfseries %s\\quad\\normalfont\\footnotesize\\color{black!60}%d design%s, %s parts}\\\\[-0.6mm]\n"
+                      "\\multicolumn{%d}{@{}l@{}}{\\color{black!35}\\rule{\\linewidth}{0.5pt}}\\\\[0.6mm]\n%s\n\\end{tabular}"
+                      % (ATLAS_N, ATLAS_W, ATLAS_N, fam.capitalize(), len(ds), "" if len(ds) == 1 else "s",
+                         "{:,}".format(parts).replace(",", "\\,"), ATLAS_N, "\n".join(rows)))
+    return "\n\\par\\vspace{1.5mm}\n".join(blocks)
+
+
+cut_at = FAMILIES.index("buildings") + 1
+out.append("\\newcommand{\\designatlasA}{%s}" % atlas_block(FAMILIES[:cut_at]))
+out.append("\\newcommand{\\designatlasB}{%s}" % atlas_block(FAMILIES[cut_at:]))
+
 
 # Table 19.1
 tot = collections.Counter()
@@ -613,11 +654,24 @@ out.append("\\newcommand{\\munitionlineupfig}{\\begin{figure}[H]\\centering"
 # build stages in the colour key
 for nm, tag in (("Autonomous UAV", "Uav"), ("Main battle tank", "Tank"), ("Scout helicopter", "Heli"), ("Command bunker", "Bunker")):
     cells = []
+    # one crop for the four stages (so they line up): the box of the full design at 100 %, padded to 4:3
+    full = np.asarray(Image.open(os.path.join(RAW, "%s_stage100.png" % slug(nm))).convert("RGB"), dtype=np.int16)
+    bg = full[:, :1]  # background: a vertical gradient, so compare each row with its first pixel
+    ys, xs = np.nonzero(np.abs(full - bg).max(axis=2) > 12)
+    H, W = full.shape[:2]
+    x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+    cw, ch = (x1 - x0) * 1.08, (y1 - y0) * 1.08
+    cw, ch = max(cw, ch * 4 / 3), max(ch, cw * 3 / 4)
+    cw, ch = min(cw, W), min(ch, H)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    bx0 = int(min(max(cx - cw / 2, 0), W - cw))
+    by0 = int(min(max(cy - ch / 2, 0), H - ch))
+    stage_box = (bx0, by0, bx0 + int(cw), by0 + int(ch))
     for pct in (12, 35, 65, 100):
         sj = json.load(open(os.path.join(RAW, "%s_stage%d.json" % (slug(nm), pct))))
         src = os.path.join(RAW, sj["prims"])
         dst = os.path.join(IMG, sj["prims"][:-4] + ".jpg")
-        im = Image.open(src).convert("RGB")
+        im = Image.open(src).convert("RGB").crop(stage_box)
         im.thumbnail((900, 900))
         im.save(dst, quality=88)
         cells.append("\\begin{subfigure}{0.245\\linewidth}\\img{figures/img/shapes/%s}{\\linewidth}\\caption{%d\\,\\%%: %d of %d parts}\\end{subfigure}"

@@ -1,39 +1,35 @@
 \section{Object decomposition catalogue}
 \label{sec:decomp}
-The scene is built from \nDesigns{} designs. A design is what one builder function (or one prefab) produces; the
-scene places them \nDesignInstances{} times, and the instances together hold all \sceneParts{} parts.
-Figure~\ref{fig:atlas} shows every design and Table~\ref{tab:objs} counts its parts by primitive. The rest of the
-section gives one card per design, family by family.
-
-Every card is read the same way. The left panel is the full model; the right panel draws the same parts flat in the
-colour of their primitive and pulls them apart: sub-assemblies first, then the parts inside them. Pale parts belong to a
-nested design that has its own card (a camouflage net built over the bunker ramp, the rounds on the UAV's rails).
-A dagger ($^\dagger$) marks a part that is hidden at the start, such as a muzzle flash or a missile still in its tube;
-the right panel draws it at its rest scale. The legend under the panels counts the design's own parts by primitive and
-matches the parts table and the design's row in Table~\ref{tab:objs}.
-
-The parts table lists every part kind. Repeated parts share one row with $\times n$ and a pattern for their position:
-$\pm a$ is a mirrored pair, $a{+}di$ counts copies $i=0,1,\dots$ spaced by $d$, $\{a,b\}$ lists distinct values and
-$a..b$ gives a range. Positions are in the design's own frame in centimetres; rotations are the part's own $R$ relative
-to its parent, in degrees. Where a builder places its parts in a loop, the rule is stated as a formula above the table.
-
-
-\designtable
+\here{1}
 \begin{figure}[H]
-\centering
-\designatlas
-\caption{Object atlas: every design of the scene by family, labelled with its parts per instance $\times$ instances.}
+\centering\setlength{\tabcolsep}{1mm}\renewcommand{\arraystretch}{1}
+\designatlasA
+\caption{Object atlas: every design of the scene by family, labelled with its parts per instance $\times$ instances
+(continued on the next page).}
 \label{fig:atlas}
 \end{figure}
+\begin{figure}[H]\ContinuedFloat
+\centering\setlength{\tabcolsep}{1mm}\renewcommand{\arraystretch}{1}
+\designatlasB
+\caption{Object atlas (continued).}
+\end{figure}
+
+The scene is built from \nDesigns{} designs, each the output of one builder function, placed \nDesignInstances{}
+times for \sceneParts{} parts in all (Figure~\ref{fig:atlas}). Every card shows the full model beside the same parts
+drawn in their primitive's colour and pulled apart. Pale parts belong to a nested design with its own card; $^\dagger$
+marks a part hidden at the start (a muzzle flash, a missile in its tube). The legend counts the design's own parts and
+matches its parts table.
+
+In the parts tables, repeats share one row: $\pm a$ is a mirrored pair, $a{+}di$ counts copies $i=0,1,\dots$, $\{a,b\}$
+lists values and $a..b$ a range. Positions are in the design's frame (cm); rotations are relative to the parent (degrees).
 
 % ---------------------------------------------------------------------------------- extras placed inside some cards
 \newcommand{\soldierextras}{%
 \begin{table}[H]
-\centering\footnotesize\setlength{\tabcolsep}{4pt}\variantsSoldier
 \caption{The eight soldiers are one design (\nSoldierParts{} parts) placed eight times. What differs: the root
 transform, the girth (pelvis and torso $S_x$ relative to soldier 1), the colours of skin and uniform parts, and the
-joint angles of each soldier's pose at the start (animated groups more than $0.5^\circ$ from soldier 1).}
-\label{tab:var-soldier}
+joint angles of each soldier's pose at the start (animated groups more than $0.5^\circ$ from soldier 1).}\label{tab:var-soldier}
+\centering\footnotesize\setlength{\tabcolsep}{4pt}\variantsSoldier
 \end{table}
 \begin{figure}[p]
 \centering\soldiergraph
@@ -69,9 +65,8 @@ along the bottom, swing above it).}
 
 \newcommand{\tankextras}{%
 \begin{table}[H]
+\caption{The three tanks are one design; only the root transform differs.}\label{tab:main-tank}
 \centering\footnotesize\variantsTank
-\caption{The three tanks are one design; only the root transform differs.}
-\label{tab:main-tank}
 \end{table}
 \begin{figure}[tbp]
 \centering\buildstripKeyTank
@@ -90,7 +85,7 @@ same size, with its primitive and size. Glass and rotor-blur parts are drawn opa
 \begin{figure}[tbp]
 \centering\buildstripKeyUav
 \caption{The UAV built up in hierarchy order: the first 12, 35, 65 and 100\,\% of its parts, including the rounds on
-its rails.}
+its rails. The searchlight beam is a light volume, not geometry, and is not drawn.}
 \label{fig:build-uav}
 \end{figure}}
 

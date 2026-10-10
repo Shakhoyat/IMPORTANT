@@ -69,8 +69,34 @@ def lighten(rgb, t):
 
 
 # ------------------------------------------------------------------------------------------------ the mesh drawing (b)
+LAST = {}   # the mesh drawn for the card being built (its numbered vertices go into the card's vertex table)
+
+
+def vertex_table(name, labels, cell):
+    """The numbered vertices of a low-res drawing and the highlighted cell's triangles, as the flat cards' corner tables."""
+    P = LOWP[name]["positions"]
+    seen, idx = set(), []
+    for i in labels:
+        if i not in seen:
+            seen.add(i)
+            idx.append(i)
+    idx = idx[:12]
+    big = max(abs(c) for i in idx for c in P[i]) > 2.0   # the terrain disc is in metres
+    f = (lambda v: "%.1f" % v) if big else (lambda v: "%.2f" % v)
+    clean = lambda t: "0" if t in ("-0.00", "-0.0", "0.00", "0.0") else t.rstrip("0").rstrip(".") if "." in t else t  # noqa: E731
+    o = ["{\\fontsize{7}{8}\\selectfont\\setlength{\\tabcolsep}{2.5pt}\\begin{tabular}{@{}rrrr@{}}\\toprule $i$ & $x$ & $y$ & $z$\\\\\\midrule"]
+    for i in idx:
+        o.append("%d & %s & %s & %s\\\\" % ((i,) + tuple(clean(f(c)) for c in P[i])))
+    tri = ", ".join("(%s)" % " ".join(str(v) for v in t) for t in cell)
+    o.append("\\midrule\\multicolumn{4}{@{}p{2.9cm}@{}}{\\raggedright cell: %s%s}\\\\\\bottomrule\\end{tabular}}"
+             % (tri, "" if len(set(labels)) <= 12 else "; first 12 numbered vertices"))
+    return "\n".join(o)
+
+
 def draw_mesh(name, key, view, labels, cell, normals, seam, fans=(), arcs=(), axes=0.75, label_dist=0.16, extra=(),
               fan_centres=(), label_set="sel"):
+    LAST.clear()
+    LAST.update(name=name, labels=list(labels), cell=[tuple(t) for t in cell])
     m = LOWP[name]
     P = np.array(m["positions"], float)
     N = np.array(m["normals"], float)
@@ -163,7 +189,7 @@ def cell_fig(corners, tris, note):
     for x, (px, py) in pos.items():
         anchor = {"a": "north east", "b": "north west", "c": "south east", "d": "south west"}[x]
         o.append("\\node[anchor=%s,inner sep=1pt] at (%.2f,%.2f) {$%s$};" % (anchor, px, py, lab[x]))
-    o.append("\\node[anchor=north,align=center,text width=3.9cm] at (1.05,-0.32) {%s};" % note)
+    o.append("\\node[anchor=north,align=center,text width=3.4cm] at (1.05,-0.32) {%s};" % note)
     o.append("\\end{tikzpicture}")
     return "\n".join(o)
 
@@ -292,13 +318,24 @@ cards = []
 
 def card(title, label, key, img, mesh_tex, cell_tex, rows, used, extra_tex=""):
     """Half a page: title; (a) | (b) | [corner table] | (c); (d) | (e)."""
-    if extra_tex:   # flat primitives: the corner table between the drawing and the cell
+    curved = False
+    if not extra_tex and LAST:   # curved primitives: the drawing's numbered vertices as a table
+        extra_tex = vertex_table(LAST["name"], LAST["labels"], LAST["cell"])
+        curved = True
+    LAST.clear()
+    if curved:
+        row1 = ("\\begin{minipage}[c]{0.15\\linewidth}\\centering\\img{%s}{\\linewidth}\\\\{\\fontsize{7}{8}\\selectfont (a) scene mesh}\\end{minipage}\\hfill"
+                "\\begin{minipage}[c]{0.34\\linewidth}\\centering %s\\\\{\\fontsize{7}{8}\\selectfont (b) low-resolution mesh}\\end{minipage}\\hfill"
+                "\\begin{minipage}[c]{0.2\\linewidth}\\centering %s\\end{minipage}\\hfill"
+                "\\begin{minipage}[c]{0.27\\linewidth}\\centering %s\\\\{\\fontsize{7}{8}\\selectfont (c) the highlighted cell}\\end{minipage}"
+                % (img, mesh_tex, extra_tex, cell_tex))
+    elif extra_tex:   # flat primitives: the corner table between the drawing and the cell
         row1 = ("\\begin{minipage}[c]{0.17\\linewidth}\\centering\\img{%s}{\\linewidth}\\\\{\\fontsize{7}{8}\\selectfont (a) scene mesh}\\end{minipage}\\hfill"
                 "\\begin{minipage}[c]{0.27\\linewidth}\\centering %s\\\\{\\fontsize{7}{8}\\selectfont (b) corners}\\end{minipage}\\hfill"
                 "\\begin{minipage}[c]{0.22\\linewidth}\\centering %s\\end{minipage}\\hfill"
                 "\\begin{minipage}[c]{0.3\\linewidth}\\centering %s\\\\{\\fontsize{7}{8}\\selectfont (c) one face}\\end{minipage}"
                 % (img, mesh_tex, extra_tex, cell_tex))
-    else:
+    else:   # (no table: not used)
         row1 = ("\\begin{minipage}[c]{0.2\\linewidth}\\centering\\img{%s}{\\linewidth}\\\\{\\fontsize{7}{8}\\selectfont (a) scene mesh}\\end{minipage}\\hfill"
                 "\\begin{minipage}[c]{0.44\\linewidth}\\centering %s\\\\{\\fontsize{7}{8}\\selectfont (b) low-resolution mesh}\\end{minipage}\\hfill"
                 "\\begin{minipage}[c]{0.32\\linewidth}\\centering %s\\\\{\\fontsize{7}{8}\\selectfont (c) the highlighted cell}\\end{minipage}"

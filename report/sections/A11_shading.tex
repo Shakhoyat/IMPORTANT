@@ -35,6 +35,7 @@ dim vertex values and misses the peak entirely; Phong recovers it. Right: the sa
 \end{figure}
 
 \begin{table}[htbp]
+\caption{Differences between the shading methods.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXll@{}}
 \toprule
@@ -44,7 +45,6 @@ Gouraud & smooth, but highlights smeared or lost, Mach bands & 1 per vertex & de
 Phong & smooth, correct highlights & 1 per fragment & everything shiny; the default here\\
 \bottomrule
 \end{tabularx}
-\caption{Differences between the shading methods.}
 \end{table}
 
 The terrain uses a hybrid: irradiance computed per vertex and re-aimed per fragment by a detail normal, because

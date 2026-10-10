@@ -1,5 +1,6 @@
 \section{Curved objects and tessellation}
 \label{sec:curved}
+\here{1}
 Curved surfaces are drawn as polygons. The silhouette error of a sphere with $s$ slices is the sagitta of one chord;
 the triangle count of \code{createSphere(s, k)} is $2s(k-1)$. Halving the error costs about twice the triangles.
 \begin{equation}
@@ -8,9 +9,10 @@ the triangle count of \code{createSphere(s, k)} is $2s(k-1)$. Halving the error 
 \end{equation}
 \begin{figure}[tbp]
 \centering
-\plot{p_tessellation}{0.6\linewidth}
-\caption{Silhouette error against triangle count (Eq.~\eqref{eq:tess}). The scene's 36 slices give 0.38\,\% of the
-radius with 1224 triangles.}
+\plot{p_tessellation}{\linewidth}
+\caption{(a) Silhouette error against triangle count (Eq.~\eqref{eq:tess}); the dashed line is the small-angle
+approximation. (b--d) The mesh \code{createSphere(s,\,s/2)} builds, shaded in the key colour; the dashed circle is the
+true outline. The scene's 36 slices give 0.38\,\% of the radius with 1224 triangles.}
 \label{fig:tess}
 \end{figure}
 Smooth shading hides the facets inside the outline but not the polygonal silhouette (Figure~\ref{fig:shading}): only

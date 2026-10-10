@@ -23,18 +23,16 @@ $\sqrt{2/3}=0.816$.
 \begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_persp}{\linewidth}\caption{Perspective (fov $56^\circ$).}\end{subfigure}\hfill
-\begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_iso}{\linewidth}\caption{Isometric (axonometric).}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.325\linewidth}\raw{scene/v10_proj_top}{\linewidth}\caption{Orthographic top (plan).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{scene/v10_proj_front}{\linewidth}\caption{Orthographic front (from $+z$).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{scene/v10_proj_side}{\linewidth}\caption{Orthographic side (from $+x$).}\end{subfigure}
-\caption{The same scene and time under five projections (\key{Ctrl+P}); in (a) parallel roads converge, in
-(b)--(e) equal objects stay equal anywhere in the frame.}
+\begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_iso}{\linewidth}\caption{Isometric (axonometric).}\end{subfigure}
+\caption{The same scene and time in perspective and isometric projection (\key{Ctrl+P}).}
 \label{fig:proj}
 \end{figure}
 
-In Figure~\ref{fig:proj}a the near huts look larger than identical far ones. The plan (c) shows true distances; the
-front and side views (d, e) flatten everything onto a vertical plane, so depth is lost and only heights can be read.
+In perspective (Figure~\ref{fig:proj}a) the near huts look larger than identical far ones and parallel roads
+converge; in the isometric view (b) equal objects stay equal anywhere in the frame. The orthographic top view is the
+site plan of Figure~\ref{fig:layout}.
 \begin{table}[htbp]
+\caption{Differences between the projections.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -44,7 +42,6 @@ Orthographic multiview & true lengths along two axes, no depth cue & same; linea
 Isometric & three faces visible, equal foreshortening & same; linear depth & layout overviews, games\\
 \bottomrule
 \end{tabularx}
-\caption{Differences between the projections.}
 \end{table}
 
 \textbf{Limitation.} The screen-space effects (SSAO/GTAO, SSR, fog, TAA) reconstruct positions assuming a perspective

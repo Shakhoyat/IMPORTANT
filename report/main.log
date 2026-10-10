@@ -359,6 +359,12 @@ Package: xcolor 2021/10/31 v2.13 LaTeX color extensions (UK)
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package xcolor Info: Driver file: xetex.def on input line 227.
+ (colortbl.sty
+Package: colortbl 2020/01/04 v1.0e Color table columns (DPC)
+\everycr=\toks30
+\minrowclearance=\skip56
+)
+\rownum=\count303
 Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1352.
 Package xcolor Info: Model `RGB' extended on input line 1368.
 Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1370.
@@ -367,9 +373,20 @@ Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1372.
 Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1373.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1374.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1375.
-) (caption.sty
+) (pdflscape.sty
+Package: pdflscape 2019/12/05 v0.12 Display of landscape pages in PDF (HO)
+ (lscape.sty
+Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
+)
+Package pdflscape Info: Auto-detected driver: dvipdfm (xetex) on input line 98.
+
+ (atbegshi-ltx.sty
+Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
+package with kernel methods
+)) (caption.sty
 Package: caption 2022/03/01 v3.6b Customizing captions (AR)
- (caption3.sty
+
+(caption3.sty
 Package: caption3 2022/03/17 v2.3b caption3 kernel (AR)
 \caption@tempdima=\dimen183
 \captionmargin=\dimen184
@@ -381,229 +398,279 @@ Package: caption3 2022/03/17 v2.3b caption3 kernel (AR)
 \caption@hangindent=\dimen190
 Package caption Info: Standard document class detected.
 )
-\c@caption@flags=\count303
-\c@continuedfloat=\count304
+\c@caption@flags=\count304
+\c@continuedfloat=\count305
 ) (subcaption.sty
 Package: subcaption 2022/01/07 v1.5 Sub-captions (AR)
-\c@subfigure=\count305
-\c@subtable=\count306
+\c@subfigure=\count306
+\c@subtable=\count307
 ) (float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count307
-\float@exts=\toks30
+\c@float@type=\count308
+\float@exts=\toks31
 \float@box=\box55
-\@float@everytoks=\toks31
+\@float@everytoks=\toks32
 \@floatcapt=\box56
+) (placeins.sty
+Package: placeins 2005/04/18  v 2.2
+) (longtable.sty
+Package: longtable 2021-09-01 v4.17 Multi-page Table package (DPC)
+\LTleft=\skip57
+\LTright=\skip58
+\LTpre=\skip59
+\LTpost=\skip60
+\LTchunksize=\count309
+\LTcapwidth=\dimen191
+\LT@head=\box57
+\LT@firsthead=\box58
+\LT@foot=\box59
+\LT@lastfoot=\box60
+\LT@gbox=\box61
+\LT@cols=\count310
+\LT@rows=\count311
+\c@LT@tables=\count312
+\c@LT@chunks=\count313
+\LT@p@ftn=\toks33
+)
+(needspace.sty
+Package: needspace 2010/09/12 v1.3d reserve vertical space
 ) (tikz.sty (pgf.sty (pgfrcs.sty (pgfutil-common.tex
-\pgfutil@everybye=\toks32
-\pgfutil@tempdima=\dimen191
-\pgfutil@tempdimb=\dimen192
- (pgfutil-common-lists.tex)) (pgfutil-latex.def
-\pgfutil@abb=\box57
-) (pgfrcs.code.tex (pgf.revision.tex)
+\pgfutil@everybye=\toks34
+\pgfutil@tempdima=\dimen192
+\pgfutil@tempdimb=\dimen193
+
+(pgfutil-common-lists.tex)) (pgfutil-latex.def
+\pgfutil@abb=\box62
+) (pgfrcs.code.tex
+(pgf.revision.tex)
 Package: pgfrcs 2021/05/15 v3.1.9a (3.1.9a)
 ))
 Package: pgf 2021/05/15 v3.1.9a (3.1.9a)
- (pgfcore.sty (pgfsys.sty
-(pgfsys.code.tex
+ (pgfcore.sty (pgfsys.sty (pgfsys.code.tex
 Package: pgfsys 2021/05/15 v3.1.9a (3.1.9a)
- (pgfkeys.code.tex
-\pgfkeys@pathtoks=\toks33
-\pgfkeys@temptoks=\toks34
+
+(pgfkeys.code.tex
+\pgfkeys@pathtoks=\toks35
+\pgfkeys@temptoks=\toks36
  (pgfkeysfiltered.code.tex
-\pgfkeys@tmptoks=\toks35
+\pgfkeys@tmptoks=\toks37
 ))
-\pgf@x=\dimen193
-\pgf@y=\dimen194
-\pgf@xa=\dimen195
-\pgf@ya=\dimen196
-\pgf@xb=\dimen197
-\pgf@yb=\dimen198
-\pgf@xc=\dimen199
-\pgf@yc=\dimen256
-\pgf@xd=\dimen257
-\pgf@yd=\dimen258
+\pgf@x=\dimen194
+\pgf@y=\dimen195
+\pgf@xa=\dimen196
+\pgf@ya=\dimen197
+\pgf@xb=\dimen198
+\pgf@yb=\dimen199
+\pgf@xc=\dimen256
+\pgf@yc=\dimen257
+\pgf@xd=\dimen258
+\pgf@yd=\dimen259
 \w@pgf@writea=\write3
 \r@pgf@reada=\read3
-\c@pgf@counta=\count308
-\c@pgf@countb=\count309
-\c@pgf@countc=\count310
-\c@pgf@countd=\count311
-\t@pgf@toka=\toks36
-\t@pgf@tokb=\toks37
-\t@pgf@tokc=\toks38
-\pgf@sys@id@count=\count312
+\c@pgf@counta=\count314
+\c@pgf@countb=\count315
+\c@pgf@countc=\count316
+\c@pgf@countd=\count317
+\t@pgf@toka=\toks38
+\t@pgf@tokb=\toks39
+\t@pgf@tokc=\toks40
+\pgf@sys@id@count=\count318
  (pgf.cfg
 File: pgf.cfg 2021/05/15 v3.1.9a (3.1.9a)
 )
 Driver file for pgf: pgfsys-xetex.def
-
-(pgfsys-xetex.def
+ (pgfsys-xetex.def
 File: pgfsys-xetex.def 2021/05/15 v3.1.9a (3.1.9a)
- (pgfsys-dvipdfmx.def
+
+(pgfsys-dvipdfmx.def
 File: pgfsys-dvipdfmx.def 2021/05/15 v3.1.9a (3.1.9a)
  (pgfsys-common-pdf.def
 File: pgfsys-common-pdf.def 2021/05/15 v3.1.9a (3.1.9a)
 )
-\pgfsys@objnum=\count313
-)))
-(pgfsyssoftpath.code.tex
+\pgfsys@objnum=\count319
+))) (pgfsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfsyssoftpath@smallbuffer@items=\count314
-\pgfsyssoftpath@bigbuffer@items=\count315
-) (pgfsysprotocol.code.tex
+\pgfsyssoftpath@smallbuffer@items=\count320
+\pgfsyssoftpath@bigbuffer@items=\count321
+)
+(pgfsysprotocol.code.tex
 File: pgfsysprotocol.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )) (pgfcore.code.tex
 Package: pgfcore 2021/05/15 v3.1.9a (3.1.9a)
-
-(pgfmath.code.tex (pgfmathcalc.code.tex (pgfmathutil.code.tex)
-(pgfmathparser.code.tex
-\pgfmath@dimen=\dimen259
-\pgfmath@count=\count316
-\pgfmath@box=\box58
-\pgfmath@toks=\toks39
-\pgfmath@stack@operand=\toks40
-\pgfmath@stack@operation=\toks41
-) (pgfmathfunctions.code.tex
-(pgfmathfunctions.basic.code.tex) (pgfmathfunctions.trigonometric.code.tex)
-(pgfmathfunctions.random.code.tex) (pgfmathfunctions.comparison.code.tex)
-(pgfmathfunctions.base.code.tex) (pgfmathfunctions.round.code.tex)
-(pgfmathfunctions.misc.code.tex) (pgfmathfunctions.integerarithmetics.code.tex)
-)) (pgfmathfloat.code.tex
-\c@pgfmathroundto@lastzeros=\count317
-)) (pgfint.code.tex) (pgfcorepoints.code.tex
+ (pgfmath.code.tex
+(pgfmathcalc.code.tex (pgfmathutil.code.tex) (pgfmathparser.code.tex
+\pgfmath@dimen=\dimen260
+\pgfmath@count=\count322
+\pgfmath@box=\box63
+\pgfmath@toks=\toks41
+\pgfmath@stack@operand=\toks42
+\pgfmath@stack@operation=\toks43
+)
+(pgfmathfunctions.code.tex (pgfmathfunctions.basic.code.tex)
+(pgfmathfunctions.trigonometric.code.tex) (pgfmathfunctions.random.code.tex)
+(pgfmathfunctions.comparison.code.tex) (pgfmathfunctions.base.code.tex)
+(pgfmathfunctions.round.code.tex) (pgfmathfunctions.misc.code.tex)
+(pgfmathfunctions.integerarithmetics.code.tex))) (pgfmathfloat.code.tex
+\c@pgfmathroundto@lastzeros=\count323
+))
+(pgfint.code.tex) (pgfcorepoints.code.tex
 File: pgfcorepoints.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@picminx=\dimen260
-\pgf@picmaxx=\dimen261
-\pgf@picminy=\dimen262
-\pgf@picmaxy=\dimen263
-\pgf@pathminx=\dimen264
-\pgf@pathmaxx=\dimen265
-\pgf@pathminy=\dimen266
-\pgf@pathmaxy=\dimen267
-\pgf@xx=\dimen268
-\pgf@xy=\dimen269
-\pgf@yx=\dimen270
-\pgf@yy=\dimen271
-\pgf@zx=\dimen272
-\pgf@zy=\dimen273
-)
-(pgfcorepathconstruct.code.tex
+\pgf@picminx=\dimen261
+\pgf@picmaxx=\dimen262
+\pgf@picminy=\dimen263
+\pgf@picmaxy=\dimen264
+\pgf@pathminx=\dimen265
+\pgf@pathmaxx=\dimen266
+\pgf@pathminy=\dimen267
+\pgf@pathmaxy=\dimen268
+\pgf@xx=\dimen269
+\pgf@xy=\dimen270
+\pgf@yx=\dimen271
+\pgf@yy=\dimen272
+\pgf@zx=\dimen273
+\pgf@zy=\dimen274
+) (pgfcorepathconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@path@lastx=\dimen274
-\pgf@path@lasty=\dimen275
-) (pgfcorepathusage.code.tex
+\pgf@path@lastx=\dimen275
+\pgf@path@lasty=\dimen276
+)
+(pgfcorepathusage.code.tex
 File: pgfcorepathusage.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@shorten@end@additional=\dimen276
-\pgf@shorten@start@additional=\dimen277
-)
-(pgfcorescopes.code.tex
+\pgf@shorten@end@additional=\dimen277
+\pgf@shorten@start@additional=\dimen278
+) (pgfcorescopes.code.tex
 File: pgfcorescopes.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfpic=\box59
-\pgf@hbox=\box60
-\pgf@layerbox@main=\box61
-\pgf@picture@serial@count=\count318
-) (pgfcoregraphicstate.code.tex
+\pgfpic=\box64
+\pgf@hbox=\box65
+\pgf@layerbox@main=\box66
+\pgf@picture@serial@count=\count324
+)
+(pgfcoregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgflinewidth=\dimen278
-)
-(pgfcoretransformations.code.tex
+\pgflinewidth=\dimen279
+) (pgfcoretransformations.code.tex
 File: pgfcoretransformations.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@pt@x=\dimen279
-\pgf@pt@y=\dimen280
-\pgf@pt@temp=\dimen281
-) (pgfcorequick.code.tex
+\pgf@pt@x=\dimen280
+\pgf@pt@y=\dimen281
+\pgf@pt@temp=\dimen282
+)
+(pgfcorequick.code.tex
 File: pgfcorequick.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-)
-(pgfcoreobjects.code.tex
+) (pgfcoreobjects.code.tex
 File: pgfcoreobjects.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-) (pgfcorepathprocessing.code.tex
-File: pgfcorepathprocessing.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
-(pgfcorearrows.code.tex
+(pgfcorepathprocessing.code.tex
+File: pgfcorepathprocessing.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+) (pgfcorearrows.code.tex
 File: pgfcorearrows.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfarrowsep=\dimen282
-) (pgfcoreshade.code.tex
+\pgfarrowsep=\dimen283
+)
+(pgfcoreshade.code.tex
 File: pgfcoreshade.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@max=\dimen283
-\pgf@sys@shading@range@num=\count319
-\pgf@shadingcount=\count320
+\pgf@max=\dimen284
+\pgf@sys@shading@range@num=\count325
+\pgf@shadingcount=\count326
 ) (pgfcoreimage.code.tex
 File: pgfcoreimage.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-
-(pgfcoreexternal.code.tex
+ (pgfcoreexternal.code.tex
 File: pgfcoreexternal.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfexternal@startupbox=\box62
-)) (pgfcorelayers.code.tex
+\pgfexternal@startupbox=\box67
+))
+(pgfcorelayers.code.tex
 File: pgfcorelayers.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-)
-(pgfcoretransparency.code.tex
+) (pgfcoretransparency.code.tex
 File: pgfcoretransparency.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-) (pgfcorepatterns.code.tex
+)
+(pgfcorepatterns.code.tex
 File: pgfcorepatterns.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 ) (pgfcorerdf.code.tex
 File: pgfcorerdf.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 ))) (pgfmoduleshapes.code.tex
 File: pgfmoduleshapes.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfnodeparttextbox=\box63
-) (pgfmoduleplot.code.tex
-File: pgfmoduleplot.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+\pgfnodeparttextbox=\box68
 )
-(pgfcomp-version-0-65.sty
+(pgfmoduleplot.code.tex
+File: pgfmoduleplot.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+) (pgfcomp-version-0-65.sty
 Package: pgfcomp-version-0-65 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@nodesepstart=\dimen284
-\pgf@nodesepend=\dimen285
+\pgf@nodesepstart=\dimen285
+\pgf@nodesepend=\dimen286
 ) (pgfcomp-version-1-18.sty
 Package: pgfcomp-version-1-18 2021/05/15 v3.1.9a (3.1.9a)
 )) (pgffor.sty (pgfkeys.sty (pgfkeys.code.tex)) (pgfmath.sty (pgfmath.code.tex)
-) (pgffor.code.tex
+)
+(pgffor.code.tex
 Package: pgffor 2021/05/15 v3.1.9a (3.1.9a)
-
-(pgfmath.code.tex)
-\pgffor@iter=\dimen286
-\pgffor@skip=\dimen287
-\pgffor@stack=\toks42
-\pgffor@toks=\toks43
+ (pgfmath.code.tex)
+\pgffor@iter=\dimen287
+\pgffor@skip=\dimen288
+\pgffor@stack=\toks44
+\pgffor@toks=\toks45
 )) (tikz.code.tex
 Package: tikz 2021/05/15 v3.1.9a (3.1.9a)
- (pgflibraryplothandlers.code.tex
-File: pgflibraryplothandlers.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@plot@mark@count=\count321
-\pgfplotmarksize=\dimen288
-)
-\tikz@lastx=\dimen289
-\tikz@lasty=\dimen290
-\tikz@lastxsaved=\dimen291
-\tikz@lastysaved=\dimen292
-\tikz@lastmovetox=\dimen293
-\tikz@lastmovetoy=\dimen294
-\tikzleveldistance=\dimen295
-\tikzsiblingdistance=\dimen296
-\tikz@figbox=\box64
-\tikz@figbox@bg=\box65
-\tikz@tempbox=\box66
-\tikz@tempbox@bg=\box67
-\tikztreelevel=\count322
-\tikznumberofchildren=\count323
-\tikznumberofcurrentchild=\count324
-\tikz@fig@count=\count325
 
-(pgfmodulematrix.code.tex
-File: pgfmodulematrix.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfmatrixcurrentrow=\count326
-\pgfmatrixcurrentcolumn=\count327
-\pgf@matrix@numberofcolumns=\count328
+(pgflibraryplothandlers.code.tex
+File: pgflibraryplothandlers.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+\pgf@plot@mark@count=\count327
+\pgfplotmarksize=\dimen289
 )
-\tikz@expandcount=\count329
- (tikzlibrarytopaths.code.tex
+\tikz@lastx=\dimen290
+\tikz@lasty=\dimen291
+\tikz@lastxsaved=\dimen292
+\tikz@lastysaved=\dimen293
+\tikz@lastmovetox=\dimen294
+\tikz@lastmovetoy=\dimen295
+\tikzleveldistance=\dimen296
+\tikzsiblingdistance=\dimen297
+\tikz@figbox=\box69
+\tikz@figbox@bg=\box70
+\tikz@tempbox=\box71
+\tikz@tempbox@bg=\box72
+\tikztreelevel=\count328
+\tikznumberofchildren=\count329
+\tikznumberofcurrentchild=\count330
+\tikz@fig@count=\count331
+ (pgfmodulematrix.code.tex
+File: pgfmodulematrix.code.tex 2021/05/15 v3.1.9a (3.1.9a)
+\pgfmatrixcurrentrow=\count332
+\pgfmatrixcurrentcolumn=\count333
+\pgf@matrix@numberofcolumns=\count334
+)
+\tikz@expandcount=\count335
+
+(tikzlibrarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-)))
-(pgflibraryarrows.meta.code.tex
+))) (algorithm.sty
+Invalid UTF-8 byte or sequence at line 11 replaced by U+FFFD.
+Package: algorithm 2009/08/24 v0.1 Document Style `algorithm' - floating enviro
+nment
+\@float@every@algorithm=\toks46
+\c@algorithm=\count336
+) (algpseudocode.sty
+Package: algpseudocode 
+
+(algorithmicx.sty
+Package: algorithmicx 2005/04/27 v1.2 Algorithmicx
+
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+\c@ALG@line=\count337
+\c@ALG@rem=\count338
+\c@ALG@nested=\count339
+\ALG@tlm=\skip61
+\ALG@thistlm=\skip62
+\c@ALG@Lnr=\count340
+\c@ALG@blocknr=\count341
+\c@ALG@storecount=\count342
+\c@ALG@tmpcounter=\count343
+\ALG@tmplength=\skip63
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+) (pgflibraryarrows.meta.code.tex
 File: pgflibraryarrows.meta.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgfarrowinset=\dimen297
-\pgfarrowlength=\dimen298
-\pgfarrowwidth=\dimen299
-\pgfarrowlinewidth=\dimen300
+\pgfarrowinset=\dimen298
+\pgfarrowlength=\dimen299
+\pgfarrowwidth=\dimen300
+\pgfarrowlinewidth=\dimen301
 ) (tikzlibrarypositioning.code.tex
 File: tikzlibrarypositioning.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 )
@@ -624,8 +691,8 @@ File: pgflibraryshapes.misc.code.tex 2021/05/15 v3.1.9a (3.1.9a)
 ))
 (tikzlibrarybackgrounds.code.tex
 File: tikzlibrarybackgrounds.code.tex 2021/05/15 v3.1.9a (3.1.9a)
-\pgf@layerbox@background=\box68
-\pgf@layerboxsaved@background=\box69
+\pgf@layerbox@background=\box73
+\pgf@layerboxsaved@background=\box74
 ) (hyperref.sty
 Package: hyperref 2022-02-21 v7.00n Hypertext links for LaTeX
  (ltxcmds.sty
@@ -656,9 +723,9 @@ Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
 ) (kvoptions.sty
 Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
 )
-\@linkdim=\dimen301
-\Hy@linkcounter=\count330
-\Hy@pagecounter=\count331
+\@linkdim=\dimen302
+\Hy@linkcounter=\count344
+\Hy@pagecounter=\count345
  (pd1enc.def
 File: pd1enc.def 2022-02-21 v7.00n Hyperref: PDFDocEncoding definition (HO)
 )
@@ -667,7 +734,7 @@ Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 ) (etexcmds.sty
 Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 )
-\Hy@SavedSpaceFactor=\count332
+\Hy@SavedSpaceFactor=\count346
  (puenc.def
 File: puenc.def 2022-02-21 v7.00n Hyperref: PDF Unicode definition (HO)
 )
@@ -678,13 +745,13 @@ Package hyperref Info: Plain pages OFF on input line 4152.
 Package hyperref Info: Backreferencing OFF on input line 4157.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4390.
-\c@Hy@tempcnt=\count333
+\c@Hy@tempcnt=\count347
  (url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Info: Redefining \url on input line 4749.
-\XeTeXLinkMargin=\dimen302
+\XeTeXLinkMargin=\dimen303
 Requested font "pzdr" at 0.00002pt
  -> pzdr
  (bitset.sty
@@ -693,9 +760,9 @@ Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
-\Fld@menulength=\count334
-\Field@Width=\dimen303
-\Fld@charsize=\dimen304
+\Fld@menulength=\count348
+\Field@Width=\dimen304
+\Fld@charsize=\dimen305
 Package hyperref Info: Hyper figures OFF on input line 6027.
 Package hyperref Info: Link nesting OFF on input line 6032.
 Package hyperref Info: Hyper index ON on input line 6035.
@@ -705,13 +772,9 @@ Package hyperref Info: Link coloring with OCG OFF on input line 6052.
 Package hyperref Info: PDF/A mode OFF on input line 6057.
 LaTeX Info: Redefining \ref on input line 6097.
 LaTeX Info: Redefining \pageref on input line 6101.
- (atbegshi-ltx.sty
-Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
-package with kernel methods
-)
-\Hy@abspage=\count335
-\c@Item=\count336
-\c@Hfootnote=\count337
+\Hy@abspage=\count349
+\c@Item=\count350
+\c@Hfootnote=\count351
 )
 Package hyperref Info: Driver (autodetected): hxetex.
  (hxetex.def
@@ -720,52 +783,51 @@ File: hxetex.def 2022-02-21 v7.00n Hyperref driver for XeTeX
 Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
 )
 )
-\pdfm@box=\box70
-\c@Hy@AnnotLevel=\count338
-\HyField@AnnotCount=\count339
-\Fld@listcount=\count340
-\c@bookmark@seq@number=\count341
+\pdfm@box=\box75
+\c@Hy@AnnotLevel=\count352
+\HyField@AnnotCount=\count353
+\Fld@listcount=\count354
+\c@bookmark@seq@number=\count355
  (rerunfilecheck.sty
 Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
-
-(atveryend-ltx.sty
+ (atveryend-ltx.sty
 Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend pac
 kage
 with kernel methods
-) (uniquecounter.sty
+)
+(uniquecounter.sty
 Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
 )
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 86.
 )
-\Hy@SectionHShift=\skip56
+\Hy@SectionHShift=\skip64
 ) (enumitem.sty
 Package: enumitem 2019/06/20 v3.9 Customized lists
-\labelindent=\skip57
-\enit@outerparindent=\dimen305
-\enit@toks=\toks44
-\enit@inbox=\box71
-\enit@count@id=\count342
-\enitdp@description=\count343
+\labelindent=\skip65
+\enit@outerparindent=\dimen306
+\enit@toks=\toks47
+\enit@inbox=\box76
+\enit@count@id=\count356
+\enitdp@description=\count357
 ) (listings.sty
-\lst@mode=\count344
-\lst@gtempboxa=\box72
-\lst@token=\toks45
-\lst@length=\count345
-\lst@currlwidth=\dimen306
-\lst@column=\count346
-\lst@pos=\count347
-\lst@lostspace=\dimen307
-\lst@width=\dimen308
-\lst@newlines=\count348
-\lst@lineno=\count349
-\lst@maxwidth=\dimen309
-
-(lstmisc.sty
+\lst@mode=\count358
+\lst@gtempboxa=\box77
+\lst@token=\toks48
+\lst@length=\count359
+\lst@currlwidth=\dimen307
+\lst@column=\count360
+\lst@pos=\count361
+\lst@lostspace=\dimen308
+\lst@width=\dimen309
+\lst@newlines=\count362
+\lst@lineno=\count363
+\lst@maxwidth=\dimen310
+ (lstmisc.sty
 File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
-\c@lstnumber=\count350
-\lst@skipnumbers=\count351
-\lst@framebox=\box73
+\c@lstnumber=\count364
+\lst@skipnumbers=\count365
+\lst@framebox=\box78
 ) (listings.cfg
 File: listings.cfg 2020/03/24 1.8d listings configuration
 ))
@@ -773,17 +835,18 @@ Package: listings 2020/03/24 1.8d (Carsten Heinz)
  (fancyhdr.sty
 Package: fancyhdr 2021/01/28 v4.0.1 Extensive control of page headers and foote
 rs
-\f@nch@headwidth=\skip58
-\f@nch@O@elh=\skip59
-\f@nch@O@erh=\skip60
-\f@nch@O@olh=\skip61
-\f@nch@O@orh=\skip62
-\f@nch@O@elf=\skip63
-\f@nch@O@erf=\skip64
-\f@nch@O@olf=\skip65
-\f@nch@O@orf=\skip66
-) (sections/gen_numbers)
-(sections/gen_tables) (TeXGyreTermesX.fontspec)
+\f@nch@headwidth=\skip66
+\f@nch@O@elh=\skip67
+\f@nch@O@erh=\skip68
+\f@nch@O@olh=\skip69
+\f@nch@O@orh=\skip70
+\f@nch@O@elf=\skip71
+\f@nch@O@erf=\skip72
+\f@nch@O@olf=\skip73
+\f@nch@O@orf=\skip74
+) (prim_colors) (sections/gen_numbers) (sections/gen_tables)
+(sections/gen_fecrops) (sections/gen_game) (sections/gen_m3)
+(sections/gen_primcards) (sections/gen_designs) (TeXGyreTermesX.fontspec)
 Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 10.94997pt
  -> TeXGyreTermesX-Regular.otf
 Requested font "[TeXGyreTermesX-Regular.otf]/OT" at 10.95003pt
@@ -862,63 +925,63 @@ language=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
 ;language=dflt;-ss05;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;"
 
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
-(Font)              scaled to size 10.95pt on input line 72.
+(Font)              scaled to size 10.95pt on input line 92.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
 ;+tnum;+lnum;mapping=tex-text;" at 10.95pt
  -> TeXGyreTermesX-Regular.otf
- (main.aux)
+
+(main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/ntxmi/m/it on input line 72.
+LaTeX Font Info:    Checking defaults for OML/ntxmi/m/it on input line 92.
 LaTeX Font Info:    Trying to load font information for OML+ntxmi on input line
- 72.
+ 92.
  (omlntxmi.fd
 File: omlntxmi.fd 2015/08/25 Fontinst v1.933 font definitions for OML/ntxmi.
 )
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 72.
-LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 7
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 92.
+LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 9
 2.
-
-(ts1cmr.fd
+ (ts1cmr.fd
 File: ts1cmr.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for U/ntxexa/m/n on input line 92.
 LaTeX Font Info:    Trying to load font information for U+ntxexa on input line 
-72.
+92.
  (untxexa.fd
 File: untxexa.fd 2012/04/16 Fontinst v1.933 font definitions for U/ntxexa.
 )
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for LMS/ntxsy/m/n on input line 92.
 LaTeX Font Info:    Trying to load font information for LMS+ntxsy on input line
- 72.
+ 92.
  (lmsntxsy.fd
 File: lmsntxsy.fd 2016/07/02 Fontinst v1.933 font definitions for LMS/ntxsy.
 )
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for LMX/ntxexx/m/n on input line 92.
 LaTeX Font Info:    Trying to load font information for LMX+ntxexx on input lin
-e 72.
+e 92.
  (lmxntxexx.fd
 File: lmxntxexx.fd 2016/07/03 Fontinst v1.933 font definitions for LMX/ntxexx.
 )
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 72.
-LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 92.
+LaTeX Font Info:    ... okay on input line 92.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: xetex
@@ -958,27 +1021,31 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
 Package caption Info: listings package is loaded.
+Package caption Info: longtable package is loaded.
+(ltcaption.sty
+Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
+)
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring OFF on input line 72.
-(nameref.sty
+Package hyperref Info: Link coloring OFF on input line 92.
+ (nameref.sty
 Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
  (refcount.sty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ) (gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count352
+\c@section@level=\count366
 )
-LaTeX Info: Redefining \ref on input line 72.
-LaTeX Info: Redefining \pageref on input line 72.
-LaTeX Info: Redefining \nameref on input line 72.
- (main.out) (main.out)
+LaTeX Info: Redefining \ref on input line 92.
+LaTeX Info: Redefining \pageref on input line 92.
+LaTeX Info: Redefining \nameref on input line 92.
+ (main.out)
+(main.out)
 \@outlinefile=\write4
 \openout4 = `main.out'.
 
-\c@lstlisting=\count353
-
-(sections/00_cover
+\c@lstlisting=\count367
+ (sections/00_cover
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
 (Font)              scaled to size 12.0pt on input line 3.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
@@ -1006,10 +1073,6 @@ LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
 ;+tnum;+lnum;mapping=tex-text;" at 9.0pt
  -> TeXGyreTermesX-Regular.otf
-Requested font "[lmmono9-regular]:" at 9.0pt
- -> lmmono9-regular
-Requested font "[lmmono10-regular]:" at 10.0pt
- -> lmmono10-regular
 LaTeX Font Info:    Trying to load font information for OT1+minntx on input lin
 e 16.
  (ot1minntx.fd
@@ -1063,7 +1126,8 @@ Requested font "ntxsym" at 5.5pt
  -> ntxsym
 LaTeX Font Info:    Trying to load font information for U+ntxsyc on input line 
 16.
- (untxsyc.fd
+
+(untxsyc.fd
 File: untxsyc.fd 2012/04/12 Fontinst v1.933 font definitions for U/ntxsyc.
 )
 Requested font "ntxsyc" at 9.0pt
@@ -1127,16 +1191,15 @@ Requested font "ntxexa" at 8.0pt
 Requested font "ntxexa" at 6.1pt
  -> ntxexa
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
-(Font)              scaled to size 10.0pt on input line 27.
+(Font)              scaled to size 10.0pt on input line 26.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
 ;+tnum;+lnum;mapping=tex-text;" at 10.0pt
  -> TeXGyreTermesX-Regular.otf
-
-[1
+ [1
 
 ]
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
-(Font)              scaled to size 14.4pt on input line 31.
+(Font)              scaled to size 14.4pt on input line 29.
 Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
 num;+lnum;mapping=tex-text;" at 14.4pt
  -> TeXGyreTermesX-Bold.otf
@@ -1151,48 +1214,6 @@ LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
 Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
 num;+lnum;mapping=tex-text;" at 12.0pt
  -> TeXGyreTermesX-Bold.otf
- [1])
-\tf@toc=\write5
-\openout5 = `main.toc'.
-
- [2]) (sections/01_intro
-LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
-(Font)              scaled to size 10.95pt on input line 8.
-Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
-num;+lnum;mapping=tex-text;" at 10.95pt
- -> TeXGyreTermesX-Bold.otf
-Requested font "[lmmono10-regular]:" at 10.95pt
- -> lmmono10-regular
-) (sections/02_scene
-File: figures/img/scene/sky_noon.jpg Graphic file (type bmp)
-<figures/img/scene/sky_noon.jpg>
-LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
-(Font)              scaled to size 9.0pt on input line 8.
-Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
-num;+lnum;mapping=tex-text;" at 9.0pt
- -> TeXGyreTermesX-Bold.otf
-File: figures/img/scene/sky_sunset.jpg Graphic file (type bmp)
-<figures/img/scene/sky_sunset.jpg>
-File: figures/img/v5/base_overview.jpg Graphic file (type bmp)
-<figures/img/v5/base_overview.jpg>
-File: figures/img/scene/night_searchlights.jpg Graphic file (type bmp)
-<figures/img/scene/night_searchlights.jpg>
-File: figures/img/play/play_third_person.jpg Graphic file (type bmp)
-<figures/img/play/play_third_person.jpg>
-File: figures/img/v5/thermal_fpv.jpg Graphic file (type bmp)
-<figures/img/v5/thermal_fpv.jpg>
- [3
-
-]
-LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
-(Font)              scaled to size 8.0pt on input line 23.
-Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
-;+tnum;+lnum;mapping=tex-text;" at 8.0pt
- -> TeXGyreTermesX-Regular.otf
-Requested font "[lmmono8-regular]:" at 8.0pt
- -> lmmono8-regular
-)
-(sections/03_setup
 Requested font "ntx-Regular-tlf-ot1" at 10.0pt
  -> ntx-Regular-tlf-ot1
 Requested font "ntxmi" at 10.0pt
@@ -1209,28 +1230,79 @@ Requested font "ntxsyc" at 10.0pt
  -> ntxsyc
 Requested font "ntxexa" at 10.0pt
  -> ntxexa
+ [1])
+\tf@toc=\write5
+\openout5 = `main.toc'.
 
-Underfull \hbox (badness 1708) in paragraph at lines 20--20
+ [2]) (sections/01_intro
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 10.95pt on input line 8.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 10.95pt
+ -> TeXGyreTermesX-Bold.otf
+) (sections/02_scene
+File: figures/img/scene/sky_sunset.jpg Graphic file (type bmp)
+<figures/img/scene/sky_sunset.jpg>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 9.0pt on input line 8.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 9.0pt
+ -> TeXGyreTermesX-Bold.otf
+File: figures/img/scene/m6_grass_close.jpg Graphic file (type bmp)
+<figures/img/scene/m6_grass_close.jpg>
+File: figures/img/scene/m6_tree_close.jpg Graphic file (type bmp)
+<figures/img/scene/m6_tree_close.jpg>
+File: figures/img/v5/base_overview.jpg Graphic file (type bmp)
+<figures/img/v5/base_overview.jpg>
+File: figures/img/scene/night_searchlights.jpg Graphic file (type bmp)
+<figures/img/scene/night_searchlights.jpg>
+File: figures/img/hero/watchtower.jpg Graphic file (type bmp)
+<figures/img/hero/watchtower.jpg>
+File: figures/img/game/explosion_mid.jpg Graphic file (type bmp)
+<figures/img/game/explosion_mid.jpg>
+File: figures/img/play/play_third_person.jpg Graphic file (type bmp)
+<figures/img/play/play_third_person.jpg>
+File: figures/img/v5/thermal_fpv.jpg Graphic file (type bmp)
+<figures/img/v5/thermal_fpv.jpg>
+File: figures/img/rt/raytrace_ssr.jpg Graphic file (type bmp)
+<figures/img/rt/raytrace_ssr.jpg>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 8.0pt on input line 24.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 8.0pt
+ -> TeXGyreTermesX-Regular.otf
+Requested font "[lmmono8-regular]:" at 8.0pt
+ -> lmmono8-regular
+)
+(sections/03_setup [3
+
+] [4]
+Requested font "[lmmono10-regular]:" at 10.95pt
+ -> lmmono10-regular
+Requested font "[lmmono10-regular]:" at 10.0pt
+ -> lmmono10-regular
+
+Underfull \hbox (badness 1708) in paragraph at lines 25--25
 []|\TU/TeXGyreTermesX(0)/m/n/10 C++17; GNU Make (\TU/lmtt/m/n/10 Makefile\TU/Te
 XGyreTermesX(0)/m/n/10 ), CMake, and a zig/clang cross-build of \TU/lmtt/m/n/10
  ThermalSense.exe
  []
 
 
-Underfull \hbox (badness 1769) in paragraph at lines 20--20
+Underfull \hbox (badness 1769) in paragraph at lines 25--25
 []|\TU/lmtt/m/n/10 --capture \TU/TeXGyreTermesX(0)/m/n/10 (named shots), \TU/lm
 tt/m/n/10 --benchmark\TU/TeXGyreTermesX(0)/m/n/10 , \TU/lmtt/m/n/10 --export-do
 cs \TU/TeXGyreTermesX(0)/m/n/10 (every part and matrix as JSON),
  []
 
-[4]) (sections/04_architecture
+) (sections/04_architecture
+File: figures/img/scene/v10_proj_top.jpg Graphic file (type bmp)
+<figures/img/scene/v10_proj_top.jpg>
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
-(Font)              scaled to size 8.0pt on input line 8.
+(Font)              scaled to size 8.0pt on input line 44.
 Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
 num;+lnum;mapping=tex-text;" at 8.0pt
  -> TeXGyreTermesX-Bold.otf
-File: figures/img/scene/v10_proj_top.jpg Graphic file (type bmp)
-<figures/img/scene/v10_proj_top.jpg>
 Requested font "ntx-Regular-tlf-ot1" at 6.2pt
  -> ntx-Regular-tlf-ot1
 Requested font "ntxmi5" at 6.2pt
@@ -1247,82 +1319,1297 @@ Requested font "ntxsyc" at 6.2pt
  -> ntxsyc
 Requested font "ntxexa" at 6.2pt
  -> ntxexa
- [5]) (sections/05_controls) [6]
+) (sections/05_controls [5] [6])
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
-(Font)              scaled to size 20.74pt on input line 80.
+(Font)              scaled to size 20.74pt on input line 100.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
 ;+tnum;+lnum;mapping=tex-text;" at 20.74pt
  -> TeXGyreTermesX-Regular.otf
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
-(Font)              scaled to size 20.74pt on input line 80.
+(Font)              scaled to size 20.74pt on input line 100.
 Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
 num;+lnum;mapping=tex-text;" at 20.74pt
  -> TeXGyreTermesX-Bold.otf
 
 (sections/A01_primitives
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
-(Font)              scaled to size 6.0pt on input line 3.
+(Font)              scaled to size 7.5pt on input line 3.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
-;+tnum;+lnum;mapping=tex-text;" at 6.0pt
+;+tnum;+lnum;mapping=tex-text;" at 7.5pt
  -> TeXGyreTermesX-Regular.otf
-Requested font "ntx-Regular-tlf-ot1" at 6.5pt
- -> ntx-Regular-tlf-ot1
-Requested font "ntxmi7" at 6.5pt
- -> ntxmi7
-Requested font "ntxsy7" at 6.5pt
- -> ntxsy7
-Requested font "ntxexx" at 6.5pt
- -> ntxexx
-Requested font "ntxmia" at 6.5pt
- -> ntxmia
-Requested font "ntxsym" at 6.5pt
- -> ntxsym
-Requested font "ntxsyc" at 6.5pt
- -> ntxsyc
-Requested font "ntxexa" at 6.5pt
- -> ntxexa
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 7.5pt on input line 3.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 7.5pt
+ -> TeXGyreTermesX-Bold.otf
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
-(Font)              scaled to size 6.1pt on input line 11.
+(Font)              scaled to size 7.0pt on input line 3.
 Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
-;+tnum;+lnum;mapping=tex-text;" at 6.1pt
+;+tnum;+lnum;mapping=tex-text;" at 7.0pt
  -> TeXGyreTermesX-Regular.otf
+File: figures/img/primcards/prim_01.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_01.jpg>
+File: figures/img/primcards/prim_02.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_02.jpg>
+File: figures/img/primcards/prim_03.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_03.jpg>
+File: figures/img/primcards/prim_04.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_04.jpg>
+File: figures/img/primcards/prim_05.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_05.jpg>
+File: figures/img/primcards/prim_06.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_06.jpg>
+File: figures/img/primcards/prim_07.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_07.jpg>
+File: figures/img/primcards/prim_08.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_08.jpg>
+File: figures/img/primcards/prim_09.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_09.jpg>
+File: figures/img/primcards/prim_10.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_10.jpg>
+File: figures/img/primcards/prim_11.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_11.jpg>
+File: figures/img/primcards/prim_12.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_12.jpg>
+File: figures/img/primcards/prim_13.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_13.jpg>
+File: figures/img/primcards/prim_14.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_14.jpg>
+File: figures/img/primcards/prim_15.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_15.jpg>
+File: figures/img/primcards/prim_16.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_16.jpg>
+File: figures/img/primcards/camp_prims.jpg Graphic file (type bmp)
+<figures/img/primcards/camp_prims.jpg>
+Requested font "[lmmono9-regular]:" at 9.0pt
+ -> lmmono9-regular
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 7.3pt on input line 29.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 7.3pt
+ -> TeXGyreTermesX-Regular.otf
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 5.5pt on input line 29.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 5.5pt
+ -> TeXGyreTermesX-Regular.otf
+ [7] [8]
 Requested font "ntx-Bold-tlf-ot1" at 10.95pt
  -> ntx-Bold-tlf-ot1
 Requested font "ntx-Bold-tlf-ot1" at 8.0pt
  -> ntx-Bold-tlf-ot1
 Requested font "ntx-Bold-tlf-ot1" at 6.1pt
  -> ntx-Bold-tlf-ot1
-File: figures/img/v5/primitive_library.jpg Graphic file (type bmp)
-<figures/img/v5/primitive_library.jpg>
-File: figures/img/v5/scene_primitives_exploded.jpg Graphic file (type bmp)
-<figures/img/v5/scene_primitives_exploded.jpg>
- [7]
-Requested font "ntx-Bold-tlf-ot1" at 10.0pt
- -> ntx-Bold-tlf-ot1
-Requested font "ntx-Bold-tlf-ot1" at 7.3pt
+File: figures/img/primcards/prim_02.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_02.jpg>
+Requested font "ntx-Bold-tlf-ot1" at 6.2pt
  -> ntx-Bold-tlf-ot1
 Requested font "ntx-Bold-tlf-ot1" at 5.5pt
  -> ntx-Bold-tlf-ot1
-File: figures/workbook/Primitives.png Graphic file (type bmp)
-<figures/workbook/Primitives.png>
-) (sections/A02_transforms [8]
-Requested font "ntx-Bold-tlf-ot1" at 6.5pt
+Requested font "ntx-Bold-tlf-ot1" at 7.3pt
  -> ntx-Bold-tlf-ot1
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/b/n' will be
+(Font)              scaled to size 7.0pt on input line 68.
+Requested font "[TeXGyreTermesX-Bold.otf]/OT:script=latn;language=dflt;-ss05;+t
+num;+lnum;mapping=tex-text;" at 7.0pt
+ -> TeXGyreTermesX-Bold.otf
+Requested font "[lmmono8-regular]:" at 7.0pt
+ -> lmmono8-regular
+File: figures/img/primcards/tile_command_bunker__camo_net_panel.jpg Graphic fil
+e (type bmp)
+<figures/img/primcards/tile_command_bunker__camo_net_panel.jpg>
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
+(Font)              scaled to size 7.0pt on input line 68.
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
++tnum;+lnum;mapping=tex-text;" at 7.0pt
+ -> TeXGyreTermesX-Italic.otf
+File: figures/img/primcards/tile_main_battle_tank__track_link.jpg Graphic file 
+(type bmp)
+<figures/img/primcards/tile_main_battle_tank__track_link.jpg>
+File: figures/img/primcards/tile_base__hesco_cell.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_base__hesco_cell.jpg>
+File: figures/img/primcards/prim_09.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_09.jpg>
+File: figures/img/primcards/tile_main_battle_tank__glacis_plate.jpg Graphic fil
+e (type bmp)
+<figures/img/primcards/tile_main_battle_tank__glacis_plate.jpg>
+File: figures/img/primcards/tile_ammunition_bunker__wing_wall_slope.jpg Graphic
+ file (type bmp)
+<figures/img/primcards/tile_ammunition_bunker__wing_wall_slope.jpg>
+File: figures/img/primcards/tile_command_bunker__ramp_floor.jpg Graphic file (t
+ype bmp)
+<figures/img/primcards/tile_command_bunker__ramp_floor.jpg>
+File: figures/img/primcards/prim_10.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_10.jpg>
+File: figures/img/primcards/tile_soldier_1__torso.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_soldier_1__torso.jpg>
+File: figures/img/primcards/tile_main_battle_tank__turret_body.jpg Graphic file
+ (type bmp)
+<figures/img/primcards/tile_main_battle_tank__turret_body.jpg>
+File: figures/img/primcards/prim_11.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_11.jpg>
+File: figures/img/primcards/tile_base__gate_post_cap.jpg Graphic file (type bmp
+)
+<figures/img/primcards/tile_base__gate_post_cap.jpg>
+File: figures/img/primcards/prim_03.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_03.jpg>
+File: figures/img/primcards/tile_environment__bush.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_environment__bush.jpg>
+File: figures/img/primcards/tile_environment__canopy_clump.jpg Graphic file (ty
+pe bmp)
+<figures/img/primcards/tile_environment__canopy_clump.jpg>
+File: figures/img/primcards/tile_environment__rock.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_environment__rock.jpg>
+File: figures/img/primcards/prim_04.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_04.jpg>
+File: figures/img/primcards/tile_soldier_1__helmet.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_soldier_1__helmet.jpg>
+File: figures/img/primcards/tile_command_bunker__earth_berm.jpg Graphic file (t
+ype bmp)
+<figures/img/primcards/tile_command_bunker__earth_berm.jpg>
+File: figures/img/primcards/tile_aa_gatling_gun__radome.jpg Graphic file (type 
+bmp)
+<figures/img/primcards/tile_aa_gatling_gun__radome.jpg>
+File: figures/img/primcards/prim_12.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_12.jpg>
+File: figures/img/primcards/tile_camp_camouflage__revetment_sandbag.jpg Graphic
+ file (type bmp)
+<figures/img/primcards/tile_camp_camouflage__revetment_sandbag.jpg>
+File: figures/img/primcards/tile_environment__sandbag.jpg Graphic file (type bm
+p)
+<figures/img/primcards/tile_environment__sandbag.jpg>
+File: figures/img/primcards/tile_base__sandbag.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_base__sandbag.jpg>
+File: figures/img/primcards/prim_05.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_05.jpg>
+File: figures/img/primcards/tile_main_battle_tank__hub.jpg Graphic file (type b
+mp)
+<figures/img/primcards/tile_main_battle_tank__hub.jpg>
+File: figures/img/primcards/tile_environment__fuel_drum.jpg Graphic file (type 
+bmp)
+<figures/img/primcards/tile_environment__fuel_drum.jpg>
+File: figures/img/primcards/tile_soldier_1__thigh.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_soldier_1__thigh.jpg>
+File: figures/img/primcards/prim_06.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_06.jpg>
+File: figures/img/primcards/tile_autonomous_uav__light_cone.jpg Graphic file (t
+ype bmp)
+<figures/img/primcards/tile_autonomous_uav__light_cone.jpg>
+File: figures/img/primcards/tile_scout_helicopter__searchlight_cone.jpg Graphic
+ file (type bmp)
+<figures/img/primcards/tile_scout_helicopter__searchlight_cone.jpg>
+File: figures/img/primcards/prim_07.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_07.jpg>
+File: figures/img/primcards/tile_environment__pine_crown.jpg Graphic file (type
+ bmp)
+<figures/img/primcards/tile_environment__pine_crown.jpg>
+File: figures/img/primcards/tile_backdrop__pine_crown.jpg Graphic file (type bm
+p)
+<figures/img/primcards/tile_backdrop__pine_crown.jpg>
+File: figures/img/primcards/tile_camp_camouflage__cut_branch_tip.jpg Graphic fi
+le (type bmp)
+<figures/img/primcards/tile_camp_camouflage__cut_branch_tip.jpg>
+File: figures/img/primcards/prim_08.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_08.jpg>
+File: figures/img/primcards/tile_main_battle_tank__tyre.jpg Graphic file (type 
+bmp)
+<figures/img/primcards/tile_main_battle_tank__tyre.jpg>
+File: figures/img/primcards/tile_mlrs_rocket_truck__tyre_tread.jpg Graphic file
+ (type bmp)
+<figures/img/primcards/tile_mlrs_rocket_truck__tyre_tread.jpg>
+File: figures/img/primcards/tile_autonomous_uav__motor_cooling_ring.jpg Graphic
+ file (type bmp)
+<figures/img/primcards/tile_autonomous_uav__motor_cooling_ring.jpg>
+File: figures/img/primcards/prim_13.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_13.jpg>
+File: figures/img/primcards/tile_uav_pads__pad_ring.jpg Graphic file (type bmp)
 
-Overfull \hbox (10.94695pt too wide) detected at line 13
-[][]\OML/ntxmi/m/it/10.95 M \U/ntxmia/m/it/10.95 = \OML/ntxmi/m/it/10.95 T\LMS/
-ntxsy/m/n/10.95 ¹\OT1/minntx/b/n/10.95 t\LMS/ntxsy/m/n/10.95 º \OML/ntxmi/m/it/
-10.95 R[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95  \LMS/ntxsy/m/n/10.95 º \O
-ML/ntxmi/m/it/10.95 R[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95 ^^R\LMS/ntxs
-y/m/n/10.95 º \OML/ntxmi/m/it/10.95 R[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10
-.95 '\LMS/ntxsy/m/n/10.95 º \OML/ntxmi/m/it/10.95 S\LMS/ntxsy/m/n/10.95 ¹\OT1/m
-inntx/b/n/10.95 s\LMS/ntxsy/m/n/10.95 º\OML/ntxmi/m/it/10.95 ;  T \U/ntxmia/m/i
-t/10.95 = [] \OML/ntxmi/m/it/10.95 ;  R[] \U/ntxmia/m/it/10.95 = [] \OML/ntxmi/
-m/it/10.95 ;  S \U/ntxmia/m/it/10.95 = []\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/
-10.95 s[]; s[]; s[]; \OT1/minntx/m/n/10.95 1\LMS/ntxsy/m/n/10.95 º
- []
+<figures/img/primcards/tile_uav_pads__pad_ring.jpg>
+File: figures/img/primcards/prim_14.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_14.jpg>
+File: figures/img/primcards/tile_base__wire_coil.jpg Graphic file (type bmp)
+<figures/img/primcards/tile_base__wire_coil.jpg>
+File: figures/img/primcards/prim_15.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_15.jpg>
+File: figures/img/primcards/prim_16.jpg Graphic file (type bmp)
+<figures/img/primcards/prim_16.jpg>
+ [9] [10] [11] [12] [13] [14] [15] [16])
+(sections/B01_decomposition
+File: figures/img/shapes/atlas_soldier.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_soldier.jpg>
+File: figures/img/shapes/atlas_main_battle_tank.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_main_battle_tank.jpg>
+File: figures/img/shapes/atlas_mlrs_rocket_truck.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_mlrs_rocket_truck.jpg>
+File: figures/img/shapes/atlas_scout_helicopter.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_scout_helicopter.jpg>
+File: figures/img/shapes/atlas_autonomous_uav.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_autonomous_uav.jpg>
+File: figures/img/shapes/atlas_cargo_truck.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_cargo_truck.jpg>
+File: figures/img/shapes/atlas_target_rover.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_target_rover.jpg>
+File: figures/img/shapes/atlas_sam_launcher.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_sam_launcher.jpg>
+File: figures/img/shapes/atlas_aa_gatling_gun.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_aa_gatling_gun.jpg>
+File: figures/img/shapes/atlas_sam_missile.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_sam_missile.jpg>
+File: figures/img/shapes/atlas_mlrs_rocket.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_mlrs_rocket.jpg>
+File: figures/img/shapes/atlas_uav_round.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_uav_round.jpg>
+File: figures/img/shapes/atlas_aa_shell_casing.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_aa_shell_casing.jpg>
+File: figures/img/shapes/atlas_command_bunker.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_command_bunker.jpg>
+File: figures/img/shapes/atlas_barracks_hall.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_barracks_hall.jpg>
+File: figures/img/shapes/atlas_air_defence_radar.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_air_defence_radar.jpg>
+File: figures/img/shapes/atlas_motor_pool.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_motor_pool.jpg>
+File: figures/img/shapes/atlas_helipad.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_helipad.jpg>
+File: figures/img/shapes/atlas_ammunition_bunker.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_ammunition_bunker.jpg>
+File: figures/img/shapes/atlas_guard_tower.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_guard_tower.jpg>
+File: figures/img/shapes/atlas_watchtower.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_watchtower.jpg>
+File: figures/img/shapes/atlas_fuel_depot.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_fuel_depot.jpg>
+File: figures/img/shapes/atlas_quonset_hut.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_quonset_hut.jpg>
+File: figures/img/shapes/atlas_radio_mast.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_radio_mast.jpg>
+File: figures/img/shapes/atlas_camouflaged_tent.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_camouflaged_tent.jpg>
+File: figures/img/shapes/atlas_container.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_container.jpg>
+File: figures/img/shapes/atlas_guard_booth.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_guard_booth.jpg>
+File: figures/img/shapes/atlas_uav_pad.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_uav_pad.jpg>
+Requested font "ntx-Bold-tlf-ot1" at 10.0pt
+ -> ntx-Bold-tlf-ot1
+File: figures/img/shapes/atlas_hesco_perimeter.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_hesco_perimeter.jpg>
+File: figures/img/shapes/atlas_concertina_wire.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_concertina_wire.jpg>
+File: figures/img/shapes/atlas_perimeter_fence.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_perimeter_fence.jpg>
+File: figures/img/shapes/atlas_outer_gate.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_outer_gate.jpg>
+File: figures/img/shapes/atlas_camouflage_net.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_camouflage_net.jpg>
+File: figures/img/shapes/atlas_earth_revetment.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_earth_revetment.jpg>
+File: figures/img/shapes/atlas_radar_surround.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_radar_surround.jpg>
+File: figures/img/shapes/atlas_aa_gun_surround.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_aa_gun_surround.jpg>
+File: figures/img/shapes/atlas_sandbag_wall.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_sandbag_wall.jpg>
+File: figures/img/shapes/atlas_boom_barrier.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_boom_barrier.jpg>
+File: figures/img/shapes/atlas_hesco_blocks.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_hesco_blocks.jpg>
+File: figures/img/shapes/atlas_tank_trap.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_tank_trap.jpg>
+File: figures/img/shapes/atlas_jersey_barrier.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_jersey_barrier.jpg>
+File: figures/img/shapes/atlas_broadleaf_tree.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_broadleaf_tree.jpg>
+File: figures/img/shapes/atlas_pine.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_pine.jpg>
+File: figures/img/shapes/atlas_cut_branches.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_cut_branches.jpg>
+File: figures/img/shapes/atlas_bush.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_bush.jpg>
+File: figures/img/shapes/atlas_treeline_pine.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_treeline_pine.jpg>
+File: figures/img/shapes/atlas_flag.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_flag.jpg>
+File: figures/img/shapes/atlas_windsock.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_windsock.jpg>
+File: figures/img/shapes/atlas_supply_cache.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_supply_cache.jpg>
+File: figures/img/shapes/atlas_boulder.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_boulder.jpg>
+File: figures/img/shapes/atlas_lamp_post.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_lamp_post.jpg>
+File: figures/img/shapes/atlas_track_sign.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_track_sign.jpg>
+File: figures/img/shapes/atlas_fire_barrel.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_fire_barrel.jpg>
+File: figures/img/shapes/atlas_sky_clock_sun.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_sky_clock_sun.jpg>
+File: figures/img/shapes/atlas_moon.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_moon.jpg>
+File: figures/img/shapes/atlas_terrain_disc.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_terrain_disc.jpg>
+File: figures/img/shapes/atlas_far_ground.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_far_ground.jpg>
+File: figures/img/shapes/atlas_distant_hills.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_distant_hills.jpg>
+File: figures/img/shapes/atlas_far_radio_tower.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_far_radio_tower.jpg>
+File: figures/img/shapes/atlas_road.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_road.jpg>
+File: figures/img/shapes/atlas_tyre_tracks.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_tyre_tracks.jpg>
+File: figures/img/shapes/atlas_tank_spot_marking.jpg Graphic file (type bmp)
+<figures/img/shapes/atlas_tank_spot_marking.jpg>
+ [17
 
-(lstlang1.sty
+] [18]
+File: figures/img/shapes/soldier_model.jpg Graphic file (type bmp)
+<figures/img/shapes/soldier_model.jpg>
+File: figures/img/shapes/soldier_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/soldier_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 108.
+See the caption package documentation for explanation.
+
+[19]
+Requested font "ntx-Bold-tlf-ot1" at 9.0pt
+ -> ntx-Bold-tlf-ot1
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 6.1pt on input line 108.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 6.1pt
+ -> TeXGyreTermesX-Regular.otf
+File: figures/diagrams/d_gait.pdf Graphic file (type pdf)
+<use figures/diagrams/d_gait.pdf>
+File: figures/img/m3/parts_soldier_1/01_hips.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/01_hips.jpg>
+File: figures/img/m3/parts_soldier_1/02_belt.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/02_belt.jpg>
+File: figures/img/m3/parts_soldier_1/03_hip_joint.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/03_hip_joint.jpg>
+File: figures/img/m3/parts_soldier_1/04_thigh.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/04_thigh.jpg>
+File: figures/img/m3/parts_soldier_1/05_knee_joint.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/05_knee_joint.jpg>
+File: figures/img/m3/parts_soldier_1/06_shin.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/06_shin.jpg>
+File: figures/img/m3/parts_soldier_1/07_ankle_joint.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_soldier_1/07_ankle_joint.jpg>
+File: figures/img/m3/parts_soldier_1/08_boot.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/08_boot.jpg>
+File: figures/img/m3/parts_soldier_1/09_calf.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/09_calf.jpg>
+File: figures/img/m3/parts_soldier_1/10_knee_pad.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/10_knee_pad.jpg>
+File: figures/img/m3/parts_soldier_1/11_thigh_muscle.jpg Graphic file (type bmp
+)
+<figures/img/m3/parts_soldier_1/11_thigh_muscle.jpg>
+File: figures/img/m3/parts_soldier_1/12_abdomen.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/12_abdomen.jpg>
+File: figures/img/m3/parts_soldier_1/13_torso.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/13_torso.jpg>
+File: figures/img/m3/parts_soldier_1/14_backpack.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/14_backpack.jpg>
+File: figures/img/m3/parts_soldier_1/15_bedroll.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/15_bedroll.jpg>
+File: figures/img/m3/parts_soldier_1/16_rifle_receiver.jpg Graphic file (type b
+mp)
+<figures/img/m3/parts_soldier_1/16_rifle_receiver.jpg>
+File: figures/img/m3/parts_soldier_1/17_rifle_barrel.jpg Graphic file (type bmp
+)
+<figures/img/m3/parts_soldier_1/17_rifle_barrel.jpg>
+File: figures/img/m3/parts_soldier_1/18_rifle_magazine.jpg Graphic file (type b
+mp)
+<figures/img/m3/parts_soldier_1/18_rifle_magazine.jpg>
+File: figures/img/m3/parts_soldier_1/19_pistol_grip.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_soldier_1/19_pistol_grip.jpg>
+File: figures/img/m3/parts_soldier_1/20_handguard.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/20_handguard.jpg>
+File: figures/img/m3/parts_soldier_1/21_optic.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/21_optic.jpg>
+File: figures/img/m3/parts_soldier_1/22_carried_crate.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_soldier_1/22_carried_crate.jpg>
+File: figures/img/m3/parts_soldier_1/23_neck.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/23_neck.jpg>
+File: figures/img/m3/parts_soldier_1/24_head.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/24_head.jpg>
+File: figures/img/m3/parts_soldier_1/25_helmet.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/25_helmet.jpg>
+File: figures/img/m3/parts_soldier_1/26_helmet_brim.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_soldier_1/26_helmet_brim.jpg>
+File: figures/img/m3/parts_soldier_1/27_jaw.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/27_jaw.jpg>
+File: figures/img/m3/parts_soldier_1/28_nose.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/28_nose.jpg>
+File: figures/img/m3/parts_soldier_1/29_eye.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/29_eye.jpg>
+File: figures/img/m3/parts_soldier_1/30_ear.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/30_ear.jpg>
+File: figures/img/m3/parts_soldier_1/31_chin_strap.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/31_chin_strap.jpg>
+File: figures/img/m3/parts_soldier_1/32_goggles.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/32_goggles.jpg>
+File: figures/img/m3/parts_soldier_1/33_nvg_mount.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/33_nvg_mount.jpg>
+File: figures/img/m3/parts_soldier_1/34_trapezius.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/34_trapezius.jpg>
+File: figures/img/m3/parts_soldier_1/35_shoulder_joint.jpg Graphic file (type b
+mp)
+<figures/img/m3/parts_soldier_1/35_shoulder_joint.jpg>
+File: figures/img/m3/parts_soldier_1/36_upper_arm.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/36_upper_arm.jpg>
+File: figures/img/m3/parts_soldier_1/37_elbow_joint.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_soldier_1/37_elbow_joint.jpg>
+File: figures/img/m3/parts_soldier_1/38_forearm.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/38_forearm.jpg>
+File: figures/img/m3/parts_soldier_1/39_hand.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/39_hand.jpg>
+File: figures/img/m3/parts_soldier_1/40_forearm_muscle.jpg Graphic file (type b
+mp)
+<figures/img/m3/parts_soldier_1/40_forearm_muscle.jpg>
+File: figures/img/m3/parts_soldier_1/41_elbow_pad.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/41_elbow_pad.jpg>
+File: figures/img/m3/parts_soldier_1/42_deltoid.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/42_deltoid.jpg>
+File: figures/img/m3/parts_soldier_1/43_wrench.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/43_wrench.jpg>
+File: figures/img/m3/parts_soldier_1/44_plate_carrier.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_soldier_1/44_plate_carrier.jpg>
+File: figures/img/m3/parts_soldier_1/45_magazine_pouches.jpg Graphic file (type
+ bmp)
+<figures/img/m3/parts_soldier_1/45_magazine_pouches.jpg>
+File: figures/img/m3/parts_soldier_1/46_admin_pouch.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_soldier_1/46_admin_pouch.jpg>
+File: figures/img/m3/parts_soldier_1/47_radio.jpg Graphic file (type bmp)
+<figures/img/m3/parts_soldier_1/47_radio.jpg>
+File: figures/img/m3/parts_soldier_1/48_radio_antenna.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_soldier_1/48_radio_antenna.jpg>
+ [20] [21]
+File: figures/img/shapes/main_battle_tank_model.jpg Graphic file (type bmp)
+<figures/img/shapes/main_battle_tank_model.jpg>
+File: figures/img/shapes/main_battle_tank_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/main_battle_tank_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 111.
+See the caption package documentation for explanation.
+
+[22]
+File: figures/img/shapes/main_battle_tank_stage12.jpg Graphic file (type bmp)
+<figures/img/shapes/main_battle_tank_stage12.jpg>
+File: figures/img/shapes/main_battle_tank_stage35.jpg Graphic file (type bmp)
+<figures/img/shapes/main_battle_tank_stage35.jpg>
+File: figures/img/shapes/main_battle_tank_stage65.jpg Graphic file (type bmp)
+<figures/img/shapes/main_battle_tank_stage65.jpg>
+File: figures/img/shapes/main_battle_tank_stage100.jpg Graphic file (type bmp)
+<figures/img/shapes/main_battle_tank_stage100.jpg>
+ [23]
+File: figures/img/shapes/mlrs_rocket_truck_model.jpg Graphic file (type bmp)
+<figures/img/shapes/mlrs_rocket_truck_model.jpg>
+File: figures/img/shapes/mlrs_rocket_truck_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/mlrs_rocket_truck_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 111.
+See the caption package documentation for explanation.
+
+[24]
+File: figures/img/shapes/scout_helicopter_model.jpg Graphic file (type bmp)
+<figures/img/shapes/scout_helicopter_model.jpg>
+File: figures/img/shapes/scout_helicopter_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/scout_helicopter_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 111.
+See the caption package documentation for explanation.
+
+[25]
+File: figures/img/shapes/scout_helicopter_stage12.jpg Graphic file (type bmp)
+<figures/img/shapes/scout_helicopter_stage12.jpg>
+File: figures/img/shapes/scout_helicopter_stage35.jpg Graphic file (type bmp)
+<figures/img/shapes/scout_helicopter_stage35.jpg>
+File: figures/img/shapes/scout_helicopter_stage65.jpg Graphic file (type bmp)
+<figures/img/shapes/scout_helicopter_stage65.jpg>
+File: figures/img/shapes/scout_helicopter_stage100.jpg Graphic file (type bmp)
+<figures/img/shapes/scout_helicopter_stage100.jpg>
+File: figures/img/shapes/autonomous_uav_model.jpg Graphic file (type bmp)
+<figures/img/shapes/autonomous_uav_model.jpg>
+File: figures/img/shapes/autonomous_uav_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/autonomous_uav_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 111.
+See the caption package documentation for explanation.
+
+[26]
+File: figures/img/m3/parts_autonomous_uav/01_fuselage.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_autonomous_uav/01_fuselage.jpg>
+File: figures/img/m3/parts_autonomous_uav/02_canopy.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_autonomous_uav/02_canopy.jpg>
+File: figures/img/m3/parts_autonomous_uav/03_battery.jpg Graphic file (type bmp
+)
+<figures/img/m3/parts_autonomous_uav/03_battery.jpg>
+File: figures/img/m3/parts_autonomous_uav/04_gps_mast.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_autonomous_uav/04_gps_mast.jpg>
+File: figures/img/m3/parts_autonomous_uav/05_gps_puck.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_autonomous_uav/05_gps_puck.jpg>
+File: figures/img/m3/parts_autonomous_uav/06_arm_front_left.jpg Graphic file (t
+ype bmp)
+<figures/img/m3/parts_autonomous_uav/06_arm_front_left.jpg>
+File: figures/img/m3/parts_autonomous_uav/07_motor.jpg Graphic file (type bmp)
+<figures/img/m3/parts_autonomous_uav/07_motor.jpg>
+File: figures/img/m3/parts_autonomous_uav/08_prop_hub.jpg Graphic file (type bm
+p)
+<figures/img/m3/parts_autonomous_uav/08_prop_hub.jpg>
+File: figures/img/m3/parts_autonomous_uav/09_prop_blade.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/09_prop_blade.jpg>
+File: figures/img/m3/parts_autonomous_uav/10_rotor_blur_disc.jpg Graphic file (
+type bmp)
+<figures/img/m3/parts_autonomous_uav/10_rotor_blur_disc.jpg>
+File: figures/img/m3/parts_autonomous_uav/11_nav_led.jpg Graphic file (type bmp
+)
+<figures/img/m3/parts_autonomous_uav/11_nav_led.jpg>
+File: figures/img/m3/parts_autonomous_uav/12_motor_cooling_ring.jpg Graphic fil
+e (type bmp)
+<figures/img/m3/parts_autonomous_uav/12_motor_cooling_ring.jpg>
+File: figures/img/m3/parts_autonomous_uav/13_arm_front_right.jpg Graphic file (
+type bmp)
+<figures/img/m3/parts_autonomous_uav/13_arm_front_right.jpg>
+File: figures/img/m3/parts_autonomous_uav/14_arm_rear_left.jpg Graphic file (ty
+pe bmp)
+<figures/img/m3/parts_autonomous_uav/14_arm_rear_left.jpg>
+File: figures/img/m3/parts_autonomous_uav/15_status_led.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/15_status_led.jpg>
+File: figures/img/m3/parts_autonomous_uav/16_arm_rear_right.jpg Graphic file (t
+ype bmp)
+<figures/img/m3/parts_autonomous_uav/16_arm_rear_right.jpg>
+File: figures/img/m3/parts_autonomous_uav/17_strobe.jpg Graphic file (type bmp)
+
+<figures/img/m3/parts_autonomous_uav/17_strobe.jpg>
+File: figures/img/m3/parts_autonomous_uav/18_landing_strut.jpg Graphic file (ty
+pe bmp)
+<figures/img/m3/parts_autonomous_uav/18_landing_strut.jpg>
+File: figures/img/m3/parts_autonomous_uav/19_landing_skid.jpg Graphic file (typ
+e bmp)
+<figures/img/m3/parts_autonomous_uav/19_landing_skid.jpg>
+File: figures/img/m3/parts_autonomous_uav/20_gimbal_yoke.jpg Graphic file (type
+ bmp)
+<figures/img/m3/parts_autonomous_uav/20_gimbal_yoke.jpg>
+File: figures/img/m3/parts_autonomous_uav/21_lamp_housing.jpg Graphic file (typ
+e bmp)
+<figures/img/m3/parts_autonomous_uav/21_lamp_housing.jpg>
+File: figures/img/m3/parts_autonomous_uav/22_lens.jpg Graphic file (type bmp)
+<figures/img/m3/parts_autonomous_uav/22_lens.jpg>
+File: figures/img/m3/parts_autonomous_uav/23_thermal_camera.jpg Graphic file (t
+ype bmp)
+<figures/img/m3/parts_autonomous_uav/23_thermal_camera.jpg>
+File: figures/img/m3/parts_autonomous_uav/24_light_cone.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/24_light_cone.jpg>
+File: figures/img/m3/parts_autonomous_uav/25_camera_window.jpg Graphic file (ty
+pe bmp)
+<figures/img/m3/parts_autonomous_uav/25_camera_window.jpg>
+File: figures/img/m3/parts_autonomous_uav/26_rail.jpg Graphic file (type bmp)
+<figures/img/m3/parts_autonomous_uav/26_rail.jpg>
+File: figures/img/m3/parts_autonomous_uav/27_rail_strut.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/27_rail_strut.jpg>
+File: figures/img/m3/parts_autonomous_uav/28_round_body.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/28_round_body.jpg>
+File: figures/img/m3/parts_autonomous_uav/29_round_nose.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/29_round_nose.jpg>
+File: figures/img/m3/parts_autonomous_uav/30_round_fin.jpg Graphic file (type b
+mp)
+<figures/img/m3/parts_autonomous_uav/30_round_fin.jpg>
+File: figures/img/m3/parts_autonomous_uav/31_telemetry_antenna.jpg Graphic file
+ (type bmp)
+<figures/img/m3/parts_autonomous_uav/31_telemetry_antenna.jpg>
+File: figures/img/m3/parts_autonomous_uav/32_battery_strap.jpg Graphic file (ty
+pe bmp)
+<figures/img/m3/parts_autonomous_uav/32_battery_strap.jpg>
+File: figures/img/m3/parts_autonomous_uav/33_arming_led.jpg Graphic file (type 
+bmp)
+<figures/img/m3/parts_autonomous_uav/33_arming_led.jpg>
+File: figures/img/shapes/autonomous_uav_stage12.jpg Graphic file (type bmp)
+<figures/img/shapes/autonomous_uav_stage12.jpg>
+File: figures/img/shapes/autonomous_uav_stage35.jpg Graphic file (type bmp)
+<figures/img/shapes/autonomous_uav_stage35.jpg>
+File: figures/img/shapes/autonomous_uav_stage65.jpg Graphic file (type bmp)
+<figures/img/shapes/autonomous_uav_stage65.jpg>
+File: figures/img/shapes/autonomous_uav_stage100.jpg Graphic file (type bmp)
+<figures/img/shapes/autonomous_uav_stage100.jpg>
+ [27]
+File: figures/img/shapes/cargo_truck_model.jpg Graphic file (type bmp)
+<figures/img/shapes/cargo_truck_model.jpg>
+File: figures/img/shapes/cargo_truck_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/cargo_truck_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 111.
+See the caption package documentation for explanation.
+
+[28]
+File: figures/img/shapes/target_rover_model.jpg Graphic file (type bmp)
+<figures/img/shapes/target_rover_model.jpg>
+File: figures/img/shapes/target_rover_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/target_rover_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 111.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/sam_launcher_model.jpg Graphic file (type bmp)
+<figures/img/shapes/sam_launcher_model.jpg>
+File: figures/img/shapes/sam_launcher_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/sam_launcher_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 114.
+See the caption package documentation for explanation.
+
+[29]
+File: figures/img/shapes/aa_gatling_gun_model.jpg Graphic file (type bmp)
+<figures/img/shapes/aa_gatling_gun_model.jpg>
+File: figures/img/shapes/aa_gatling_gun_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/aa_gatling_gun_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 114.
+See the caption package documentation for explanation.
+
+[30]
+File: figures/img/shapes/sam_missile_model.jpg Graphic file (type bmp)
+<figures/img/shapes/sam_missile_model.jpg>
+File: figures/img/shapes/sam_missile_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/sam_missile_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 114.
+See the caption package documentation for explanation.
+
+[31]
+File: figures/img/shapes/mlrs_rocket_model.jpg Graphic file (type bmp)
+<figures/img/shapes/mlrs_rocket_model.jpg>
+File: figures/img/shapes/mlrs_rocket_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/mlrs_rocket_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 114.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/uav_round_model.jpg Graphic file (type bmp)
+<figures/img/shapes/uav_round_model.jpg>
+File: figures/img/shapes/uav_round_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/uav_round_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 114.
+See the caption package documentation for explanation.
+
+[32]
+File: figures/img/shapes/aa_shell_casing_model.jpg Graphic file (type bmp)
+<figures/img/shapes/aa_shell_casing_model.jpg>
+File: figures/img/shapes/aa_shell_casing_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/aa_shell_casing_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 114.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/lineup_sam_missile_mlrs_rocket_uav_round_aa_shell_casi
+ng_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/lineup_sam_missile_mlrs_rocket_uav_round_aa_shell_casing_pr
+ims.jpg>
+File: figures/img/shapes/lineup_uav_round_aa_shell_casing_prims.jpg Graphic fil
+e (type bmp)
+<figures/img/shapes/lineup_uav_round_aa_shell_casing_prims.jpg>
+[33]
+File: figures/img/shapes/command_bunker_cut_model.jpg Graphic file (type bmp)
+<figures/img/shapes/command_bunker_cut_model.jpg>
+File: figures/img/shapes/command_bunker_cut_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/command_bunker_cut_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[34] [35] [36]
+File: figures/img/shapes/command_bunker_stage12.jpg Graphic file (type bmp)
+<figures/img/shapes/command_bunker_stage12.jpg>
+File: figures/img/shapes/command_bunker_stage35.jpg Graphic file (type bmp)
+<figures/img/shapes/command_bunker_stage35.jpg>
+File: figures/img/shapes/command_bunker_stage65.jpg Graphic file (type bmp)
+<figures/img/shapes/command_bunker_stage65.jpg>
+File: figures/img/shapes/command_bunker_stage100.jpg Graphic file (type bmp)
+<figures/img/shapes/command_bunker_stage100.jpg>
+File: figures/img/shapes/barracks_hall_cut_model.jpg Graphic file (type bmp)
+<figures/img/shapes/barracks_hall_cut_model.jpg>
+File: figures/img/shapes/barracks_hall_cut_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/barracks_hall_cut_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[37] [38]
+File: figures/img/shapes/air_defence_radar_model.jpg Graphic file (type bmp)
+<figures/img/shapes/air_defence_radar_model.jpg>
+File: figures/img/shapes/air_defence_radar_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/air_defence_radar_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[39]
+File: figures/img/shapes/motor_pool_model.jpg Graphic file (type bmp)
+<figures/img/shapes/motor_pool_model.jpg>
+File: figures/img/shapes/motor_pool_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/motor_pool_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/helipad_model.jpg Graphic file (type bmp)
+<figures/img/shapes/helipad_model.jpg>
+File: figures/img/shapes/helipad_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/helipad_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[40]
+File: figures/img/shapes/ammunition_bunker_cut_model.jpg Graphic file (type bmp
+)
+<figures/img/shapes/ammunition_bunker_cut_model.jpg>
+File: figures/img/shapes/ammunition_bunker_cut_prims.jpg Graphic file (type bmp
+)
+<figures/img/shapes/ammunition_bunker_cut_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/guard_tower_model.jpg Graphic file (type bmp)
+<figures/img/shapes/guard_tower_model.jpg>
+File: figures/img/shapes/guard_tower_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/guard_tower_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[41]
+File: figures/img/shapes/watchtower_model.jpg Graphic file (type bmp)
+<figures/img/shapes/watchtower_model.jpg>
+File: figures/img/shapes/watchtower_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/watchtower_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[42]
+File: figures/img/shapes/fuel_depot_model.jpg Graphic file (type bmp)
+<figures/img/shapes/fuel_depot_model.jpg>
+File: figures/img/shapes/fuel_depot_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/fuel_depot_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/quonset_hut_model.jpg Graphic file (type bmp)
+<figures/img/shapes/quonset_hut_model.jpg>
+File: figures/img/shapes/quonset_hut_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/quonset_hut_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[43]
+File: figures/img/shapes/radio_mast_model.jpg Graphic file (type bmp)
+<figures/img/shapes/radio_mast_model.jpg>
+File: figures/img/shapes/radio_mast_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/radio_mast_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/camouflaged_tent_model.jpg Graphic file (type bmp)
+<figures/img/shapes/camouflaged_tent_model.jpg>
+File: figures/img/shapes/camouflaged_tent_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/camouflaged_tent_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[44]
+File: figures/img/shapes/container_model.jpg Graphic file (type bmp)
+<figures/img/shapes/container_model.jpg>
+File: figures/img/shapes/container_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/container_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/guard_booth_model.jpg Graphic file (type bmp)
+<figures/img/shapes/guard_booth_model.jpg>
+File: figures/img/shapes/guard_booth_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/guard_booth_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+[45]
+File: figures/img/shapes/uav_pad_model.jpg Graphic file (type bmp)
+<figures/img/shapes/uav_pad_model.jpg>
+File: figures/img/shapes/uav_pad_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/uav_pad_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 120.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/hesco_perimeter_model.jpg Graphic file (type bmp)
+<figures/img/shapes/hesco_perimeter_model.jpg>
+File: figures/img/shapes/hesco_perimeter_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/hesco_perimeter_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[46]
+File: figures/img/shapes/concertina_wire_model.jpg Graphic file (type bmp)
+<figures/img/shapes/concertina_wire_model.jpg>
+File: figures/img/shapes/concertina_wire_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/concertina_wire_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/perimeter_fence_model.jpg Graphic file (type bmp)
+<figures/img/shapes/perimeter_fence_model.jpg>
+File: figures/img/shapes/perimeter_fence_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/perimeter_fence_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[47]
+File: figures/img/shapes/outer_gate_model.jpg Graphic file (type bmp)
+<figures/img/shapes/outer_gate_model.jpg>
+File: figures/img/shapes/outer_gate_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/outer_gate_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/camouflage_net_model.jpg Graphic file (type bmp)
+<figures/img/shapes/camouflage_net_model.jpg>
+File: figures/img/shapes/camouflage_net_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/camouflage_net_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[48]
+File: figures/img/shapes/earth_revetment_model.jpg Graphic file (type bmp)
+<figures/img/shapes/earth_revetment_model.jpg>
+File: figures/img/shapes/earth_revetment_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/earth_revetment_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/radar_surround_model.jpg Graphic file (type bmp)
+<figures/img/shapes/radar_surround_model.jpg>
+File: figures/img/shapes/radar_surround_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/radar_surround_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[49]
+File: figures/img/shapes/aa_gun_surround_model.jpg Graphic file (type bmp)
+<figures/img/shapes/aa_gun_surround_model.jpg>
+File: figures/img/shapes/aa_gun_surround_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/aa_gun_surround_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/sandbag_wall_model.jpg Graphic file (type bmp)
+<figures/img/shapes/sandbag_wall_model.jpg>
+File: figures/img/shapes/sandbag_wall_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/sandbag_wall_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[50]
+File: figures/img/shapes/boom_barrier_model.jpg Graphic file (type bmp)
+<figures/img/shapes/boom_barrier_model.jpg>
+File: figures/img/shapes/boom_barrier_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/boom_barrier_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/hesco_blocks_model.jpg Graphic file (type bmp)
+<figures/img/shapes/hesco_blocks_model.jpg>
+File: figures/img/shapes/hesco_blocks_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/hesco_blocks_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[51]
+File: figures/img/shapes/tank_trap_model.jpg Graphic file (type bmp)
+<figures/img/shapes/tank_trap_model.jpg>
+File: figures/img/shapes/tank_trap_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/tank_trap_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/jersey_barrier_model.jpg Graphic file (type bmp)
+<figures/img/shapes/jersey_barrier_model.jpg>
+File: figures/img/shapes/jersey_barrier_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/jersey_barrier_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 123.
+See the caption package documentation for explanation.
+
+[52]
+File: figures/img/shapes/broadleaf_tree_model.jpg Graphic file (type bmp)
+<figures/img/shapes/broadleaf_tree_model.jpg>
+File: figures/img/shapes/broadleaf_tree_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/broadleaf_tree_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 129.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/pine_model.jpg Graphic file (type bmp)
+<figures/img/shapes/pine_model.jpg>
+File: figures/img/shapes/pine_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/pine_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 129.
+See the caption package documentation for explanation.
+
+[53]
+File: figures/img/shapes/cut_branches_model.jpg Graphic file (type bmp)
+<figures/img/shapes/cut_branches_model.jpg>
+File: figures/img/shapes/cut_branches_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/cut_branches_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 129.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/bush_model.jpg Graphic file (type bmp)
+<figures/img/shapes/bush_model.jpg>
+File: figures/img/shapes/bush_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/bush_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 129.
+See the caption package documentation for explanation.
+
+[54]
+File: figures/img/shapes/treeline_pine_model.jpg Graphic file (type bmp)
+<figures/img/shapes/treeline_pine_model.jpg>
+File: figures/img/shapes/treeline_pine_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/treeline_pine_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 129.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/flag_model.jpg Graphic file (type bmp)
+<figures/img/shapes/flag_model.jpg>
+File: figures/img/shapes/flag_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/flag_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+[55]
+File: figures/img/shapes/windsock_model.jpg Graphic file (type bmp)
+<figures/img/shapes/windsock_model.jpg>
+File: figures/img/shapes/windsock_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/windsock_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/supply_cache_model.jpg Graphic file (type bmp)
+<figures/img/shapes/supply_cache_model.jpg>
+File: figures/img/shapes/supply_cache_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/supply_cache_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+[56]
+File: figures/img/shapes/boulder_model.jpg Graphic file (type bmp)
+<figures/img/shapes/boulder_model.jpg>
+File: figures/img/shapes/boulder_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/boulder_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/lamp_post_model.jpg Graphic file (type bmp)
+<figures/img/shapes/lamp_post_model.jpg>
+File: figures/img/shapes/lamp_post_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/lamp_post_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+[57]
+File: figures/img/shapes/track_sign_model.jpg Graphic file (type bmp)
+<figures/img/shapes/track_sign_model.jpg>
+File: figures/img/shapes/track_sign_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/track_sign_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/fire_barrel_model.jpg Graphic file (type bmp)
+<figures/img/shapes/fire_barrel_model.jpg>
+File: figures/img/shapes/fire_barrel_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/fire_barrel_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+[58]
+File: figures/img/shapes/sky_clock_sun_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/sky_clock_sun_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/moon_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/moon_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 132.
+See the caption package documentation for explanation.
+
+[59]
+File: figures/img/shapes/terrain_disc_model.jpg Graphic file (type bmp)
+<figures/img/shapes/terrain_disc_model.jpg>
+File: figures/img/shapes/terrain_disc_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/terrain_disc_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/far_ground_model.jpg Graphic file (type bmp)
+<figures/img/shapes/far_ground_model.jpg>
+File: figures/img/shapes/far_ground_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/far_ground_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/distant_hills_model.jpg Graphic file (type bmp)
+<figures/img/shapes/distant_hills_model.jpg>
+File: figures/img/shapes/distant_hills_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/distant_hills_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+[60]
+File: figures/img/shapes/far_radio_tower_model.jpg Graphic file (type bmp)
+<figures/img/shapes/far_radio_tower_model.jpg>
+File: figures/img/shapes/far_radio_tower_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/far_radio_tower_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+[61]
+File: figures/img/shapes/road_model.jpg Graphic file (type bmp)
+<figures/img/shapes/road_model.jpg>
+File: figures/img/shapes/road_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/road_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+File: figures/img/shapes/tyre_tracks_model.jpg Graphic file (type bmp)
+<figures/img/shapes/tyre_tracks_model.jpg>
+File: figures/img/shapes/tyre_tracks_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/tyre_tracks_prims.jpg>
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+[62]
+File: figures/img/shapes/tank_spot_marking_model.jpg Graphic file (type bmp)
+<figures/img/shapes/tank_spot_marking_model.jpg>
+File: figures/img/shapes/tank_spot_marking_prims.jpg Graphic file (type bmp)
+<figures/img/shapes/tank_spot_marking_prims.jpg>
+
+
+Package caption Warning: The option `hypcap=true' will be ignored for this
+(caption)                particular \caption on input line 135.
+See the caption package documentation for explanation.
+
+) (sections/A02_transforms
+LaTeX Font Info:    Calculating math sizes for size <7.5> on input line 3.
+Requested font "ntx-Regular-tlf-ot1" at 7.5pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntx-Regular-tlf-ot1" at 5.47496pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntx-Regular-tlf-ot1" at 4.12502pt
+ -> ntx-Regular-tlf-ot1
+Requested font "ntxmi7" at 7.5pt
+ -> ntxmi7
+Requested font "ntxmi5" at 5.47496pt
+ -> ntxmi5
+Requested font "ntxmi5" at 4.12502pt
+ -> ntxmi5
+Requested font "ntxsy7" at 7.5pt
+ -> ntxsy7
+Requested font "ntxsy5" at 5.47496pt
+ -> ntxsy5
+Requested font "ntxsy5" at 4.12502pt
+ -> ntxsy5
+Requested font "ntxexx" at 7.5pt
+ -> ntxexx
+Requested font "ntxexx" at 5.47496pt
+ -> ntxexx
+Requested font "ntxexx" at 4.12502pt
+ -> ntxexx
+Requested font "ntx-Bold-tlf-ot1" at 7.5pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntx-Bold-tlf-ot1" at 5.47496pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntx-Bold-tlf-ot1" at 4.12502pt
+ -> ntx-Bold-tlf-ot1
+Requested font "ntxmia" at 7.5pt
+ -> ntxmia
+Requested font "ntxmia" at 5.47496pt
+ -> ntxmia
+Requested font "ntxmia" at 4.12502pt
+ -> ntxmia
+Requested font "ntxsym" at 7.5pt
+ -> ntxsym
+Requested font "ntxsym" at 5.47496pt
+ -> ntxsym
+Requested font "ntxsym" at 4.12502pt
+ -> ntxsym
+Requested font "ntxsyc" at 7.5pt
+ -> ntxsyc
+Requested font "ntxsyc" at 5.47496pt
+ -> ntxsyc
+Requested font "ntxsyc" at 4.12502pt
+ -> ntxsyc
+Requested font "ntxexa" at 7.5pt
+ -> ntxexa
+Requested font "ntxexa" at 5.47496pt
+ -> ntxexa
+Requested font "ntxexa" at 4.12502pt
+ -> ntxexa
+ (lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 ) (lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
@@ -1339,77 +2626,135 @@ LaTeX Font Info:    Font shape `TU/lmtt/bx/n' in size <7.4> not available
 (Font)              Font shape `TU/lmtt/b/n' tried instead on input line 25.
 Requested font "[lmmonolt10-bold]:" at 7.4pt
  -> lmmonolt10-bold
+File: figures/diagrams/d_trs_order.pdf Graphic file (type pdf)
+<use figures/diagrams/d_trs_order.pdf>
 File: figures/img/scene/soldier_axes.jpg Graphic file (type bmp)
 <figures/img/scene/soldier_axes.jpg>
-File: figures/workbook/Transform_Trace.png Graphic file (type bmp)
-<figures/workbook/Transform_Trace.png>
- [9]) (sections/A03_hierarchy
-Requested font "ntx-Bold-tlf-ot1" at 6.2pt
- -> ntx-Bold-tlf-ot1
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
+(Font)              scaled to size 9.0pt on input line 44.
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
++tnum;+lnum;mapping=tex-text;" at 9.0pt
+ -> TeXGyreTermesX-Italic.otf
 
-[10]
-File: figures/img/v5/iso_uav_assembled.jpg Graphic file (type bmp)
-<figures/img/v5/iso_uav_assembled.jpg>
-File: figures/img/v5/iso_uav_exploded.jpg Graphic file (type bmp)
-<figures/img/v5/iso_uav_exploded.jpg>
-) (sections/A04_viewing
+(sections/wb/Transform_Trace_inputs) (sections/wb/Transform_Trace_srt)
+(sections/wb/Transform_Trace_tm) (sections/wb/Transform_Trace_tw)
+(sections/wb/Transform_Trace_stages) (sections/wb/Transform_Trace_checks)
+
+LaTeX Font Warning: Command \scriptsize invalid in math mode on input line 70.
+
+[63]
+
+LaTeX Font Warning: Command \scriptsize invalid in math mode on input line 79.
+
+[64] [65]) (sections/A03_hierarchy
+File: figures/diagrams/d_hierarchy.pdf Graphic file (type pdf)
+<use figures/diagrams/d_hierarchy.pdf>
+) (sections/A04_viewing [66]
+File: figures/diagrams/d_view_basis.pdf Graphic file (type pdf)
+<use figures/diagrams/d_view_basis.pdf>
 File: figures/img/play/play_first_person.jpg Graphic file (type bmp)
 <figures/img/play/play_first_person.jpg>
 File: figures/img/play/play_third_person.jpg Graphic file (type bmp)
 <figures/img/play/play_third_person.jpg>
 File: figures/img/v5/uav_camera_view.jpg Graphic file (type bmp)
 <figures/img/v5/uav_camera_view.jpg>
- [11]
-File: figures/workbook/View_Projection.png Graphic file (type bmp)
-<figures/workbook/View_Projection.png>
-) (sections/A05_projection [12]
+
+(sections/wb/View_Projection_basis) (sections/wb/View_Projection_vp)
+(sections/wb/View_Projection_depth)
+Underfull \hbox (badness 1735) in paragraph at lines 41--41
+[]\TU/TeXGyreTermesX(0)/b/n/10 Figure 10.3: |\TU/TeXGyreTermesX(0)/m/n/10 Workb
+ook sheet \TU/lmtt/m/n/10 View_Projection\TU/TeXGyreTermesX(0)/m/n/10 : $\OT1/m
+inntx/b/n/10 u\OML/ntxmi/m/it/10 ; \OT1/minntx/b/n/10 v\OML/ntxmi/m/it/10 ; \OT
+1/minntx/b/n/10 n$ \TU/TeXGyreTermesX(0)/m/n/10 from cross products for the def
+ault orbit camera, the
+ []
+
+
+Underfull \hbox (badness 1158) in paragraph at lines 41--41
+\TU/TeXGyreTermesX(0)/m/n/10 view matrix, the perspective matrix, and the depth
+ table used in Section []12[]. (full sheet: \TU/lmtt/m/n/10 View_Projection \TU
+/TeXGyreTermesX(0)/m/n/10 in
+ []
+
+[67]) (sections/A05_projection [68]
+File: figures/diagrams/d_projections.pdf Graphic file (type pdf)
+<use figures/diagrams/d_projections.pdf>
 File: figures/img/scene/v10_proj_persp.jpg Graphic file (type bmp)
 <figures/img/scene/v10_proj_persp.jpg>
-Requested font "ntx-Bold-tlf-ot1" at 9.0pt
- -> ntx-Bold-tlf-ot1
 File: figures/img/scene/v10_proj_iso.jpg Graphic file (type bmp)
 <figures/img/scene/v10_proj_iso.jpg>
-File: figures/img/scene/v10_proj_top.jpg Graphic file (type bmp)
-<figures/img/scene/v10_proj_top.jpg>
-File: figures/img/scene/v10_proj_front.jpg Graphic file (type bmp)
-<figures/img/scene/v10_proj_front.jpg>
-File: figures/img/scene/v10_proj_side.jpg Graphic file (type bmp)
-<figures/img/scene/v10_proj_side.jpg>
-)
-(sections/A06_projective [13]
+) (sections/A06_projective [69]
+File: figures/diagrams/d_frustum_ndc.pdf Graphic file (type pdf)
+<use figures/diagrams/d_frustum_ndc.pdf>
 File: figures/plots/p_depth_precision.pdf Graphic file (type pdf)
 <use figures/plots/p_depth_precision.pdf>
 File: figures/img/v5/scene_depth.jpg Graphic file (type bmp)
 <figures/img/v5/scene_depth.jpg>
 File: figures/img/lab/explorer_stage_02_vertex.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_02_vertex.jpg>
-) (sections/A07_clipping [14]
-File: figures/img/scene/v10_proj_front.jpg Graphic file (type bmp)
-<figures/img/scene/v10_proj_front.jpg>
+File: figures/img/lab/explorer_stage_02_vertex.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_02_vertex.jpg>
+File: figures/img/lab/explorer_stage_02_vertex.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_02_vertex.jpg>
+)
+(sections/A07_clipping [70] [71]
+File: figures/diagrams/d_clipping.pdf Graphic file (type pdf)
+<use figures/diagrams/d_clipping.pdf>
 File: figures/img/lab/explorer_stage_03_assembly.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_03_assembly.jpg>
-File: figures/workbook/Clipping.png Graphic file (type bmp)
-<figures/workbook/Clipping.png>
+File: figures/img/lab/explorer_stage_03_assembly.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_03_assembly.jpg>
+File: figures/img/lab/explorer_stage_03_assembly.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_03_assembly.jpg>
+ (sections/wb/Clipping_cs)
+(sections/wb/Clipping_lb) (sections/wb/Clipping_sh1) (sections/wb/Clipping_sh2)
 
-Underfull \hbox (badness 1122) in paragraph at lines 41--41
+Underfull \hbox (badness 1360) in paragraph at lines 42--42
+[]\TU/TeXGyreTermesX(0)/b/n/10 Figure 13.3: |\TU/TeXGyreTermesX(0)/m/n/10 Workb
+ook sheet \TU/lmtt/m/n/10 Clipping\TU/TeXGyreTermesX(0)/m/n/10 : Cohen–Sutherla
+nd outcodes, Liang–Barsky parameters and Sutherland–
+ []
+
+
+Underfull \hbox (badness 6412) in paragraph at lines 42--42
+\TU/TeXGyreTermesX(0)/m/n/10 Hodgman steps, worked as formulas (the renderer it
+self does not run them). (full sheet: \TU/lmtt/m/n/10 Clipping \TU/TeXGyreTerme
+sX(0)/m/n/10 in
+ []
+
+
+Underfull \hbox (badness 1122) in paragraph at lines 57--57
 []|\TU/TeXGyreTermesX(0)/m/n/10 cheap for mostly inside/outside
  []
 
 
-Underfull \hbox (badness 2865) in paragraph at lines 41--41
+Underfull \hbox (badness 2865) in paragraph at lines 57--57
 []|\TU/TeXGyreTermesX(0)/m/n/10 whole object against 6 planes
  []
 
-[15]) (sections/A08_hsr
+) (sections/A08_hsr [72] [73] [74]
+File: figures/diagrams/d_hsr.pdf Graphic file (type pdf)
+<use figures/diagrams/d_hsr.pdf>
 File: figures/img/v5/scene_hiddenline.jpg Graphic file (type bmp)
 <figures/img/v5/scene_hiddenline.jpg>
 File: figures/img/v5/scene_xray.jpg Graphic file (type bmp)
 <figures/img/v5/scene_xray.jpg>
-File: figures/img/v5/scene_depth.jpg Graphic file (type bmp)
-<figures/img/v5/scene_depth.jpg>
 File: figures/img/lab/explorer_stage_06_depth.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_06_depth.jpg>
- [16]) (sections/A09_raster
+File: figures/img/lab/explorer_stage_06_depth.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_06_depth.jpg>
+File: figures/img/lab/explorer_stage_06_depth.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_06_depth.jpg>
+) (sections/A09_raster [75
+
+]
+File: figures/diagrams/d_raster.pdf Graphic file (type pdf)
+<use figures/diagrams/d_raster.pdf>
+File: figures/img/lab/explorer_raster_scan.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_raster_scan.jpg>
+File: figures/img/lab/explorer_interp_affine_perspective.jpg Graphic file (type
+ bmp)
+<figures/img/lab/explorer_interp_affine_perspective.jpg>
 File: figures/img/lab/explorer_raster_scan.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_raster_scan.jpg>
 File: figures/img/lab/explorer_interp_affine_perspective.jpg Graphic file (type
@@ -1417,8 +2762,14 @@ File: figures/img/lab/explorer_interp_affine_perspective.jpg Graphic file (type
 <figures/img/lab/explorer_interp_affine_perspective.jpg>
 File: figures/img/lab/explorer_stage_15_taa.jpg Graphic file (type bmp)
 <figures/img/lab/explorer_stage_15_taa.jpg>
- [17])
-(sections/A10_illumination
+File: figures/img/lab/explorer_stage_15_taa.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_15_taa.jpg>
+File: figures/img/lab/explorer_stage_15_taa.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_stage_15_taa.jpg>
+)
+(sections/A10_illumination [76] [77] [78] [79]
+File: figures/diagrams/d_lighting.pdf Graphic file (type pdf)
+<use figures/diagrams/d_lighting.pdf>
 File: figures/img/scene/v10_light_all.jpg Graphic file (type bmp)
 <figures/img/scene/v10_light_all.jpg>
 File: figures/img/scene/v10_light_ambient.jpg Graphic file (type bmp)
@@ -1427,134 +2778,64 @@ File: figures/img/scene/v10_light_diffuse.jpg Graphic file (type bmp)
 <figures/img/scene/v10_light_diffuse.jpg>
 File: figures/img/scene/v10_light_specular.jpg Graphic file (type bmp)
 <figures/img/scene/v10_light_specular.jpg>
- [18]
+
+(sections/wb/Illumination_geometry) (sections/wb/Illumination_terms)
 File: figures/plots/p_specular_falloff.pdf Graphic file (type pdf)
 <use figures/plots/p_specular_falloff.pdf>
-File: figures/workbook/Illumination.png Graphic file (type bmp)
-<figures/workbook/Illumination.png>
-) (sections/A11_shading
-File: figures/img/lab/shading_uav_compare.jpg Graphic file (type bmp)
-<figures/img/lab/shading_uav_compare.jpg>
-File: figures/img/lab/shading_sphere_compare.jpg Graphic file (type bmp)
-<figures/img/lab/shading_sphere_compare.jpg>
- [19]
+)
+(sections/A11_shading [80
+
+] [81] [82]
+File: figures/img/lab/shading_uav_flat.jpg Graphic file (type bmp)
+<figures/img/lab/shading_uav_flat.jpg>
+File: figures/img/lab/shading_uav_gouraud.jpg Graphic file (type bmp)
+<figures/img/lab/shading_uav_gouraud.jpg>
+File: figures/img/lab/shading_uav_phong.jpg Graphic file (type bmp)
+<figures/img/lab/shading_uav_phong.jpg>
+File: figures/img/lab/shading_sphere_lowpoly_flat.jpg Graphic file (type bmp)
+<figures/img/lab/shading_sphere_lowpoly_flat.jpg>
+File: figures/img/lab/shading_sphere_lowpoly_gouraud.jpg Graphic file (type bmp
+)
+<figures/img/lab/shading_sphere_lowpoly_gouraud.jpg>
+File: figures/img/lab/shading_sphere_lowpoly_phong.jpg Graphic file (type bmp)
+<figures/img/lab/shading_sphere_lowpoly_phong.jpg>
 File: figures/plots/p_gouraud_vs_phong.pdf Graphic file (type pdf)
 <use figures/plots/p_gouraud_vs_phong.pdf>
 File: figures/img/lab/explorer_interp_gouraud_phong.jpg Graphic file (type bmp)
 
 <figures/img/lab/explorer_interp_gouraud_phong.jpg>
- [20]
-Underfull \hbox (badness 1721) in paragraph at lines 45--45
-\TU/TeXGyreTermesX(0)/b/n/10.95 Critique. \TU/TeXGyreTermesX(0)/m/n/10.95 The t
-errain uses a hybrid: per-vertex irradiance re-aimed per fragment by a detail n
-ormal
- []
+File: figures/img/lab/explorer_interp_gouraud_phong.jpg Graphic file (type bmp)
 
-
-Underfull \hbox (badness 1742) in paragraph at lines 45--45
-\TU/TeXGyreTermesX(0)/m/n/10.95 (\TU/lmtt/m/n/10 terrainShade\TU/TeXGyreTermesX
-(0)/m/n/10.95 ), because per-fragment lighting of 97440 terrain triangles under
- every lamp would cost
- []
-
-) (sections/A12_texture
-File: figures/img/lab/relief_compare.jpg Graphic file (type bmp)
-<figures/img/lab/relief_compare.jpg>
+<figures/img/lab/explorer_interp_gouraud_phong.jpg>
+) (sections/A12_texture [83]
+File: figures/diagrams/d_texture.pdf Graphic file (type pdf)
+<use figures/diagrams/d_texture.pdf>
 File: figures/img/lab/material_grid.jpg Graphic file (type bmp)
 <figures/img/lab/material_grid.jpg>
 File: figures/img/scene/m6_grass_close.jpg Graphic file (type bmp)
 <figures/img/scene/m6_grass_close.jpg>
 File: figures/img/scene/m6_tree_close.jpg Graphic file (type bmp)
 <figures/img/scene/m6_tree_close.jpg>
- [21]) (sections/A13_raytracing [22]
+)
+(sections/A13_raytracing [84]
+File: figures/diagrams/d_raytrace.pdf Graphic file (type pdf)
+<use figures/diagrams/d_raytrace.pdf>
 File: figures/img/rt/raytrace_modes.jpg Graphic file (type bmp)
 <figures/img/rt/raytrace_modes.jpg>
 File: figures/img/rt/raytrace_tree.jpg Graphic file (type bmp)
 <figures/img/rt/raytrace_tree.jpg>
-File: figures/workbook/Ray_Tracing.png Graphic file (type bmp)
-<figures/workbook/Ray_Tracing.png>
-)
-(sections/B01_decomposition (sections/gen_decomp)
-LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
-(Font)              scaled to size 10.95pt on input line 4.
-Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
-+tnum;+lnum;mapping=tex-text;" at 10.95pt
- -> TeXGyreTermesX-Italic.otf
- [23]
-File: figures/img/v5/iso_uav_assembled.jpg Graphic file (type bmp)
-<figures/img/v5/iso_uav_assembled.jpg>
-File: figures/img/v5/iso_uav_exploded.jpg Graphic file (type bmp)
-<figures/img/v5/iso_uav_exploded.jpg>
-LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
-(Font)              scaled to size 8.0pt on input line 26.
-Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
-+tnum;+lnum;mapping=tex-text;" at 8.0pt
- -> TeXGyreTermesX-Italic.otf
- [24]
-File: figures/img/scene/soldier_front.jpg Graphic file (type bmp)
-<figures/img/scene/soldier_front.jpg>
-File: figures/img/scene/soldier_exploded.jpg Graphic file (type bmp)
-<figures/img/scene/soldier_exploded.jpg>
-File: figures/img/v5/iso_rover_assembled.jpg Graphic file (type bmp)
-<figures/img/v5/iso_rover_assembled.jpg>
-File: figures/img/v5/iso_rover_exploded.jpg Graphic file (type bmp)
-<figures/img/v5/iso_rover_exploded.jpg>
- [25]
-File: figures/img/v5/iso_bunker_assembled.jpg Graphic file (type bmp)
-<figures/img/v5/iso_bunker_assembled.jpg>
-File: figures/img/v5/iso_bunker_exploded.jpg Graphic file (type bmp)
-<figures/img/v5/iso_bunker_exploded.jpg>
-File: figures/img/scene/iso_tank.jpg Graphic file (type bmp)
-<figures/img/scene/iso_tank.jpg>
- [26]
-File: figures/img/scene/iso_heli.jpg Graphic file (type bmp)
-<figures/img/scene/iso_heli.jpg>
-File: figures/img/scene/iso_aa.jpg Graphic file (type bmp)
-<figures/img/scene/iso_aa.jpg>
-File: figures/img/scene/iso_sam.jpg Graphic file (type bmp)
-<figures/img/scene/iso_sam.jpg>
-File: figures/img/scene/iso_mlrs.jpg Graphic file (type bmp)
-<figures/img/scene/iso_mlrs.jpg>
- [27]
-File: figures/workbook/Decomposition.png Graphic file (type bmp)
-<figures/workbook/Decomposition.png>
-)
-(sections/B02_color [28]
-File: figures/workbook/Color_Interp.png Graphic file (type bmp)
-<figures/workbook/Color_Interp.png>
-
-Underfull \hbox (badness 1117) in paragraph at lines 32--32
+ (sections/wb/Ray_Tracing_sphere)
+(sections/wb/Ray_Tracing_plane) (sections/wb/Ray_Tracing_snell)
+(sections/wb/Ray_Tracing_tir) (sections/wb/Ray_Tracing_whitted)) [85]
+(sections/B02_color [86] (sections/wb/Color_Interp_verts)
+(sections/wb/Color_Interp_bary) (sections/wb/Color_Interp_uv)
+(sections/wb/Color_Interp_gp) (sections/wb/Color_Interp_srgb)
+(sections/wb/Color_Interp_sky)
+Underfull \hbox (badness 1117) in paragraph at lines 45--45
 []|\TU/TeXGyreTermesX(0)/m/n/10 blending sRGB values: mid-tones too
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 32--32
-[]|\TU/TeXGyreTermesX(0)/m/n/10 material colours converted to linear
- []
-
-
-Underfull \hbox (badness 1448) in paragraph at lines 32--32
-\TU/TeXGyreTermesX(0)/m/n/10 (\TU/lmtt/m/n/10 toLinear\TU/TeXGyreTermesX(0)/m/n
-/10 ), lit and blended in linear
- []
-
-) (sections/B03_daynight [29]
-Overfull \hbox (12.07419pt too wide) detected at line 12
-[][][] \OML/ntxmi/m/it/10.95 e \U/ntxmia/m/it/10.95 = [] \OML/ntxmi/m/it/10.95 
-' [] ^^N \LMS/ntxsy/m/n/10.95 Ï [] \OML/ntxmi/m/it/10.95 ' [] ^^N [] H;  H \U/n
-txmia/m/it/10.95 = \OT1/minntx/m/n/10.95 15[]\LMS/ntxsy/m/n/10.95 ¹[] ^^@ \OT1/
-minntx/m/n/10.95 12\LMS/ntxsy/m/n/10.95 º\OT1/minntx/m/n/10.95 ;  \OML/ntxmi/m/
-it/10.95 T[]\LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95 e\LMS/ntxsy/m/n/10.95 º
- \U/ntxmia/m/it/10.95 = []  [] \LMS/ntxsy/m/n/10.95 ^^@ \OML/ntxmi/m/it/10.95 ^
-^\[] \LMS/ntxsy/m/n/10.95 ¹\OML/ntxmi/m/it/10.95 m\LMS/ntxsy/m/n/10.95 ¹\OML/nt
-xmi/m/it/10.95 e\LMS/ntxsy/m/n/10.95 º ^^@ \OT1/minntx/m/n/10.95 1\LMS/ntxsy/m/
-n/10.95 º[]\OML/ntxmi/m/it/10.95 ;  ^^\ \U/ntxmia/m/it/10.95 = \LMS/ntxsy/m/n/1
-0.95 ¹\OT1/minntx/m/n/10.95 0\OML/ntxmi/m/it/10.95 :\OT1/minntx/m/n/10.95 06\OM
-L/ntxmi/m/it/10.95 ; \OT1/minntx/m/n/10.95 0\OML/ntxmi/m/it/10.95 :\OT1/minntx/
-m/n/10.95 11\OML/ntxmi/m/it/10.95 ; \OT1/minntx/m/n/10.95 0\OML/ntxmi/m/it/10.9
-5 :\OT1/minntx/m/n/10.95 21\LMS/ntxsy/m/n/10.95 º
- []
-
+) (sections/B03_daynight [87] [88]
 File: figures/plots/p_day_cycle.pdf Graphic file (type pdf)
 <use figures/plots/p_day_cycle.pdf>
 File: figures/img/scene/dawn_withdraw.jpg Graphic file (type bmp)
@@ -1563,43 +2844,33 @@ File: figures/img/scene/sky_noon.jpg Graphic file (type bmp)
 <figures/img/scene/sky_noon.jpg>
 File: figures/img/scene/dusk_shift_change.jpg Graphic file (type bmp)
 <figures/img/scene/dusk_shift_change.jpg>
-[30]) (sections/B04_curved
+) (sections/B04_curved [89]
 File: figures/plots/p_tessellation.pdf Graphic file (type pdf)
 <use figures/plots/p_tessellation.pdf>
-File: figures/img/lab/shading_sphere_lowpoly_flat.jpg Graphic file (type bmp)
-<figures/img/lab/shading_sphere_lowpoly_flat.jpg>
-File: figures/img/lab/shading_sphere_lowpoly_gouraud.jpg Graphic file (type bmp
 )
-<figures/img/lab/shading_sphere_lowpoly_gouraud.jpg>
-File: figures/img/lab/shading_sphere_lowpoly_phong.jpg Graphic file (type bmp)
-<figures/img/lab/shading_sphere_lowpoly_phong.jpg>
-) (sections/B05_dynamic [31]
+(sections/B05_dynamic [90]
 File: figures/img/play/play_door_closed.jpg Graphic file (type bmp)
 <figures/img/play/play_door_closed.jpg>
-File: figures/img/play/play_door_opening.jpg Graphic file (type bmp)
-<figures/img/play/play_door_opening.jpg>
 File: figures/img/play/play_door_open.jpg Graphic file (type bmp)
 <figures/img/play/play_door_open.jpg>
-File: figures/img/play/play_exposure_enter.jpg Graphic file (type bmp)
-<figures/img/play/play_exposure_enter.jpg>
-File: figures/img/play/play_exposure_adapted.jpg Graphic file (type bmp)
-<figures/img/play/play_exposure_adapted.jpg>
 File: figures/img/play/play_sprint_fov.jpg Graphic file (type bmp)
 <figures/img/play/play_sprint_fov.jpg>
-)
-(sections/B06_reflection [32]
-File: figures/img/lab/reflections_compare.jpg Graphic file (type bmp)
-<figures/img/lab/reflections_compare.jpg>
+) (sections/B06_reflection [91]
 File: figures/img/rt/raytrace_ssr.jpg Graphic file (type bmp)
 <figures/img/rt/raytrace_ssr.jpg>
 
-Underfull \hbox (badness 4819) in paragraph at lines 42--42
+Underfull \hbox (badness 4819) in paragraph at lines 40--40
 []|\TU/TeXGyreTermesX(0)/m/n/10 exact mirrors, refraction, hard
  []
 
-) (sections/B07_thermal [33]
+) (sections/B07_thermal [92]
 File: figures/img/lab/cv_pipeline_uav1.jpg Graphic file (type bmp)
 <figures/img/lab/cv_pipeline_uav1.jpg>
+File: figures/img/lab/explorer_imagelab_gauss_gamma.jpg Graphic file (type bmp)
+
+<figures/img/lab/explorer_imagelab_gauss_gamma.jpg>
+File: figures/img/lab/explorer_imagelab_sobel.jpg Graphic file (type bmp)
+<figures/img/lab/explorer_imagelab_sobel.jpg>
 File: figures/img/lab/explorer_imagelab_gauss_gamma.jpg Graphic file (type bmp)
 
 <figures/img/lab/explorer_imagelab_gauss_gamma.jpg>
@@ -1609,64 +2880,135 @@ File: figures/plots/p_thermal_histogram.pdf Graphic file (type pdf)
 <use figures/plots/p_thermal_histogram.pdf>
 File: figures/plots/p_separable_cost.pdf Graphic file (type pdf)
 <use figures/plots/p_separable_cost.pdf>
- [34]
-File: figures/workbook/Thermal_Kernels.png Graphic file (type bmp)
-<figures/workbook/Thermal_Kernels.png>
+ (sections/wb/Thermal_Kernels_gauss
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/n' will be
+(Font)              scaled to size 6.2pt on input line 2.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;mapping=tex-text;" at 6.2pt
+ -> TeXGyreTermesX-Regular.otf
+)
+(sections/wb/Thermal_Kernels_patch) (sections/wb/Thermal_Kernels_out)
 File: figures/img/v5/scene_thermal.jpg Graphic file (type bmp)
 <figures/img/v5/scene_thermal.jpg>
-File: figures/img/scene/day_thermal_fpv_persons.jpg Graphic file (type bmp)
-<figures/img/scene/day_thermal_fpv_persons.jpg>
- [35]) (sections/B08_game
-File: figures/img/v5/thermal_fpv.jpg Graphic file (type bmp)
-<figures/img/v5/thermal_fpv.jpg>
-File: figures/img/v5/tank_fire.jpg Graphic file (type bmp)
-<figures/img/v5/tank_fire.jpg>
-File: figures/img/v5/aa_gun_burst.jpg Graphic file (type bmp)
-<figures/img/v5/aa_gun_burst.jpg>
-File: figures/img/scene/dusk_shift_change.jpg Graphic file (type bmp)
-<figures/img/scene/dusk_shift_change.jpg>
-File: figures/img/scene/dawn_withdraw.jpg Graphic file (type bmp)
-<figures/img/scene/dawn_withdraw.jpg>
- [36]
-File: figures/workbook/Duty_Cycle.png Graphic file (type bmp)
-<figures/workbook/Duty_Cycle.png>
 )
-(sections/B09_paths [37]
+(sections/B08_game [93] [94] [95] [96]
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
+(Font)              scaled to size 10.95pt on input line 51.
+Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
++tnum;+lnum;mapping=tex-text;" at 10.95pt
+ -> TeXGyreTermesX-Italic.otf
+Requested font "ntxbmi" at 10.95pt
+ -> ntxbmi
+Requested font "ntxbmi7" at 8.0pt
+ -> ntxbmi7
+Requested font "ntxbmi5" at 6.1pt
+ -> ntxbmi5
+Requested font "ntxbsy" at 10.95pt
+ -> ntxbsy
+Requested font "ntxbsy7" at 8.0pt
+ -> ntxbsy7
+Requested font "ntxbsy5" at 6.1pt
+ -> ntxbsy5
+Requested font "ntxbexx" at 10.95pt
+ -> ntxbexx
+Requested font "ntxbexx" at 8.0pt
+ -> ntxbexx
+Requested font "ntxbexx" at 6.1pt
+ -> ntxbexx
+Requested font "ntxbmia" at 10.95pt
+ -> ntxbmia
+Requested font "ntxbmia" at 8.0pt
+ -> ntxbmia
+Requested font "ntxbmia" at 6.1pt
+ -> ntxbmia
+Requested font "ntxbsym" at 10.95pt
+ -> ntxbsym
+Requested font "ntxbsym" at 8.0pt
+ -> ntxbsym
+Requested font "ntxbsym" at 6.1pt
+ -> ntxbsym
+Requested font "ntxbsyc" at 10.95pt
+ -> ntxbsyc
+Requested font "ntxbsyc" at 8.0pt
+ -> ntxbsyc
+Requested font "ntxbsyc" at 6.1pt
+ -> ntxbsyc
+Requested font "ntxbexa" at 10.95pt
+ -> ntxbexa
+Requested font "ntxbexa" at 8.0pt
+ -> ntxbexa
+Requested font "ntxbexa" at 6.1pt
+ -> ntxbexa
+File: figures/diagrams/d_triangulation.pdf Graphic file (type pdf)
+<use figures/diagrams/d_triangulation.pdf>
+ (sections/wb/Tracking_predict)
+(sections/wb/Tracking_predict2) (sections/wb/Tracking_meas)
+(sections/wb/Tracking_d2) (sections/wb/Tracking_update)
+(sections/wb/Tracking_tri) (sections/wb/Tracking_tri2)
+(sections/wb/Tracking_tot) [97
+
+] [98]
+File: figures/img/game/uav_missile_launch.jpg Graphic file (type bmp)
+<figures/img/game/uav_missile_launch.jpg>
+File: figures/img/game/combined_strike.jpg Graphic file (type bmp)
+<figures/img/game/combined_strike.jpg>
+File: figures/img/game/thermal_fpv_strike.jpg Graphic file (type bmp)
+<figures/img/game/thermal_fpv_strike.jpg>
+File: figures/img/game/kill_banner.jpg Graphic file (type bmp)
+<figures/img/game/kill_banner.jpg>
+ (sections/wb/Duty_Cycle_roster))
+(sections/B08b_explosions [99] [100]
+File: figures/diagrams/d_particles.pdf Graphic file (type pdf)
+<use figures/diagrams/d_particles.pdf>
+File: figures/diagrams/d_blackbody.pdf Graphic file (type pdf)
+<use figures/diagrams/d_blackbody.pdf>
+ (sections/wb/Explosion_bb)
+(sections/wb/Explosion_life) (sections/wb/Explosion_spark)
+(sections/wb/Explosion_debris)
+File: figures/img/game/explosion_early.jpg Graphic file (type bmp)
+<figures/img/game/explosion_early.jpg>
+File: figures/img/game/explosion_mid.jpg Graphic file (type bmp)
+<figures/img/game/explosion_mid.jpg>
+File: figures/img/game/explosion_smoke.jpg Graphic file (type bmp)
+<figures/img/game/explosion_smoke.jpg>
+File: figures/img/game/wreck_burning.jpg Graphic file (type bmp)
+<figures/img/game/wreck_burning.jpg>
+) (sections/B09_paths [101] [102] [103]
+File: figures/diagrams/d_floodfill.pdf Graphic file (type pdf)
+<use figures/diagrams/d_floodfill.pdf>
+
+(sections/wb/Line_Follower_inputs) (sections/wb/Line_Follower_sensors)
+(sections/wb/Line_Follower_pd)
+Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
+put line 43.
+LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/sc' will be
+(Font)              scaled to size 9.0pt on input line 52.
+Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
+;+tnum;+lnum;+smcp;+pcap;mapping=tex-text;" at 9.0pt
+ -> TeXGyreTermesX-Regular.otf
+ [104
+
+]
 File: figures/img/v5/plan_routes.jpg Graphic file (type bmp)
 <figures/img/v5/plan_routes.jpg>
-File: figures/img/scene/day_patrol_spline.jpg Graphic file (type bmp)
-<figures/img/scene/day_patrol_spline.jpg>
-Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
-;+tnum;+lnum;mapping=tex-text;" at 7.3pt
- -> TeXGyreTermesX-Regular.otf
-Requested font "[TeXGyreTermesX-Regular.otf]/OT:script=latn;language=dflt;-ss05
-;+tnum;+lnum;mapping=tex-text;" at 5.5pt
- -> TeXGyreTermesX-Regular.otf
 
-Underfull \hbox (badness 1515) in paragraph at lines 40--40
+Underfull \hbox (badness 1515) in paragraph at lines 98--98
 []|\TU/TeXGyreTermesX(0)/m/n/10 expands far fewer cells with a good
  []
 
-) (sections/B10_hard [38] [39]) (sections/C01_performance
-Underfull \hbox (badness 10000) in paragraph at lines 3--10
-\TU/TeXGyreTermesX(0)/b/n/10.95 Setup. \TU/lmtt/m/n/10 TS_BENCH_V10=1 ts --head
-less --quality epic --size 1920x1080 --seed 1 --benchmark
- []
-
+) (sections/B10_hard [105] [106]) (sections/C01_performance
 File: figures/plots/p_benchmark.pdf Graphic file (type pdf)
 <use figures/plots/p_benchmark.pdf>
-(sections/gen_bench_text [40])
-File: figures/workbook/Performance.png Graphic file (type bmp)
-<figures/workbook/Performance.png>
- [41]) (sections/C02_limits)
-(sections/C03_conclusion [42]) (main.bbl
+
+(sections/gen_bench_text)) (sections/C02_limits [107] [108])
+(sections/C03_conclusion) (main.bbl [109]
 LaTeX Font Info:    Font shape `TU/TeXGyreTermesX(0)/m/it' will be
 (Font)              scaled to size 10.0pt on input line 4.
 Requested font "[TeXGyreTermesX-Italic.otf]/OT:script=latn;language=dflt;-ss05;
 +tnum;+lnum;mapping=tex-text;" at 10.0pt
  -> TeXGyreTermesX-Italic.otf
-) [43] (main.aux)
+) [110] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 314A1988F7F0BDD7A2280FD3866CD5FD;6581.
+(rerunfilecheck)             Checksum: 54F63D422888CD56D7419F9BF54353EF;8880.
  )
-Output written on main.xdv (44 pages, 1155384 bytes).
+Output written on main.xdv (111 pages, 3473400 bytes).

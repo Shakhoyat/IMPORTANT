@@ -1,5 +1,6 @@
 \section{Dynamic and controllable objects}
 \label{sec:dynamic}
+\here{2}
 \nControllables{} units can be controlled (soldiers, two UAVs, tanks, helicopter, AA gun, radar, launchers, blast
 doors, gate). Motion is integrated at a fixed 60\,Hz tick; between ticks the drawn pose is interpolated, so motion is
 smooth at any frame rate. Almost every follow behaviour (character speed, cameras, doors) uses one tool: a
@@ -11,6 +12,7 @@ x(t)=x^\ast+\big((x_0-x^\ast)+(\dot x_0+\omega(x_0-x^\ast))\,t\big)e^{-\omega t}
 \end{equation}
 
 \begin{table}[htbp]
+\caption{Dynamic objects and their motion models.}\label{tab:dyn}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
@@ -23,25 +25,16 @@ Hinged doors & hinge angle on a spring, $\omega=4.2$\,s$^{-1}$ (hall): 95\,\% op
 Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards darker; +1.25\,EV indoor bias\\
 \bottomrule
 \end{tabularx}
-\caption{Dynamic objects and their motion models.}
-\label{tab:dyn}
 \end{table}
 
 \begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.325\linewidth}\raw{play/play_door_closed}{\linewidth}\caption{Door closed, prompt.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play/play_door_opening}{\linewidth}\caption{Opening (spring).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play/play_door_open}{\linewidth}\caption{Open.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.325\linewidth}\raw{play/play_exposure_enter}{\linewidth}\caption{Just inside: eye not adapted.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play/play_exposure_adapted}{\linewidth}\caption{Two seconds later: adapted.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{play/play_door_open}{\linewidth}\caption{Open (hinge on a spring).}\end{subfigure}\hfill
 \begin{subfigure}{0.325\linewidth}\raw{play/play_sprint_fov}{\linewidth}\caption{Sprint: FOV widens by up to $6^\circ$.}\end{subfigure}
-\caption{Controllable dynamics: a door on a spring (a--c), eye adaptation on entering the hall (d, e) and the
-sprint field of view (f).}
+\caption{Controllable dynamics: a hinged door on a spring (a, b) and the sprint field of view (c).}
 \label{fig:dyn}
 \end{figure}
-
-Between Figure~\ref{fig:dyn}d and e nothing in the room changes but the exposure, which follows the slower
-bright-to-dark time constant.
 
 \textbf{Limitation.} The fixed tick makes motion deterministic (a recorded session replays bit for bit) but adds up to one tick
 (16.7\,ms) of input latency; render interpolation hides the stepping, not the latency.

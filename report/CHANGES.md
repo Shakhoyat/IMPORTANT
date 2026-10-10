@@ -426,3 +426,37 @@ Teaching drawings of each section's maths; every constant drawn from the code is
 ### Capture harness
 - New capture group `game` in `tools/v10/capture_all.sh`; the explosion shots now wait up to 180 s for a real kill
   (was 60 s, after which they were skipped).
+
+## Round 2: structure, visuals, workbook
+
+- **Section order.** The decomposition catalogue now follows the primitives directly (Section 7). Part B no longer
+  starts with it, and its map node is gone. The report ends with the bibliography: the appendices (C04,
+  `gen_wb_appendix`) were removed. The requirements-coverage table moved to the end of Limitations (Table `tab:req`), and
+  workbook pointers name the sheet in `report/workbooks/cg_workbook.xlsx`.
+- **Curved primitive cards (Figs 6.6-6.16)** now carry a numbered vertex table like Figs 6.1-6.5 (`i, x, y, z`, up to 12
+  vertices, plus the triangles of the highlighted cell), built by `gen_prim_cards.py` from the low-res mesh it draws.
+- **Object atlas (Fig 7.1)** rebuilt: two pages, 8 designs per row, each thumbnail cropped to its content and padded to
+  one aspect (`atlas_<slug>.jpg`). Family headers carry the count of designs and parts. Concertina wire and perimeter
+  fence use the outlined primitive render (the shaded wire is invisible at this size). Table 7.1 (one row per design)
+  was removed; the same numbers are in the workbook's Designs sheet and are still cross-checked by `check_counts.py`.
+- **Build stages (Fig 7.13 and the other strips):** the UAV's searchlight beam (a `BeamCone` light volume) is no longer
+  drawn in the stage views, where it was a solid that reached the ground and covered the model. All four stages of a
+  strip share one crop around the full design.
+- **Section 2** is a 10-panel showcase (sunset, grass, foliage, night base, searchlights, a night wave from the
+  watchtower, a strike, third person, thermal gimbal view, SSR vs ray-traced reflections).
+- **Visuals removed where weak:** A05 (kept perspective / isometric), A07 (assembly stage only), A08 depth panel, A12
+  relief comparison, B05 door-opening / exposure pairs, B06 (ray-trace comparison only), B07 (scene thermal only),
+  B08 events figure, B09 (plan routes only).
+- **Plots upgraded (`tools/v10/plots.py`):** benchmark grouped and colour-coded by kind (presets / views / ablations)
+  with fps labels, a sub-16.7 ms band and a draw-call panel. The day cycle gains a strip of the zenith, horizon and
+  key-light colours read from the export's `v6.day_cycle.grid`. Tessellation shows the 8 / 16 / 36-slice meshes that
+  `createSphere` builds, beside the error curve.
+- **Text:** B10 is now one table (problem / why / solution / measured); B01, B08 and B08b intros were shortened. Table
+  captions moved above their tables. Part B sections have pipeline banners. Hero sub-figure references were corrected.
+- **Layout:** float pages fill from the top (`\@fptop = 0pt`) instead of being centred.
+- **Workbook:** new Designs sheet (one row per design: export inputs, `n x parts` formulas, row checks, scene total
+  against `leaf_count`, colour key with L*). The Decomposition sheet's columns follow `PRIM_ORDER` (14 primitive types)
+  instead of fixed column letters, which had produced 45 DIFF cells. 16 sheets, 0 errors; Decomposition 75 OK / 0 DIFF,
+  Designs 63 OK / 0 DIFF.
+- Checks: 396 tests pass; `check_counts.py` OK (5 476 parts everywhere); 0 overfull boxes, 0 undefined references.
+  Page count: 111 (was 127; appendices removed).

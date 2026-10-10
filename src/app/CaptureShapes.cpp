@@ -261,14 +261,15 @@ bool shapeview(Ctx& c, const std::string& text) {
     const std::string sl = slug(sp.design) + (sp.inst > 1 ? "_" + std::to_string(sp.inst) : "") + (c.cutaway && !sp.cut.empty() ? "_cut" : "");
     if (sp.stage > 0) {
         // Build stage in the colour key: the first ceil(stage N / 100) parts in hierarchy order, the camera of the
-        // whole design (so the four stages of a strip line up).
+        // whole design (so the four stages of a strip line up). The light-beam frustum is a light volume, not a
+        // part to build: it is counted but not drawn (as a solid it would reach the ground and cover the model).
         const int total = static_cast<int>(parts.size()), shown = buildStageCount(total, sp.stage);
         std::vector<Shaded> items;
         int id = 0;
         for (const DrawPart& d : parts) {
             if (id >= shown) break;
             ++id;
-            if (!drawn(d) || (d.hidden && !allHidden)) continue;
+            if (!drawn(d) || (d.hidden && !allHidden) || d.prim == PrimitiveType::BeamCone) continue;
             Shaded s;
             s.mesh = &meshFor(d.prim);
             s.color = partColour(d);

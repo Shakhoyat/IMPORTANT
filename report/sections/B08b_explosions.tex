@@ -1,28 +1,20 @@
 \section{Explosions: particles, physics and colour}
 \label{sec:explode}
-An explosion is a particle system: one call spawns a few hundred short-lived
-particles of seven kinds, each with a position, velocity, size, life and heat. Every tick each particle is moved by
-its own simple law of motion (Table~\ref{tab:explode}); every frame each one is drawn as a single instanced quad --- the
-$+Z$ face of the unit cube --- turned to face the camera (puffs), stretched along its velocity (sparks, embers),
-or laid flat on the ground (shock wave, scorch). Its colour is not stored anywhere: the fragment shader computes it
-from a temperature $T$.
+\here{7}
+An explosion is a particle system: one call spawns a few hundred short-lived particles of seven kinds. Each tick moves
+every particle by its own law of motion (Table~\ref{tab:explode}); each frame draws it as one instanced quad, facing the
+camera, stretched along its velocity or laid on the ground. Its colour is computed in the shader from a temperature $T$.
 \begin{table}[htbp]
+\caption{What one blast spawns (power 1 = a UAV round, 1.6 = a tank shell, 0.15 = a tracer impact), how each kind
+moves per tick of length $\Delta t$ and how its colour is made.}\label{tab:explode}
 \centering\footnotesize\setlength{\tabcolsep}{3pt}
 \explosiontable
-\caption{What one blast spawns (power 1 = a UAV round, 1.6 = a tank shell, 0.15 = a tracer impact), how each kind
-moves per tick of length $\Delta t$ and how its colour is made.}
-\label{tab:explode}
 \end{table}
 
-\paragraph{Physics.} All drag terms are exact exponential decays, $\mathbf{v}\leftarrow\mathbf{v}\,e^{-k\Delta t}$,
-so a puff slows the same way at 30 or 144\,fps (a factor $(1-k\Delta t)$ would not). Hot gas has positive buoyancy
-(fire $+\gv{fireRise}$\,m/s$^2$, smoke $+\gv{smokeRise}$\,m/s$^2$ capped at \gv{smokeMaxUp}\,m/s) and smoke relaxes towards the wind velocity; sparks
-fall with $g=\gv{gravity}$\,m/s$^2$ and bounce off the terrain keeping $\gv{bounce}$ of their vertical speed. Smoke grows as it rises
-(size $+\,$growth$\cdot e^{-\gv{smokeGrowK}\,\mathrm{age}}$), which is what turns the fireball into a column. The destroyed rover is not
-replaced by a model of a wreck: its own primitives (Section~\ref{sec:decomp}) become rigid debris pieces, thrown away from the
-blast with speed $\propto\sqrt{\text{power}}$, spinning about a random axis, integrated in sub-steps of
-1/\gv{debrisSub}\,s with restitution \gv{debrisRest}, sliding friction \gv{debrisFric}, and put to rest below
-\gv{debrisRestSpeed}\,m/s; their materials are charred (albedo $\times0.1$, roughness 0.95) and start hot in the thermal image.
+\paragraph{Physics.} Drag is an exact decay, $\mathbf{v}\leftarrow\mathbf{v}\,e^{-k\Delta t}$, so a puff slows the same
+at any frame rate. Fire and smoke are buoyant, smoke drifts with the wind and grows as it rises, and sparks fall under
+gravity and bounce off the terrain. A destroyed rover's own primitives become rigid debris, thrown out with speed
+$\propto\sqrt{\text{power}}$ and charred.
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_particles.pdf}
 \caption{The integrators of Table~\ref{tab:explode} run from the same start point (initial velocities are typical
@@ -30,24 +22,16 @@ spawn values); (b) one debris piece bouncing to rest.}
 \label{fig:particles}
 \end{figure}
 
-\paragraph{Colour from temperature.} A flame quad does not use a texture. The shader builds a temperature field from
-fractal noise that scrolls upwards, $T=\mathrm{clamp}(1-d)\,(1-t)^{\gv{fireLife}}$ ($d$ = noisy distance from the
-centre, $t$ = age/life), and maps it to colour with a blackbody-like ramp in which red rises first, then green, then
-blue:
+\paragraph{Colour from temperature.} Scrolling fractal noise gives a temperature field
+$T=\mathrm{clamp}(1-d)\,(1-t)^{\gv{fireLife}}$, mapped by a blackbody-like ramp in which red rises first, then green, then blue:
 \begin{equation}
 \mathrm{bb}(T)=\big(T^{\gv{bbR}},\ T^{\gv{bbG}},\ \gv{bbBk}\,T^{\gv{bbB}}\big),\qquad
 \mathbf{c}_{\mathrm{fire}}=\mathrm{bb}(T)\,(\gv{fireEmitA}+\gv{fireEmitB}\,T^2)
 \label{eq:bb}
 \end{equation}
-so a cooling point slides continuously from white-yellow through orange and deep red to black --- colour
-interpolation along a curve through RGB space rather than a straight line between two colours. The emission is in
-HDR (the core is several times brighter than 1), so bloom and the tone mapper of Section~\ref{sec:color} make it glow.
-Sparks cool along the same ramp, $T_n=h(1-\gv{sparkCool}\,t)$; smoke is a lit, noise-eroded volume whose underside
-keeps a warm glow $(\gv{smokeGlowR},\gv{smokeGlowG},\gv{smokeGlowB})\,e^{-\gv{smokeGlowDecay}\,\mathrm{age}}$ from the fire below it; the flash mixes orange
-into white towards its centre. Blending is premultiplied ($\mathrm{src}+(1-\alpha)\,\mathrm{dst}$, depth writes off): emission adds light,
-alpha (soot, smoke) hides what is behind. Two instanced draws per frame: first the smoke and dust group, then the
-glowing group (fire, sparks, flash), each sorted back to front by distance to the camera. In the thermal
-view the same particles write heat instead of colour; smoke cools as $h=\gv{smokeHeatFloor}+(h_0-\gv{smokeHeatFloor})\,e^{-\gv{smokeHeatK}\,\mathrm{age}}$.
+A cooling point slides from white-yellow through orange and deep red to black: interpolation along a curve through RGB
+space. The emission is HDR, so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
+behind), with the smoke group and the glowing group each sorted back to front.
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_blackbody.pdf}
 \caption{(a) The shader's ramp (Eq.~\ref{eq:bb}) per channel and as a colour bar; (b) the temperature a flame core
@@ -74,8 +58,6 @@ flame core and a spark over their lives, one spark integrated step by step, and 
 \caption{One blast over time; the fire's colour moves along the ramp of Figure~\ref{fig:bb} as it cools.}
 \label{fig:boom}
 \end{figure}
-In Figure~\ref{fig:boom}a the flash and sparks are white-yellow with the shock-wave ring; in (b) the fire turns orange
-and deep red as it cools; in (c) a second round's flash is white again while the first blast burns low and red.
 
 \textbf{Limitation.} Sorting is per group, not across the two groups: a glowing particle behind a smoke puff is drawn after
 the puff and so shows through it (bright additive light makes this hard to notice). Sparks and embers bounce on

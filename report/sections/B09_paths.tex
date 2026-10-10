@@ -1,5 +1,6 @@
 \section{Line follower and MicroMouse logic}
 \label{sec:paths}
+\here{2}
 The intruder rovers are built like two classic robot-contest machines. \textbf{Planning (MicroMouse):} the
 40\,m$\times$40\,m area is divided into $80\times80$ cells of 0.5\,m; every cell hidden from the UAVs by an occluder
 is a goal; a breadth-first flood fill spreads distances out from the goals, and the rover walks ``downhill'' to the
@@ -77,14 +78,14 @@ rover, run every tick.
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{v5/plan_routes}{\linewidth}\caption{\key{M}: flood field, routes and guide lines.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{scene/day_patrol_spline}{\linewidth}\caption{A soldier's A* patrol spline.}\end{subfigure}
-\caption{Path debug views: (a) the rovers' routes bend towards cover, cells the UAVs cannot see; (b) the patrol spline
-rounds the grid path's corners and keeps clear of the walls.}
+\raw{v5/plan_routes}{0.8\linewidth}
+\caption{Path debug view (\key{M}): flood field, routes and guide lines; the routes bend towards cover, cells the UAVs
+cannot see.}
 \label{fig:paths}
 \end{figure}
 
 \begin{table}[htbp]
+\caption{Differences between the path methods.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -95,7 +96,6 @@ PD line following & smooth tracking of a drawn line with sensor feedback & 5 sam
 Catmull--Rom (centripetal) & smooth curve through the waypoints, no loops or cusps & a few evaluations per sample & soldiers\\
 \bottomrule
 \end{tabularx}
-\caption{Differences between the path methods.}
 \end{table}
 
 \textbf{Limitation.} The rover's sensors read a line the planner drew, not a line painted in the scene, so the

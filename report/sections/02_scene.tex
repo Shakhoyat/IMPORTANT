@@ -1,23 +1,24 @@
 \section{The scene in pictures}
 \label{sec:pictures}
-Figure~\ref{fig:hero} shows the same camp across the day and the two ways to use it. Between (a), (b) and (c) only
-the light changes: geometry, materials and camera are the same, while the sky, the sun's colour, the ambient level and
-the fog colour all follow the sun's elevation.
+Figure~\ref{fig:hero} shows the camp across the day and in play. Geometry and materials never change; the sky, the
+sun's colour, the ambient level and the fog all follow the sun's elevation (Section~\ref{sec:day}).
 
-\begin{figure}[htbp]
+\begin{figure}[p]
 \centering
-\begin{subfigure}{0.325\linewidth}\raw{scene/sky_noon}{\linewidth}\caption{Noon: short shadows, analytic sky with clouds.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{scene/sky_sunset}{\linewidth}\caption{Sunset: the key light turns orange (Section~\ref{sec:day}).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, lamps, beacon.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.325\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{Night: UAV searchlights (spot lights) with volumetric cones.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Observation: a soldier in third person, game HUD.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{v5/thermal_fpv}{\linewidth}\caption{Game: a UAV gimbal camera in thermal, tracking an intruder.}\end{subfigure}
-\caption{The camp from noon to night (a--d) and its two uses: inspecting the scene (e) and playing the night
-defence (f).}
+\begin{subfigure}{\linewidth}\raw{scene/sky_sunset}{\linewidth}\caption{Sunset: the key light turns orange as the air mass grows.}\end{subfigure}\\[1.5mm]
+\begin{subfigure}{0.325\linewidth}\raw{scene/m6_grass_close}{\linewidth}\caption{Day: instanced grass, PCSS shadows.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{scene/m6_tree_close}{\linewidth}\caption{Day: alpha-to-coverage foliage.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, lamps, beacon.}\end{subfigure}\\[1.5mm]
+\begin{subfigure}{0.325\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{UAV searchlights with volumetric cones.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\img{figures/img/hero/watchtower.jpg}{\linewidth}\caption{A night wave seen from above.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{game/explosion_mid}{\linewidth}\caption{A strike: particles, HDR fire, bloom.}\end{subfigure}\\[1.5mm]
+\begin{subfigure}{0.325\linewidth}\raw{play/play_third_person}{\linewidth}\caption{Observation: a soldier in third person.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{v5/thermal_fpv}{\linewidth}\caption{Game: a UAV gimbal camera in thermal.}\end{subfigure}\hfill
+\begin{subfigure}{0.325\linewidth}\raw{rt/raytrace_ssr}{\linewidth}\caption{Screen-space vs ray-traced reflections.}\end{subfigure}
+\caption{ThermalSense at EPIC quality, 1920$\times$1080, in-engine captures.}
 \label{fig:hero}
 \end{figure}
 
-\textbf{Observation and game.} The scene is always live. By day there are no enemies, the UAVs stay docked on
-their pads and the soldiers work (Figure~\ref{fig:hero}e); this is the observation setting used for most teaching
-views. At night intruder rovers attack in waves and the UAVs patrol, detect, lock and fire (Figure~\ref{fig:hero}f,
-Section~\ref{sec:game}). \key{Shift+F2} (``day ops'') allows waves by day.
+\textbf{Observation and game.} By day there are no enemies, the UAVs stay docked and the soldiers work
+(Figure~\ref{fig:hero}h); most teaching views use this setting. At night intruder rovers attack in waves and the UAVs
+patrol, detect, lock and fire (Figure~\ref{fig:hero}e, i, Section~\ref{sec:game}); \key{Shift+F2} allows waves by day.

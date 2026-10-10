@@ -67,41 +67,67 @@ def transmittance(e):
     return np.exp(-np.outer(m, SUN_TAU))
 
 
+def _srgb(c):
+    c = np.clip(np.asarray(c, dtype=float), 0, 1)
+    return np.where(c <= 0.0031308, 12.92 * c, 1.055 * np.power(c, 1 / 2.4) - 0.055)
+
+
 def plot_day():
     h = np.linspace(0, 24, 2401)
     e = elevation(h)
     sun_key = SUN_I * smoothstep(-1.0, 10.0, e)
     moon_key = MOON_I * (1.0 - smoothstep(-6.0, -1.0, e))
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 3.0))
-    a = ax[0]
+    fig = plt.figure(figsize=(7.0, 3.6))
+    gs = fig.add_gridspec(2, 2, height_ratios=[3.2, 1.0])
+    a = fig.add_subplot(gs[0, 0])
     a.plot(h, e, color=C[0], label="sun elevation $e$")
     a.axhline(4, color="0.5", ls=":", lw=0.8)
     a.axhline(-6, color="0.5", ls=":", lw=0.8)
-    a.fill_between(h, -90, 90, where=e < -6, color="#1f2a44", alpha=0.10, lw=0, label="NIGHT ($e<-6^\\circ$)")
-    a.fill_between(h, -90, 90, where=(e >= -6) & (e <= 4), color=C[3], alpha=0.18, lw=0, label="DAWN / DUSK")
+    a.fill_between(h, -90, 90, where=e < -6, color="#1f2a44", alpha=0.12, lw=0, label="NIGHT ($e<-6^\\circ$)")
+    a.fill_between(h, -90, 90, where=(e >= -6) & (e <= 4), color=C[3], alpha=0.22, lw=0, label="DAWN / DUSK")
     a.set_xlim(0, 24)
     a.set_ylim(-75, 75)
     a.set_xticks(range(0, 25, 3))
-    a.set_xlabel("in-game hour")
     a.set_ylabel("degrees")
-    a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, frameon=False)
+    a.legend(loc="lower center", frameon=True, framealpha=0.9, edgecolor="none", fontsize=7)
     a.set_title("(a) sun elevation")
     sr, ss = h[np.argmax(e > 0)], h[len(h) - 1 - np.argmax(e[::-1] > 0)]
-    a.annotate(f"sunrise {int(sr)}:{int(round((sr % 1) * 60)):02d}", (sr, 0), (sr - 5.5, 30), fontsize=8,
+    a.annotate(f"sunrise {int(sr)}:{int(round((sr % 1) * 60)):02d}", (sr, 0), (sr - 5.8, 32), fontsize=8,
                arrowprops=dict(arrowstyle="->", lw=0.6))
-    a.annotate(f"sunset {int(ss)}:{int(round((ss % 1) * 60)):02d}", (ss, 0), (ss - 1.5, 45), fontsize=8,
+    a.annotate(f"sunset {int(ss)}:{int(round((ss % 1) * 60)):02d}", (ss, 0), (ss + 0.4, 45), fontsize=8,
                arrowprops=dict(arrowstyle="->", lw=0.6))
-    b = ax[1]
+    b = fig.add_subplot(gs[0, 1])
     tr = transmittance(e)
     for i, (nm, col) in enumerate(zip("RGB", ["#c0392b", "#27ae60", "#2e60c0"])):
-        b.plot(h, sun_key * tr[:, i], color=col, label=f"sun key {nm}: $3.2\\,s(e)\\,T_{nm}(e)$")
-    b.plot(h, moon_key, color="0.25", ls="--", label="moon key (fades in below $-1^\\circ$)")
+        b.plot(h, sun_key * tr[:, i], color=col, label=f"sun {nm}: $3.2\\,s(e)\\,T_{nm}(e)$")
+    b.plot(h, moon_key, color="0.25", ls="--", label="moon (below $-1^\\circ$)")
     b.set_xlim(0, 24)
     b.set_xticks(range(0, 25, 3))
-    b.set_xlabel("in-game hour")
     b.set_ylabel("key-light intensity")
-    b.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, fontsize=8)
+    b.legend(frameon=True, framealpha=0.9, edgecolor="none", loc="center", fontsize=7)
     b.set_title("(b) key light per channel")
+    # (c) the colours the renderer uses, read from the export (DayCycle grid, 15 min steps), shown sRGB-encoded
+    exp = os.path.join(ROOT, "build", "f_export.json")
+    if os.path.exists(exp):
+        grid = json.load(open(exp))["v6"]["day_cycle"]["grid"]
+        hrs = np.array([g["hour"] for g in grid], dtype=float)
+        rows = [("zenith", [g["sky_zenith"] for g in grid]), ("horizon", [g["fog_color"] for g in grid]),
+                ("key light", [np.array(g["key_color"]) * min(g["key_intensity"], 1.0) for g in grid])]
+        img = np.stack([_srgb(np.array(r)) for _, r in rows])
+        c = fig.add_subplot(gs[1, :])
+        c.imshow(img, aspect="auto", interpolation="bilinear", extent=(hrs[0], hrs[-1], len(rows), 0))
+        c.set_yticks(np.arange(len(rows)) + 0.5)
+        c.set_yticklabels([n for n, _ in rows], fontsize=7)
+        c.set_xticks(range(0, 25, 3))
+        c.set_xlim(0, 24)
+        c.grid(False)
+        for s in c.spines.values():
+            s.set_visible(False)
+        c.set_xlabel("in-game hour")
+        c.set_title("(c) sky and key-light colour per hour, from the export", fontsize=8)
+    else:
+        a.set_xlabel("in-game hour")
+        b.set_xlabel("in-game hour")
     save(fig, "p_day_cycle")
 
     # time scale: hours per real second (DayCycle::hoursPerSecond), the real length of one day
@@ -199,21 +225,72 @@ def plot_gaussian(sigma=1.0, size=5):
     save(fig, "p_separable_cost")
 
 
+def _sphere_mesh(s):
+    """primitives/Sphere.cpp createSphere(s, s/2): pole fans and quad bands, r = 0.5."""
+    k = s // 2
+    th = np.pi * np.arange(k + 1) / k
+    ph = 2 * np.pi * np.arange(s) / s
+    P = lambda i, j: np.array([np.sin(th[i]) * np.cos(ph[j % s]), np.cos(th[i]), np.sin(th[i]) * np.sin(ph[j % s])])
+    tris = []
+    for i in range(k):
+        for j in range(s):
+            if i == 0:
+                tris.append((P(0, 0), P(1, j + 1), P(1, j)))
+            elif i == k - 1:
+                tris.append((P(i, j), P(i, j + 1), P(k, 0)))
+            else:
+                tris += [(P(i, j), P(i, j + 1), P(i + 1, j)), (P(i, j + 1), P(i + 1, j + 1), P(i + 1, j))]
+    return np.array(tris)
+
+
+def _draw_sphere(ax, s, rgb):
+    from matplotlib.collections import PolyCollection
+    tris = _sphere_mesh(s)
+    a, el = np.radians(30), np.radians(20)
+    R1 = np.array([[np.cos(a), 0, np.sin(a)], [0, 1, 0], [-np.sin(a), 0, np.cos(a)]])
+    R2 = np.array([[1, 0, 0], [0, np.cos(el), -np.sin(el)], [0, np.sin(el), np.cos(el)]])
+    v = tris @ (R2 @ R1).T
+    n = np.cross(v[:, 1] - v[:, 0], v[:, 2] - v[:, 0])
+    n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12
+    if np.mean(n[:, 2]) < 0:
+        n = -n
+    front = n[:, 2] > 0
+    L = np.array([-0.45, 0.6, 0.66]); L /= np.linalg.norm(L)
+    lam = 0.25 + 0.75 * np.clip(n @ L, 0, 1)
+    order = np.argsort(v[:, :, 2].mean(1))
+    order = [i for i in order if front[i]]
+    cols = [tuple(np.clip(np.array(rgb) * lam[i], 0, 1)) for i in order]
+    ax.add_collection(PolyCollection([v[i, :, :2] for i in order], facecolors=cols, edgecolors="#3a2a10", linewidths=0.3))
+    ax.add_patch(plt.Circle((0, 0), 1.0, fill=False, ls="--", lw=0.6, color=C[1]))
+    ax.set_xlim(-1.08, 1.08); ax.set_ylim(-1.08, 1.08); ax.set_aspect("equal"); ax.axis("off")
+
+
 def plot_tessellation():
     # primitives/Sphere.cpp createSphere(slices, stacks): triangles = 2 slices (stacks - 1); stacks = slices / 2 here.
     # Largest gap between the unit sphere and its polygon: the chord sagitta r (1 - cos(pi / slices)).
     s = np.arange(6, 97, 2)
     tri = 2 * s * (s // 2 - 1)
     err = 1 - np.cos(np.pi / s)
-    fig, ax = plt.subplots(figsize=(3.4, 2.3))
-    ax.loglog(tri, err * 100, color=C[0], marker="o", ms=2.5)
+    fig = plt.figure(figsize=(7.0, 2.5))
+    gs = fig.add_gridspec(1, 5, width_ratios=[2.4, 0.08, 1, 1, 1])
+    ax = fig.add_subplot(gs[0, 0])
+    ax.loglog(tri, err * 100, color=C[0], marker="o", ms=2.5, label="exact")
+    ax.loglog(tri, (np.pi ** 2 / (2 * s ** 2)) * 100, color="0.55", ls="--", lw=0.9, label="$\\pi^2/2s^2$")
     for sl in (8, 16, 36, 72):
         t = 2 * sl * (sl // 2 - 1)
         e = (1 - np.cos(np.pi / sl)) * 100
-        ax.annotate(f"{sl} slices" + (" (scene)" if sl == 36 else ""), (t, e), (t * 1.3, e * 1.3), fontsize=8)
+        ax.plot(t, e, "o", ms=5, mfc=C[3] if sl == 36 else "white", mec=C[0], zorder=4)
+        ax.annotate(f"{sl}" + (" (scene)" if sl == 36 else ""), (t, e), (t * 1.25, e * 1.25), fontsize=8)
     ax.set_xlabel("triangles per sphere")
-    ax.set_ylabel("max. silhouette error (% of radius)")
-    ax.set_title("Sphere tessellation")
+    ax.set_ylabel("silhouette error (% of $r$)")
+    ax.legend(frameon=False, loc="lower left", fontsize=7)
+    ax.set_title("(a) error against cost")
+    rgb = (255 / 255, 160 / 255, 50 / 255)  # PrimitiveColors.h: Sphere
+    for i, sl in enumerate((8, 16, 36)):
+        b = fig.add_subplot(gs[0, 2 + i])
+        _draw_sphere(b, sl, rgb)
+        t = 2 * sl * (sl // 2 - 1)
+        b.set_title(f"({'bcd'[i]}) {sl} slices\n{t} tri, $\\varepsilon$ = {(1 - np.cos(np.pi / sl)) * 100:.2f}%", fontsize=8)
     save(fig, "p_tessellation")
 
 
@@ -245,20 +322,56 @@ def plot_bench(csv_path):
     rows = list(csv.DictReader(open(csv_path)))
     if not rows:
         return
-    names = [r["config"] for r in rows]
-    ms = [float(r["avg_ms"]) for r in rows]
-    p95 = [float(r["p95_ms"]) for r in rows]
-    fig, ax = plt.subplots(figsize=(7.0, 0.22 * len(rows) + 0.8))
+    lab = lambda c: c.replace("v1 look", "classic look")
+    def group(c):
+        if c.split()[0] in ("LOW", "HIGH", "ULTRA") or c == "EPIC day 10:30":
+            return 0
+        if "off" in c or "non-indexed" in c or "look" in c:
+            return 2
+        return 1
+    names = [lab(r["config"]) for r in rows]
+    g = [group(r["config"]) for r in rows]
+    rank = {"LOW": 0, "HIGH": 1, "EPIC": 2, "ULTRA": 3}
+    order = sorted(range(len(rows)), key=lambda i: (g[i], rank.get(rows[i]["config"].split()[0], 0) if g[i] == 0
+                                                    else float(rows[i]["avg_ms"])))
+    ms = np.array([float(rows[i]["avg_ms"]) for i in order])
+    p95 = np.array([float(rows[i]["p95_ms"]) for i in order])
+    fps = np.array([float(rows[i]["avg_fps"]) for i in order])
+    dc = np.array([float(rows[i]["draw_calls"]) for i in order])
+    tri = np.array([float(rows[i]["triangles"]) for i in order]) / 1e6
+    gcol = [C[0], C[5], C[1]]
+    gname = ["quality presets", "views (day/night, thermal)", "ablations"]
+    col = [gcol[g[i]] for i in order]
+    fig, ax = plt.subplots(1, 2, figsize=(7.0, 0.24 * len(rows) + 1.0), gridspec_kw={"width_ratios": [2.3, 1]},
+                           sharey=True)
     y = np.arange(len(rows))
-    ax.barh(y, ms, color=C[0], label="mean frame time")
-    ax.scatter(p95, y, color=C[1], marker="|", s=80, label="95th percentile", zorder=3)
-    ax.set_yticks(y)
-    ax.set_yticklabels(names, fontsize=8)
-    ax.invert_yaxis()
-    ax.axvline(1000 / 60, color="0.4", ls=":", lw=0.8)
-    ax.text(1000 / 60, -0.8, " 60 fps", fontsize=8, color="0.4")
-    ax.set_xlabel("ms per frame (1920x1080, EPIC, RTX 4070)")
-    ax.legend(frameon=False, loc="lower right")
+    a = ax[0]
+    a.axvspan(0, 1000 / 60, color=C[2], alpha=0.08, lw=0)
+    a.barh(y, ms, color=col, height=0.7)
+    a.scatter(p95, y, color="0.15", marker="|", s=70, zorder=3, label="95th percentile")
+    for yi, m, p, f in zip(y, ms, p95, fps):
+        a.text(max(m, p) + 0.8, yi, f"{f:.0f} fps", va="center", fontsize=7, color="0.2")
+    a.axvline(1000 / 60, color=C[2], ls="--", lw=0.8)
+    a.text(1000 / 60, -0.65, " 60 fps", fontsize=7, color=C[2], va="bottom")
+    a.set_yticks(y)
+    a.set_yticklabels([names[i] for i in order], fontsize=7.5)
+    a.set_ylim(len(rows) - 0.5, -1.1)
+    a.set_xlim(0, max(p95) * 1.18)
+    a.set_xlabel("ms per frame (mean bar, 95th percentile tick)")
+    a.set_title("(a) frame time, 1920$\\times$1080, RTX 4070")
+    from matplotlib.patches import Patch
+    a.legend(handles=[Patch(color=c, label=n) for c, n in zip(gcol, gname)], frameon=True, framealpha=0.9,
+             edgecolor="none", loc="center right", fontsize=7)
+    a.grid(axis="y", visible=False)
+    b = ax[1]
+    b.scatter(dc, y, color=col, s=22, zorder=3, label="draw calls")
+    b.set_xscale("log")
+    b.set_xlabel("draw calls per frame (log)")
+    b.set_title("(b) draw calls / triangles")
+    for yi, d, t in zip(y, dc, tri):
+        b.text(d * 1.25, yi, f"{t:.1f} M", va="center", fontsize=6.5, color="0.35")
+    b.set_xlim(30, 3e4)
+    b.grid(axis="y", visible=False)
     save(fig, "p_benchmark")
 
 

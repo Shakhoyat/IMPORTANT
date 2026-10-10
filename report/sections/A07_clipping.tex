@@ -19,18 +19,14 @@ The six planes come from the rows of $PV$ (Gribb--Hartmann): left $=\text{row}_4
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{scene/v10_proj_front}{\linewidth}\caption{Near/far clipping in an orthographic front view.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{lab/explorer_stage_03_assembly}{\linewidth}\caption{Frame Explorer: primitive assembly and the frustum.}\end{subfigure}
+\raw{lab/explorer_stage_03_assembly}{0.8\linewidth}
 \\[1mm]
 {\footnotesize\textit{Zoomed panels of the Frame Explorer frame:}}\\[0.5mm]
 \feStageAssemblyInfo\hfill\feStageAssemblyFormula
-\caption{Clipping in the renderer: (a) an 80\,m orthographic slab around the camp cuts the hills and the far terrain
-flat; (b) the assembled triangles of the frame.}
+\caption{Frame Explorer: the assembled triangles of a frame and the view frustum they are clipped against.}
 \label{fig:clip}
 \end{figure}
 
-Clipping leaves the cut faces open: in Figure~\ref{fig:clip}a the cut shows the inside of the terrain mesh, because
-clipping does not cap what it cuts.
 \begin{figure}[htbp]
 \centering
 {\footnotesize\textit{1. Cohen--Sutherland outcodes}}\\[0.5mm]
@@ -48,6 +44,7 @@ Sutherland--Hodgman steps, worked as formulas (the renderer itself does not run 
 \end{figure}
 
 \begin{table}[htbp]
+\caption{Clipping methods compared.}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}lXXl@{}}
 \toprule
@@ -58,7 +55,6 @@ Sutherland--Hodgman & polygon against one plane at a time & output grows per pla
 Frustum culling & whole object against 6 planes (Eq.~\ref{eq:cull}) & 6 dot products per part & yes, \code{math/Frustum}\\
 \bottomrule
 \end{tabularx}
-\caption{Clipping methods compared.}
 \end{table}
 
 \textbf{Limitation.} Frustum culling with bounding spheres is conservative: a long thin part (a wall) has a large

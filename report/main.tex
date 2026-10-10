@@ -8,6 +8,7 @@
 \usepackage{pdflscape}
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
+\captionsetup[table]{position=top,skip=3pt}
 \usepackage{float}
 \usepackage[section,below]{placeins}
 \usepackage{longtable}
@@ -31,6 +32,7 @@
 \extrafloats{120}
 \renewcommand{\topfraction}{0.92}\renewcommand{\bottomfraction}{0.8}\renewcommand{\textfraction}{0.06}
 \renewcommand{\floatpagefraction}{0.75}\setcounter{totalnumber}{6}\setcounter{topnumber}{4}
+\makeatletter\setlength{\@fptop}{0pt}\setlength{\@fpbot}{0pt plus 1fil}\makeatother % float pages fill from the top
 
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small ThermalSense: a graphics pipeline in a military outpost}
@@ -51,7 +53,7 @@
 % v10 M1: workbook blocks typeset from the recalculated workbook (tools/v10/sheet_to_tex.py); yellow = input from the code
 \definecolor{wbin}{RGB}{255,242,204}
 \newcommand{\wbblock}[2]{{\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}\input{sections/wb/#1_#2}}}
-\newcommand{\fullsheet}[1]{(full sheet: Appendix~\ref{app:wb-#1})}
+\newcommand{\fullsheet}[1]{(full sheet: \code{\detokenize{#1}} in \code{report/workbooks/cg\_workbook.xlsx})}
 \newcommand{\wbkey}{\colorbox{wbin}{\strut input}\,=\,value copied from the code, white\,=\,formula}
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\key}[1]{\fbox{\scriptsize\ttfamily #1}}
@@ -98,6 +100,7 @@
 \part*{Part A. Class concepts along the graphics pipeline}
 \addcontentsline{toc}{part}{Part A. Class concepts along the graphics pipeline}
 \input{sections/A01_primitives}
+\input{sections/B01_decomposition}
 \input{sections/A02_transforms}
 \input{sections/A03_hierarchy}
 \input{sections/A04_viewing}
@@ -123,7 +126,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be r
  \psn{5}{0}{clip, divide\\NDC, viewport}\psn{6}{0}{hidden\\surfaces}\psn{7}{0}{raster\\interpolate}\psn{8}{0}{light +\\shade}
  \psn{9}{0}{texture\\post}\psn{10}{0}{rays}
  \foreach \x in {1,...,9} \draw[-{Latex[length=1mm]},black!60] ({1.7*\x+0.78},0) -- ({1.7*\x+0.92},0);
- \foreach \k/\r/\t in {1/1/{\ref{sec:decomp} decomposition},1/2/{\ref{sec:curved} curves, surfaces},
+ \foreach \k/\r/\t in {1/1/{\ref{sec:curved} curves, surfaces},
    2/1/{\ref{sec:dynamic} dynamics, springs},2/2/{\ref{sec:paths} paths, line follower},3/1/{\ref{sec:dynamic} cameras},
    6/1/{\ref{sec:hard} depth precision},7/1/{\ref{sec:explode} particles, blending},
    8/1/{\ref{sec:day} day / night},8/2/{\ref{sec:color} colour},8/3/{\ref{sec:explode} fire colour},
@@ -134,7 +137,6 @@ Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be r
 \caption{Part B on the pipeline: each box is a Part B section (number and topic) under the stage it extends.}
 \label{fig:partb-map}
 \end{figure}
-\input{sections/B01_decomposition}
 \input{sections/B02_color}
 \input{sections/B03_daynight}
 \input{sections/B04_curved}
@@ -155,12 +157,5 @@ Figure~\ref{fig:partb-map} shows where each section plugs in, so Part B can be r
 \nocite{*}
 \bibliographystyle{ieeetr}
 {\small\bibliography{refs}}
-\clearpage
-\appendix
-\input{sections/C04_appendix}
-\clearpage
-\begingroup\newgeometry{a4paper,left=10mm,right=10mm,top=8mm,bottom=12mm}\pagestyle{plain}
-\input{sections/gen_wb_appendix}
-\clearpage\restoregeometry\endgroup\pagestyle{fancy}
 
 \end{document}
