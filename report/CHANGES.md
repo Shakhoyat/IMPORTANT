@@ -623,7 +623,7 @@ Teaching drawings of each section's maths; every constant drawn from the code is
 - **Film.** `report/video/thermalsense_final_1080p.mp4` (3:38, 1920×1080, 336 MB; 720p copy 49.5 MB; 960×540 slide copy 18 MB) from
   `tools/report/gen_film3.py`; footage by `build/film3/final.sh` with the recorder's scripted takes (`TS_TOUR` steps use, face, drive,
   turn, aim, fire, sight, cam, camfix, exit) and film views (`TS_FILM_VIEW` follow / uav1 / flir, `TS_FILM_EVENTS`).
-- **Report** (196 pages, export of the final build: 5,474 parts).
+- **Report** (192 pages, export of the final build: 5,474 parts).
   - Cover in the department's layout; "Submitted by / Submitted to" in a table with year, semester and lab group; no date.
   - New Section 16.1 "Vector maths written by hand" (equations, source excerpt, table of calls); shader excerpts and Table 16.1 use
     the `ts*` names.
@@ -639,3 +639,20 @@ Teaching drawings of each section's maths; every constant drawn from the code is
   panels; the motion subsection split by floats. Checks: 0 overfull boxes, 0 undefined references, `check_counts.py` OK.
 - **Slides.** `report/ThermalSense_Presentation.pptx`: 25 slides (new: vehicles, single / combined strike and guards, hand-written
   vector maths), the final film embedded.
+- **Later the same night.**
+  - Contents page in the academic layout: roman-numbered front matter, dotted leaders on every level, Parts I to III
+    ("Back matter" removed), References listed; running header without short forms.
+  - All text in the Times face of the body (TeX Gyre Termes), cover headings and the labels inside every plot included
+    (`tools/report/fonts`); code stays monospaced.
+  - Full form at the first use of every short form on every page: `tools/report/abbrev_pages.py` tags the 607 short forms of
+    the running text, reads from `main.aux` which one is first on each page and rebuilds until stable (191 expanded); floats,
+    captions and headings carry their own full forms (a "Short forms" note when a table or drawing uses one). Left as
+    they are: one code comment and one cited title.
+  - Captions cut to one-sentence titles (`tools/report/shorten_captions.py`: caption text 4,870 to 3,463 words); the chain and
+    sheet sentences of the 62 cards shortened and explained once in Section 7.1; one spacing rule for floats and captions.
+  - `tools/report/check_numbers.py`: the hand-typed numbers (strike rule, guards, calls of the hand-written functions,
+    sheet rows, tests) against the code; all agree.
+  - `docs/CODE_TOUR.md` (120 clickable stops in pipeline order) and `docs/REPORT_CODE_MAP.md` (33 sections, 143 code
+    references, 62 designs), generated from the code so the line numbers are exact.
+  - Repository: new `README.md`; stray files in `archive/`; course documents in `docs/reference`; the old README in
+    `docs/history`; LaTeX artefacts untracked; `ThermalSense.exe` rebuilt from the final sources.
