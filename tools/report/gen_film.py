@@ -90,7 +90,7 @@ def card(i, section, caption, big=False, sub=""):
     elif STYLE == "lower":   # lower third over a soft gradient, the full frame stays visible
         if caption or section:
             for y in range(int(H * 0.72), H):
-                a = int(170 * ((y - H * 0.72) / (H * 0.28)) ** 1.2)
+                a = int(170 * max(0.0, (y - H * 0.72) / (H * 0.28)) ** 1.2)
                 d.line([(0, y), (W, y)], fill=(6, 9, 13, a))
         if section:
             d.text((70 * u, H - 92 * u), section, font=ImageFont.truetype(FONT, int(19 * u)), fill=(224, 160, 58, 255))
@@ -143,10 +143,12 @@ def segment(i, s):
         chain = ";".join(parts) + ";" + "".join("[f%d]" % k for k in range(len(src))) + "concat=n=%d:v=1:a=0[bg]" % len(src)
     else:   # still or title: a slow Ken Burns push
         inputs += ["-loop", "1", "-t", "%.3f" % dur, "-i", src]
-        if src.endswith(".png") and "plots" in src:   # a plot: fit between the bars on a white card
-            v = ("scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:(oh-ih)/2:color=white,"
-                 "zoompan=z='1+0.06*on/%d':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=%d:s=%dx%d:fps=%d,setsar=1"
-                 % (W * 2, (H - 2 * BAR) * 2, W * 2, H * 2, n, n, W, H, FPS))
+        if src.endswith(".png") and "plots" in src:   # a plot: fit on a white card, clear of the titles
+            inner = H - 2 * BAR if STYLE == "bars" else int(H * 0.76)
+            top = BAR if STYLE == "bars" else int(H * 0.04)
+            v = ("scale=%d:%d:force_original_aspect_ratio=decrease,pad=%d:%d:(ow-iw)/2:%d+(%d-ih)/2:color=white,"
+                 "zoompan=z='1+0.04*on/%d':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=%d:s=%dx%d:fps=%d,setsar=1"
+                 % (W * 2, inner * 2, W * 2, H * 2, top * 2, inner * 2, n, n, W, H, FPS))
         else:
             v = ("scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,zoompan=z='1+0.10*on/%d':x='iw/2-(iw/zoom/2)':"
                  "y='ih/2-(ih/zoom/2)':d=%d:s=%dx%d:fps=%d,setsar=1" % (W * 2, H * 2, W * 2, H * 2, n, n, W, H, FPS))

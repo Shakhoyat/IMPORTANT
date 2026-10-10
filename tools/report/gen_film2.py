@@ -20,7 +20,8 @@ F2 = os.path.join(ROOT, "build", "film2")
 SC, IMG = gf.SC, gf.IMG
 PL = os.path.join(ROOT, "report", "figures", "plots")
 gf.W, gf.H, gf.FPS, gf.BAR, gf.STYLE = 1920, 1080, 30, 0, "lower"
-SCROP = {"crop": "1920:760:0:170"}   # the showcase: its letterbox bars and title strip cut away
+SCROP = {"crop": "1920:760:0:170"}
+V6CROP = {"crop": "1920:790:0:145"}   # the v6 cut: letterbox and title strip cut away   # the showcase: its letterbox bars and title strip cut away
 OUT = os.path.join(ROOT, "report", "video", "thermalsense_film_1080p.mp4")
 
 
@@ -40,10 +41,10 @@ SEG = [
     # ---- part 1: free exploration by day
     ("clip", f2("overview_dusk"), 0.6, 8.0, "", "ThermalSense", {"big": True, "sub": "A graphics pipeline, end to end, in a military outpost", "audio": "amb"}),
     ("clip", f2("gate_sentry"), 0.6, 7.0, P1, "Sentries hold the gate; the garrison follows its duty roster", {}),
-    ("clip", f2("tour_bunker"), 0.6, 12.4, P1, "A soldier, free to explore: down the trench, through the open blast doors", {}),
-    ("clip", f2("tour_bunker"), 13.0, 15.5, P1, "Along the tunnel into the command room", {}),
-    ("clip", f2("tour_rooms"), 0.6, 19.4, P1, "The bunk room and the generator room", {}),
-    ("clip", f2("tour_hall"), 0.6, 24.0, P1, "The barracks hall: off-duty soldiers rest and train", {}),
+    ("clip", f2("tour_bunker"), 0.6, 10.8, P1, "A soldier, free to explore: down the trench to the open blast doors", {}),
+    ("clip", f2("tour_tunnel"), 1.5, 9.0, P1, "Through the doors, along the tunnel into the command room", {}),
+    ("clip", f2("tour_rooms"), 0.6, 16.0, P1, "The bunk room, past the off-duty crew", {}),
+    ("clip", f2("tour_hall"), 1.6, 23.0, P1, "The barracks hall: off-duty soldiers rest and train", {}),
     ("clip", f2("hall_night"), 0.6, 6.0, P1, "The same hall at night, lit only by its tube lights", {}),
     ("clip", f2("tower_post"), 0.6, 7.0, P1, "A guard tower post, 5.4 m above the camp", {}),
     ("clip", f2("tour_camp"), 0.6, 13.6, P1, "Past the scout helicopter to the radar and the AA gun", {}),
@@ -57,24 +58,26 @@ SEG = [
     # ---- part 2: game mode
     ("still", os.path.join(IMG, "scene", "night_searchlights.jpg"), 0, 4.0, "", "Part 2 · Game mode", "Duty, intrusion, tracking, strike"),
     ("still", os.path.join(PL, "p_guard_map.png"), 0, 5.5, P2, "An hourly duty roster: every soldier's posts and routes, day and night", {"amb_at": 3}),
-    ("clip", f2("v6_cut"), 96.6, 8.4, P2, "Dusk: the shift changes and the lamps come on", {}),
-    ("clip", f2("v6_cut"), 105.6, 7.0, P2, "Off duty: the day shift goes down into the bunker", {}),
-    ("clip", f2("uav_takeoff"), 4.0, 13.0, P2, "After sunset the UAVs launch on their own", {}),
+    ("clip", f2("v6_cut"), 96.6, 8.4, P2, "Dusk: the shift changes and the lamps come on", dict(V6CROP)),
+    ("clip", f2("v6_cut"), 105.6, 7.0, P2, "Off duty: the day shift goes down into the bunker", dict(V6CROP)),
+    ("clip", f2("uav_takeoff"), 0.3, 11.5, P2, "After sunset the UAVs launch on their own, searchlights on", {}),
+    ("clip", f2("uav_takeoff"), 12.6, 6.0, P2, "The first wave: a rover hit at the edge of the camp", {}),
     ("clip", SC, 0.4, 7.4, P2, "Night: intruder rovers move in on the camp", sc()),
     ("clip", f2("rover_map"), 0, 9.0, P2, "Each rover plans its own covered route: flood fill, then Dijkstra", {"audio": "amb", "amb_at": 30}),
     ("clip", SC, 33.4, 5.0, P2, "A rover's view: following its planned line", sc()),
-    ("clip", f2("v6_cut"), 8.6, 6.0, P2, "Two UAVs patrol with searchlights", {}),
+    ("clip", f2("v6_cut"), 8.6, 6.0, P2, "Two UAVs patrol with searchlights", dict(V6CROP)),
     ("clip", SC, 21.2, 4.6, P2, "Each UAV sees the rovers only in its own thermal pixels", sc()),
     ("still", os.path.join(PL, "p_cv_story.png"), 0, 5.0, P2, "Threshold, despeckle, connected components: the rover becomes a target", {"amb_at": 33}),
-    ("clip", f2("v6_cut"), 26.6, 6.0, P2, "Both UAVs feed one tracker: Kalman tracks, triangulated", {}),
+    ("clip", f2("v6_cut"), 26.6, 6.0, P2, "Both UAVs feed one tracker: Kalman tracks, triangulated", dict(V6CROP)),
     ("clip", SC, 8.6, 8.0, P2, "LEAD and WING time their launches so both rounds arrive together", sc()),
     ("clip", SC, 27.0, 4.6, P2, "Riding the round: proportional navigation", sc()),
-    ("clip", f2("v6_cut"), 35.0, 7.5, P2, "Impact: particles, HDR fire and bloom", {"speed": 0.6}),
+    ("clip", f2("v6_cut"), 35.0, 7.5, P2, "Impact: particles, HDR fire and bloom", dict(V6CROP, speed=0.6)),
     ("still", os.path.join(IMG, "game", "explosion_early.jpg"), 0, 2.0, P2, "", {"amb_at": 36}),
     ("still", os.path.join(IMG, "game", "wreck_burning.jpg"), 0, 2.4, P2, "The fire cools along a blackbody ramp", {"amb_at": 38}),
     ("clip", SC, 39.4, 6.6, P2, "Soldiers fire when needed: first person, recoil, tracers", sc()),
-    ("clip", f2("v6_cut"), 42.6, 7.0, P2, "Dawn: the surviving intruders withdraw", {}),
-    ("clip", f2("uav_landing"), 6.0, 14.0, P2, "The day is clear: the UAVs return and land", {}),
+    ("clip", f2("v6_cut"), 42.6, 7.0, P2, "Dawn: the surviving intruders withdraw", dict(V6CROP)),
+    ("clip", f2("uav_landing"), 4.0, 8.0, P2, "Dawn: the UAVs come home", {}),
+    ("clip", f2("uav_landing"), 25.0, 15.0, P2, "and land on their pads until the next nightfall", {}),
     ("still", os.path.join(IMG, "showcase", "sc_overview_dusk.jpg"), 0, 4.5, "", "ThermalSense", "Computer Graphics Laboratory · CSE, KUET"),
 ]
 
