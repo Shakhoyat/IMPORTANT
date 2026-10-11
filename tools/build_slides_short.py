@@ -319,16 +319,16 @@ def build():
 
     # ---- 4 Pipeline as a flow
     s = d.new("The graphics pipeline from scratch: procedural primitives, hierarchical scene transforms, "
-              "hand-crafted vector illumination, raster and compute ray tracing, and post-processing filters.")
+              "analytical vector illumination, raster and compute ray tracing, and post-processing filters.")
     s.title("Graphics Pipeline Architecture", "4  |  End-to-End Flow")
     n5 = 5; tw = 2.25; gap = (CW - n5 * tw) / (n5 - 1); ih = 3.52; lh = 0.92
     prim = [fig("figures", "img", "m3", "prims", f) for f in ("prim_03_sphere_wire.jpg", "prim_08_torus_wire.jpg",
                                                               "prim_14_helix_wire.jpg", "prim_07_cone_wire.jpg")]
     stages = [("3D Primitives", "16 procedural shapes"),
               ("Scene Graph", "Hierarchical transforms"),
-              ("Custom Shading", "Hand-coded vector math"),
+              ("Illumination", "Custom vector math"),
               ("Render Modes", "Raster & ray tracing"),
-              ("Post-Effects", "Bloom, fog & tonemapping")]
+              ("Post-Effects", "Bloom, fog & tonemap")]
     for i, (name, sub) in enumerate(stages):
         x = MX + i * (tw + gap)
         if i == 0:
@@ -351,7 +351,7 @@ def build():
             s.arrow(x + tw + (gap - 0.26) / 2, Y0 + ih / 2 - 0.15)
     s.text(MX, Y0 + ih + lh + 0.18, CW, 0.45,
            [[("Zero external math libraries", AMBER, True), ("     |     ", DIM, False),
-             ("905 hand-written math calls in shaders", AMBER, True), ("     |     ", DIM, False),
+             ("905 custom math calls in shaders", AMBER, True), ("     |     ", DIM, False),
              ("Pure C++17 & OpenGL 3.3 Core", WHITE, False)]], 17, align=C, anchor=MID, body=True)
     s.footer()
 
@@ -380,9 +380,9 @@ def build():
     s.footer()
 
     # ---- 6 Lighting and shading by hand
-    s = d.new("Hand-crafted illumination: Blinn-Phong specular evaluation with half-vector optimization. "
-              "Comparison across Flat, Gouraud, and Phong shading models with custom vector operations.")
-    s.title("Illumination & Shading by Hand", "6  |  Lighting Models")
+    s = d.new("Analytical illumination evaluation: Blinn-Phong specular formulation with half-vector optimization. "
+              "Comparative analysis across Flat, Gouraud, and Phong shading with custom vector operations.")
+    s.title("Analytical Illumination & Shading", "6  |  Illumination Models")
     eh = 1.65
     s.rect(MX, Y0, CW, eh, PANEL); s.rect(MX, Y0, 0.06, eh, AMBER)
     main = eq_labelled([(r"$I \;=\;$", None), (r"$k_a I_a$", "ambient"),
@@ -405,12 +405,12 @@ def build():
         s.text(x + 0.08, y2 + sih, sw - 0.16, 0.55, [[(name, WHITE, True), ("   " + sub, GREY, False)]], 14, anchor=MID)
     fx = MX + 3 * sw + 2 * sg + 0.22; fw = W - MX - fx; fh = Y1 - y2
     s.rect(fx, y2, fw, fh, PANEL); s.rect(fx, y2, fw, 0.04, AMBER)
-    s.text(fx + 0.14, y2 + 0.12, fw - 0.28, 0.28, "HAND-WRITTEN VECTOR MATH", 12, GREY, True)
+    s.text(fx + 0.14, y2 + 0.12, fw - 0.28, 0.28, "CUSTOM GLSL VECTOR LIBRARY", 12, GREY, True)
     s.text(fx + 0.14, y2 + 0.44, fw - 0.28, 1.4,
            ["tsDot         tsLength", "tsNormalize   tsCross", "tsReflect     tsRefract", "tsMix         tsClamp",
             "tsStep        tsSmoothstep"], 13, WHITE, font=MONO, gap=0.20)
     s.text(fx + 0.14, y2 + fh - 1.15, fw - 0.28, 0.50, [[("905 calls", AMBER, True), ("  in 13 shaders", WHITE, False)]], 20, body=True)
-    s.text(fx + 0.14, y2 + fh - 0.58, fw - 0.28, 0.48, "Refusal of GLSL built-ins", 13, GREY, body=True)
+    s.text(fx + 0.14, y2 + fh - 0.58, fw - 0.28, 0.48, "Zero GLSL built-ins used", 13, GREY, body=True)
     s.footer()
 
     # ---- 7 Rover path planning

@@ -217,7 +217,7 @@ def build():
     # 1 Title
     sl = Slide(prs, "Good morning. This is ThermalSense, my computer graphics lab project: autonomous drones defending a hidden army base, now a playable game. "
         "Everything you will see, the camp, the soldiers, the vehicles and the rover intruders, is assembled from sixteen primitive shapes that the program generates itself. "
-        "Every lighting equation is written by hand. Version seven adds a day and night cycle, first person play, real ray tracing and a frame explorer. I end with the demonstration video.")
+        "Every illumination equation is evaluated from first principles using custom vector math. Version seven adds a day and night cycle, first person play, real ray tracing and a frame explorer. I end with the demonstration video.")
     sl.image(find_img(1, "title"), 0, 0, W, H)
     sl.rect(0, 3.7, W, 3.8, BG)
     sl.rect(0.6, 3.95, 1.4, 0.07, AMBER)
@@ -656,7 +656,7 @@ def build():
         "are written out from their definitions in one file and placed in front of every shader, nine hundred and five calls in thirteen files. "
         "The compile step refuses a shader that still calls a built-in one. Blinn-Phong and the microfacet model are built from these functions, "
         "and the C++ side has its own vectors and matrices as well.")
-    sl.title("Lighting maths written by hand", k("Final  |  no built-in vector functions"))
+    sl.title("Custom GLSL Vector Library", k("Final  |  Analytical vector math"))
     formula(sl, 0.5, 1.6, 7.6, 3.1, ["a·b = Σ aᵢ bᵢ          |a| = √(a·a)          â = a / |a|",
                                      "a×b = (a_y b_z − a_z b_y,  a_z b_x − a_x b_z,  a_x b_y − a_y b_x)",
                                      "reflect:  r = d − 2 (n·d) n",
@@ -667,9 +667,9 @@ def build():
                                      "float nl = max(tsDot(N, L), 0.0);",
                                      "vec3 H = tsNormalize(L + V);",
                                      "spec = radiance * uSpecular * pow(max(tsDot(N, H), 0.0), uShininess);"], 12, "Blinn-Phong, as compiled")
-    for i, (big, small) in enumerate([("905", "calls of the hand-written functions"), ("0", "built-in vector calls (compile refuses them)"), ("13", "shader source files")]):
+    for i, (big, small) in enumerate([("905", "calls of custom vector math functions"), ("0", "built-in vector calls (compile refuses them)"), ("13", "shader source files")]):
         stat(sl, 8.4, 1.6 + i * 1.45, 4.43, big, small)
-    sl.image(find_img(23, "mm_a"), 8.4, 5.85, 4.43, 1.35, "Lit by these equations only")
+    sl.image(find_img(23, "mm_a"), 8.4, 5.85, 4.43, 1.35, "Evaluated with custom vector routines")
     slides.append(sl)
 
     # 24 Results

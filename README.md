@@ -3,10 +3,10 @@
 A graphics pipeline, end to end, in a military outpost. Computer Graphics Laboratory (CSE 4102), KUET.
 Md. Shakhoyat Rahman Shujon, Roll 2107104.
 
-A playable camp built only from primitives the program generates (16 generators, 5,474 parts, 62 designs), lit by
-equations written by hand, with ray tracing, a solar day, a simulated thermal sensor, computer vision and an
-autonomous defence. C++17, OpenGL 3.3 core (4.3 compute for the ray tracer). No mathematics library; no built-in
-vector function in any shader.
+A playable outpost simulation built entirely from procedural geometric primitives (16 procedural generators, 5,474 rendered parts, 62 modular designs), lit by
+first-principles illumination formulations, with compute ray tracing, a dynamic solar day cycle, a physically-modeled thermal sensor, computer vision tracking, and an
+autonomous multi-agent defense system. Developed in C++17 and OpenGL 3.3 Core (4.3 Compute for ray tracing), with zero external mathematical dependencies and
+custom vector mathematics across all shaders.
 
 ## Start here
 

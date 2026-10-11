@@ -186,15 +186,15 @@ highlight eight times narrower than $n=2$.}
 In the \ab{530}{HDR} pipeline (the default) the renderer uses the \ab{531}{GGX} / Cook--Torrance model of Eq.~\eqref{eq:ggx}; \key{B}
 switches to the Blinn--Phong of Eq.~\eqref{eq:phong}, which the display-referred path (\key{N}) always uses.
 
-\subsection{Vector maths written by hand}
+\subsection{Custom Vector Mathematics Implementation}
 \label{sec:manualmath}
 No shader of the program calls a built-in vector function of the shading language. The dot product, length,
-normalisation, cross product, reflection, refraction, clamp, linear interpolation, step and smooth step are written out
-from their definitions in \code{src/rendering/ShaderMath.cpp} (\code{tsDot}, \code{tsNormalize}, \code{tsReflect}, \dots),
-and every lighting equation of this section is built from them. The source of these functions is placed in front of
-every vertex, fragment, geometry and compute shader before it is compiled, and the compile step refuses a shader that
-still calls a built-in one (\code{Shader.cpp: compile}, \code{builtinVectorCall}). Table~\ref{tab:manualmath} lists the
-functions with the number of calls in the shaders; Eqs.~\eqref{eq:mm-dot}--\eqref{eq:mm-smooth} are their definitions.
+normalisation, cross product, reflection, refraction, clamp, linear interpolation, step and smooth step are implemented
+from first principles in \code{src/rendering/ShaderMath.cpp} (\code{tsDot}, \code{tsNormalize}, \code{tsReflect}, \dots),
+and every lighting equation of this section is evaluated from them. The source of these functions is prepended to
+every vertex, fragment, geometry and compute shader before compilation, and the compile step strictly rejects any shader that
+invokes a GLSL built-in routine (\code{Shader.cpp: compile}, \code{builtinVectorCall}). Table~\ref{tab:manualmath} lists the
+custom functions with their invocation frequencies across the shaders; Eqs.~\eqref{eq:mm-dot}--\eqref{eq:mm-smooth} define their analytical forms.
 \begin{gather}
 \vect a\cdot\vect b=\sum_i a_i b_i,\qquad \lVert\vect a\rVert=\sqrt{\vect a\cdot\vect a},\qquad
 \hat{\vect a}=\frac{\vect a}{\lVert\vect a\rVert}\label{eq:mm-dot}\\
@@ -206,7 +206,7 @@ functions with the number of calls in the shaders; Eqs.~\eqref{eq:mm-dot}--\eqre
 \operatorname{step}(e,x)=\begin{cases}0 & x<e\\ 1 & x\ge e\end{cases}\label{eq:mm-mix}\\
 \operatorname{smoothstep}(e_0,e_1,x)=t^2(3-2t),\qquad t=\operatorname{clamp}\Big(\frac{x-e_0}{e_1-e_0},0,1\Big)\label{eq:mm-smooth}
 \end{gather}
-\begin{lstlisting}[language=C++,caption={The hand-written vector functions used by every shader (\code{src/rendering/ShaderMath.cpp}, GLSL; the \code{vec2} and \code{vec4} overloads are left out).}]
+\begin{lstlisting}[language=C++,caption={First-principles vector mathematical functions prepended to every shader (\code{src/rendering/ShaderMath.cpp}, GLSL; \code{vec2} and \code{vec4} overloads omitted for brevity).}]
 float tsDot(vec3 a, vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 float tsLength(vec3 a) { return sqrt(tsDot(a, a)); }
 vec3 tsNormalize(vec3 a) { return a / tsLength(a); }
@@ -225,8 +225,8 @@ float tsSmoothstep(float e0, float e1, float x) { float t = tsClamp((x - e0) / (
 \end{lstlisting}
 
 \begin{table}[htbp]
-\caption{The vector functions written by hand, the built-in function each one replaces, and how often the shaders call it
-(905 calls in 13 shader source files).}\label{tab:manualmath}
+\caption{Custom vector mathematical functions, replaced GLSL built-ins, and invocation counts
+(905 calls across 13 shader source files).}\label{tab:manualmath}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}l l r >{\raggedright\arraybackslash}X@{}}
 \toprule
