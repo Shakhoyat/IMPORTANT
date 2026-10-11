@@ -15,7 +15,7 @@ vector function in any shader.
 | The report (192 pages) | [`report/main.pdf`](report/main.pdf) |
 | A guided tour of the code, line by line, in pipeline order | [`docs/CODE_TOUR.md`](docs/CODE_TOUR.md) |
 | Every report section mapped to its code | [`docs/REPORT_CODE_MAP.md`](docs/REPORT_CODE_MAP.md) |
-| The film (3 min 38 s, with sound) | [`report/video/thermalsense_final_1080p_web.mp4`](report/video/thermalsense_final_1080p_web.mp4) (1080p, 93 MB), [`thermalsense_final_720p.mp4`](report/video/thermalsense_final_720p.mp4) (47 MB). The 336 MB master is over GitHub's file limit and stays outside the repository; `tools/report/gen_film3.py` rebuilds it. |
+| The film (3 min 38 s, with stereo sound) | [`report/video/thermalsense_final_1080p_web.mp4`](report/video/thermalsense_final_1080p_web.mp4) (1080p Full HD, 93 MB with audio), [`thermalsense_final_720p.mp4`](report/video/thermalsense_final_720p.mp4) (47 MB), and the standalone soundtrack [`report/video/thermalsense_final_soundtrack.mp3`](report/video/thermalsense_final_soundtrack.mp3) (320 kbps). |
 | The workbook (18 sheets, live formulas; the register of every number in the report) | [`report/workbooks/cg_workbook.xlsx`](report/workbooks/cg_workbook.xlsx) |
 | The presentation (10 slides, film on slide 2) | [`report/ThermalSense_Presentation_10.pptx`](report/ThermalSense_Presentation_10.pptx) |
 | The long deck (25 slides) | [`report/ThermalSense_Presentation.pptx`](report/ThermalSense_Presentation.pptx) |
