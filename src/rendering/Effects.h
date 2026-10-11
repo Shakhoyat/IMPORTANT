@@ -1,5 +1,5 @@
 // EffectsRenderer: explosions and weapon effects (fire, smoke, dust, sparks, embers, flashes, shock waves,
-// tracers, missile / shell bodies and exhaust, scorch decals). Owner: C2.
+// tracers, missile / shell bodies and exhaust, scorch decals).
 //
 // Sprites are instanced quads taken from the lab's unit cube (only its +Z face is used, the other faces are
 // collapsed in the vertex shader). One instance = 4 x vec4 (centre + radius, velocity + brightness,

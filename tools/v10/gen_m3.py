@@ -382,6 +382,17 @@ for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 12)
     ij = os.path.join(RAW, f"parts_{slug(obj)}", "index.json")
     if per and os.path.exists(ij):
         es = jlist(ij)
+        # tile sizes: the export's rest size of the part (the capture's size of an animated part, such as the light cone
+        # that follows the ground, differs from the parts table of Section 7)
+        _dname = {"Autonomous UAV": "Autonomous UAV", "Soldier 1": "Soldier", "Main Battle Tank": "Main battle tank"}[obj]
+        _rid = next(x for x in d["designs"] if x["name"] == _dname)["instance_list"][0]["root_id"]
+        _rest = {}
+        for c in d["components"]:
+            if c["design_root"] == _rid and c["primitive"] != "Group":
+                _rest.setdefault(c["part_kind"], [v * 100.0 for v in c["S_rest"]])
+        for e in es:
+            if e["part"] in _rest:
+                e["S_cm"] = _rest[e["part"]]
         def keyof(e):   # report colour key of a tile (cube parts with a non-uniform S are cuboids)
             k = e["primitive"]
             if k == "Cube" and max(e["S_cm"]) - min(e["S_cm"]) > 1e-3 * max(e["S_cm"]):
@@ -389,7 +400,7 @@ for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 12)
             return {"Cylinder (frustum)": "frustum"}.get(k, k.lower().replace(" ", ""))
         items = [(f"m3/parts_{slug(obj)}/{e['file'][:-4]}",
                   f"{tex(e['part'])}{(' $\\times$' + str(e['count'])) if e['count'] > 1 else ''}\\\\\\primsq{{{keyof(e)}}}\\,"
-                  + "$\\times$\\allowbreak ".join((f"{v:.0f}" if v >= 9.5 else f"{v:.1f}".rstrip("0").rstrip(".")) for v in e["S_cm"]))
+                  + "$\\times$\\allowbreak ".join(("%.0f" % v if v >= 1000 else "%.3g" % v) for v in e["S_cm"]))
                  for e in es]
         w = f"{(16.9 / per) - 0.2:.2f}cm"
         out.append(f"\\newcommand{{\\partsgrid{tag}}}{{" + grid(items, per, w) + "}")
@@ -404,7 +415,7 @@ for obj, tag, per in [("Autonomous UAV", "Uav", 9), ("Soldier 1", "Soldier", 12)
         for e in st:
             pct = e.get("pct", e.get("percent"))
             n = e.get("parts", e.get("visible", ""))
-            cells.append(f"\\begin{{subfigure}}{{0.245\\linewidth}}\\raw{{m3/build_{slug(obj)}_{pct}}}{{\\linewidth}}"
+            cells.append(f"\\begin{{subfigure}}[t]{{0.245\\linewidth}}\\raw{{m3/build_{slug(obj)}_{pct}}}{{\\linewidth}}"
                          f"\\caption{{{pct}\\,\\%: {n} parts}}\\end{{subfigure}}")
         out.append(f"\\newcommand{{\\buildstrip{tag}}}{{" + "\\hfill\n".join(cells) + "}")
     else:

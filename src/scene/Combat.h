@@ -1,6 +1,6 @@
 // Weapons and explosions: projectiles (UAV missiles, tank shells, AA tracers), blasts with damage,
 // debris pieces, and the visual effect particles / lights / scorch marks they produce.
-// CPU simulation only (unit-testable); rendering/Effects draws effects(). Owner: C1 (may add members).
+// CPU simulation only (unit-testable); rendering/Effects draws effects().
 #pragma once
 
 #include <algorithm>

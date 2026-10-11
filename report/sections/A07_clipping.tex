@@ -2,7 +2,7 @@
 \label{sec:clip}
 \here{5}
 Primitives outside the view volume must be removed and primitives crossing it cut, before rasterisation.
-The \ab{500}{GPU} clips every triangle against the six planes $-w_c\le x_c,y_c,z_c\le w_c$. The program adds two \ab{501}{CPU} steps:
+The \ab{513}{GPU} clips every triangle against the six planes $-w_c\le x_c,y_c,z_c\le w_c$. The program adds two \ab{514}{CPU} steps:
 whole parts are culled against the frustum before they are submitted, and grass is culled per cell.
 \begin{equation}
 \text{plane } i:\ \vect a_i\cdot\vect p+d_i\ge0\ \text{inside};\qquad
@@ -18,8 +18,8 @@ c_0\lor c_1=0\Rightarrow\text{accept},\qquad c_0\land c_1\ne0\Rightarrow\text{re
 \end{gather}
 \begin{itemize}
 \item Liang--Barsky uses $p_{1,2}=\mp\Delta x$, $q_{1,2}=\pm(x_0-x_{\min/\max})$ and the same for $y$; one division per edge.
-\item The \ab{502}{GPU} clips in homogeneous clip space, before the divide, so a vertex behind the eye ($w<0$) is never divided.
-\item The \ab{503}{CPU} culling test of Eq.~\eqref{eq:cull} uses planes normalised by $\lVert\vect a_i\rVert$, so $\vect a_i\cdot\vect c+d_i$ is a
+\item The \ab{515}{GPU} clips in homogeneous clip space, before the divide, so a vertex behind the eye ($w<0$) is never divided.
+\item The \ab{516}{CPU} culling test of Eq.~\eqref{eq:cull} uses planes normalised by $\lVert\vect a_i\rVert$, so $\vect a_i\cdot\vect c+d_i$ is a
 distance in metres that can be compared with the radius $r$.
 \end{itemize}
 \begin{lstlisting}[language=C++,caption={Frustum planes from the view-projection matrix and the sphere test (\code{src/math/Frustum.cpp}).}]
@@ -67,7 +67,7 @@ bool Frustum::intersects(const Vec3& c, float r) const {
 \wbblock{Clipping}{sh2}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Clipping}: Cohen--Sutherland outcodes, Liang--Barsky parameters and
-Sutherland--Hodgman steps, worked as formulas (the renderer itself does not run them). \fullsheet{Clipping}}
+Sutherland--Hodgman steps, worked as formulas (the renderer itself does not run them). \fullsheet{Clipping}.}
 \label{fig:wb-clip}
 \end{figure}
 
@@ -80,7 +80,7 @@ Method & What it does & Cost & Used in the program\\\midrule
 Cohen--Sutherland & 4-bit outcodes, trivial accept/reject, then intersect & cheap for mostly inside/outside lines & no (workbook)\\
 Liang--Barsky & parametric $t$ range, at most one division per edge & fewer intersections & no (workbook)\\
 Sutherland--Hodgman & polygon against one plane at a time & output grows per plane & by the GPU (in clip space)\\
-Frustum culling & whole object against 6 planes (Eq.~\ref{eq:cull}) & 6 dot products per part & yes, \code{math/Frustum}\\
+Frustum culling & whole object against 6 planes (Eq.~\eqref{eq:cull}) & 6 dot products per part & yes, \code{math/Frustum}\\
 \bottomrule
 \end{tabularx}
 \end{table}

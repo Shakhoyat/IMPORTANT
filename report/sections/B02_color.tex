@@ -2,7 +2,7 @@
 \label{sec:color}
 \here{9}
 Colour is interpolated in four places: across a triangle (barycentric), between shading models (Gouraud vs Phong),
-between colour spaces (\ab{548}{sRGB} vs linear), and over time (sky and fog presets over the day). Each has a naive version
+between colour spaces (\ab{561}{sRGB} vs linear), and over time (sky and fog presets over the day). Each has a naive version
 that fails visibly.
 \begin{equation}
 c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.055}\big)^{2.4} & \text{else}\end{cases},\qquad
@@ -15,10 +15,10 @@ c_{\text{lin}}=\begin{cases}c_s/12.92 & c_s\le0.04045\\ \big(\frac{c_s+0.055}{1.
 \text{white-hot: } c=t^{0.9},\qquad t\in[0,1]\nonumber
 \end{gather}
 \begin{itemize}
-\item Eq.~\eqref{eq:srgb} is the exact \ab{549}{sRGB} decoding; the shaders decode base colours with the power 2.2 and encode the
+\item Eq.~\eqref{eq:srgb} is the exact \ab{562}{sRGB} decoding; the shaders decode base colours with the power 2.2 and encode the
 final image with the exact piecewise curve (Eq.~\eqref{eq:gamma}, Figure~\ref{fig:tonecurve}b).
 \item The seven palette stops $\vect c_0..\vect c_6$ are constants of \code{thermalPalette} in \code{ShaderSources.cpp}, mirrored
-on the \ab{550}{CPU} in \code{ThermalPalette.h}; the barycentric mix of three vertex colours is the same $\operatorname{lerp}$ with three weights (Eq.~\eqref{eq:raster}).
+on the \ab{563}{CPU} in \code{ThermalPalette.h}; the barycentric mix of three vertex colours is the same $\operatorname{lerp}$ with three weights (Eq.~\eqref{eq:raster}).
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -49,7 +49,7 @@ Interpolation & Naive version and its failure & What the renderer does & Evidenc
 Across a triangle & affine in screen space: textures bend & perspective-correct ($a/w$, $1/w$) & Fig.~\ref{fig:raster}b\\
 Lighting & Gouraud: highlight between vertices lost, Mach bands & Phong per fragment & Figs.~\ref{fig:shading}, \ref{fig:gp}\\
 Colour space & blending sRGB values: mid-tones too dark, e.g.\ 50\,\% red/green gives a muddy (0.5, 0.5, 0) & material colours converted to linear, lit and blended in linear HDR, encoded once at the end & Fig.~\ref{fig:wb-color}\\
-Sky over the day & linear mix of night and day presets: the night tint is swamped by the day value until very late & presets blended in log space (Eq.~\ref{eq:srgb}): equal steps are equal ratios, which the eye sees as even & Figs.~\ref{fig:hero}, \ref{fig:daycycle}\\
+Sky over the day & linear mix of night and day presets: the night tint is swamped by the day value until very late & presets blended in log space (Eq.~\eqref{eq:srgb}): equal steps are equal ratios, which the eye sees as even & Figs.~\ref{fig:hero}, \ref{fig:daycycle}\\
 Heat to false colour & one linear ramp black$\to$white hides small heat differences & 7 colour stops, linear between neighbours (ironbow, rainbow), or a power curve (white-hot) & Fig.~\ref{fig:palettes}\\
 \bottomrule
 \end{tabularx}
@@ -58,9 +58,9 @@ Heat to false colour & one linear ramp black$\to$white hides small heat differen
 \begin{figure}[htbp]
 \centering
 \plot{p_palettes}{\linewidth}\\[1.5mm]
-\begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_ironbow.jpg}{\linewidth}\caption{Ironbow.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_whitehot.jpg}{\linewidth}\caption{White-hot.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\img{figures/img/annot/pal_rainbow.jpg}{\linewidth}\caption{Rainbow.}\end{subfigure}
+\begin{subfigure}[t]{0.325\linewidth}\img{figures/img/annot/pal_ironbow.jpg}{\linewidth}\caption{Ironbow.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.325\linewidth}\img{figures/img/annot/pal_whitehot.jpg}{\linewidth}\caption{White-hot.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.325\linewidth}\img{figures/img/annot/pal_rainbow.jpg}{\linewidth}\caption{Rainbow.}\end{subfigure}
 \caption{Colour interpolation in the thermal view.}
 \label{fig:palettes}
 \end{figure}

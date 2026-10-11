@@ -7,6 +7,7 @@ the triangle count of \code{createSphere(s, k)} is $2s(k-1)$. Halving the error 
 \varepsilon=r\Big(1-\cos\frac{\pi}{s}\Big)\approx\frac{r\pi^2}{2s^2},\qquad N_\triangle=2s(k-1)
 \label{eq:tess}
 \end{equation}
+
 \begin{figure}[tbp]
 \centering
 \plot{p_tessellation}{\linewidth}
@@ -21,6 +22,7 @@ approximation.}
 \caption{Curved primitives at the anti-aircraft (AA) gun position.}
 \label{fig:curved-scene}
 \end{figure}
+
 Elsewhere: tyres and muzzle rings are tori, helmets and the bunker's berm hemispheres, rotor blur discs flat cylinders,
 and the walking and patrol paths are curves too (Catmull--Rom splines, Section~\ref{sec:paths}).
 
@@ -40,6 +42,7 @@ $\vect m_2$ is $\vect m_1$ with every index raised by one.
 does not pass through the inner points (Figure~\ref{fig:curves}b).
 \item Arc length: a table of chords per segment, then binary search, so a soldier walks at constant speed along the curve.
 \end{itemize}
+
 \begin{figure}[htbp]
 \centering\plot{p_curves}{\linewidth}
 \caption{(a) Catmull--Rom curves through the same waypoints for $\alpha=0$, 0.5 (used) and 1 (Eq.~\eqref{eq:catmull});

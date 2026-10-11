@@ -58,8 +58,16 @@ CUT_DESIGNS = {"Command bunker", "Ammunition bunker", "Barracks hall"}
 SKY = {"Moon", "Sky clock (sun)"}   # drawn by the sky pass, not as lit parts: only the primitives panel is shown
 
 
+NAMES = {"GENERATOR ROOM DOOR": "Generator room door", "BARRACKS DOOR": "Barracks door", "Gatling Gun": "Gatling gun"}
+
+
 def tex(s):
-    return str(s).replace("&", "\\&").replace("_", "\\_").replace("#", "\\#").replace("%", "\\%")
+    """Text for LaTeX; internal node names in capitals are written in sentence case, 6x6 as a product."""
+    s = str(s)
+    for a, b in NAMES.items():
+        s = s.replace(a, b)
+    s = s.replace("&", "\\&").replace("_", "\\_").replace("#", "\\#").replace("%", "\\%")
+    return re.sub(r"(?<=\d)x(?=\d)", "$\\\\times$", s)
 
 
 def slug(t):
@@ -127,10 +135,11 @@ def shape(design, cut=False):
     return j
 
 
+KEEP = "\x00"   # marks an equation row that must stay on the page of the next row
+
 # ------------------------------------------------------------------------------------------------ number patterns
 def fmtv(v):
-    s = "%d" % v
-    return s.replace("-", "-")
+    return "{-}%d" % -v if v < 0 else "%d" % v   # braces: a minus sign, never a spaced subtraction
 
 
 def pattern(vals):
@@ -161,7 +170,7 @@ def size_txt(S):
     for k in range(3):
         a = [s[k] for s in S]
         lo, hi = min(a), max(a)
-        f = (lambda x: ("%.3g" % x))
+        f = (lambda x: ("%.0f" % x if abs(x) >= 1000 else "%.3g" % x))   # (no exponent form for 10 m and above)
         out.append(f(lo) if hi - lo < 0.05 * max(hi, 1e-6) + 0.05 else "%s..%s" % (f(lo), f(hi)))
     return "$" + "{\\times}\\allowbreak ".join(out) + "$"
 
@@ -272,7 +281,7 @@ def parts_table(d, rows):
     multi = len(rows) > 1
     for sec, rs, nest in rows:
         if multi:
-            o.append("\\multicolumn{6}{@{}l}{\\textit{%s}}\\\\[0.2mm]" % tex(sec or d["name"]))
+            o.append("\\multicolumn{6}{@{}l}{\\textit{%s}}\\\\*[0.2mm]" % tex(sec or d["name"]))
         for r in rs:
             n = len(r["S"])
             nm = tex(r["kind"]) + (" $\\times$%d" % n if n > 1 else "") + ("\\,$^\\dagger$" if r["dagger"] else "")
@@ -281,7 +290,7 @@ def parts_table(d, rows):
         for nd, k in nest:
             o.append("\\textit{%s} $\\times$%d & \\multicolumn{5}{@{}l}{\\textit{nested design, drawn pale; its parts are counted in its own card "
                      "(Figure~\\ref{fig:d-%s})}}\\\\" % (tex(nd), k, slug(nd)))
-    o.append("\\end{longtable}}")
+    o.append("\\end{longtable}\\addtocounter{table}{-1}}")   # (no caption: the table counter is not stepped)
     return "\n".join(o)
 
 
@@ -301,7 +310,7 @@ def sentence(d):
     dist = math.hypot(x, z)
     n = d["instances"]
     where = ("at the origin of the camp" if dist < 1.0 else
-             "%.0f\\,m %s of the bunker" % (dist, compass(x, z)))
+             "%.0f\\,m %s of the camp centre" % (dist, compass(x, z)))
     s = ""
     if purpose:
         s += tex(purpose[0].upper() + purpose[1:]) + ". "
@@ -310,7 +319,7 @@ def sentence(d):
     else:
         s += "%d instances; the first stands %s" % (n, where)
     if d["nested_in"]:
-        s += ", inside the %s" % tex(lower_name(d["nested_in"]))
+        s += ", as part of the %s" % tex(lower_name(d["nested_in"]))
     return s + "."   # (the root placement itself is the first equation of the card's chain)
 
 
@@ -499,26 +508,31 @@ def chain_block(d):
         plain = re.sub(r"\\\\[a-zA-Z]+|[{}^_]", "", rhs_sym)
         if len(plain) <= 46:
             return ["%s&=%s=%s\\label{%s}" % (lhs, rhs_sym, bmat(M), label)]
-        return ["%s&=%s\\nonumber" % (lhs, rhs_sym), "&=%s\\label{%s}" % (bmat(M), label)]
+        return ["%s&=%s\\nonumber" % (lhs, rhs_sym) + KEEP, "&=%s\\label{%s}" % (bmat(M), label)]
 
     eqs = line("W_{\\text{root}}", rootf, mat(root["world_matrix"]), "eq:ch-%s" % sl)
     if part is root:
         txt = "\\textbf{Chain.} One part%s: its world matrix is the root's, Eq.~\\eqref{eq:ch-%s}." % (under, sl)
+        if np.abs(mat(root["world_matrix"])[:3, :3]).max() < 1e-3:
+            txt += " The part waits in a pool with size 0 until it is used; the table and the sheet give its size in use."
     else:
         path = ancestors(part)
         groups = path[path.index(root) + 1:-1]
         names = ["W_{\\text{root}}"] + [mname(g) for g in groups] + ["M"]
         rows = [names[i:i + 5] for i in range(0, len(names), 5)]
         eqs += line("M", factors(part), mat(part["local_matrix"]), "eq:chm-%s" % sl)
-        eqs.append("W_{\\text{part}}&=%s\\nonumber" % "\\,".join(rows[0]))
+        eqs.append("W_{\\text{part}}&=%s\\nonumber" % "\\,".join(rows[0]) + KEEP)
         for r in rows[1:]:
-            eqs.append("&\\quad\\,%s\\nonumber" % "\\,".join(r))
+            eqs.append("&\\quad\\,%s\\nonumber" % "\\,".join(r) + KEEP)
         eqs.append("&=%s\\label{eq:chw-%s}" % (bmat(mat(part["world_matrix"])), sl))
         txt = ("\\textbf{Chain.} Root%s: Eq.~\\eqref{eq:ch-%s}. Part %s (%s): local $M$, Eq.~\\eqref{eq:chm-%s}; world through %s, "
                "Eq.~\\eqref{eq:chw-%s}."
                % (under, sl, tex(part["name"]), prim_key(part).lower(), sl,
                   "%d group%s" % (len(groups), "" if len(groups) == 1 else "s") if groups else "the root alone", sl))
-    return txt + "\n\\begin{align}\n" + "\\\\\n".join(eqs) + "\n\\end{align}"
+    body = "".join(e.replace(KEEP, "") + ("" if i == len(eqs) - 1 else "\\\\*\n" if e.endswith(KEEP) else "\\\\\n") for i, e in enumerate(eqs))
+    # the sentence stays with its first equation; a page may break between two equations, not inside one
+    return ("\\begingroup\\allowdisplaybreaks\\interlinepenalty=10000\\clubpenalty=10000\\relax\n" + txt
+            + "\n\\begin{align}\n" + body + "\n\\end{align}\\par\\endgroup")
 
 
 # ------------------------------------------------------------------------------------------------ vegetation note
@@ -799,7 +813,7 @@ for fam in FAMILIES:
                pair(j, label_groups=large, hmax=hfig),
                ("\\\\[1mm]\\begin{tabular}{@{}c@{}}\\img{%s}{%.2fcm}\\\\[-0.3mm]{\\fontsize{7.5}{9}\\selectfont %s}\\end{tabular}"
                 % (insitu(nm), 0.46 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
-               "\\\\[0.8mm]{\\fontsize{7}{8.5}\\selectfont %s}\\vspace{0.6mm}\\end{minipage}}" % strip,
+               "\\\\[0.8mm]{\\fontsize{7}{8.5}\\selectfont %s}\\vspace{0.6mm}\\end{minipage}}\\par\\nobreak" % strip,
                "\\captionof{figure}{%s.%s}\\label{fig:d-%s}" % (tex(nm), cut_note, slug(nm)),
                "\\end{center}\\vspace{-3mm}"]
         body = ["\\noindent\\textbf{%s.}\\label{des:%s} %s%s" % (tex(nm), slug(nm), sentence(d), veg_note(nm))]
@@ -807,7 +821,7 @@ for fam in FAMILIES:
         if r:
             body.append(r)
         body.append(chain_block(d))
-        card = "\n".join(x for x in fig if x) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_) + "\n" + cs.coord_sheet(d, own, d["instance_list"][0]["root_id"], BY_ID, mat, tex, lower_name(nm))[0]
+        card = "\n".join(x for x in fig if x) + "\n" + "\n\n".join(body) + "\n" + parts_table(d, rows_) + "\n" + cs.coord_sheet(d, own, d["instance_list"][0]["root_id"], BY_ID, mat, tex, lower_name(nm), EXP["terrain"]["radius"])[0]
         if nm == "Soldier":
             card += "\n\\soldierextras"
         if nm == "Main battle tank":
@@ -846,8 +860,8 @@ def lineup_panel(jj, which, width_cm):
 
 
 out.append("\\newcommand{\\munitionlineupfig}{\\begin{figure}[tbp]\\centering"
-           "\\begin{subfigure}{\\linewidth}\\centering %s\\caption{All four at one scale.}\\end{subfigure}\\\\[1mm]"
-           "\\begin{subfigure}{0.62\\linewidth}\\centering %s\\caption{The two small rounds enlarged (their own 10\\,cm bar).}\\end{subfigure}"
+           "\\begin{subfigure}[t]{\\linewidth}\\centering %s\\caption{All four at one scale.}\\end{subfigure}\\\\[1mm]"
+           "\\begin{subfigure}[t]{0.62\\linewidth}\\centering %s\\caption{The two small rounds enlarged (their own 10\\,cm bar).}\\end{subfigure}"
            "\\caption{The munitions built from parts, side by side at one scale, made of primitives (orthographic, lengths along the "
            "axis are true; the exhaust flame of the missiles is left out).}\\label{fig:munitions}\\end{figure}}"
            % (lineup_panel(lj, "prims", 10.5), lineup_panel(lj2, "prims", 7.5)))
@@ -875,7 +889,7 @@ for nm, tag in (("Autonomous UAV", "Uav"), ("Main battle tank", "Tank"), ("Scout
         im = Image.open(src).convert("RGB").crop(stage_box)
         im.thumbnail((1400, 1400))
         im.save(dst, quality=88)
-        cells.append("\\begin{subfigure}{0.49\\linewidth}\\img{figures/img/shapes/%s}{\\linewidth}\\caption{%d\\,\\%%: %d of %d parts}\\end{subfigure}"
+        cells.append("\\begin{subfigure}[t]{0.49\\linewidth}\\img{figures/img/shapes/%s}{\\linewidth}\\caption{%d\\,\\%%: %d of %d parts}\\end{subfigure}"
                      % (os.path.basename(dst), pct, sj["parts"], sj["of"]))
     # 2 x 2: each stage at half the text width
     out.append("\\newcommand{\\buildstripKey%s}{%s\\hfill\n%s\\\\[1.5mm]\n%s\\hfill\n%s}" % ((tag,) + tuple(cells)))

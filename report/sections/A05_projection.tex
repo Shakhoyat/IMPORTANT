@@ -5,7 +5,7 @@ A projection maps the view volume to the canonical cube $[-1,1]^3$. Perspective 
 (projectors meet at the eye); parallel projections keep sizes (projectors are parallel). Multiview drawings use
 orthographic views along the principal axes; an isometric view looks along $(1,1,1)$ so the three axes are
 foreshortened equally.
-\begin{equation}
+\begin{equation}\renewcommand{\arraystretch}{1.45}
 P_{\text{persp}}=\begin{bmatrix}\frac{f}{a}&0&0&0\\0&f&0&0\\0&0&\frac{-(F+N)}{F-N}&\frac{-2FN}{F-N}\\0&0&-1&0\end{bmatrix},\
 f=\cot\tfrac{\text{fov}}{2};\qquad
 P_{\text{ortho}}=\begin{bmatrix}\frac{2}{r-l}&0&0&-\frac{r+l}{r-l}\\0&\frac{2}{t-b}&0&-\frac{t+b}{t-b}\\0&0&\frac{-2}{F-N}&-\frac{F+N}{F-N}\\0&0&0&1\end{bmatrix}
@@ -19,7 +19,7 @@ P_{\text{oblique}}=P_{\text{ortho}}\begin{bmatrix}1&0&-L\cos\phi&0\\0&1&-L\sin\p
 L=1\ \text{(cavalier)},\ L=\tfrac12\ \text{(cabinet)}\nonumber
 \end{gather}
 \begin{itemize}
-\item $f$ is the focal length in units of half the screen height: fov $50^\circ$ gives $f=2.14$, $60^\circ$ gives $f=1.73$.
+\item $f$ is the focal length in units of half the screen height: a vertical \ab{503}{FOV} of $50^\circ$ gives $f=2.14$, $60^\circ$ gives $f=1.73$.
 \item The third row of $P_{\text{persp}}$ maps $z_e=-N\mapsto z_n=-1$ and $z_e=-F\mapsto z_n=+1$; the fourth row copies $-z_e$
 into $w$, which the divide of Section~\ref{sec:projective} uses.
 \item Oblique projections (a shear, then orthographic) are not used by ThermalSense; they are listed for comparison.
@@ -47,8 +47,9 @@ Mat4 ortho(float l, float r, float b, float t, float n, float f) {
     return m;
 }
 \end{lstlisting}
+
 \begin{table}[htbp]
-\caption{Every projection matrix ThermalSense builds, with its parameters. Short forms: UAV: uncrewed aerial vehicle.}\label{tab:projs}
+\caption{Every projection matrix ThermalSense builds, with its parameters. Short forms: UAV: uncrewed aerial vehicle; fov: vertical field of view.}\label{tab:projs}
 \centering\small
 \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.3cm}lX>{\raggedright\arraybackslash}p{3.2cm}@{}}
 \toprule
@@ -70,8 +71,8 @@ Searchlight shadow & perspective & fov $2\cdot14^\circ+4^\circ=32^\circ$, $a=1$,
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_persp}{\linewidth}\caption{Perspective (fov $56^\circ$).}\end{subfigure}\hfill
-\begin{subfigure}{0.495\linewidth}\raw{scene/v10_proj_iso}{\linewidth}\caption{Isometric (axonometric).}\end{subfigure}
+\begin{subfigure}[t]{0.495\linewidth}\raw{scene/v10_proj_persp}{\linewidth}\caption{Perspective (field of view $56^\circ$).}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.495\linewidth}\raw{scene/v10_proj_iso}{\linewidth}\caption{Isometric (axonometric).}\end{subfigure}
 \caption{The same scene and time in perspective and isometric projection (\key{Ctrl+P}).}
 \label{fig:proj}
 \end{figure}
@@ -79,6 +80,7 @@ Searchlight shadow & perspective & fov $2\cdot14^\circ+4^\circ=32^\circ$, $a=1$,
 In perspective (Figure~\ref{fig:proj}a) the near huts look larger than identical far ones and parallel roads
 converge; in the isometric view (b) equal objects stay equal anywhere in the frame. The orthographic top view is the
 site plan of Figure~\ref{fig:layout}.
+
 \begin{table}[htbp]
 \caption{Differences between the projections.}
 \centering\small
@@ -92,6 +94,6 @@ Isometric & three faces visible, equal foreshortening & same; linear depth & lay
 \end{tabularx}
 \end{table}
 
-\textbf{Limitation.} The screen-space effects (\ab{491}{SSAO}/GTAO, \ab{492}{SSR}, fog, \ab{493}{TAA}) reconstruct positions assuming a perspective
-projection. In the orthographic views they still run, so fog and reflections in (d) and (e) are not physically
+\textbf{Limitation.} The screen-space effects (\ab{504}{SSAO}/GTAO, \ab{505}{SSR}, fog, \ab{506}{TAA}) reconstruct positions assuming a perspective
+projection. In the orthographic views they still run, so fog and reflections in the isometric view (Figure~\ref{fig:proj}b) are not physically
 meaningful; the views are for geometry, not for lighting.

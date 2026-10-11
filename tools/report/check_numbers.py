@@ -107,11 +107,109 @@ want = 0
 for d in exp["designs"]:
     rid = d["instance_list"][0]["root_id"]
     want += sum(1 for c in exp["components"] if c["design_root"] == rid and c["design"] == d["name"] and c["primitive"] != "Group")
-stated = sum(int(x) for x in re.findall(r"extent E--G; (\d+) components", des))
+stated = sum(int(x) for x in re.findall(r"extent E--G; (\d+) components?\.", des))
 if stated != want:
     bad.append("coordinate sheets list %d components, the export has %d" % (stated, want))
 else:
     print("ok  %-58s %d" % ("coordinate sheet rows", want))
+
+# ---- constants of the equations and hand-written tables
+import math  # noqa: E402
+
+
+def grab(path, rx, group=1):
+    m = re.search(rx, src(path), re.S)
+    if not m:
+        bad.append("pattern %s not found in %s" % (rx, path))
+        return float("nan")
+    return float(m.group(group))
+
+
+def near(what, value, text, pattern, digits):
+    """The report prints 'value' rounded to 'digits' decimals where 'pattern' matches."""
+    hits = re.findall(pattern, text)
+    if not hits:
+        bad.append("%s: the report sentence was not found (%s)" % (what, pattern))
+        return
+    for h in hits:
+        if abs(float(h) - value) > 0.5 * 10 ** (-digits) + 1e-12:
+            bad.append("%s: report says %s, the value is %.6g" % (what, h, value))
+    print("ok  %-58s %s" % (what, hits[0]))
+
+
+day, post, texm, proj, trans, hard = (tex(n) for n in ("B03_daynight.tex", "A12b_post.tex", "A12_texture.tex", "A05_projection.tex",
+                                                       "A02_transforms.tex", "B10_hard.tex"))
+ky = r"\+ ([\d.]+)f \* std::pow\(e \+ ([\d.]+)f, -([\d.]+)f\)"
+m = re.search(r"\\sin e\+([\d.]+)\\,\(e\+([\d.]+)\^\\circ\)\^\{-([\d.]+)\}", day)
+if not m or [float(x) for x in m.groups()] != [grab("src/scene/DayCycle.cpp", ky, i) for i in (1, 2, 3)]:
+    bad.append("air mass formula of Section 22 differs from DayCycle.cpp")
+else:
+    print("ok  %-58s %s" % ("air mass constants (Kasten-Young)", ", ".join(m.groups())))
+tm = r"x \* \(x \+ ([\d.]+)f\) - ([\d.]+)f;\s*const float b = x \* \(([\d.]+)f \* x \+ ([\d.]+)f\) \+ ([\d.]+)f"
+m = re.search(r"\\vect v\+([\d.]+)\)-([\d.]+)\}\{\\vect v\(([\d.]+)\\,\\vect v\+([\d.]+)\)\+([\d.]+)\}", post)
+if not m or [float(x) for x in m.groups()] != [grab("src/math/ToneMap.cpp", tm, i) for i in (1, 2, 3, 4, 5)]:
+    bad.append("tone curve of Section 19 differs from ToneMap.cpp")
+else:
+    print("ok  %-58s %s" % ("tone curve constants", ", ".join(m.groups())))
+near("tone curve: lowest exposure", grab("src/math/ToneMap.h", r"kAgxMinEv = -([\d.]+)f"), post, r"\\log_2\\vect v,-([\d.]+),", 2)
+near("tone curve: highest exposure", grab("src/math/ToneMap.h", r"kAgxMaxEv = ([\d.]+)f"), post, r"\\log_2\\vect v,-[\d.]+,([\d.]+)\)", 2)
+expect("fog density at night", grab("src/rendering/Lighting.h", r"float fogDensity = ([\d.]+)f"), post, r"\\rho=([\d.]+)\\ \\text\{\(night\)\}")
+expect("fog density by day", grab("src/scene/DayCycle.cpp", r"kDayFogDensity = ([\d.]+)f"), post, r"\\ldots\\ ([\d.]+)\\,\\text\{m\}")
+expect("value noise frequency ratio", grab("src/rendering/ShaderSources.cpp", r"valueNoise\(p\); p = p \* ([\d.]+) \+"), texm, r"noise\}\\big\(([\d.]+)\^\{\\,o\}")
+expect("shadow depth bias, cascades", grab("src/rendering/ShaderSources.cpp", r"float zr = p\.z - ([\d.]+);"), ill, r"\$b=([\d.]+)\$ \(cascades\)")
+expect("shadow depth bias, searchlight", grab("src/rendering/ShaderSources.cpp", r"uSpotShadow, vec3\([^;]*p\.z - ([\d.]+)\)"), ill, r"\$([\d.]+)\$ \(searchlight\)")
+nz, fz = grab("src/scene/Camera.h", r"float nearZ = ([\d.]+)f"), grab("src/scene/Camera.h", r"farZ = ([\d.]+)f")
+expect("far / near ratio", fz / nz, hard, r"F/N=([\d\\,]+)\$")
+expect("near plane", nz, hard, r"the ([\d.]+)\\,m near plane")
+near("isometric elevation", math.degrees(math.atan(1 / math.sqrt(2))), proj, r"\\arctan\(1/\\sqrt2\)=([\d.]+)", 2)
+near("isometric foreshortening", math.sqrt(2 / 3), proj, r"\\sqrt\{2/3\}=([\d.]+)", 3)
+near("focal factor at 50 degrees", 1 / math.tan(math.radians(25)), proj, r"50\^\\circ\$ gives \$f=([\d.]+)", 2)
+near("focal factor at 60 degrees", 1 / math.tan(math.radians(30)), proj, r"60\^\\circ\$ gives \$f=([\d.]+)", 2)
+near("wrong normal: angle to the true normal", math.degrees(math.acos(2 * 0.25 / (0.25 ** 2 + 1))), trans, r"\(wrong\) & [^&]* & \$([\d.]+)\^\\circ", 1)
+
+# shadow settings per preset (the table of Section 16 against RendererFrame.cpp: qualityProfile)
+hdr = src("src/rendering/Renderer.h")
+body = re.search(r"struct QualityProfile \{(.*?)\n\};", hdr, re.S).group(1)
+base = {k: v.strip().rstrip("f") for k, v in re.findall(r"(\w+) = ([^;,/]+)", re.sub(r"//[^\n]*", "", body))}
+fn = src("src/rendering/RendererFrame.cpp")
+fn = fn[fn.index("QualityProfile qualityProfile(Quality q)"):]
+fn = fn[:fn.index("\n}\n")]
+prof = {}
+for name, blk in re.findall(r"q == Quality::(\w+)\) \{(.*?)\n    \}", fn, re.S) + [("High", re.search(r"\} else \{\s*// HIGH(.*?)\n    \}", fn, re.S).group(1))]:
+    prof[name] = dict(base, **{k: v.strip().rstrip("f") for k, v in re.findall(r"p\.(\w+) = ([^;]+);", blk)})
+
+
+def cell(q, field, gate=None, unit=""):
+    if gate and prof[q][gate] != "true":
+        return "--"
+    v = float(prof[q][field])
+    return "off" if field == "spotShadowRes" and v == 0 else ("%g" % v) + unit
+
+
+for label, field, gate, unit in (("Key-light map (2 cascades)", "moonShadowRes", None, ""), ("Searchlight map", "spotShadowRes", None, ""),
+                                 ("Near cascade covers", "cascadeSplit", None, "\\,m"), ("PCF taps $n$", "pcfTaps", None, ""),
+                                 ("PCSS blocker taps", "blockerTaps", "pcss", ""), ("Contact-shadow steps", "contactSteps", "contactShadows", "")):
+    want = " & ".join(cell(q, field, gate, unit) for q in ("Low", "High", "Ultra", "Epic"))
+    m = re.search(re.escape(label) + r" & (.*?)\\\\", ill)
+    if not m or m.group(1).strip() != want:
+        bad.append("shadow table, %s: report '%s', code '%s'" % (label, m.group(1) if m else "missing", want))
+    else:
+        print("ok  %-58s %s" % ("shadow table: " + label, want.replace("\\,", " ")))
+
+# ---- the film (Section 33)
+import subprocess  # noqa: E402
+
+film = os.path.join(ROOT, "report", "video", "thermalsense_final_720p.mp4")
+probe = os.path.expanduser("~/.local/bin/ffprobe")
+if os.path.exists(film) and os.path.exists(probe):
+    r = subprocess.run([probe, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate:format=duration",
+                        "-of", "default=nw=1:nk=1", film], capture_output=True, text=True).stdout.split()
+    secs = int(round(float(r[1])))
+    fps = float(r[0].split("/")[0]) / float(r[0].split("/")[1])
+    con = re.sub(r"\\ab[pd]?\{\d+\}\{([^{}]*)\}", r"\1", tex("C03_conclusion.tex"))
+    expect("film length, minutes", secs // 60, con, r"film of (\d+)\\,min")
+    expect("film length, seconds", secs % 60, con, r"min\\,(\d+)\\,s")
+    expect("film frames per second", fps, con, r"(\d+)\\,fps")
 
 # ---- tests
 res = os.path.join(ROOT, "build", "test_results.json")

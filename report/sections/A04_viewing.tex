@@ -13,13 +13,13 @@ V=\begin{bmatrix}u_x&u_y&u_z&-\vect u\cdot\vect e\\v_x&v_y&v_z&-\vect v\cdot\vec
 The code writes the same matrix with $\vect f=-\vect n$ (forward), $\vect s=\vect u$ (side) and $\vect u=\vect v$
 (\code{math/Math3D.cpp lookAt}); the camera looks down its $-z$ axis.
 \begin{equation}
-V=\underbrace{\begin{bmatrix}u_x&u_y&u_z&0\\v_x&v_y&v_z&0\\n_x&n_y&n_z&0\\0&0&0&1\end{bmatrix}}_{R_{uvn}:\ \text{rotate the axes onto } x,y,z}
-\underbrace{\begin{bmatrix}1&0&0&-e_x\\0&1&0&-e_y\\0&0&1&-e_z\\0&0&0&1\end{bmatrix}}_{T(-\vect e):\ \text{eye to the origin}},\qquad
+V=\underbrace{\begin{bmatrix}u_x&u_y&u_z&0\\v_x&v_y&v_z&0\\n_x&n_y&n_z&0\\0&0&0&1\end{bmatrix}}_{R_{uvn}:\ \text{axes onto } x,y,z}\ 
+\underbrace{\begin{bmatrix}1&0&0&-e_x\\0&1&0&-e_y\\0&0&1&-e_z\\0&0&0&1\end{bmatrix}}_{T(-\vect e):\ \text{eye to origin}},\qquad
 V^{-1}=T(\vect e)\,R_{uvn}^{\top}\label{eq:viewdecomp}
 \end{equation}
 \begin{itemize}
 \item $R_{uvn}$ is orthonormal, so its inverse is its transpose; the camera's world matrix is $V^{-1}$, and a camera hung in
-the scene graph (the \ab{486}{UAV} gimbal) uses $V=W_{\text{camera}}^{-1}$.
+the scene graph (the \ab{498}{UAV} gimbal) uses $V=W_{\text{camera}}^{-1}$.
 \item A point straight ahead of the eye at distance $d$ lands at $(0,0,-d)$ in eye space.
 \end{itemize}
 \begin{lstlisting}[language=C++,caption={The view matrix (\code{src/math/Math3D.cpp: lookAt}); $\vect s=\vect u$, $\vect u=\vect v$, $\vect f=-\vect n$ of Eq.~\eqref{eq:view}.}]
@@ -37,17 +37,17 @@ Mat4 lookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=0.6\linewidth]{figures/diagrams/d_view_basis.pdf}
-\caption{The camera basis of Eq.~\ref{eq:view}, seen from the side: $\mathbf{n}$ points from the target back to the eye, $\mathbf{u}$ to the side, $\mathbf{v}$ completes the frame; the camera looks along $-\mathbf{n}$.}
+\caption{The camera basis of Eq.~\eqref{eq:view}, seen from the side: $\mathbf{n}$ points from the target back to the eye, $\mathbf{u}$ to the side, $\mathbf{v}$ completes the frame; the camera looks along $-\mathbf{n}$.}
 \label{fig:d-view}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_command_bunker}{\linewidth}\caption{Orbit camera (default): $\vect e$ on a sphere around $\vect a$.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_first_person}{\linewidth}\caption{First person: $\vect e$ at the soldier's eye, 1.7\,m.}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_third_person}{\linewidth}\caption{Third person: $\vect e$ on a spring arm behind the shoulder.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{v5/uav_camera_view}{\linewidth}\caption{UAV (uncrewed aerial vehicle) gimbal camera: $\vect e$, $\vect a$ from the camera node (thermal).}\end{subfigure}
-\caption{Four cameras on the same scene, each a different $(\vect e,\vect a,\vect{up})$ in Eq.~\ref{eq:view}.}
+\begin{subfigure}[t]{0.49\linewidth}\raw{insitu/insitu_command_bunker}{\linewidth}\caption{Orbit camera (default): $\vect e$ on a sphere around $\vect a$.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{play_clean/play_first_person}{\linewidth}\caption{First person: $\vect e$ at the soldier's eye, 1.7\,m.}\end{subfigure}\\[1.2mm]
+\begin{subfigure}[t]{0.49\linewidth}\raw{play_clean/play_third_person}{\linewidth}\caption{Third person: $\vect e$ on a spring arm behind the shoulder.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{v5/uav_camera_view}{\linewidth}\caption{UAV (uncrewed aerial vehicle) gimbal camera: $\vect e$, $\vect a$ from the camera node (thermal).}\end{subfigure}
+\caption{Four cameras on the same scene, each a different $(\vect e,\vect a,\vect{up})$ in Eq.~\eqref{eq:view}.}
 \label{fig:cams}
 \end{figure}
 
@@ -61,15 +61,15 @@ Mat4 lookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {
 \wbblock{View_Projection}{depth}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{View\_Projection}: $\vect u,\vect v,\vect n$ from cross products for the default orbit
-camera, the view matrix, the perspective matrix, and the depth table used in Section~\ref{sec:projective}. \fullsheet{View_Projection}}
+camera, the view matrix, the perspective matrix, and the depth table used in Section~\ref{sec:projective}. \fullsheet{View_Projection}.}
 \label{fig:wb-view}
 \end{figure}
 
-The \ab{487}{UAV} camera of Figure~\ref{fig:cams}d takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
+The \ab{499}{UAV} camera of Figure~\ref{fig:cams}d takes its eye and axes from the gimbal nodes of Figure~\ref{fig:sg}: its
 view matrix is the inverse of the camera node's world matrix.
 
-\textbf{Camera system.} Orbit (default), free fly (\key{Home}), chase, \ab{488}{UAV} camera, walk, first and third person on
-any soldier (\key{Tab}, \key{V}), \ab{489}{UAV} chase / \ab{490}{FPV} / gimbal, any moving object's point of view (\key{F4}) and the
+\textbf{Camera system.} Orbit (default), free fly (\key{Home}), chase, \ab{500}{UAV} camera, walk, first and third person on
+any soldier (\key{Tab}, \key{V}), \ab{501}{UAV} chase / \ab{502}{FPV} / gimbal, any moving object's point of view (\key{F4}) and the
 cinematic director (\key{K}). Changes of camera blend over 0.6\,s on a critically damped spring.
 
 \textbf{Limitation.} When $\vect{up}\parallel\vect n$ (looking straight down) the cross product vanishes. The top view of

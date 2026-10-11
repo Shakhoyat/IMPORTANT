@@ -1,7 +1,7 @@
 \section{Dynamic and controllable objects}
 \label{sec:dynamic}
 \here{2}
-\nControllables{} units can be controlled (soldiers, two \ab{551}{UAVs}, tanks, helicopter, \ab{552}{AA} gun, radar, launchers, blast
+\nControllables{} units can be controlled (soldiers, two \ab{564}{UAVs}, tanks, helicopter, \ab{565}{AA} gun, radar, launchers, blast
 doors, gate). Motion is integrated at a fixed 60\,Hz tick; between ticks the drawn pose is interpolated, so motion is
 smooth at any frame rate. Almost every follow behaviour (character speed, cameras, doors) uses one tool: a
 critically damped spring, which reaches its target as fast as possible without overshoot and has an exact step for any $\Delta t$.
@@ -30,12 +30,12 @@ Eye adaptation & exposure time constant 0.35\,s towards brighter, 1.1\,s towards
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.325\linewidth}\raw{play_clean/play_door_closed}{\linewidth}\caption{Hall door shut.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{0.4\,s after \key{E}: the hinge spring.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play_clean/play_door_open}{\linewidth}\caption{On its holder (95\,\% in 1.13\,s).}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.325\linewidth}\raw{showcase/sc_bunker_ramp_closed}{\linewidth}\caption{Blast gate shut (its state at the start).}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{showcase/sc_bunker_ramp_open}{\linewidth}\caption{Both leaves swung out $92^\circ$ (4\,s); a soldier walks out.}\end{subfigure}\hfill
-\begin{subfigure}{0.325\linewidth}\raw{play_clean/play_sprint_fov}{\linewidth}\caption{Sprint: the field of view widens by up to $6^\circ$.}\end{subfigure}
+\begin{subfigure}[t]{0.325\linewidth}\raw{play_clean/play_door_closed}{\linewidth}\caption{Hall door shut.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.325\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{0.4\,s after \key{E}: the hinge spring.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.325\linewidth}\raw{play_clean/play_door_open}{\linewidth}\caption{On its holder (95\,\% in 1.13\,s).}\end{subfigure}\\[1.2mm]
+\begin{subfigure}[t]{0.325\linewidth}\raw{showcase/sc_bunker_ramp_closed}{\linewidth}\caption{Blast gate shut (its state at the start).}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.325\linewidth}\raw{showcase/sc_bunker_ramp_open}{\linewidth}\caption{Both leaves swung out $92^\circ$ (4\,s); a soldier walks out.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.325\linewidth}\raw{play_clean/play_sprint_fov}{\linewidth}\caption{Sprint: the field of view widens by up to $6^\circ$.}\end{subfigure}
 \caption{Controllable dynamics in the scene: a hinged door on a spring (a--c, Eq.~\eqref{eq:spring}), the bunker's
 hinged blast gate (d, e) and the sprint camera (f).}
 \label{fig:dyn}

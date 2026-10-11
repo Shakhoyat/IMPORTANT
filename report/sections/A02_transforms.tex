@@ -35,9 +35,10 @@ N=\big(M_{3\times3}^{-1}\big)^{\!\top},\qquad \vect n_{\text{world}}=\frac{N\,\v
 \item $M$ maps a tangent $\vect t$ to $M\vect t$; a normal must stay perpendicular, $(N\vect n)\cdot(M\vect t)=\vect n^\top N^\top M\vect t=0$
 for every $\vect t$, so $N^\top M=I$ and $N=(M^{-1})^\top$. Under a non-uniform $S$ the plain $M\vect n$ tilts the normal
 (Table~\ref{tab:normalmat}).
-\item The renderer computes $N$ once per part on the \ab{483}{CPU} (\code{Math3D.cpp: normalMatrix}, a cofactor inverse) and sends it as
+\item The renderer computes $N$ once per part on the \ab{495}{CPU} (\code{Math3D.cpp: normalMatrix}, a cofactor inverse) and sends it as
 \code{uNormalMat}; the shaders only multiply.
 \end{itemize}
+
 \begin{table}[htbp]
 \caption{Why normals need the inverse transpose: a face of a unit primitive at $45^\circ$ (normal $(1,1,0)/\sqrt2$), stretched
 by $S=\mathrm{diag}(4,1,1)$ like a wall panel.}\label{tab:normalmat}
@@ -51,6 +52,7 @@ $N\vect n=(M^{-1})^\top\vect n$, normalised & $(0.243,\,0.970,\,0)$ & $0^\circ$\
 \bottomrule
 \end{tabular}
 \end{table}
+
 \begin{lstlisting}[language=C++,caption={Rotation, Euler order and normal matrix (\code{src/math/Math3D.cpp}); no maths library is used.}]
 Mat4 rotateY(float a) {                       // R_y: cos and sin in the x-z plane
     Mat4 r; const float c = std::cos(a), s = std::sin(a);
@@ -66,6 +68,7 @@ Mat3 normalMatrix(const Mat4& model) {        // inverse-transpose of the upper-
     return n;
 }
 \end{lstlisting}
+
 \begin{table}[htbp]
 \caption{Each transformation and the function that computes it (all in \code{src/math/Math3D.cpp} unless named).}\label{tab:trscode}
 \centering\small
@@ -86,20 +89,20 @@ $A\,B$, $A\,\vect v$ & $\sum_k a_{rk}b_{kc}$ (column-major storage) & \code{oper
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_trs_order.pdf}
-\caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\ref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$). Short forms: TRS: translate, rotate, scale.}
+\caption{The order matters. A unit square is scaled, rotated about the origin, then translated ($TRS$, the order of Eq.~\eqref{eq:trs}); translating first and then rotating swings the square about the origin to a different place (red, $SRT$). Short forms: TRS: translate, rotate, scale.}
 \label{fig:d-trs}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_quonset_hut}{\linewidth}\caption{One Quonset hut design, three
+\begin{subfigure}[t]{0.49\linewidth}\raw{insitu/insitu_quonset_hut}{\linewidth}\caption{One Quonset hut design, three
 placements: $T$ and $R_y$ ($125^\circ$, $112^\circ$, $99^\circ$) fan them along the camp's curve.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_guard_tower}{\linewidth}\caption{Four guard towers on the perimeter: the
+\begin{subfigure}[t]{0.49\linewidth}\raw{insitu/insitu_guard_tower}{\linewidth}\caption{Four guard towers on the perimeter: the
 same parts, $R_y$ turns each to face into the base ($-150^\circ$, $140^\circ$, $25^\circ$, $-70^\circ$).}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.49\linewidth}\raw{insitu/insitu_jersey_barrier}{\linewidth}\caption{Six jersey barriers along the gate
+\begin{subfigure}[t]{0.49\linewidth}\raw{insitu/insitu_jersey_barrier}{\linewidth}\caption{Six jersey barriers along the gate
 road: a translation only, alternating $x=\pm3$\,m.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{The hall door: a rotation about its
-hinge, $T(\vect p)\,R_y(\alpha)\,T(-\vect p)$ (Eq.~\ref{eq:pivot}).}\end{subfigure}
+\begin{subfigure}[t]{0.49\linewidth}\raw{play_clean/play_door_opening}{\linewidth}\caption{The hall door: a rotation about its
+hinge, $T(\vect p)\,R_y(\alpha)\,T(-\vect p)$ (Eq.~\eqref{eq:pivot}).}\end{subfigure}
 \caption{Modelling transformations in the scene: one design, many placements.}
 \label{fig:trs-scene}
 \end{figure}
@@ -132,13 +135,14 @@ frame, turned with its part.}
 \subsection{Following vertices into the world}
 \label{sec:worked}
 Four parts of the scene, followed by the same rule $\vect p_{\text{world}}=W\,\vect p_{\text{local}}$ with
-$W=W_{\text{parent}}\,T\,R_y\,R_x\,R_z\,S$ (Eqs.~\ref{eq:trs}, \ref{eq:world}). The matrices are composed from each
+$W=W_{\text{parent}}\,T\,R_y\,R_x\,R_z\,S$ (Eqs.~\eqref{eq:trs}, \ref{eq:world}). The matrices are composed from each
 part's $S$, $R$ and $T$ and reproduce its world matrix. The workbook sheet \code{Vertex\_Groups} holds the same groups as live formulas.
 
 \textbf{A. A bunker wall panel: the 8 corners of a cuboid.} Part \wgAname, child of \wgAparent; its local
 transform is $\wgAsrt$. The scale stretches the unit cube to the panel's size, the translation places it, and the
 parent's matrix carries it into the world.
 \[\scriptsize\wgAmats\]
+
 \begin{table}[htbp]
 \caption{Group A: the cube's corners $v_0..v_7$ (Figure~\ref{fig:card-cube}) and where they land in the world.}\label{tab:wgA}
 \centering\footnotesize\wgA
@@ -148,6 +152,7 @@ parent's matrix carries it into the world.
 road-wheel group (\wgBname) turns it with $R_y$ so that the tyre's axis follows the hull's side, and the tyre's own scale
 sets its radius and width: $\wgBsrt$.
 \[\scriptsize\wgBmats\]
+
 \begin{table}[htbp]
 \caption{Group B: points of the unit torus through the tyre's and wheel's matrices, then into the world; the tyre's
 axis in world space is $\wgBaxle$.}\label{tab:wgB}
@@ -159,20 +164,23 @@ axis in world space is $\wgBaxle$.}\label{tab:wgB}
 changes one rotation of each leaf group, $R_y(\mp\wgDoorSwing^\circ)$ about its jamb hinge: the group's origin is the
 hinge, so its matrix $T(\vect p)\,R_y(\psi)$ is the pivot rotation of Eq.~\eqref{eq:pivot}. Every part below the changed
 node moves with it, with no other matrix touched.
+
 \begin{table}[htbp]
 \caption{Group C. Top: soldier 1's left leg in the exported standing pose and at the gait phase with the most knee
 bend (pelvis held still); the ankle is $(0,-0.44,0)$ in the knee's frame.}\label{tab:wgC}
 \centering\footnotesize\wgC\\[2mm]\wgCdoor
 \end{table}
 
-\textbf{D. The \abp{484}{UAV} camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
+\textbf{D. The \abp{496}{UAV} camera: a yaw inside a pitch inside the airframe.} The thermal camera hangs under two gimbal
 groups, $\wgDchain$. Its view axis is the camera frame's $+z$ direction, $W(0,0,1,0)^\top$ (a direction: $w=0$, so
 translations do not affect it).
+
 \begin{table}[htbp]
 \caption{Group D: camera position and view axis of UAV (uncrewed aerial vehicle)~1 for the starting gimbal angles and two other settings; the
 pitch alone sets the angle below the horizon.}\label{tab:wgD}
 \centering\footnotesize\wgD
 \end{table}
+
 The camera barely moves between the three settings: the gimbal turns it about points a few centimetres away.
 
 

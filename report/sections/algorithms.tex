@@ -2,6 +2,7 @@
 % Complexity: n = items processed, as named in each caption.
 
 \newcommand{\algClip}{%
+
 \begin{algorithm}[htbp]
 \caption{Frustum culling (CPU (central processing unit)) and polygon clipping against the view volume (GPU (graphics processing unit), Sutherland--Hodgman), \code{rendering/Renderer.cpp}.}\label{alg:clip}
 \begin{algorithmic}[1]
@@ -25,6 +26,7 @@
 \end{algorithm}}
 
 \newcommand{\algRaster}{%
+
 \begin{algorithm}[htbp]
 \caption{Triangle rasterisation with edge functions and the Z-buffer (the GPU's (graphics processing unit) method, replayed by the Frame Explorer,
 \code{rendering/FrameExplorer.cpp}).}\label{alg:raster}
@@ -45,6 +47,7 @@
 \end{algorithm}}
 
 \newcommand{\algWhitted}{%
+
 \begin{algorithm}[htbp]
 \caption{Whitted ray tracing over a BVH (bounding volume hierarchy) (\code{raytrace/Bvh.cpp}, \code{raytrace/RayTracer.cpp}).}\label{alg:whitted}
 \begin{algorithmic}[1]
@@ -64,6 +67,7 @@
 \end{algorithm}}
 
 \newcommand{\algCv}{%
+
 \begin{algorithm}[htbp]
 \caption{Thermal computer-vision pipeline, every vision frame of each UAV (uncrewed aerial vehicle) (\code{vision/CvPipeline.cpp}).}\label{alg:cv}
 \begin{algorithmic}[1]
@@ -82,6 +86,7 @@
 \end{algorithm}}
 
 \newcommand{\algTracker}{%
+
 \begin{algorithm}[htbp]
 \caption{Multi-target tracker shared by both UAVs (uncrewed aerial vehicles) (\code{vision/MultiTracker.cpp}).}\label{alg:tracker}
 \begin{algorithmic}[1]
@@ -103,6 +108,7 @@
 \end{algorithm}}
 
 \newcommand{\algSquad}{%
+
 \begin{algorithm}[htbp]
 \caption{UAV (uncrewed aerial vehicle) squad: roles, the single and the combined strike and the round's guidance (\code{ai/Squad.cpp}).}\label{alg:squad}
 \begin{algorithmic}[1]
@@ -128,6 +134,7 @@
 \end{algorithm}}
 
 \newcommand{\algParticles}{%
+
 \begin{algorithm}[htbp]
 \caption{Particle system of an explosion (\code{scene/Combat.cpp}, \code{rendering/Effects.cpp}): update every tick and draw every frame. Short forms: HDR: high dynamic range.}\label{alg:particles}
 \begin{algorithmic}[1]
@@ -145,6 +152,7 @@
 \end{algorithm}}
 
 \newcommand{\algSoldier}{%
+
 \begin{algorithm}[htbp]
 \caption{Soldiers' route planning (\code{scene/Garrison.cpp}): A* on a $72\times72$ grid of 1\,m cells, string pulling and a
 centripetal Catmull--Rom spline.}\label{alg:soldier}
@@ -168,6 +176,7 @@ centripetal Catmull--Rom spline.}\label{alg:soldier}
 \end{algorithm}}
 
 \newcommand{\algGait}{%
+
 \begin{algorithm}[htbp]
 \caption{Walking soldier, every tick (\code{scene/Gait.cpp}): gait phase, foot targets and two-link inverse kinematics.}\label{alg:gait}
 \begin{algorithmic}[1]

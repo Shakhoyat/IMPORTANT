@@ -3,7 +3,7 @@
 \here{10}
 A ray $\vect r(t)=\vect o+t\vect d$ is intersected with the scene. Rays answer three questions here: what is
 under the cursor (picking), is a point lit (shadow rays), and what does a mirror or glass show (reflection and
-refraction rays, Whitted \cite{whitted1980}). A \ab{543}{CPU}/GPU ray tracer with a \ab{544}{BVH} runs over the same scene.
+refraction rays, Whitted \cite{whitted1980}). A \ab{556}{CPU}/GPU ray tracer with a \ab{557}{BVH} runs over the same scene.
 \begin{equation}
 \text{sphere: } t^2(\vect d\cdot\vect d)+2t\,\vect d\cdot(\vect o-\vect c)+\lVert\vect o-\vect c\rVert^2-r^2=0;\quad
 \text{plane: } t=\frac{(\vect p_0-\vect o)\cdot\vect n}{\vect d\cdot\vect n}
@@ -30,16 +30,17 @@ t=\frac{\vect e_2\cdot\vect Q}{\vect e_1\cdot\vect P},\qquad\text{hit iff } u,v\
 F_{\text{exact}}=\tfrac12\big(r_s^2+r_p^2\big),\quad r_s=\frac{\eta\cos\theta_i-\cos\theta_t}{\eta\cos\theta_i+\cos\theta_t},\quad
 r_p=\frac{\cos\theta_i-\eta\cos\theta_t}{\cos\theta_i+\eta\cos\theta_t}\label{eq:fresnelexact}\\
 F_{\text{Schlick}}=F_0+(1-F_0)(1-\cos\theta)^5,\qquad \text{total internal reflection iff } \eta^2(1-\cos^2\theta_i)>1\nonumber\\
-\text{SAH: } C=C_t+C_i\,\frac{A_L\,n_L+A_R\,n_R}{A_P},\qquad C_t=1,\ C_i=1.5,\ 16 \text{ bins per axis, leaves of }\le4\label{eq:sah}
+\text{surface area heuristic (SAH): } C=C_t+C_i\,\frac{A_L\,n_L+A_R\,n_R}{A_P},\qquad C_t=1,\ C_i=1.5,\ 16 \text{ bins per axis, leaves of }\le4\label{eq:sah}
 \end{gather}
 \begin{itemize}
 \item Quadratics are solved in the stable form $q=-(b+\operatorname{sign}(b)\sqrt{b^2-ac})$, roots $q/a$ and $c/q$, from the point of
 closest approach, so a 1\,cm wire 60\,m away keeps its precision.
-\item The terrain is a height field of triangles walked cell by cell with the 3D \ab{545}{DDA} of Section~\ref{sec:raster}; glass uses
+\item The terrain is a height field of triangles walked cell by cell with the 3D \ab{558}{DDA} of Section~\ref{sec:raster}; glass uses
 the exact Fresnel term with $\eta=1/1.5$ entering and $1.5$ leaving; smooth metal and wet surfaces use Schlick with
 $F_0=\operatorname{mix}(0.04,\boldsymbol\rho,m)$ (Figure~\ref{fig:fresnel}).
-\item The \ab{546}{BVH} split minimises $C$ over the 15 bin boundaries of each axis: $A$ are box surface areas, $n$ primitive counts.
+\item The \ab{559}{BVH} split minimises $C$ over the 15 bin boundaries of each axis: $A$ are box surface areas, $n$ primitive counts.
 \end{itemize}
+
 \begin{figure}[htbp]
 \centering\plot{p_fresnel}{\linewidth}
 \caption{Reflectance of glass ($\eta=1.5$) with the exact Fresnel equations of Eq.~\eqref{eq:fresnelexact} and with
@@ -47,6 +48,7 @@ Schlick's approximation: (a) entering, where the two agree; (b) leaving, where o
 reflection beyond $41.8^\circ$.}
 \label{fig:fresnel}
 \end{figure}
+
 \begin{table}[htbp]
 \caption{Ray-tracing equations and their code (\code{src/raytrace/}). Short forms: BVH: bounding volume hierarchy; DDA: digital differential analyser.}\label{tab:rtcode}
 \centering\small
@@ -66,7 +68,7 @@ BVH build & surface area heuristic (SAH), Eq.~\eqref{eq:sah} & \code{Bvh.cpp} (\
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_raytrace.pdf}
-\caption{Left: solving Eq.~\ref{eq:rays} for a sphere gives two roots; the nearest positive one is the visible hit.}
+\caption{Left: solving Eq.~\eqref{eq:rays} for a sphere gives two roots; the nearest positive one is the visible hit.}
 \label{fig:d-rt}
 \end{figure}
 
@@ -77,13 +79,14 @@ Figure~\ref{fig:flow-whitted} shows one pixel of the Whitted mode as a flow; Alg
 \begin{figure}[htbp]
 \centering
 \raw{rt/raytrace_modes}{\linewidth}
-\caption{The same view in the five render modes (\key{;}): raster, hybrid (raster plus ray-traced reflections),
-Whitted, path tracing and light tracing.}
+\caption{The same view in the five render modes (\key{;}): (a) raster, (b) hybrid (raster plus ray-traced reflections),
+(c) Whitted, (d) path tracing, (e) light tracing; (f) the ray debugger.}
 \label{fig:rtmodes}
 \end{figure}
 
 On the shiny surfaces the raster image can only reflect what is on screen; Whitted tracing gives exact mirror
 reflections and shadow rays, and the path tracer adds soft indirect light and soft shadows.
+
 \begin{figure}[htbp]
 \centering\raw{rt/raytrace_tree}{\linewidth}
 \caption{The ray debugger (\key{'}, click a pixel) draws the ray tree of one pixel: primary ray, shadow rays to
@@ -102,12 +105,12 @@ each light, reflection and refraction children.}
 \wbblock{Ray_Tracing}{whitted}\end{minipage}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Ray\_Tracing}: ray--sphere and
-ray--plane intersections, reflection, Snell refraction and the contribution of each recursion level. \fullsheet{Ray_Tracing}}
+ray--plane intersections, reflection, Snell refraction and the contribution of each recursion level. \fullsheet{Ray_Tracing}.}
 \label{fig:wb-rt}
 \end{figure}
 
 \textbf{Uses in the game.} Mouse picking casts a ray through the clicked pixel (middle click jumps into that object);
-the interaction prompt tests a segment against wall boxes for line of sight; the \ab{547}{UAV} searchlight's beam length is a
+the interaction prompt tests a segment against wall boxes for line of sight; the \ab{560}{UAV} searchlight's beam length is a
 ray marched to the terrain and refined by bisection; a third-person camera arm is a sphere cast against the walls.
 
 \textbf{Limitation.} The ray-traced modes are teaching modes: at 1080p the path tracer runs at reduced internal resolution

@@ -17,7 +17,7 @@
 \setlength{\intextsep}{9pt plus 2pt minus 2pt}
 \setlength{\abovecaptionskip}{4pt}\setlength{\belowcaptionskip}{3pt}
 \usepackage{float}
-\usepackage[section,below]{placeins}
+\usepackage{placeins}
 \usepackage{longtable}
 \usepackage{needspace}
 \usepackage{tikz}
@@ -25,6 +25,7 @@
 \usepackage[noend]{algpseudocode}
 \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,shapes.misc,backgrounds,decorations.pathreplacing}
 \usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={ThermalSense: a graphics pipeline in a military outpost},pdfauthor={Md. Shakhoyat Rahman Shujon},pdfsubject={Computer Graphics Laboratory, CSE 4102: final project report}}
 \usepackage{enumitem}
 \usepackage{listings}
 \usepackage{fancyhdr}
@@ -52,8 +53,12 @@
 \numberwithin{table}{section}
 \extrafloats{120}
 \renewcommand{\topfraction}{0.92}\renewcommand{\bottomfraction}{0.8}\renewcommand{\textfraction}{0.06}
-\renewcommand{\floatpagefraction}{0.75}\setcounter{totalnumber}{6}\setcounter{topnumber}{4}
-\makeatletter\setlength{\@fptop}{0pt}\setlength{\@fpbot}{0pt plus 1fil}\makeatother % float pages fill from the top
+\renewcommand{\floatpagefraction}{0.8}\setcounter{totalnumber}{6}\setcounter{topnumber}{4}
+\makeatletter\setlength{\@fptop}{0pt}\setlength{\@fpsep}{14pt}\setlength{\@fpbot}{0pt plus 1fil}\makeatother % float pages fill from the top, one gap between floats
+\renewcommand{\tabularxcolumn}[1]{>{\raggedright\arraybackslash}p{#1}}   % text cells are set ragged right (no stretched word gaps)
+% a part opens a new page; its number and title stay together, and no float of the previous part follows it
+\newcommand{\reportpart}[2]{\clearpage\phantomsection\addcontentsline{toc}{part}{Part #1\quad #2}%
+  \begin{center}\vspace*{2mm}{\Large\bfseries Part #1\par}\nopagebreak\vspace{2mm}{\LARGE\bfseries #2\par}\end{center}\nopagebreak\vspace{3mm}}
 
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small ThermalSense: a graphics pipeline in a military outpost}
@@ -76,7 +81,7 @@
 \definecolor{covertitle}{RGB}{28,62,58}   % cover: title and table headings
 \definecolor{sheethead}{RGB}{226,231,238}   % coordinate sheets (Section 7): column letters and row numbers
 \newcommand{\wbblock}[2]{{\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}\input{sections/wb/#1_#2}}}
-\newcommand{\fullsheet}[1]{(full sheet: \code{\detokenize{#1}} in \code{report/workbooks/cg\_workbook.xlsx})}
+\newcommand{\fullsheet}[1]{(sheet \code{\detokenize{#1}} of the workbook, \code{cg\_workbook.xlsx})}
 \newcommand{\wbkey}{\colorbox{wbin}{\strut input}\,=\,value copied from the code, white\,=\,formula}
 \newcommand{\code}[1]{\texttt{\small #1}}
 \newcommand{\key}[1]{\fbox{\scriptsize\ttfamily #1}}
@@ -100,6 +105,7 @@
 \definecolor{lstbg}{gray}{0.96}
 \lstset{basicstyle=\ttfamily\fontsize{7.4}{8.6}\selectfont,backgroundcolor=\color{lstbg},frame=single,rulecolor=\color{black!20},
   columns=fullflexible,keepspaces=true,showstringspaces=false,breaklines=true,aboveskip=3pt,belowskip=3pt,
+  xleftmargin=3.4pt,xrightmargin=3.4pt,literate={^}{{\textasciicircum}}1,   % the frame ends on the text margins
   keywordstyle=\color{blue!55!black}\bfseries,commentstyle=\color{green!35!black}\itshape,
   morekeywords={uniform,vec3,vec4,float,int,return,if,const,auto,Mat4,Vec3}}
 
@@ -108,6 +114,7 @@
 \makeatletter
 \newcommand{\ab}[2]{\ifcsname abx@#1\endcsname\csname abl@#2\endcsname\else#2\fi\protected@write\@auxout{}{\string\abpage{#1}{#2}{\thepage}}}
 \newcommand{\abpage}[3]{}
+\newcommand{\abd}[2]{\ifcsname abx@#1\endcsname\csname abs@#2\endcsname\else#2\fi\protected@write\@auxout{}{\string\abpage{#1}{#2}{\thepage}}}
 \newcommand{\abp}[2]{#2's\ifcsname abx@#1\endcsname\ (\csname abf@#2\endcsname)\fi\protected@write\@auxout{}{\string\abpage{#1}{#2}{\thepage}}}
 \makeatother
 \input{sections/gen_ab_long}
@@ -132,8 +139,7 @@
 \input{sections/04_architecture}
 \input{sections/05_controls}
 
-\part*{Part I\\[2mm] The Graphics Pipeline}
-\addcontentsline{toc}{part}{Part I\quad The Graphics Pipeline}
+\reportpart{I}{The Graphics Pipeline}
 \input{sections/A01_primitives}
 \input{sections/B01_decomposition}
 \input{sections/A02_transforms}
@@ -150,8 +156,7 @@
 \input{sections/A12b_post}
 \input{sections/A13_raytracing}
 
-\part*{Part II\\[2mm] Advanced Work}
-\addcontentsline{toc}{part}{Part II\quad Advanced Work}
+\reportpart{II}{Advanced Work}
 \noindent Part II goes beyond the class material, but every topic still sits on one stage of the same pipeline.
 Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:partb-glance} relates each one to the class method and its measured result.
 \begin{figure}[htbp]
@@ -190,7 +195,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
 \includegraphics[width=2.55cm,height=1.45cm,keepaspectratio]{figures/plots/p_fixes.pdf} & \textbf{\ref{sec:hard} Hard problems} & the textbook method & instancing, separable kernels, indexed meshes, biases & $3.5$--$4.5\times$ less\\[1.5mm]
 \bottomrule
 \end{tabular}}
-\caption{Part II at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result. Short forms: BFS: breadth-first search; BVH: bounding volume hierarchy; HDR: high dynamic range; CV: computer vision; IK: inverse kinematics; PD: proportional--derivative. Short forms: LOD: level of detail; UAV: uncrewed aerial vehicle.}
+\caption{Part II at a glance: each advanced section, the class method it starts from, what ThermalSense does with it, and the measured result. Short forms: BFS: breadth-first search; BVH: bounding volume hierarchy; HDR: high dynamic range; CV: computer vision; IK: inverse kinematics; PD: proportional--derivative; LOD: level of detail; UAV: uncrewed aerial vehicle.}
 \label{fig:partb-glance}
 \end{figure}
 \input{sections/B02_color}
@@ -204,8 +209,7 @@ Figure~\ref{fig:partb-map} shows where each section plugs in; Figure~\ref{fig:pa
 \input{sections/B09_paths}
 \input{sections/B10_hard}
 
-\part*{Part III\\[2mm] Evaluation and Conclusion}
-\addcontentsline{toc}{part}{Part III\quad Evaluation and Conclusion}
+\reportpart{III}{Evaluation and Conclusion}
 \input{sections/C01_performance}
 \input{sections/C02_limits}
 \input{sections/C03_conclusion}

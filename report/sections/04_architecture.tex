@@ -1,5 +1,6 @@
 \section{Architecture and scene layout}
 \label{sec:arch}
+
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[font=\footnotesize,
@@ -60,6 +61,6 @@ the layout; the perimeter wall has radius 34\,m and $+y$ points at the viewer. S
 
 An orthographic top view keeps distances true, so Figure~\ref{fig:layout} doubles as a scaled site plan.
 
-\textbf{Frame loop.} Each frame: fixed 60\,Hz simulation ticks (scene, \ab{474}{AI}, combat, \ab{475}{UAV} cameras), render with
-interpolation between the last two ticks, the \ab{476}{UAV} images' vision on a worker thread, \ab{477}{HUD}, present. Offline modes
+\textbf{Frame loop.} Each frame: fixed 60\,Hz simulation ticks (scene, \ab{486}{AI}, combat, \ab{487}{UAV} cameras), render with
+interpolation between the last two ticks, the \ab{488}{UAV} images' vision on a worker thread, \ab{489}{HUD}, present. Offline modes
 (\code{--capture}, \code{--record}) run the same code with a fixed step.

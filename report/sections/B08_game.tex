@@ -1,12 +1,13 @@
 \section{Game mode}
 \label{sec:game}
 \here{10}
-At night intruder rovers attack in waves; two \ab{566}{UAVs} patrol, find them in their thermal images, lock on and launch guided
-rounds, and the player can take over a soldier, a tank, the \ab{567}{AA} gun or a launcher. The squad never reads a rover's
+At night intruder rovers attack in waves; two \ab{579}{UAVs} patrol, find them in their thermal images, lock on and launch guided
+rounds, and the player can take over a soldier, a tank, the \ab{580}{AA} gun or a launcher. The squad never reads a rover's
 position from the scene: everything it knows comes from its own two cameras (Figure~\ref{fig:cvchain}). Hits are ray
 tests of each projectile's path segment per tick against target spheres and solid boxes, so a fast round cannot tunnel.
 
 \subsection{From pixels to a target: the detection chain}
+
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[font=\footnotesize,
@@ -46,18 +47,19 @@ Back-projection & the centroid's pixel ray hits the terrain \code{0.2}\,m above 
 \end{table}
 
 \subsection{How the two UAVs (uncrewed aerial vehicles) work together}
-The two \ab{568}{UAVs} do not send each other messages; they share one \emph{track picture}. Every frame, both \ab{569}{UAVs}' ground
-measurements go into one multi-target tracker; the squad logic then reads that picture and gives each \ab{570}{UAV} a role.
+The two \ab{581}{UAVs} do not send each other messages; they share one \emph{track picture}. Every frame, both \ab{582}{UAVs}' ground
+measurements go into one multi-target tracker; the squad logic then reads that picture and gives each \ab{583}{UAV} a role.
 \begin{itemize}[nosep,leftmargin=*]
 \item \textbf{Predict} each track with a constant-velocity Kalman filter, state $(x,z,v_x,v_z)$, process noise \gv{accelNoise}\,m/s$^2$.
 \item \textbf{Gate}: a measurement may belong to a track only if its squared Mahalanobis distance
 $d^2=\boldsymbol\nu^\top S^{-1}\boldsymbol\nu<\gv{gateChi2}$ ($\chi^2$, 2 degrees of freedom, 99\,\%).
 \item \textbf{Assign} measurements to tracks with the Hungarian algorithm (minimum total $d^2$), one camera at a time.
-\item \textbf{Triangulate}: a rover seen by both \ab{571}{UAVs} in the same frame gives two skew pixel rays; the fused point is the
+\item \textbf{Triangulate}: a rover seen by both \ab{584}{UAVs} in the same frame gives two skew pixel rays; the fused point is the
 midpoint of their shortest connecting segment, far more accurate than one ray hitting the ground.
 \item \textbf{Life cycle}: tentative $\to$ confirmed after \gv{confirmHits} hits (event ``enemy spotted'') $\to$ coasting
 after \gv{coastAfter}\,s unseen $\to$ deleted after \gv{deleteAfter}\,s.
 \end{itemize}
+
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_triangulation.pdf}
 \caption{(a) two-view triangulation; (b) gating: only measurements inside the
@@ -76,25 +78,27 @@ after \gv{coastAfter}\,s unseen $\to$ deleted after \gv{deleteAfter}\,s.
 \wbblock{Tracking}{tot}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Tracking}: one Kalman predict and update with the Mahalanobis gate, the two-ray
-triangulation of Figure~\ref{fig:triang}a, and the launch delays of a time-on-target strike (Eq.~\ref{eq:tot}). \fullsheet{Tracking}}
+triangulation of Figure~\ref{fig:triang}a, and the launch delays of a time-on-target strike (Eq.~\eqref{eq:tot}). \fullsheet{Tracking}.}
 \label{fig:wb-tracking}
 \end{figure}
 
-On a confirmed target the \ab{572}{UAV} with the longer lock becomes \textbf{LEAD}; the other, \textbf{WING}, flies about
+On a confirmed target the \ab{585}{UAV} with the longer lock becomes \textbf{LEAD}; the other, \textbf{WING}, flies about
 $90^\circ$ around the target at \gv{kSquadStandOff}\,m stand-off for the best triangulation. After \gv{kSquadLeadLock}\,s
 (lead) and \gv{kSquadWingLock}\,s (wing) of lock they make a \textbf{combined strike}: each round's flight time $T_k$ is
-predicted, the farther \ab{573}{UAV} launches first and both rounds arrive together (Eq.~\eqref{eq:tot}). A target lost behind
+predicted, the farther \ab{586}{UAV} launches first and both rounds arrive together (Eq.~\eqref{eq:tot}). A target lost behind
 cover is searched for \gv{kSquadReacquireTime}\,s by circling its last known position from both sides.
 \begin{equation}
 t_{\mathrm{launch},k}=t_0+\big(\max_j T_j-T_k\big),\qquad
 \mathbf{a}=\mathbf{x}_{\mathrm{track}}+\mathbf{v}_{\mathrm{track}}\max_j T_j
 \label{eq:tot}
 \end{equation}
+
 \begin{table}[htbp]
 \caption{Predicted round flight time against distance.}\label{tab:flight}
 \centering\footnotesize\setlength{\tabcolsep}{3.5pt}
 \flighttimetable
 \end{table}
+
 The rounds themselves steer by proportional navigation: the turn rate is
 $\boldsymbol\omega=4\,|\mathbf{v}|\,(\hat{\mathbf{v}}\times\mathbf{r})/|\mathbf{r}|^2+2\,\hat{\mathbf{v}}\times\hat{\mathbf{r}}$,
 clamped to \gv{kMissileTurnRate}\,rad/s, and the velocity is turned each tick by Rodrigues' rotation about
@@ -119,7 +123,7 @@ $\hat{\boldsymbol\omega}$ --- the same axis--angle rotation as in Section~\ref{s
 \draw[ms=blue!70] (0,-3.8) -- node[ev,above]{rays (lock $\uparrow$)} (6.2,-3.8);
 \draw[ms=violet!70] (12.4,-3.8) -- node[ev,above]{rays (lock $\uparrow$)} (6.2,-3.8);
 \node[ev,right] at (6.3,-4.4) {both rays this frame: triangulate, Kalman update};
-\node[ev,right] at (6.3,-5.0) {locks $\geq$ \gv{kSquadLeadLock}\,s / \gv{kSquadWingLock}\,s: plan strike, $T_1$, $T_2$ (Eq.~\ref{eq:tot})};
+\node[ev,right] at (6.3,-5.0) {locks $\geq$ \gv{kSquadLeadLock}\,s / \gv{kSquadWingLock}\,s: plan strike, $T_1$, $T_2$ (Eq.~\eqref{eq:tot})};
 \draw[ms=red!70] (6.2,-5.6) -- node[ev,above]{farther UAV: launch now} (12.4,-5.6);
 \draw[ms=red!70] (6.2,-6.4) -- node[ev,above]{nearer UAV: launch after $T_{\mathrm{far}}-T_k$} (0,-6.4);
 \node[ev,right] at (6.3,-7.1) {laser spots follow the predicted target; both rounds arrive together};
@@ -132,10 +136,10 @@ $\hat{\boldsymbol\omega}$ --- the same axis--angle rotation as in Section~\ref{s
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{game/uav_missile_launch}{\linewidth}\caption{Launch from the UAV's (uncrewed aerial vehicle) rail.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{game/combined_strike}{\linewidth}\caption{Combined strike: both rounds inbound.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.49\linewidth}\raw{game/thermal_fpv_strike}{\linewidth}\caption{Hit: the HUD (head-up display) reports a multi-hit (combined) kill.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{game/kill_banner}{\linewidth}\caption{Kill: wreck, score banner.}\end{subfigure}
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/uav_missile_launch}{\linewidth}\caption{Launch from the UAV's (uncrewed aerial vehicle) rail.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/combined_strike}{\linewidth}\caption{Combined strike: both rounds inbound.}\end{subfigure}\\[1mm]
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/thermal_fpv_strike}{\linewidth}\caption{Hit: the HUD (head-up display) reports a multi-hit (combined) kill.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/kill_banner}{\linewidth}\caption{Kill: wreck, score banner.}\end{subfigure}
 \caption{One engagement, captured while the squad plays it; in (b) the HUD (head-up display) marks ``UAV-1 LEAD'', ``UAV-2 WING'' and
 the phase ``combined strike inbound''.}
 \label{fig:engage}
@@ -146,7 +150,7 @@ the phase ``combined strike inbound''.}
 \tikzset{st/.style={draw,rounded corners=3pt,fill=#1,minimum width=17mm,minimum height=7mm,align=center,font=\footnotesize},
   ar/.style={-{Latex[length=1.6mm]},black!65,thick},
   lb/.style={font=\scriptsize,fill=white,inner sep=1pt}}
-\begin{subfigure}{\linewidth}\centering
+\begin{subfigure}[t]{\linewidth}\centering
 \begin{tikzpicture}
 \node[st=blue!10] (dock) at (0,0) {DOCKED};
 \node[st=blue!10] (to) at (2.75,0) {TAKE-OFF};
@@ -169,7 +173,7 @@ the phase ``combined strike inbound''.}
 \end{tikzpicture}
 \caption{UAV (uncrewed aerial vehicle): duty cycle and engagement (each UAV independently).}
 \end{subfigure}\\[3mm]
-\begin{subfigure}{0.6\linewidth}\centering
+\begin{subfigure}[t]{0.6\linewidth}\centering
 \begin{tikzpicture}
 \node[st=black!8] (sp) at (0,0) {SPAWN\\[-1pt]perimeter};
 \node[st=black!8] (ad) at (2.75,0) {ADVANCE\\[-1pt]route};
@@ -184,7 +188,7 @@ the phase ``combined strike inbound''.}
 \end{tikzpicture}
 \caption{Intruder rover.}
 \end{subfigure}\hfill
-\begin{subfigure}{0.38\linewidth}\centering
+\begin{subfigure}[t]{0.38\linewidth}\centering
 \begin{tikzpicture}
 \node[st=green!15] (on) at (0,0) {ON DUTY\\[-1pt]post / patrol};
 \node[st=green!8] (off) at (3.4,0) {OFF DUTY\\[-1pt]barracks};
@@ -204,7 +208,7 @@ shift.}
 \begin{figure}[htbp]
 \centering\wbblock{Duty_Cycle}{roster}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift. \fullsheet{Duty_Cycle}}
+\caption{Workbook sheet \code{Duty\_Cycle}: the 24-hour roster of the eight soldiers, day and night shift. \fullsheet{Duty_Cycle}.}
 \label{fig:wb-duty}
 \end{figure}
 
@@ -217,13 +221,13 @@ Figures~\ref{fig:flow-tracker} and \ref{fig:flow-squad} draw the shared tracker 
 \subsection{Single strike, combined strike and the guards}
 \label{sec:coop}
 \begin{itemize}
-\item \textbf{Combined strike.} One intruder is engaged by both \ab{574}{UAVs}: the lead waits up to 8\,s for the wing's lock,
+\item \textbf{Combined strike.} One intruder is engaged by both \ab{587}{UAVs}: the lead waits up to 8\,s for the wing's lock,
 then both rounds are timed to arrive together.
 \item \textbf{Single strike.} A second intruder more than 14\,m from the first and within 10\,m of a protected point
-cannot wait. The \ab{575}{UAV} nearer to it leaves the pair and strikes it with one round; the other \ab{576}{UAV} strikes the first target
+cannot wait. The \ab{588}{UAV} nearer to it leaves the pair and strikes it with one round; the other \ab{589}{UAV} strikes the first target
 alone. When the second intruder is destroyed or lost the pair forms again.
 \item \textbf{Guards.} A soldier standing at his post with a tracked intruder closer than 26\,m and a clear line turns to
-it and fires bursts of 0.6\,s every 2.4\,s. The same segment test as the \ab{577}{UAVs}' rounds decides the clear line.
+it and fires bursts of 0.6\,s every 2.4\,s. The same segment test as the \ab{590}{UAVs}' rounds decides the clear line.
 \item \textbf{Weapons on alert.} With nobody at the controls the launchers keep their canisters and pod raised through
 the apertures of their nets and sweep their sector, the helicopter's rotor turns at flight idle, and the tank and the
 anti-aircraft gun lay on the tracked intruder (\code{WorldContext::alert}, \code{threatPos}).

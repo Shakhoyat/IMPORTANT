@@ -1,9 +1,0 @@
-Run seed 1 (repeat with --seed 1)
-OpenGL 4.6.0 NVIDIA 591.86 | NVIDIA Corporation | NVIDIA GeForce RTX 4070/PCIe/SSE2
-Quality preset: EPIC
-Frame pacing: uncapped, simulation 60 Hz fixed tick with render interpolation
-Input script C:\Users\User\AppData\Local\Temp\ts_v9\stall.txt: 4 events, frames to C:\Users\User\AppData\Local\Temp\ts_v9\m1
-script log warmup | 12:00 DAY MANUAL cam ORBIT ctl - sel 0 eye 16.05 16.24 25.69 | 71.9 fps, ms/frame: sim 6.20 render 4.93 vision 1.38 swap 1.33 wait 0.00 (432 frames, 309 ticks, 1825 parts blended)
-script shot wrote C:\Users\User\AppData\Local\Temp\ts_v9\m1/orbit_noon.png | 12:00 DAY MANUAL cam ORBIT ctl - sel 0 eye 16.05 16.24 25.69
-script log orbit_noon | 12:00 DAY MANUAL cam ORBIT ctl - sel 0 eye 16.05 16.24 25.69 | 85.1 fps, ms/frame: sim 6.02 render 2.68 vision 1.25 swap 1.61 wait 0.00 (517 frames, 360 ticks, 1863 parts blended)
-script: quit at 13.01 s

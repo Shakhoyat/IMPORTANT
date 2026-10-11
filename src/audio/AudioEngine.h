@@ -38,7 +38,7 @@ enum class Loop { Drone, Helicopter, Tank, Projectile,
                   // v7
                   Rover, Generator };
 
-// v7 listener description for the game camera rig (agent G). Pass the possessed object's / camera's velocity when
+// v7 listener description for the game camera rig. Pass the possessed object's / camera's velocity when
 // it is known (Doppler stays clean across POV blends); otherwise it is derived from position changes, ignoring
 // jumps faster than 40 m/s (camera cuts).
 struct ListenerState {

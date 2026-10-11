@@ -33,11 +33,12 @@ SPECS = {
         ((0.70, 0.73), (0.98, 0.95), "road-wheel groups: $R_x(\\omega t)$"),
         ((0.50, 0.55), (0.10, 0.88), "hull = root: $T$, $R_y$ of the tank"),
     ]),
-    "hier_uav": ("scene/iso_uav", (0.24, 0.20, 0.80, 0.80), [
-        ((0.12, 0.35), (0.03, 0.08), "motor mount $\\times4$: rotor group $R_y(\\omega t)$"),
-        ((0.40, 0.84), (0.05, 0.95), "gimbal yaw $\\rightarrow$ pitch $\\rightarrow$ camera"),
-        ((0.70, 0.73), (0.98, 0.95), "launcher rail: rounds (nested design)"),
-        ((0.52, 0.27), (0.98, 0.08), "fuselage = root: $T$, $R$ of the UAV"),
+    # same crop as the tank so the two panels of the figure are equal in height; two-line labels, one per corner
+    "hier_uav": ("scene/iso_uav", (0.22, 0.12, 0.82, 0.84), [
+        ((0.145, 0.403), (0.03, 0.11), "motor mount $\\times4$:\nrotor group $R_y(\\omega t)$"),
+        ((0.407, 0.811), (0.03, 0.90), "gimbal yaw $\\rightarrow$\npitch $\\rightarrow$ camera"),
+        ((0.668, 0.690), (0.98, 0.90), "launcher rail: rounds\n(nested design)"),
+        ((0.519, 0.336), (0.98, 0.11), "fuselage = root:\n$T$, $R$ of the UAV"),
     ]),
     # Section 17: which shading model each design uses (export field "shading")
     "shade_scene": ("insitu/insitu_guard_booth", None, [

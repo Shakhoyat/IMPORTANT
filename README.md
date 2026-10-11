@@ -15,8 +15,10 @@ vector function in any shader.
 | The report (192 pages) | [`report/main.pdf`](report/main.pdf) |
 | A guided tour of the code, line by line, in pipeline order | [`docs/CODE_TOUR.md`](docs/CODE_TOUR.md) |
 | Every report section mapped to its code | [`docs/REPORT_CODE_MAP.md`](docs/REPORT_CODE_MAP.md) |
-| The film (3 min 38 s) | `report/video/thermalsense_final_1080p.mp4` (not in git: over the size limit) |
-| The slides (25) | [`report/ThermalSense_Presentation.pptx`](report/ThermalSense_Presentation.pptx) |
+| The film (3 min 38 s, with sound) | [`report/video/thermalsense_final_1080p_web.mp4`](report/video/thermalsense_final_1080p_web.mp4) (1080p, 93 MB), [`thermalsense_final_720p.mp4`](report/video/thermalsense_final_720p.mp4) (47 MB). The 336 MB master is over GitHub's file limit and stays outside the repository; `tools/report/gen_film3.py` rebuilds it. |
+| The workbook (18 sheets, live formulas; the register of every number in the report) | [`report/workbooks/cg_workbook.xlsx`](report/workbooks/cg_workbook.xlsx) |
+| The presentation (10 slides, film on slide 2) | [`report/ThermalSense_Presentation_10.pptx`](report/ThermalSense_Presentation_10.pptx) |
+| The long deck (25 slides) | [`report/ThermalSense_Presentation.pptx`](report/ThermalSense_Presentation.pptx) |
 | What changed in each round | [`report/CHANGES.md`](report/CHANGES.md) |
 
 ## Build and run
@@ -68,9 +70,8 @@ The full table (more than 120 bindings) is in `src/scene/KeyMap.cpp` and in Sect
 | `tests` | 396 automated tests |
 | `tools/report`, `tools/v10` | generators of the report's tables, figures, checks, film and these documents |
 | `report` | LaTeX sources, figures, data, PDF, slides |
-| `docs` | code tour, code map, earlier plans and notes (`docs/history`), course documents (`docs/reference`) |
+| `docs` | code tour, code map, the version history (`docs/history`), course documents (`docs/reference`) |
 | `assets` | public-domain (CC0) vegetation meshes and ground textures used at the two highest presets |
-| `archive` | files of earlier versions kept for reference |
 
 ## Regenerating the report
 
@@ -81,6 +82,8 @@ python3 tools/v10/gen_numbers.py report/data/scene_export_v10.json    # numbers 
 python3 tools/report/gen_designs.py                                    # Section 7 cards, chains, coordinate sheets
 python3 tools/report/gen_flows.py && python3 tools/v10/gen_game.py
 python3 tools/report/abbrev_pages.py                                   # short forms per page; builds the PDF (tectonic)
+python3 tools/v10/build_cg_workbook.py --export report/data/scene_export_v10.json   # the workbook
+python3 tools/report/numbers_from_workbook.py && python3 tools/report/check_workbook.py   # report numbers = workbook = code
 python3 tools/report/check_counts.py && python3 tools/report/check_numbers.py
 python3 tools/report/gen_code_map.py && python3 tools/report/gen_code_tour.py
 ```

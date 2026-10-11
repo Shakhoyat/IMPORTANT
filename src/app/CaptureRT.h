@@ -7,7 +7,7 @@
 //                       photons drawn over the raster image
 //   raytrace_perf       ms per frame of every mode at the capture size (raytrace_perf.json + the log)
 // A few showcase props (glass ball, mirror ball, glass block, chrome post) are added to the scene's leaves while the
-// figures render (both raster and ray tracer see them), then removed. Driven by Capture.cpp (agent CAP) through
+// figures render (both raster and ray tracer see them), then removed. Driven by Capture.cpp through
 // rtcap::figure(ctx, name); every shot name above is accepted.
 #pragma once
 

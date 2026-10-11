@@ -8,7 +8,7 @@
 //   light       reverse ray tracing: light paths from the sun / moon / searchlight / lamps / sky splatted to the
 //               camera with atomics (caustics through glass and mirrors), same accumulation + denoiser
 // Without GL 4.3 compute the full ray-traced modes fall back to the CPU tracer at a low resolution (hybrid then
-// shows the raster image). Public use beyond the Renderer: agent I's Frame Explorer may call reflectionImage-like
+// shows the raster image). Public use beyond the Renderer: the Frame Explorer may call reflectionImage-like
 // helpers through Renderer::rayTracer() (see docs/v7_notes/wp-h.md).
 #pragma once
 

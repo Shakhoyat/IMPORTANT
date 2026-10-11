@@ -2,17 +2,17 @@
 \label{sec:thermal}
 \here{9}
 \textbf{Simulated, not sensed.} Each part has a heat value (engines and people hot, sun-heated walls warm, ground cool;
-the sun adds a solar term by day). Each \ab{557}{UAV} renders its view of these values into a 320$\times$240 image; a sensor model
-turns the ideal image into what an uncooled microbolometer would output, and the computer-vision (\ab{558}{CV}) pipeline finds
+the sun adds a solar term by day). Each \ab{570}{UAV} renders its view of these values into a 320$\times$240 image; a sensor model
+turns the ideal image into what an uncooled microbolometer would output, and the \ab{571}{CV} pipeline finds
 targets in it.
 \begin{equation}
 y=Q\big(g\odot(h_{\text{PSF}}\ast x)+o+c+n\big),\quad h_{\text{PSF}}=\tfrac1{16}\begin{bmatrix}1&2&1\end{bmatrix}^{\!\top}\!\begin{bmatrix}1&2&1\end{bmatrix},\quad n\sim\mathcal N(0,2^2)
 \label{eq:sensor}
 \end{equation}
-($h_{\text{PSF}}$: the optics' \ab{559}{PSF}, $g$, $o$: per-pixel gain and offset (fixed pattern, partly removed by the shutter \ab{560}{NUC}), $c$: column stripes, $n$:
-temporal noise in \ab{561}{DN}, $Q$: rounding to 8 bits.) Then (following \cite{gonzalez2018}): Otsu threshold \cite{otsu1979} (with a floor at heat 0.8), despeckle (a hot pixel
+($h_{\text{PSF}}$: the optics' \ab{572}{PSF}, $g$, $o$: per-pixel gain and offset (fixed pattern, partly removed by the shutter \ab{573}{NUC}), $c$: column stripes, $n$:
+temporal noise in \ab{574}{DN}, $Q$: rounding to 8 bits.) Then (following \cite{gonzalez2018}): Otsu threshold \cite{otsu1979} (with a floor at heat 0.8), despeckle (a hot pixel
 needs 2 hot neighbours), connected components by two-pass union-find, blob features, a target filter, and a Kalman
-multi-target tracker that fuses both \ab{562}{UAVs}.
+multi-target tracker that fuses both \ab{575}{UAVs}.
 \begin{equation}
 G_\sigma(x,y)=\frac{1}{2\pi\sigma^2}e^{-\frac{x^2+y^2}{2\sigma^2}},\quad
 S_x=\begin{bmatrix}-1&0&1\\-2&0&2\\-1&0&1\end{bmatrix},\quad
@@ -31,7 +31,7 @@ binomial kernels this equals convolution, for Sobel it flips the sign of the gra
 \item The sensor's binomial point spread function $\frac1{16}[1\,2\,1]^\top[1\,2\,1]$ is separable and runs as a row pass and
 a column pass (Section~\ref{sec:hard}).
 \item Otsu's sweep keeps running sums of $n_t$ and $t\,n_t$, so the 256 candidate thresholds cost one pass over the histogram
-(\code{CvPipeline.cpp: otsuThreshold}); the \ab{563}{CV} then uses $t=\max(204,\,t^\ast+1)$ (Figure~\ref{fig:cv}c).
+(\code{CvPipeline.cpp: otsuThreshold}); the \ab{576}{CV} then uses $t=\max(204,\,t^\ast+1)$ (Figure~\ref{fig:cv}c).
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -43,8 +43,8 @@ a column pass (Section~\ref{sec:hard}).
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{lab/explorer_imagelab_gauss_gamma}{\linewidth}\caption{Frame Explorer image lab: Gaussian and gamma.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{lab/explorer_imagelab_sobel}{\linewidth}\caption{Sobel gradient magnitude.}\end{subfigure}\\[1mm]
+\begin{subfigure}[t]{0.49\linewidth}\raw{lab/explorer_imagelab_gauss_gamma}{\linewidth}\caption{Frame Explorer image lab: Gaussian and gamma.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{lab/explorer_imagelab_sobel}{\linewidth}\caption{Sobel gradient magnitude.}\end{subfigure}\\[1mm]
 {\footnotesize\textit{Zoomed kernel panels of (a) and (b):}}\\[0.5mm]
 \feImagelabGaussGammaKernel\\[1mm]
 \feImagelabSobelKernel\\[1mm]
@@ -54,15 +54,16 @@ a column pass (Section~\ref{sec:hard}).
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{\linewidth}\plot{p_thermal_histogram}{\linewidth}\caption{Histogram and CDF before and after equalisation.}\end{subfigure}\\[1mm]
-\begin{subfigure}{0.5\linewidth}\centering\plot{p_separable_cost}{\linewidth}\caption{Separable convolution cost.}\end{subfigure}
+\begin{subfigure}[t]{\linewidth}\plot{p_thermal_histogram}{\linewidth}\caption{Histogram and CDF before and after equalisation.}\end{subfigure}\\[1mm]
+\begin{subfigure}[t]{0.5\linewidth}\centering\plot{p_separable_cost}{\linewidth}\caption{Separable convolution cost.}\end{subfigure}
 \caption{Histogram equalisation of a raw thermal frame (a) and the cost of a separable convolution (b). Short forms: CDF: cumulative distribution function.}
 \label{fig:imglab}
 \end{figure}
 
 The raw thermal frame uses a narrow band of grey levels, because most pixels are cool ground; equalisation spreads them
-over the full range, so the \ab{564}{CDF} becomes a straight line (Figure~\ref{fig:imglab}a). The equalisation is computed
+over the full range, so the \ab{577}{CDF} becomes a straight line (Figure~\ref{fig:imglab}a). The equalisation is computed
 offline for the figure; it is not a switch in the renderer.
+
 \begin{figure}[htbp]
 \centering
 {\footnotesize\textit{Gaussian ($\sigma=1$, $5\times5$): raw and normalised}}\\[0.5mm]
@@ -72,21 +73,21 @@ offline for the figure; it is not a switch in the renderer.
 {\footnotesize\textit{Valid $3\times3$ outputs, gradient magnitude and the thresholded edge map}}\\[0.5mm]
 \wbblock{Thermal_Kernels}{out}
 \caption{Workbook sheet \code{Thermal\_Kernels}: the normalised Gaussian for the chosen $\sigma$, Sobel kernels, and a
-$5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT} shown. \fullsheet{Thermal_Kernels}}
+$5\times5$ patch convolved step by step with one output pixel's \code{SUMPRODUCT} shown. \fullsheet{Thermal_Kernels}.}
 \label{fig:wb-kernels}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{\linewidth}\raw{v5b/uav_closeup_thermal}{\linewidth}\caption{External thermal view (ironbow): soldiers, the
+\begin{subfigure}[t]{\linewidth}\raw{v5b/uav_closeup_thermal}{\linewidth}\caption{External thermal view (ironbow): soldiers, the
 UAV's (uncrewed aerial vehicle) motors and the lamps are hot; sun-warmed roofs warm; ground cool.}\end{subfigure}\\[1.5mm]
-\begin{subfigure}{\linewidth}\raw{v5b/thermal_fpv_whitehot}{\linewidth}\caption{Through the UAV (uncrewed aerial vehicle) gimbal camera (white-hot), as the
+\begin{subfigure}[t]{\linewidth}\raw{v5b/thermal_fpv_whitehot}{\linewidth}\caption{Through the UAV (uncrewed aerial vehicle) gimbal camera (white-hot), as the
 operator sees it in the game.}\end{subfigure}
 \caption{The simulated sensor in the running game.}
 \label{fig:thermal}
 \end{figure}
 
-Figure~\ref{fig:flow-cv} traces one \ab{565}{UAV} frame through the pipeline; Algorithm~\ref{alg:cv} gives the steps and their cost.
+Figure~\ref{fig:flow-cv} traces one \ab{578}{UAV} frame through the pipeline; Algorithm~\ref{alg:cv} gives the steps and their cost.
 \textbf{Limitation.} The stages are shown in the lab figures and in the Frame Explorer's image lab (kernel and gamma
 controls), but there is no single live strip of all stages with threshold and equalisation sliders.
 

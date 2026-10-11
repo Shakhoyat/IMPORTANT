@@ -31,12 +31,11 @@ CYAN, DIM = RGBColor(0x6F, 0xD6, 0xE8), RGBColor(0x2A, 0x31, 0x3A)
 W, H = 13.333, 7.5
 FONT, MONO = "Calibri", "Consolas"
 
-# Picture search order (first match wins; .png before .jpg). Report captures first, then the agents' review shots.
+# Picture search order (first match wins; .png before .jpg): frames of the final film, then the report captures.
 SOURCES = [("report/figures_final", "final film frame"), ("report/figures_v7", "v7"), ("report/figures_v6", "v6"), ("report/figures_v5", "v5"),
-           ("docs/v7_notes/wpi_shots", "WP-I review shot"), ("docs/v7_notes/wph_shots/day", "WP-H review shot"),
-           ("docs/v5_notes/h5_shots", "v5 HUD preview shot"), ("report/figures_lab", "lab render")]
+           ("report/figures_lab", "lab render")]
 
-# One entry per picture slot: preferred name first, substitutes after. Swap names here when CAP re-shoots.
+# One entry per picture slot: preferred name first, substitutes after. Swap names here after new captures.
 FIG = {
     # v1-v5 slides
     "title": ["game_overview", "base_overview", "cine_establishing", "scene_visible"],

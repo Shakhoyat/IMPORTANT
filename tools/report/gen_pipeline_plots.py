@@ -1,6 +1,6 @@
 """Curves for the pipeline sections (lighting, shadows, Fresnel, tone mapping, fog, noise, curves, anti-aliasing).
 Every curve uses the formula and the constants of the C++ / GLSL source named next to it, in the style of
-tools/v10/plots.py. Run: ~/.local/bin/uv run -q --with matplotlib --with numpy python tools/report/gen_pipeline_plots.py
+tools/v10/plots.py. Run: ~/.local/bin/uv run -q --with matplotlib --with numpy python tools/report/gen_pipeline_plots.py [name ...]
 Writes report/figures/plots/p_*.pdf (names below)."""
 import math
 import os
@@ -350,8 +350,12 @@ def chaikin(P, passes):
 
 
 def curves():
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.5))
-    a = ax[0]
+    # Both frames are placed by hand with one size (inches), so the axes and the titles of (a) and (b) line up; the scale
+    # is equal in x and y in both, and the page keeps the size it had (7.12 x 2.60 in).
+    FW, FH = 7.1167, 2.6028
+    bw, bh = (FW - 0.08 - 0.22 - 0.06) / 2, FH - 0.08 - 0.26
+    fig = plt.figure(figsize=(FW, FH), layout="none")
+    a = fig.add_axes([0.08 / FW, 0.08 / FH, bw / FW, bh / FH])
     pts = [(0, 0), (1, 2.2), (1.4, 2.25), (3.6, 0.4), (5.2, 1.6), (5.4, 1.75), (6.4, 0.0)]
     for al, col, nm, ls in [(0.0, C[1], "uniform $\\alpha=0$", "--"), (0.5, C[0], "centripetal $\\alpha=0.5$ (used)", "-"),
                             (1.0, C[2], "chordal $\\alpha=1$", ":")]:
@@ -359,23 +363,32 @@ def curves():
         a.plot(cr[:, 0], cr[:, 1], color=col, ls=ls, label=nm)
     P = np.array(pts)
     a.plot(P[:, 0], P[:, 1], "o", color="k", ms=3.5)
+    xr = 7.0                                   # 0 .. 6.4 with a margin; the height follows from the frame
+    yr = xr * bh / bw
+    a.set_xlim(-0.3, -0.3 + xr)
+    a.set_ylim(3.15 - yr, 3.15)
     a.set_aspect("equal")
     a.set_title("(a) Catmull-Rom through the same waypoints")
-    a.legend(frameon=False, fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2)
+    a.legend(frameon=False, fontsize=7, loc="lower center", ncol=2)      # inside the frame, under the curves
     a.set_xticks([])
     a.set_yticks([])
-    a = ax[1]
+    a = fig.add_axes([(0.08 + bw + 0.22) / FW, 0.08 / FH, bw / FW, bh / FH])
     path = [(0, 0), (0, 2), (1, 2), (1, 3), (3, 3), (3, 1), (5, 1)]
     a.plot(*np.array(path).T, "-o", color="0.6", ms=3, lw=1.0, label="cell path")
     for k, col in [(1, C[3]), (3, C[1])]:
         c = chaikin(path, k)
         a.plot(c[:, 0], c[:, 1], color=col, label="%d pass%s" % (k, "es" if k > 1 else "") + (" (rover)" if k == 3 else ""))
+    yr = 3.6
+    xr = yr * bw / bh
+    a.set_xlim(2.5 - xr / 2, 2.5 + xr / 2)
+    a.set_ylim(-0.3, -0.3 + yr)
     a.set_aspect("equal")
     a.set_title("(b) Chaikin corner cutting (3/4, 1/4)")
     a.legend(frameon=False, fontsize=7, loc="lower right")
     a.set_xticks([])
     a.set_yticks([])
-    save(fig, "p_curves")
+    with plt.rc_context({"savefig.bbox": "standard"}):
+        save(fig, "p_curves")
 
 
 # ------------------------------------------------------------ RendererFrame.cpp halton + kTaaFrag feedback 0.9; DDA / Bresenham
@@ -439,12 +452,8 @@ def antialias():
 
 
 if __name__ == "__main__":
-    attenuation()
-    phong_blinn()
-    fresnel()
-    shadows()
-    tonemap()
-    fog()
-    noise()
-    curves()
-    antialias()
+    ALL = [attenuation, phong_blinn, fresnel, shadows, tonemap, fog, noise, curves, antialias]
+    want = sys.argv[1:]          # no name = all; a name is a function above, e.g. curves
+    for f in ALL:
+        if not want or f.__name__ in want:
+            f()

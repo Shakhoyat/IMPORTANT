@@ -2,7 +2,6 @@
 // adding (controllables(), combat(), walkSpace(), update(dt, det, input, possessed), kill counters, a rover list).
 // Every accessor is detected at compile time (SFINAE): if Scene has the member it is used, otherwise a safe
 // default is returned, so the app files compile and run both before and after the Scene wiring lands.
-// Owner: D (app / camera).
 #pragma once
 
 #include <memory>

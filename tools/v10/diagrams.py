@@ -1,9 +1,11 @@
 """v10 M4: explanatory diagrams, one per Part A / Part B concept: the maths of a section drawn simply.
 These are teaching drawings (geometry of the method), not measurements; every constant that comes from the code is named
 next to it (e.g. the spot cone, the shader's blackbody ramp, the particle integrators of scene/Combat.cpp).
-Run: ~/.local/bin/uv run -q --with matplotlib --with numpy python tools/v10/diagrams.py   -> report/figures/diagrams/*.pdf"""
+Run: ~/.local/bin/uv run -q --with matplotlib --with numpy python tools/v10/diagrams.py [name ...]   -> report/figures/diagrams/*.pdf
+(no name = all; a name is a function below, e.g. view_basis floodfill triangulation)"""
 import math
 import os
+import sys
 
 import matplotlib
 
@@ -28,8 +30,10 @@ C = {"blue": "#1f4e79", "red": "#c0504d", "green": "#4f8a3a", "orange": "#d08c1a
      "grey": "#7f7f7f", "light": "#dce6f1", "teal": "#2e8b8b"}
 
 
-def save(fig, name):
-    fig.savefig(os.path.join(OUT, name + ".pdf"))
+def save(fig, name, tight=True):
+    # tight=False keeps the page exactly at the figure size (for the figures whose panels are placed by hand)
+    with plt.rc_context({"savefig.bbox": "tight" if tight else "standard"}):
+        fig.savefig(os.path.join(OUT, name + ".pdf"))
     plt.close(fig)
     print("wrote", name)
 
@@ -123,9 +127,11 @@ def view_basis():
     ax.plot(*eye, "o", color=C["blue"], ms=3, zorder=6)
     label(ax, eye + (0.45, 0.3), "eye $\\mathbf{e}$")
     label(ax, tgt + (1.25, 0.0), "target $\\mathbf{a}$")
-    label(ax, eye + 1.0 * n + (-0.1, 0.38), "$\\mathbf{n}=\\frac{\\mathbf{e}-\\mathbf{a}}{|\\mathbf{e}-\\mathbf{a}|}$", C["red"])
+    # written as in Eq. (10.1): display fraction, double bars for the norm
+    label(ax, eye + 1.0 * n + (-0.1, 0.33),
+          "$\\mathbf{n}=\\dfrac{\\mathbf{e}-\\mathbf{a}}{\\Vert\\mathbf{e}-\\mathbf{a}\\Vert}$", C["red"], fs=10)
     label(ax, eye + 0.9 * v + (-0.15, -0.25), "$\\mathbf{v}=\\mathbf{n}\\times\\mathbf{u}$", C["green"])
-    label(ax, (1.95, 1.2), "$\\mathbf{u}$ out of the page ($\\odot$)", C["blue"], fs=8)
+    label(ax, (1.62, 0.95), "$\\mathbf{u}$ out of the page ($\\odot$)", C["blue"], fs=8)
     label(ax, (2.6, 1.75), "camera looks along $-\\mathbf{n}$", "0.3", fs=8)
     clean(ax, (-0.7, 5.2, -0.2, 3.3))
     save(fig, "d_view_basis")
@@ -685,8 +691,15 @@ def floodfill():
         return P
 
     sm = chaikin(pts, 3)
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 2.8), gridspec_kw=dict(width_ratios=[1.45, 1]))
-    a_ = ax[0]
+    # Both panels are placed by hand at the same height (inches), so their tops and titles line up; the page keeps the
+    # size it had (7.11 x 2.96 in).
+    FW, FH = 7.1125, 2.9556
+    ah = 2.57                       # height of both panels
+    aw = ah * W / H                 # (a): square cells
+    bx0 = 0.10 + aw + 0.24
+    bw = FW - bx0 - 0.06
+    fig = plt.figure(figsize=(FW, FH), layout="none")
+    a_ = fig.add_axes([0.10 / FW, 0.10 / FH, aw / FW, ah / FH])
     vmax = max(v for v in dist.values() if v < INF)
     cmap = plt.get_cmap("Blues_r")
     for (x, y), v in dist.items():
@@ -695,17 +708,22 @@ def floodfill():
             continue
         fc = "#9fd49a" if (x, y) in goals else cmap(0.35 + 0.6 * v / vmax)
         a_.add_patch(Rectangle((x, y), 1, 1, fc=fc, ec="white", lw=0.5))
-        a_.text(x + 0.5, y + 0.5, str(v), ha="center", va="center", fontsize=7.5, color="k")
+        # the distance sits in the lower right corner of its cell: the route runs through the cell centres and its
+        # three rounded corners cut the other quadrants, so no number is crossed by the guide line
+        a_.text(x + 0.92, y + 0.08, str(v), ha="right", va="bottom", fontsize=6.5, color="k")
     a_.plot(pts[:, 0], pts[:, 1], color=C["orange"], lw=1.0, ls="--")
-    a_.plot(sm[:, 0], sm[:, 1], color=C["red"], lw=2.0)
-    a_.plot(*pts[0], "o", color=C["red"], ms=7, mec="k")
+    a_.plot(sm[:, 0], sm[:, 1], color=C["red"], lw=1.8)
+    a_.plot(*pts[0], "o", color=C["red"], ms=6, mec="k")
     a_.set_title("(a) BFS from hidden cells (0); descend; Chaikin $\\times3$ = guide line")
     clean(a_, (0, W, 0, H))
-    b_ = ax[1]
-    xs = np.linspace(-0.45, 0.75, 200)
+    b_ = fig.add_axes([bx0 / FW, 0.10 / FH, bw / FW, ah / FH])
+    bx = (-0.42, 0.58)                                   # metres across; the height follows from the panel shape
+    by1 = 0.30
+    by0 = by1 - (bx[1] - bx[0]) * ah / bw
+    xs = np.linspace(bx[0], bx[1], 200)
     line = lambda x: 0.07 * np.sin(4.0 * x + 0.3)
     b_.fill_between(xs, line(xs) - 0.05, line(xs) + 0.05, color="0.15")
-    label(b_, (0.62, 0.17), "guide line, 10 cm", fs=7.5)
+    label(b_, (bx[1] - 0.01, 0.215), "guide line, 10 cm", fs=7.5, ha="right")
     rp = np.array([0.0, -0.06])
     hd = math.radians(8)
     fwd = np.array([math.cos(hd), math.sin(hd)])
@@ -722,20 +740,25 @@ def floodfill():
         b_.plot(*sp, "o", ms=6, color=C["red"] if on else "white", mec=C["orange"] if not on else "k", zorder=6)
     arrow(b_, rp, rp + 0.2 * fwd, "k", lw=1.0, ms=8, z=5)
     e = (sum(on_offs) / len(on_offs)) / 0.12 if on_offs else 0.0
-    label(b_, (0.15, -0.25), "5 IR sensors 31 cm ahead, 6 cm apart", fs=7.5)
-    label(b_, (0.15, -0.33), f"red = over the line: here $e$ = {e:+.2f} (turn left)", fs=7.5)
-    label(b_, (0.15, -0.41), "$e=\\overline{\\mathrm{offset}}/0.12$,  $\\omega=\\mathrm{clamp}(3.2e+0.25\\,\\dot e,\\pm2.5)$", fs=7.5)
-    label(b_, (0.15, -0.49), "$v=0.75(1-0.6|e|)$ m/s,  wheels $v\\mp\\omega\\,w/2$", fs=7.5)
+    tx = 0.5 * (bx[0] + bx[1])
+    label(b_, (tx, -0.345), "5 IR sensors 31 cm ahead, 6 cm apart", fs=7.5)       # clear of the rover outline (-0.24)
+    label(b_, (tx, -0.430), f"red = over the line: here $e$ = {e:+.2f} (turn left)", fs=7.5)
+    label(b_, (tx, -0.515), "$e=\\overline{\\mathrm{offset}}/0.12$,  $\\omega=\\mathrm{clamp}(3.2e+0.25\\,\\dot e,\\pm2.5)$", fs=7.5)
+    label(b_, (tx, -0.600), "$v=0.75(1-0.6|e|)$ m/s,  wheels $v\\mp\\omega\\,w/2$", fs=7.5)
     b_.set_title("(b) PD line follower (top view, metres)")
-    clean(b_, (-0.45, 0.75, -0.53, 0.22))
-    save(fig, "d_floodfill")
+    clean(b_, (bx[0], bx[1], by0, by1))
+    save(fig, "d_floodfill", tight=False)
 
 
 # --------------------------------------------------------------------------------- game: triangulation + gating
 def triangulation():
-    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-    fig = plt.figure(figsize=(7.0, 2.9))
-    a_ = fig.add_subplot(1, 2, 1, projection="3d")
+    from mpl_toolkits.mplot3d import Axes3D, proj3d  # noqa: F401
+    # Panels placed by hand: both titles start at the same height in the same size, the drawings share one band below
+    # them, and the page keeps the size it had (6.65 x 3.02 in).
+    FW, FH = 6.651, 3.017
+    TY = 1 - 0.05 / FH                     # top of both titles
+    fig = plt.figure(figsize=(FW, FH), layout="none")
+    a_ = fig.add_axes([-0.03, -0.10, 0.52, 1.02], projection="3d")
     A, B = np.array([-6.0, 0.0, 8.0]), np.array([7.0, 5.0, 9.0])
     X = np.array([0.0, 1.0, 0.5])
     dA = X - A + np.array([0.0, 0.9, 0.0])
@@ -754,15 +777,25 @@ def triangulation():
         L = np.array([P0, P0 + dd * (np.linalg.norm(X - P0) * 1.25)])
         a_.plot(L[:, 0], L[:, 1], L[:, 2], color=col, lw=1.4)
         a_.scatter(*P0, color=col, s=25)
-        a_.text(P0[0], P0[1], P0[2] + 1.0, nm, color=col, fontsize=8)
+        a_.text(P0[0], P0[1], P0[2] + 1.0, nm, color=col, fontsize=8, ha="center", va="bottom")
     a_.plot(*zip(PA, PB), color=C["red"], lw=2.0)
     a_.scatter(*mid, color=C["red"], s=30, marker="*")
-    a_.text(mid[0] + 2.0, mid[1] - 1.0, mid[2] + 3.0, "shortest segment\nmidpoint = fused", color=C["red"], fontsize=8)
     a_.view_init(elev=18, azim=-62)
     a_.set_axis_off()
-    a_.set_title("(a) two pixel rays (skew): fused point =\nmidpoint of the shortest segment", fontsize=8.5)
-    b_ = fig.add_subplot(1, 2, 2)
+    a_.set_box_aspect(None, zoom=1.25)
+    # the red label stands to the right of both rays, joined to the fused point by a thin leader, so no ray crosses it
+    fig.canvas.draw()
+    mx, my, _ = proj3d.proj_transform(mid[0], mid[1], mid[2], a_.get_proj())
+    a_.annotate("shortest segment\nmidpoint = fused", (mx, my), (0.80, 0.50), textcoords="axes fraction",
+                color=C["red"], fontsize=8, ha="center", va="center", zorder=8,
+                bbox=dict(facecolor="white", edgecolor="none", pad=0.8, alpha=0.9),
+                arrowprops=dict(arrowstyle="-", color=C["red"], lw=0.7, shrinkA=1, shrinkB=4))
+    fig.text(0.245, TY, "(a) two pixel rays (skew): fused point =\nmidpoint of the shortest segment", fontsize=9,
+             ha="center", va="top", linespacing=1.15)
     from matplotlib.patches import Ellipse
+    bw = 3.25                              # (b): 8.6 x 5.9 units, equal scale
+    bh = bw * 5.9 / 8.6
+    b_ = fig.add_axes([(FW - bw - 0.05) / FW, 0.06 / FH, bw / FW, bh / FH])
     S = np.array([[1.0, 0.45], [0.45, 0.55]])
     vals, vecs = np.linalg.eigh(S)
     ang = math.degrees(math.atan2(vecs[1, 1], vecs[0, 1]))
@@ -771,7 +804,7 @@ def triangulation():
     b_.add_patch(Ellipse(pred, 2 * k * math.sqrt(vals[1]), 2 * k * math.sqrt(vals[0]), angle=ang, fc=C["light"], ec=C["blue"], lw=1.3))
     b_.add_patch(Ellipse(pred, 2 * math.sqrt(vals[1]), 2 * math.sqrt(vals[0]), angle=ang, fc="none", ec=C["blue"], lw=0.8, ls="--"))
     arrow(b_, (-3.6, -1.8), pred, "0.4", lw=1.0, ms=8)
-    label(b_, (-3.2, -2.2), "track: $\\hat x$ predicted by\nconstant velocity", fs=7.5)
+    label(b_, (-3.95, -2.48), "track: $\\hat x$ predicted by\nconstant velocity", fs=7.5)
     b_.plot(*pred, "o", color=C["blue"], ms=5)
     Sinv = np.linalg.inv(S)
     for m in [np.array([1.6, 0.9]), np.array([-1.0, 0.6]), np.array([2.4, -1.6])]:
@@ -780,9 +813,9 @@ def triangulation():
         b_.plot(*m, "x" if not inside else "o", color=C["green"] if inside else C["red"], ms=6, mew=1.6)
         label(b_, m + (0.0, 0.4), f"$d^2$={d2:.1f}", C["green"] if inside else C["red"], fs=7.5)
     label(b_, (0.9, 2.65), "gate $d^2=\\nu^\\top S^{-1}\\nu<9.21$ ($\\chi^2_2$, 99 %)", fs=7.5)
-    b_.set_title("(b) Mahalanobis gate, then Hungarian assignment")
+    fig.text((FW - 0.05 - bw / 2) / FW, TY, "(b) Mahalanobis gate, then Hungarian assignment", fontsize=9, ha="center", va="top")
     clean(b_, (-4.6, 4.0, -2.9, 3.0))
-    save(fig, "d_triangulation")
+    save(fig, "d_triangulation", tight=False)
 
 
 # ------------------------------------------------------------------------------- soldier gait cycle (from the export)
@@ -823,19 +856,9 @@ def gait():
 
 
 if __name__ == "__main__":
-    trs()
-    hierarchy()
-    view_basis()
-    projections()
-    frustum_ndc()
-    clipping()
-    hsr()
-    raster()
-    lighting()
-    texture()
-    raytrace()
-    blackbody()
-    particles()
-    floodfill()
-    triangulation()
-    gait()
+    ALL = [trs, hierarchy, view_basis, projections, frustum_ndc, clipping, hsr, raster, lighting, texture, raytrace,
+           blackbody, particles, floodfill, triangulation, gait]
+    want = sys.argv[1:]
+    for f in ALL:
+        if not want or f.__name__ in want:
+            f()

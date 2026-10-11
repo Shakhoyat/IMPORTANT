@@ -35,6 +35,7 @@ W_{\text{part}}&=W_{\text{parent of root}}\,M_{\text{root}}\,M_{g_1}\cdots M_{g_
 \end{align}
 The rightmost matrix acts first on the unit primitive's vertex $\vect p$: it is scaled, rolled, pitched, turned and moved
 in its group's frame, and each group $g_i$ then carries it into its parent's frame (Figure~\ref{fig:chain-order}).
+
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[font=\fontsize{7.5}{8.7}\selectfont,
@@ -57,6 +58,7 @@ in its group's frame, and each group $g_i$ then carries it into its parent's fra
 to right here.}
 \label{fig:chain-order}
 \end{figure}
+
 \begin{itemize}
 \item Each card gives two numbered chains: instance 1's root placement $W_{\text{root}}$ with its numeric matrix, and one
 part's chain $W_{\text{part}}=W_{\text{root}}\,M_{g_1}\cdots M_{g_k}\,M$ with its local matrix $M$ and its numeric world matrix
@@ -76,6 +78,7 @@ $T$, $R$, $S$ equals each exported local matrix.
 (continued on the next page).}
 \label{fig:atlas}
 \end{figure}
+
 \begin{figure}[H]\ContinuedFloat
 \centering\setlength{\tabcolsep}{1mm}\renewcommand{\arraystretch}{1}
 \designatlasB
@@ -84,15 +87,18 @@ $T$, $R$, $S$ equals each exported local matrix.
 
 % ---------------------------------------------------------------------------------- extras placed inside some cards
 \newcommand{\soldierextras}{%
+
 \begin{table}[H]
 \caption{The eight soldiers are one design (\nSoldierParts{} parts) placed eight times.}\label{tab:var-soldier}
 \centering\footnotesize\setlength{\tabcolsep}{4pt}\variantsSoldier
 \end{table}
+
 \begin{figure}[p]
 \centering\soldiergraph
 \caption{The soldier's scene graph.}
 \label{fig:soldier-graph}
 \end{figure}
+
 The gait writes only the joint angles of Figure~\ref{fig:soldier-graph}. The phase advances by distance over stride, so
 a stance foot stands still on the ground at any speed. During the stance the ankle moves back relative to the hip;
 during the swing it follows a cycloid forward with a sine lift. Two-link inverse kinematics then gives the hip and knee
@@ -106,12 +112,14 @@ x=x_b+(x_f-x_b)\Big(s-\frac{\sin2\pi s}{2\pi}\Big),\quad y=y_0+h\sin\pi s+r(1-s)
 with $\kappa$ the knee bend and $\eta$ the hip angle (applied as $R_x(-\eta)$ and $R_x(\kappa)$). Walking uses
 \gait{speed}\,m/s, stride \gait{stride}\,m, stance \gait{duty} of the cycle, lift $h=\gait{lift}$\,m and a pelvis bob of
 \gait{bob}\,m (\gait{cadence_steps_per_min} steps per minute).
+
 \begin{figure}[p]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_gait.pdf}
 \caption{One walk cycle: (a) hip and knee angles of both legs; (b) the left ankle's path relative to the hip (stance
 along the bottom, swing above it).}
 \label{fig:gait}
 \end{figure}
+
 \begin{figure}[H]
 \centering\partsgridSoldier
 \caption{Every part kind of the soldier (\nKindsSoldier{} kinds), each rendered alone, with its primitive and size.}
@@ -119,10 +127,12 @@ along the bottom, swing above it).}
 \end{figure}}
 
 \newcommand{\tankextras}{%
+
 \begin{table}[H]
 \caption{The three tanks are one design; only the root transform differs.}\label{tab:main-tank}
 \centering\footnotesize\variantsTank
 \end{table}
+
 \begin{figure}[H]
 \centering\buildstripKeyTank
 \caption{The tank built up in hierarchy order (depth-first order of the scene graph): hull first, then running gear,
@@ -131,12 +141,14 @@ then turret and gun.}
 \end{figure}}
 
 \newcommand{\uavextras}{%
+
 \begin{figure}[H]
 \centering\partsgridUav
 \caption{Every part kind of the UAV (uncrewed aerial vehicle) (\nKindsUav{} kinds, $\times n$ = parts of that kind), each rendered alone at the
 same size, with its primitive and size.}
 \label{fig:parts-uav}
 \end{figure}
+
 \begin{figure}[H]
 \centering\buildstripKeyUav
 \caption{The UAV (uncrewed aerial vehicle) built up in hierarchy order: the first 12, 35, 65 and 100\,\% of its parts, including the rounds on
@@ -145,6 +157,7 @@ its rails.}
 \end{figure}}
 
 \newcommand{\heliextras}{%
+
 \begin{figure}[H]
 \centering\buildstripKeyHeli
 \caption{The scout helicopter built up in hierarchy order: body, then the rotor heads and blades, then the searchlight.}
@@ -152,6 +165,7 @@ its rails.}
 \end{figure}}
 
 \newcommand{\bunkerextras}{%
+
 \begin{figure}[H]
 \centering\buildstripKeyBunker
 \caption{The command bunker built up in hierarchy order: the entrance trench, the blast door, the shell, then the rooms
@@ -163,9 +177,9 @@ and the surface installations.}
 \designcardsPeople
 
 \clearpage\subsection{Vehicles and their weapons}
-Each vehicle or launcher is followed by the munition it fires: the \ab{478}{UAV} and its rounds, the \ab{479}{SAM} launcher and its missile,
-the \ab{480}{MLRS} truck and its rockets, the \ab{481}{AA} gun and its shell casings. The munitions are nested designs of their carriers;
-Figure~\ref{fig:munitions} compares them at one scale. The tank's shells and the \ab{482}{AA} gun's tracers are not scene parts:
+Each vehicle or launcher is followed by the munition it fires: the \ab{490}{UAV} and its rounds, the \ab{491}{SAM} launcher and its missile,
+the \ab{492}{MLRS} truck and its rockets, the \ab{493}{AA} gun and its shell casings. The munitions are nested designs of their carriers;
+Figure~\ref{fig:munitions} compares them at one scale. The tank's shells and the \ab{494}{AA} gun's tracers are not scene parts:
 the combat code draws them as glowing slugs.
 \designcardsVehiclesAndTheirWeapons
 \munitionlineupfig

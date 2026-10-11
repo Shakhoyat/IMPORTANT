@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""v10 teaching workbook: report/workbooks/cg_workbook.xlsx (15 formula-driven sheets) + per-sheet PNG snaps.
+"""The workbook of the report: report/workbooks/cg_workbook.xlsx (16 formula-driven sheets and two registers:
+Report_Numbers, Coordinates) + per-sheet PNG snaps.
 
 Run:  ~/.local/bin/uv run -q --with openpyxl --with matplotlib python tools/v10/build_cg_workbook.py
       [--export FILE.json]  (default: runs ./build/ts-v9 --export-docs into a temp file)
@@ -33,7 +34,8 @@ NSS_LIB = Path.home() / ".local/opt/nss/root/usr/lib/x86_64-linux-gnu"
 
 SHEETS = ["Primitives", "Decomposition", "Designs", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
           "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
-          "Performance"]
+          "Performance", "Report_Numbers", "Coordinates"]
+NO_SNAP = {"Report_Numbers", "Coordinates"}   # registers: long lists, not rendered as figures
 
 # --------------------------------------------------------------------------------------------- workbook helpers
 if __name__ == "__main__" and "--snap-only" not in sys.argv:
@@ -417,7 +419,8 @@ def sheet_designs(wb, exp):
         r += 1
         ppi = d["parts_per_instance"]
         s.put(r, 1, d["name"], bold=True)
-        s.put(r, 2, d["family"])
+        # the report's Section 7 groups vehicles with the munitions they fire: one family name in both documents
+        s.put(r, 2, "vehicles and their weapons" if d["family"] in ("vehicles and aircraft", "weapons and munitions") else d["family"])
         s.put(r, 3, d["instances"], inp=True)
         s.put(r, 4, ppi[0] if len(set(ppi)) == 1 else "%d..%d" % (min(ppi), max(ppi)), inp=True, center=True)
         s.put(r, 5, d["parts_total"], inp=True)
@@ -2055,6 +2058,278 @@ def sheet_vertex_groups(wb, exp):
     s.finish(last_col=20, fit=False, scale=76)
 
 
+# --------------------------------------------------------------------------------------------- registers
+def _macro_uses():
+    """macro or \\gv key -> report section files that use it."""
+    sec = ROOT / "report" / "sections"
+    text = {f.name: f.read_text() for f in sorted(sec.glob("*.tex")) if not f.name.startswith(("gen_numbers", "gen_game", "gen_tables", "gen_ab_"))}
+    text["main.tex"] = (ROOT / "report" / "main.tex").read_text()
+    return text
+
+
+def quality_profiles():
+    """The four quality presets as {preset: {field: value}}, parsed from Renderer.h (defaults = HIGH) and
+    RendererFrame.cpp: qualityProfile."""
+    import re as _re
+
+    def val(t):
+        t = t.strip().rstrip("f")
+        return {"true": 1.0, "false": 0.0}.get(t, None) if t in ("true", "false") else (float(t) if _re.fullmatch(r"-?[\d.]+", t) else None)
+
+    head = (ROOT / "src" / "rendering" / "Renderer.h").read_text()
+    body = _re.search(r"struct QualityProfile \{(.*?)\n\};", head, _re.S).group(1)
+    base = {}
+    for line in body.splitlines():
+        line = line.split("//")[0]
+        m = _re.match(r"\s*(?:int|float|bool)\s+(.*);", line)
+        if m:
+            for part in m.group(1).split(","):
+                if "=" in part:
+                    k, v = part.split("=")
+                    if val(v) is not None:
+                        base[k.strip()] = val(v)
+    fn = (ROOT / "src" / "rendering" / "RendererFrame.cpp").read_text()
+    fn = fn[fn.index("QualityProfile qualityProfile(Quality q)"):]
+    fn = fn[:fn.index("\n}\n")]
+    out = {"High": dict(base)}
+    for m in _re.finditer(r"q == Quality::(\w+)\) \{(.*?)\n    \}", fn, _re.S):
+        prof = dict(base)
+        for k, v in _re.findall(r"p\.(\w+) = ([^;]+);", m.group(2)):
+            if val(v) is not None:
+                prof[k] = val(v)
+        out[m.group(1)] = prof
+    m = _re.search(r"\} else \{\s*// HIGH(.*?)\n    \}", fn, _re.S)
+    for k, v in _re.findall(r"p\.(\w+) = ([^;]+);", m.group(1)):
+        if val(v) is not None:
+            out["High"][k] = val(v)
+    return out
+
+
+def typed_numbers(exp):
+    """Numbers the report states in words, equations or hand-written tables, each read from the code or the export here:
+    (group, name, value or formula, source). Groups: text (prose), constant (equations and tables), derived (a formula
+    of the sheet)."""
+    import collections
+    import re as _re
+
+    def grab(path, rx, group=1):
+        m = _re.search(rx, (ROOT / path).read_text(), _re.S)
+        if not m:
+            raise SystemExit("typed_numbers: %s not found in %s" % (rx, path))
+        return float(m.group(group))
+
+    def const(path, name):
+        m = _re.search(r"\b%s\s*=\s*([-\d.]+)f?\b" % _re.escape(name), (ROOT / path).read_text())
+        return float(m.group(1))
+
+    out = [("split distance (m)", const("src/ai/Squad.h", "kSquadSplitDist"), "src/ai/Squad.h: kSquadSplitDist"),
+           ("re-join distance (m)", const("src/ai/Squad.h", "kSquadRejoinDist"), "src/ai/Squad.h: kSquadRejoinDist"),
+           ("split urgency (m to a protected point)", const("src/ai/Squad.h", "kSquadSplitThreat"), "src/ai/Squad.h: kSquadSplitThreat"),
+           ("wait for a free wing (s)", const("src/ai/Squad.h", "kSquadWingWaitFree"), "src/ai/Squad.h: kSquadWingWaitFree"),
+           ("guards' rifle range (m)", const("src/scene/Scene.h", "kRifleRange"), "src/scene/Scene.h: kRifleRange")]
+    sc = (ROOT / "src" / "scene" / "Scene.cpp").read_text()
+    m = _re.search(r"std::fmod\(clock \+ [^,]+, ([\d.]+)f\);\s*// ([\d.]+) s burst every", sc)
+    out += [("guards' burst length (s)", float(m.group(2)), "src/scene/Scene.cpp: guards' fire"),
+            ("guards' burst period (s)", float(m.group(1)), "src/scene/Scene.cpp: guards' fire")]
+    out.append(("helicopter alert idle (rotor fraction)", const("src/objects/Helicopter.h", "kAlertIdle"), "src/objects/Helicopter.h: kAlertIdle"))
+    calls, files = collections.Counter(), set()
+    for f in sorted((ROOT / "src" / "rendering").glob("*.cpp")):
+        if f.name == "ShaderMath.cpp":
+            continue
+        found = _re.findall(r"\bts(Dot|Length|Normalize|Cross|Reflect|Refract|Mix|Clamp|Step|Smoothstep|Transpose|Distance)\s*\(", f.read_text())
+        calls.update(found)
+        if found:
+            files.add(f.name)
+    for fn, n in sorted(calls.items(), key=lambda x: -x[1]):
+        out.append(("calls of ts%s in the shaders" % fn, n, "src/rendering/*.cpp (count of the calls)"))
+    out += [("calls of the hand-written vector functions", sum(calls.values()), "src/rendering/*.cpp"),
+            ("shader source files that use them", len(files), "src/rendering/*.cpp")]
+    shade = collections.Counter(c["shading"] for c in exp["components"] if c["primitive"] != "Group")
+    for k in ("Flat", "Gouraud", "Phong"):
+        out.append(("parts shaded %s" % k, shade[k], "export: components[].shading"))
+    out.append(("scene parts", exp["leaf_count"], "export: leaf_count"))
+    out.append(("designs", len(exp["designs"]), "export: designs"))
+    res = ROOT / "build" / "test_results.json"
+    if res.exists():
+        out.append(("automated tests", len(json.loads(res.read_text())), "tests/*.cpp (build/test_results.json)"))
+    out = [("text",) + o for o in out]
+
+    C = lambda name, value, source: out.append(("constant", name, value, source))
+    ky = r"\+ ([\d.]+)f \* std::pow\(e \+ ([\d.]+)f, -([\d.]+)f\)"
+    C("air mass (Kasten-Young): coefficient", grab("src/scene/DayCycle.cpp", ky, 1), "src/scene/DayCycle.cpp: airMass")
+    C("air mass (Kasten-Young): elevation offset (deg)", grab("src/scene/DayCycle.cpp", ky, 2), "src/scene/DayCycle.cpp: airMass")
+    C("air mass (Kasten-Young): exponent (negative)", grab("src/scene/DayCycle.cpp", ky, 3), "src/scene/DayCycle.cpp: airMass")
+    tm = r"x \* \(x \+ ([\d.]+)f\) - ([\d.]+)f;\s*const float b = x \* \(([\d.]+)f \* x \+ ([\d.]+)f\) \+ ([\d.]+)f"
+    for i, nm in enumerate(("numerator: linear term", "numerator: constant (subtracted)", "denominator: quadratic term",
+                            "denominator: linear term", "denominator: constant")):
+        C("tone curve, " + nm, grab("src/math/ToneMap.cpp", tm, i + 1), "src/math/ToneMap.cpp: tone curve")
+    C("tone curve: lowest exposure (log2, negative)", grab("src/math/ToneMap.h", r"kAgxMinEv = -([\d.]+)f"), "src/math/ToneMap.h: kAgxMinEv")
+    C("tone curve: highest exposure (log2)", grab("src/math/ToneMap.h", r"kAgxMaxEv = ([\d.]+)f"), "src/math/ToneMap.h: kAgxMaxEv")
+    C("value noise: frequency ratio per octave", grab("src/rendering/ShaderSources.cpp", r"valueNoise\(p\); p = p \* ([\d.]+) \+"), "src/rendering/ShaderSources.cpp: fbm")
+    C("fog density at night (1/m)", grab("src/rendering/Lighting.h", r"float fogDensity = ([\d.]+)f"), "src/rendering/Lighting.h: fogDensity")
+    C("fog density by day (1/m)", grab("src/scene/DayCycle.cpp", r"kDayFogDensity = ([\d.]+)f"), "src/scene/DayCycle.cpp: kDayFogDensity")
+    C("shadow depth bias, cascades", grab("src/rendering/ShaderSources.cpp", r"float zr = p\.z - ([\d.]+);"), "src/rendering/ShaderSources.cpp: cascadeShadow")
+    C("shadow depth bias, searchlight", grab("src/rendering/ShaderSources.cpp", r"uSpotShadow, vec3\([^;]*p\.z - ([\d.]+)\)"), "src/rendering/ShaderSources.cpp: spotShadow")
+    near = grab("src/scene/Camera.h", r"float nearZ = ([\d.]+)f, farZ = ([\d.]+)f", 1)
+    far = grab("src/scene/Camera.h", r"float nearZ = ([\d.]+)f, farZ = ([\d.]+)f", 2)
+    C("near plane N (m)", near, "src/scene/Camera.h: nearZ")
+    C("far plane F (m)", far, "src/scene/Camera.h: farZ")
+    C("octile distance: diagonal surcharge", grab("src/scene/Garrison.cpp", r"std::fmax\(dx, dz\) \+ ([\d.]+)f \* std::fmin"), "src/scene/Garrison.cpp: octile")
+    prof = quality_profiles()
+    for field, label in (("moonShadowRes", "key-light shadow map (texels)"), ("spotShadowRes", "searchlight shadow map (texels; 0 = off)"),
+                         ("cascadeSplit", "near cascade covers (m)"), ("pcfTaps", "shadow filter taps"),
+                         ("blockerTaps", "soft-shadow blocker taps"), ("contactSteps", "contact-shadow steps")):
+        for q in ("Low", "High", "Ultra", "Epic"):
+            gate = {"blockerTaps": "pcss", "contactSteps": "contactShadows"}.get(field)
+            if gate and not prof[q][gate]:
+                continue        # the feature is off at this preset (the report's table prints a dash)
+            C("%s, %s" % (label, q.upper()), prof[q][field], "src/rendering/RendererFrame.cpp: qualityProfile (%s)" % field)
+
+    film = ROOT / "report" / "video" / "thermalsense_final_720p.mp4"
+    probe = shutil.which("ffprobe") or os.path.expanduser("~/.local/bin/ffprobe")
+    if film.exists() and os.path.exists(probe):
+        r = subprocess.run([probe, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate:format=duration",
+                            "-of", "default=nw=1:nk=1", str(film)], capture_output=True, text=True).stdout.split()
+        num, den = r[0].split("/")
+        secs = int(round(float(r[1])))
+        C("film: length (s)", secs, "report/video/thermalsense_final_720p.mp4 (ffprobe)")
+        C("film: length, minutes part", secs // 60, "the length above")
+        C("film: length, seconds part", secs % 60, "the length above")
+        C("film: frames per second", float(num) / float(den), "report/video/thermalsense_final_720p.mp4 (ffprobe)")
+
+    D = lambda name, formula, source: out.append(("derived", name, formula, source))
+    D("far / near ratio F/N", "=%s/%s" % (repr(far), repr(near)), "the two planes above")
+    D("isometric view: elevation (deg)", "=DEGREES(ATAN(1/SQRT(2)))", "Section 11: arctan(1/sqrt 2)")
+    D("isometric view: foreshortening of each axis", "=SQRT(2/3)", "Section 11: sqrt(2/3)")
+    D("focal factor f at a 50 deg field of view", "=1/TAN(RADIANS(50/2))", "Section 11: f = 1/tan(fov/2)")
+    D("focal factor f at a 60 deg field of view", "=1/TAN(RADIANS(60/2))", "Section 11: f = 1/tan(fov/2)")
+    D("normal of the face x/4 + y = c: x component", "=0.25/SQRT(0.25^2+1)", "Section 8: normal matrix example, S = diag(4,1,1)")
+    D("normal of the face x/4 + y = c: y component", "=1/SQRT(0.25^2+1)", "Section 8: normal matrix example")
+    D("angle of M n to the true normal (deg)", "=DEGREES(ACOS(2*0.25*1/(0.25^2+1)))", "Section 8: normal matrix example")
+    D("octile surcharge sqrt(2) - 1", "=SQRT(2)-1", "Algorithm: octile distance")
+    return out
+
+
+def sheet_report_numbers(wb, exp):
+    """Register of the report's numbers: every number macro (name, value, the text printed, source, where used) and the
+    numbers stated in words. tools/report/numbers_from_workbook.py writes the report's macros from this sheet."""
+    import re as _re
+    code_values()   # (writes report/sections/gen_game.tex from the code)
+    s = Sheet(wb, "Report_Numbers", "Report_Numbers: every number of the report's text, with its source in the code",
+              "A: the number macros of the report, read from the code and the scene export; B-D: numbers stated in words, in equations "
+              "and in hand-written tables, read from the code here. tools/report/numbers_from_workbook.py writes the report's macros from A.")
+    s.widths({"A": 16, "B": 34, "C": 14, "D": 22, "E": 54, "F": 44})
+    S = s.put
+    uses = _macro_uses()
+    r = 5
+    S(r, 1, "A. Number macros of the report", border=False, bold=True)
+    r += 1
+    s.heads(r, 1, ["file", "name in the report", "value", "printed as", "source", "used in (report sources)"], height=18)
+    r += 1
+    sec = ROOT / "report" / "sections"
+    n = 0
+    for fname, rx, kind in (("gen_game.tex", r"\\expandafter\\def\\csname gv@([^\\]+?)\\endcsname\{(.*)\}\s*$", "gv"),
+                            ("gen_numbers.tex", r"\\newcommand\{\\(\w+)\}\{((?:[^\\{}]|\{,\})*)\}", "cmd"),
+                            ("gen_tables.tex", r"\\newcommand\{\\(\w+)\}\{((?:[^\\{}]|\{,\})*)\}", "cmd"),
+                            ("gen_designs.tex", r"\\newcommand\{\\(\w+)\}\{((?:[^\\{}]|\{,\})*)\}", "cmd"),
+                            ("gen_m3.tex", r"\\newcommand\{\\(\w+)\}\{((?:[^\\{}]|\{,\})*)\}", "cmd")):
+        f = sec / fname
+        if not f.exists():
+            continue
+        for m in _re.finditer(rx, f.read_text(), _re.M):
+            name, text = m.group(1), m.group(2)
+            if not _re.search(r"\d", text) or len(text) > 48:
+                continue
+            plain = text.replace("{,}", "").replace("\\,", "").replace(",", "")
+            try:
+                val = float(plain) if "." in plain or "e" in plain.lower() else int(plain)
+            except ValueError:
+                val = None
+            needle = ("\\gv{%s}" % name) if kind == "gv" else ("\\" + name)
+            where = [k for k, t in uses.items() if _re.search(_re.escape(needle) + (r"(?![A-Za-z])" if kind == "cmd" else ""), t)]
+            S(r, 1, fname)
+            S(r, 2, name)
+            if val is None:
+                S(r, 3, "")
+            else:
+                S(r, 3, val, inp=True, fmt="0" if isinstance(val, int) else "0.######")
+            S(r, 4, text, fmt="@")
+            S(r, 5, "code constant / export value of this name (tools/v10/gen_game.py)" if kind == "gv" else "scene export / benchmark (tools/v10/gen_numbers.py, tools/report/gen_designs.py)")
+            S(r, 6, ", ".join(where[:6]) if where else "(not used)")
+            r += 1
+            n += 1
+    r += 1
+    typed = typed_numbers(exp)
+    for group, title in (("text", "B. Numbers stated in words"), ("constant", "C. Constants of the equations and hand-written tables"),
+                         ("derived", "D. Values derived in the text (formulas of this sheet)")):
+        S(r, 1, title, border=False, bold=True)
+        r += 1
+        s.heads(r, 1, ["group", "quantity", "value", "", "source", ""], height=18)
+        r += 1
+        for g, name, val, src in typed:
+            if g != group:
+                continue
+            S(r, 1, g)
+            S(r, 2, name)
+            if isinstance(val, str):
+                S(r, 3, val, fmt="0.0000")
+            else:
+                S(r, 3, val, inp=True, fmt="0" if float(val).is_integer() else "0.#########")
+            S(r, 5, src)
+            r += 1
+        r += 1
+    S(r + 1, 1, "macros", bold=True)
+    S(r + 1, 2, n)
+    S(r + 2, 1, "stated", bold=True)
+    S(r + 2, 2, len(typed))
+    s.finish(last_col=6, fit=False, scale=80)
+
+
+def sheet_coordinates(wb, exp):
+    """Every component of the first instance of every design: size, rotation, and its centre and extent in the design
+    frame after the transformation chain (the coordinate sheets of the report's Section 7, printed there to 0.1 cm)."""
+    import numpy as _np
+    s = Sheet(wb, "Coordinates", "Coordinates: every component after its transformation chain, in its design's frame (cm)",
+              "scene export: components[].world_matrix, S_rest, R_deg. Centre p = W_root^-1 W_part (0,0,0,1); extent = box of the unit "
+              "primitive under the same matrix (a root that is itself a part: its size in use; terrain disc: 2R). "
+              "These are the coordinate sheets of the report's Section 7.")
+    s.widths({"A": 26, "B": 6, "C": 30, "D": 16, **{get_column_letter(c): 9 for c in range(5, 17)}})
+    S = s.put
+    r = 5
+    s.heads(r, 1, ["design", "#", "component", "primitive", "S x", "S y", "S z", "R x (deg)", "R y", "R z", "x", "y", "z", "dx", "dy", "dz"], height=18)
+    r += 1
+    comps = exp["components"]
+    sys.path.insert(0, str(ROOT / "tools" / "report"))
+    import coord_sheet as cs   # the same rule as the report's sheets (root parts, terrain disc)
+
+    def mat(m16):
+        return _np.array(m16, dtype=float).reshape(4, 4)
+
+    by_id = {c["id"]: c for c in comps}
+    total = 0
+    for d in exp["designs"]:
+        rid = d["instance_list"][0]["root_id"]
+        own = [c for c in comps if c["design_root"] == rid and c["design"] == d["name"] and c["primitive"] != "Group"]
+        rows = cs.compute_rows(d, own, rid, by_id, mat, exp["terrain"]["radius"])
+        for k, (c, (_, p, e)) in enumerate(zip(own, rows)):
+            S(r, 1, d["name"])
+            S(r, 2, k + 2)      # the row number printed in the report's sheet (row 1 is its heading)
+            S(r, 3, c["part_kind"])
+            S(r, 4, c["primitive"])
+            for j, v in enumerate(list(c["S_rest"]) + list(c["R_deg"])):
+                S(r, 5 + j, round(float(v) * (100.0 if j < 3 else 1.0), 3), inp=True, fmt="0.0")
+            for j, v in enumerate(list(p) + list(e)):
+                if v != v:
+                    S(r, 11 + j, "")        # the terrain's height follows the terrain function: no single extent
+                else:
+                    S(r, 11 + j, float(v), inp=True, fmt="0.0")       # full precision: the report prints these cells
+            r += 1
+            total += 1
+    S(r + 1, 1, "components", bold=True)
+    S(r + 1, 2, total)
+    s.finish(last_col=16, fit=False, scale=70)
+
+
 def build(export_path):
     exp = load_export(export_path)
     wb = Workbook()
@@ -2078,6 +2353,8 @@ def build(export_path):
     sheet_explosion(wb, exp)
     sheet_duty_cycle(wb, exp)
     sheet_performance(wb)
+    sheet_report_numbers(wb, exp)
+    sheet_coordinates(wb, exp)
     wb._sheets.sort(key=lambda ws: SHEETS.index(ws.title))
     wb.active = 0
     OUT_XLSX.parent.mkdir(parents=True, exist_ok=True)
@@ -2165,6 +2442,8 @@ def snap():
     sizes = []
     for i, page in enumerate(doc):
         name = owner[i] or f"page{i + 1}"
+        if name in NO_SNAP:
+            continue
         count[name] = count.get(name, 0) + 1
         fn = SNAP_DIR / (f"{name}.png" if count[name] == 1 else f"{name}_p{count[name]}.png")
         pix = page.get_pixmap(dpi=200)

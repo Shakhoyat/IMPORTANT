@@ -1,5 +1,5 @@
 // Possession table: which key takes which controllable, and helpers to find controllables by name.
-// Pure logic (no GL, no GLFW) so it is unit-tested. Owner: D.
+// Pure logic (no GL, no GLFW) so it is unit-tested.
 #pragma once
 
 #include <vector>

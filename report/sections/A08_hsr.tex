@@ -14,13 +14,14 @@ A=\tfrac12\sum_{k=0}^{2}\big(x_ky_{k+1}-x_{k+1}y_k\big)\quad(\text{screen, } y \
 z_w(\vect x)=\sum_k\lambda_k\,z_{w,k}\qquad\text{(affine in screen space)}\nonumber
 \end{gather}
 \begin{itemize}
-\item The screen-area sign of Eq.~\eqref{eq:hsr2} is the \abp{504}{GPU} back-face test (\code{glCullFace(GL\_BACK)}, counter-clockwise
+\item The screen-area sign of Eq.~\eqref{eq:hsr2} is the \abp{517}{GPU} back-face test (\code{glCullFace(GL\_BACK)}, counter-clockwise
 front faces); the Frame Explorer computes it itself (\code{ExplorerMath.h: signedArea2}).
 \item Window depth $z_w$ is an affine function of screen position (it is $1/w$ that varies linearly), so depth needs no
 perspective correction, unlike colours and normals (Section~\ref{sec:raster}).
 \item Depth test: \code{GL\_LESS} for the scene (strictly nearer wins), \code{GL\_LEQUAL} for hidden-line edges drawn over
 their own offset surfaces; the Z-buffer is cleared to 1 (the far plane) every frame.
 \end{itemize}
+
 \begin{table}[htbp]
 \caption{Hidden-surface methods: where each one runs in ThermalSense.}\label{tab:hsrmethods}
 \centering\small
@@ -44,8 +45,8 @@ Ray casting & nearest hit along the ray & bounding volume hierarchy (BVH), $O(\l
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.495\linewidth}\raw{v5/scene_hiddenline}{\linewidth}\caption{Hidden-line wireframe (\key{X}).}\end{subfigure}\hfill
-\begin{subfigure}{0.495\linewidth}\raw{v5/scene_xray}{\linewidth}\caption{X-ray wireframe: no depth test.}\end{subfigure}
+\begin{subfigure}[t]{0.495\linewidth}\raw{v5/scene_hiddenline}{\linewidth}\caption{Hidden-line wireframe (\key{X}).}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.495\linewidth}\raw{v5/scene_xray}{\linewidth}\caption{X-ray wireframe: no depth test.}\end{subfigure}
 \caption{Hidden-surface removal made visible: the same edges with the depth test (a) and without it (b), where
 even the underground bunker shows through.}
 \label{fig:hsr}

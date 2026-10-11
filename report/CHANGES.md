@@ -656,3 +656,9 @@ Teaching drawings of each section's maths; every constant drawn from the code is
     references, 62 designs), generated from the code so the line numbers are exact.
   - Repository: new `README.md`; stray files in `archive/`; course documents in `docs/reference`; the old README in
     `docs/history`; LaTeX artefacts untracked; `ThermalSense.exe` rebuilt from the final sources.
+  - Film sound: every shot levelled to one loudness over a continuous ambience bed (day, then night), compressed and
+    limited: integrated loudness -14.0 LUFS, loudness range 3 LU, peak -0.7 dB.
+  - Workbook rebuilt on the final export (2,641 formula cells, no errors); `tools/report/check_workbook.py` compares it with
+    the export, the code and the report (149 checks); the family names match Section 7.
+  - Repository: tool caches, development notes and the earlier workbook, report and figure generations removed; the
+    film (720p and slide copies) is part of the repository.

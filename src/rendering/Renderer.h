@@ -48,7 +48,7 @@ enum class ShadingOverride { PerObject, Flat, Gouraud, Phong };
 enum class Quality { Low = 0, High = 1, Ultra = 2, Epic = 3 };
 constexpr int kQualityCount = 4;
 
-// What each quality preset turns on (see docs/PLAN_V2.md, A8).
+// What each quality preset turns on.
 struct QualityProfile {
     int msaa = 4;
     int moonShadowRes = 2048, spotShadowRes = 1024;  // 0 = off

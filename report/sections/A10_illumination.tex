@@ -69,8 +69,9 @@ G=\prod_{\vect x\in\{\vect V,\vect L\}}\frac{\vect N\cdot\vect x}{(\vect N\cdot\
 F=F_0+(1-F_0)(1-\vect V\cdot\vect H)^5,\quad F_0=\operatorname{mix}(0.04,\boldsymbol\rho,m),\qquad
 \text{diffuse}=(1-F)(1-m)\,\boldsymbol\rho\max(0,\vect N\cdot\vect L)\nonumber
 \end{gather}
-with roughness $r$ and metalness $m$ per part. The \ab{516}{GGX} lobe replaces $(\vect N\cdot\vect H)^n$ and keeps energy balanced
+with roughness $r$ and metalness $m$ per part. The \ab{529}{GGX} lobe replaces $(\vect N\cdot\vect H)^n$ and keeps energy balanced
 between diffuse and specular (Figure~\ref{fig:phongblinn}b, Figure~\ref{fig:materials}).
+
 \begin{figure}[htbp]
 \centering\plot{p_phong_blinn}{\linewidth}
 \caption{(a) Phong and Blinn--Phong lobes for the same exponent as the view sweeps past the mirror direction
@@ -78,6 +79,7 @@ between diffuse and specular (Figure~\ref{fig:phongblinn}b, Figure~\ref{fig:mate
 Blinn lobe, each divided by its peak.}
 \label{fig:phongblinn}
 \end{figure}
+
 \begin{figure}[htbp]
 \centering\plot{p_attenuation}{\linewidth}
 \caption{Light falloff with the code's constants: (a) the beacon and searchlight attenuation of Eq.~\eqref{eq:att};
@@ -85,6 +87,7 @@ Blinn lobe, each divided by its peak.}
 (Eq.~\eqref{eq:att}) and the hooded lamps' cone (Eq.~\eqref{eq:lampatt}).}
 \label{fig:atten}
 \end{figure}
+
 \begin{figure}[htbp]
 \centering
 \raw{lab/materials_blinnphong_row}{0.92\linewidth}\\[1.5mm]
@@ -92,6 +95,7 @@ Blinn lobe, each divided by its peak.}
 \caption{The two reflectance models as the renderer draws them on spheres.}
 \label{fig:materials}
 \end{figure}
+
 \begin{table}[htbp]
 \caption{The illumination equations and the code that evaluates them (GLSL (OpenGL Shading Language) (OpenGL (Open Graphics Library) Shading Language) in \code{rendering/ShaderSources.cpp}). Short forms: GGX: Trowbridge--Reitz microfacet distribution.}\label{tab:illumcode}
 \centering\small
@@ -127,33 +131,34 @@ Ambient & hemisphere / spherical harmonics (SH) & night constant; by day the irr
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{showcase/sc_radar}{\linewidth}\caption{Sun (directional): one direction for every
+\begin{subfigure}[t]{0.49\linewidth}\raw{showcase/sc_radar}{\linewidth}\caption{Sun (directional): one direction for every
 fragment, so all shadows are parallel.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, practical lamps (point)
+\begin{subfigure}[t]{0.49\linewidth}\raw{v5/base_overview}{\linewidth}\caption{Night: moon key light, practical lamps (point)
 and the red beacon.}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.49\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{UAV (uncrewed aerial vehicle) searchlights (spot): a cone with a
+\begin{subfigure}[t]{0.49\linewidth}\raw{scene/night_searchlights}{\linewidth}\caption{UAV (uncrewed aerial vehicle) searchlights (spot): a cone with a
 soft edge between $\theta_i$ and $\theta_o$.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{showcase/sc_hall_inside_night}{\linewidth}\caption{Indoors at night: the tube lights
-(point lights with distance attenuation, Eq.~\ref{eq:att}).}\end{subfigure}
+\begin{subfigure}[t]{0.49\linewidth}\raw{showcase/sc_hall_inside_night}{\linewidth}\caption{Indoors at night: the tube lights
+(point lights with distance attenuation, Eq.~\eqref{eq:att}).}\end{subfigure}
 \caption{Each light type of Table~\ref{tab:lights} in the scene.}
 \label{fig:lights-scene}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_lighting.pdf}
-\caption{The vectors of Eq.~\ref{eq:phong} at one surface point, and how quickly the diffuse and specular terms fall off with angle (a larger exponent gives a smaller, sharper highlight).}
+\caption{The vectors of Eq.~\eqref{eq:phong} at one surface point, and how quickly the diffuse and specular terms fall off with angle (a larger exponent gives a smaller, sharper highlight).}
 \label{fig:d-light}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_all}{\linewidth}\caption{All terms.}\end{subfigure}\hfill
-\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_ambient}{\linewidth}\caption{Ambient only.}\end{subfigure}\hfill
-\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_diffuse}{\linewidth}\caption{Diffuse only.}\end{subfigure}\hfill
-\begin{subfigure}{0.245\linewidth}\raw{scene/v10_light_specular}{\linewidth}\caption{Specular only.}\end{subfigure}
+\begin{subfigure}[t]{0.245\linewidth}\raw{scene/v10_light_all}{\linewidth}\caption{All terms.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.245\linewidth}\raw{scene/v10_light_ambient}{\linewidth}\caption{Ambient only.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.245\linewidth}\raw{scene/v10_light_diffuse}{\linewidth}\caption{Diffuse only.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.245\linewidth}\raw{scene/v10_light_specular}{\linewidth}\caption{Specular only.}\end{subfigure}
 \caption{The terms of Eq.~\eqref{eq:phong} one at a time on the ammunition bunker at 10:30 (\key{Ctrl+L}).}
 \label{fig:terms}
 \end{figure}
+
 \begin{figure}[htbp]
 \centering
 {\footnotesize\textit{Geometry: sun, moon and searchlight at one roof point}}\\[0.5mm]
@@ -162,13 +167,14 @@ soft edge between $\theta_i$ and $\theta_o$.}\end{subfigure}\hfill
 \wbblock{Illumination}{terms}\\[1mm]
 {\footnotesize\wbkey}
 \caption{Workbook sheet \code{Illumination}: the
-three terms for one roof point at noon, sunset, under the moon and under a UAV (uncrewed aerial vehicle) searchlight. \fullsheet{Illumination}}
+three terms for one roof point at noon, sunset, under the moon and under a UAV (uncrewed aerial vehicle) searchlight. \fullsheet{Illumination}.}
 \label{fig:wb-illum}
 \end{figure}
 
 Ambient light (Figure~\ref{fig:terms}b) has no direction, so the shape reads only through colour. The diffuse term
 (c) depends on $\vect N\cdot\vect L$ and darkens faces turned from the sun. The specular term (d) is small, sits on
 edges and rims, and moves with the camera because $\vect H$ depends on $\vect V$.
+
 \begin{figure}[htbp]
 \centering\plot{p_specular_falloff}{0.62\linewidth}
 \caption{The specular lobe $(\vect N\cdot\vect H)^n$ for the shininess values of the scene (2 to 64); $n=64$ gives a
@@ -177,7 +183,7 @@ highlight eight times narrower than $n=2$.}
 \end{figure}
 
 
-In the \ab{517}{HDR} pipeline (the default) the renderer uses the \ab{518}{GGX} / Cook--Torrance model of Eq.~\eqref{eq:ggx}; \key{B}
+In the \ab{530}{HDR} pipeline (the default) the renderer uses the \ab{531}{GGX} / Cook--Torrance model of Eq.~\eqref{eq:ggx}; \key{B}
 switches to the Blinn--Phong of Eq.~\eqref{eq:phong}, which the display-referred path (\key{N}) always uses.
 
 \subsection{Vector maths written by hand}
@@ -217,6 +223,7 @@ vec3 tsMix(vec3 a, vec3 b, float t) { return a * (1.0 - t) + b * t; }
 float tsStep(float edge, float x) { return x < edge ? 0.0 : 1.0; }
 float tsSmoothstep(float e0, float e1, float x) { float t = tsClamp((x - e0) / (e1 - e0), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
 \end{lstlisting}
+
 \begin{table}[htbp]
 \caption{The vector functions written by hand, the built-in function each one replaces, and how often the shaders call it
 (905 calls in 13 shader source files).}\label{tab:manualmath}
@@ -238,6 +245,7 @@ Own function & Replaces & Calls & Used for\\\midrule
 \bottomrule
 \end{tabularx}
 \end{table}
+
 What is still left to the hardware or the language: the scalar functions $\sin$, $\cos$, power, exponential, square root,
 absolute value, minimum, maximum, floor and fraction; texture look-ups; and the fixed stages of
 Table~\ref{tab:fixedfn}. On the C++ side every vector and matrix operation was already the project's own
@@ -256,14 +264,15 @@ w=(z_{\text{ref}}-\bar z_b)\,\Delta_z\cdot2\tan\tfrac{\theta_s}{2},\qquad \rho=\
 \begin{itemize}
 \item $P_lV_l$: the light's view-projection (orthographic cascade for the sun and moon, perspective for the searchlight,
 Table~\ref{tab:projs}); $t$: one shadow texel in metres; $b=0.0004$ (cascades), $0.00015$ (searchlight).
-\item \ab{519}{PCF}: $n=8$ or 16 Poisson taps $\vect o_i$ in a disc of $\rho_0=1.6$ texels (near cascade), rotated by a per-pixel
+\item \ab{532}{PCF}: $n=8$ or 16 Poisson taps $\vect o_i$ in a disc of $\rho_0=1.6$ texels (near cascade), rotated by a per-pixel
 angle $\phi$; each tap is itself a hardware $2\times2$ bilinear compare. $S$ is the map size.
-\item \ab{520}{PCSS} (HIGH and above): the blocker search averages the depths nearer than the receiver, the gap $z_{\text{ref}}-\bar z_b$
+\item \ab{533}{PCSS} (HIGH and above): the blocker search averages the depths nearer than the receiver, the gap $z_{\text{ref}}-\bar z_b$
 (times $\Delta_z$, metres per depth unit) and the light's angular size $\theta_s$ ($1.6^\circ$ sun, $0.53^\circ$ moon) give
-the penumbra width $w$; the \ab{521}{PCF} radius follows it, hard at contact and soft further away.
+the penumbra width $w$; the \ab{534}{PCF} radius follows it, hard at contact and soft further away.
 \item Two cascades cross-fade over the last 20\,\% of the split distance; the key light's visibility is the shadow map
 times the cloud shadow times the screen-space contact shadow.
 \end{itemize}
+
 \begin{figure}[htbp]
 \centering\plot{p_shadows}{\linewidth}
 \caption{Shadow filtering with the code's constants: (a) the 16 Poisson taps of \code{kPoisson} at radius 1.6 texels;
@@ -271,12 +280,14 @@ times the cloud shadow times the screen-space contact shadow.
 EPIC cascades (4096 maps).}
 \label{fig:shadowplots}
 \end{figure}
+
 \begin{figure}[htbp]
 \centering\raw{lab/explorer_stage_08_shadow}{0.85\linewidth}
 \caption{Frame Explorer shadow stage: the scene drawn from the light into the depth map (inset) and the lit fraction
 per pixel after the PCF (percentage-closer filtering) of Eq.~\eqref{eq:shadow}.}
 \label{fig:shadowstage}
 \end{figure}
+
 \begin{table}[htbp]
 \caption{Shadow settings per quality preset (\code{RendererFrame.cpp: qualityProfile}). Short forms: PCSS: percentage-closer soft shadows; PCF: percentage-closer filtering.}\label{tab:shadowq}
 \centering\small
@@ -292,6 +303,7 @@ Contact-shadow steps & -- & 10 & 12 & 16\\
 \bottomrule
 \end{tabular}
 \end{table}
+
 \begin{lstlisting}[language=C++,caption={The PCF loop of one cascade (\code{ShaderSources.cpp: cascadeShadow}, OpenGL Shading Language).}]
 vec4 lp = vp * vec4(P + N * texel * (1.0 + 2.0 * slope), 1.0);   // normal-offset bias
 vec3 p = lp.xyz / lp.w * 0.5 + 0.5;                              // light NDC -> [0,1]

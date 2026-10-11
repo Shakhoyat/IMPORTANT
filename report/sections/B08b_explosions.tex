@@ -4,6 +4,7 @@
 An explosion is a particle system: one call spawns a few hundred short-lived particles of seven kinds. Each tick moves
 every particle by its own law of motion (Table~\ref{tab:explode}); each frame draws it as one instanced quad, facing the
 camera, stretched along its velocity or laid on the ground. Its colour is computed in the shader from a temperature $T$.
+
 \begin{table}[htbp]
 \caption{What one blast spawns (power 1 = a UAV (uncrewed aerial vehicle) round, 1.6 = a tank shell, 0.15 = a tracer impact), how each kind
 moves per tick of length $\Delta t$ and how its colour is made.}\label{tab:explode}
@@ -13,6 +14,7 @@ moves per tick of length $\Delta t$ and how its colour is made.}\label{tab:explo
 
 \paragraph{Physics.} Drag is an exact decay, $\mathbf{v}\leftarrow\mathbf{v}\,e^{-k\Delta t}$ (frame-rate independent);
 fire and smoke rise, sparks fall and bounce, and the rover's own primitives become debris.
+
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_particles.pdf}
 \caption{The integrators of Table~\ref{tab:explode} run from the same start point (initial velocities are typical
@@ -27,15 +29,17 @@ $T=\mathrm{clamp}(1-d)\,(1-t)^{\gv{fireLife}}$, mapped by a blackbody-like ramp 
 \mathbf{c}_{\mathrm{fire}}=\mathrm{bb}(T)\,(\gv{fireEmitA}+\gv{fireEmitB}\,T^2)
 \label{eq:bb}
 \end{equation}
-A cooling point slides from white-yellow through orange and deep red to black: interpolation along a curve through \ab{578}{RGB}
-space. The emission is \ab{579}{HDR}, so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
+A cooling point slides from white-yellow through orange and deep red to black: interpolation along a curve through \ab{591}{RGB}
+space. The emission is \ab{592}{HDR}, so bloom makes it glow. Blending is premultiplied (emission adds light, soot hides what is
 behind), with the smoke group and the glowing group each sorted back to front.
+
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_blackbody.pdf}
-\caption{(a) The shader's ramp (Eq.~\ref{eq:bb}) per channel and as a colour bar; (b) the temperature a flame core
+\caption{(a) The shader's ramp (Eq.~\eqref{eq:bb}) per channel and as a colour bar; (b) the temperature a flame core
 and a spark feed into it over their lives, and the resulting emitted colour (HDR (high dynamic range), shown tone-mapped).}
 \label{fig:bb}
 \end{figure}
+
 \begin{figure}[htbp]
 \centering
 \wbblock{Explosion}{bb}\\[1.5mm]
@@ -43,20 +47,21 @@ and a spark feed into it over their lives, and the resulting emitted colour (HDR
 \begin{minipage}[t]{0.5\linewidth}\centering\wbblock{Explosion}{spark}\end{minipage}\hfill
 \begin{minipage}[t]{0.46\linewidth}\centering\wbblock{Explosion}{debris}\end{minipage}\\[1mm]
 {\footnotesize\wbkey}
-\caption{Workbook sheet \code{Explosion}. \fullsheet{Explosion}}
+\caption{Workbook sheet \code{Explosion}. \fullsheet{Explosion}.}
 \label{fig:wb-explosion}
 \end{figure}
+
 \begin{figure}[htbp]
 \centering
-\begin{subfigure}{0.49\linewidth}\raw{game/explosion_early}{\linewidth}\caption{Flash and fireball.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{game/explosion_mid}{\linewidth}\caption{Fire cools, sparks fall.}\end{subfigure}\\[1.2mm]
-\begin{subfigure}{0.49\linewidth}\raw{game/explosion_smoke}{\linewidth}\caption{5\,s on: the next round's flash.}\end{subfigure}\hfill
-\begin{subfigure}{0.49\linewidth}\raw{game/wreck_burning}{\linewidth}\caption{Burning wreck.}\end{subfigure}
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/explosion_early}{\linewidth}\caption{Flash and fireball.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/explosion_mid}{\linewidth}\caption{Fire cools, sparks fall.}\end{subfigure}\\[1.2mm]
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/explosion_smoke}{\linewidth}\caption{5\,s on: the next round's flash.}\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\linewidth}\raw{game/wreck_burning}{\linewidth}\caption{Burning wreck.}\end{subfigure}
 \caption{One blast over time; the fire's colour moves along the ramp of Figure~\ref{fig:bb} as it cools.}
 \label{fig:boom}
 \end{figure}
 
-Figure~\ref{fig:flow-particles} and Algorithm~\ref{alg:particles} give one blast from spawn to the \ab{580}{HDR} image.
+Figure~\ref{fig:flow-particles} and Algorithm~\ref{alg:particles} give one blast from spawn to the \ab{593}{HDR} image.
 \flowParticles
 \algParticles
 
