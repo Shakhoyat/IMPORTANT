@@ -45,8 +45,8 @@ AMBER, WHITE, GREY, DIM = RGBColor(0xFF, 0x9E, 0x1F), RGBColor(0xFF, 0xFF, 0xFF)
 W, H = 13.333, 7.5
 MX = 0.5                      # left and right margin
 CW = W - 2 * MX               # content width
-Y0, Y1 = 1.6, 6.85            # content top and bottom on slides 3 to 9
-FONT, MONO = "Calibri", "Consolas"
+Y0, Y1 = 1.55, 6.88           # content top and bottom on slides 3 to 9
+FONT, MONO = "Segoe UI", "Consolas"
 L, C, R = PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.RIGHT
 TOP, MID = MSO_ANCHOR.TOP, MSO_ANCHOR.MIDDLE
 
@@ -217,8 +217,8 @@ class Slide:
 
     def title(self, title, kicker):
         self.rect(0, 0, 0.12, H, AMBER)
-        self.text(MX, 0.30, 9.0, 0.34, kicker.upper(), 13, AMBER, True)
-        self.text(MX, 0.56, CW, 0.8, title, 32, WHITE, True)
+        self.text(MX, 0.28, 9.0, 0.32, kicker.upper(), 13, AMBER, True)
+        self.text(MX, 0.52, CW, 0.8, title, 32, WHITE, True)
 
     def footer(self):
         self.text(MX, 7.04, 4.0, 0.3, DATE, 11, GREY, anchor=MID)
@@ -288,12 +288,12 @@ def build():
     # ---- 2 Film (embedded movie with a poster frame)
     s = d.new("The project film, 3 minutes 38 seconds. Click the picture to play it.")
     s.rect(0, 0, 0.12, H, AMBER)
-    vw = 11.0; vh = vw * 9 / 16; vx = (W - vw) / 2; vy = 0.34
+    vw = 11.2; vh = vw * 9 / 16; vx = (W - vw) / 2; vy = 0.32
     poster = cover(POSTER, vw, vh)
     if not os.path.exists(VIDEO):
         sys.exit("missing film: " + VIDEO)
     s.s.shapes.add_movie(VIDEO, Inches(vx), Inches(vy), Inches(vw), Inches(vh), poster_frame_image=poster, mime_type="video/mp4")
-    s.text(vx, vy + vh + 0.03, vw, 0.4, [[("Project film", WHITE, True), ("   |   3 min 38 s", GREY, False)]], 16, align=C, anchor=MID, body=True)
+    s.text(vx, vy + vh + 0.04, vw, 0.4, [[("Project film", WHITE, True), ("   |   3 min 38 s   (1080p, audio enabled)", GREY, False)]], 16, align=C, anchor=MID, body=True)
     s.footer()
 
     # ---- 3 Contents (numbered tiles for slides 4 to 9)
@@ -306,15 +306,15 @@ def build():
              ("07", "Rover path planning", fig("figures_v6", "plan_routes.png"), dict(crop=(420, 250, 1500, 1000))),
              ("08", "Real-time vision", fig("figures_final", "final_flir.jpg"), dict(crop=(250, 130, 1650, 760))),
              ("09", "Defence and vehicles", fig("figures_final", "final_single.jpg"), dict(focus=(0.5, 0.35)))]
-    gx, gy = 0.2, 0.2
-    tw = (CW - 2 * gx) / 3; ih, bh = 1.82, 0.7
+    gx, gy = 0.20, 0.16
+    tw = (CW - 2 * gx) / 3; ih, bh = 2.05, 0.54
     for i, (num, name, path, kw) in enumerate(tiles):
         x = MX + (i % 3) * (tw + gx); y = Y0 + (i // 3) * (ih + bh + gy)
         s.pic(path, x, y, tw, ih, **kw)
         s.rect(x, y + ih, tw, bh, PANEL)
         s.rect(x, y + ih, tw, 0.04, AMBER)
-        s.text(x + 0.12, y + ih + 0.04, 0.8, bh - 0.04, num, 28, AMBER, True, L, MID)
-        s.text(x + 0.95, y + ih + 0.04, tw - 1.05, bh - 0.04, name, 18, WHITE, True, L, MID)
+        s.text(x + 0.10, y + ih + 0.02, 0.65, bh - 0.04, num, 24, AMBER, True, L, MID)
+        s.text(x + 0.78, y + ih + 0.02, tw - 0.88, bh - 0.04, name, 17, WHITE, True, L, MID)
     s.footer()
 
     # ---- 4 Pipeline as a flow
@@ -324,14 +324,14 @@ def build():
     s = d.new("The flow of one frame: primitives are generated in code, placed by hierarchical transformations, "
               "lit by hand-written vector maths, drawn by the rasteriser or the ray tracer, then post-processed.")
     s.title("The graphics pipeline, end to end", "4  |  Pipeline")
-    n5 = 5; tw = 2.2; gap = (CW - n5 * tw) / (n5 - 1); ih = 3.1; lh = 1.15
+    n5 = 5; tw = 2.25; gap = (CW - n5 * tw) / (n5 - 1); ih = 3.52; lh = 0.92
     prim = [fig("figures", "img", "m3", "prims", f) for f in ("prim_03_sphere_wire.jpg", "prim_08_torus_wire.jpg",
                                                               "prim_14_helix_wire.jpg", "prim_07_cone_wire.jpg")]
-    stages = [("Primitives", "16 generators, in code"),
-              ("Hierarchy", "M = T · R · S, parent × child"),
-              ("Lighting", "vector maths written by hand"),
-              ("Rendering", "rasteriser or ray tracer"),
-              ("Post-processing", "fog, bloom, tone mapping")]
+    stages = [("Primitives", "16 generators in code"),
+              ("Hierarchy", "M = T · R · S, graph"),
+              ("Lighting", "vector maths by hand"),
+              ("Rendering", "raster / ray tracer"),
+              ("Post-process", "fog, bloom, tonemap")]
     for i, (name, sub) in enumerate(stages):
         x = MX + i * (tw + gap)
         if i == 0:
@@ -349,10 +349,10 @@ def build():
         s.chip(x, Y0, str(i + 1))
         s.rect(x, Y0 + ih, tw, lh, PANEL)
         s.rect(x, Y0 + ih, tw, 0.04, AMBER)
-        s.text(x + 0.08, Y0 + ih + 0.12, tw - 0.16, lh - 0.15, [[(name, WHITE, True)], [(sub, GREY, False)]], 15, gap=0.25)
+        s.text(x + 0.08, Y0 + ih + 0.08, tw - 0.16, lh - 0.12, [[(name, WHITE, True)], [(sub, GREY, False)]], 15, gap=0.18)
         if i < n5 - 1:
             s.arrow(x + tw + (gap - 0.26) / 2, Y0 + ih / 2 - 0.15)
-    s.text(MX, Y0 + ih + lh + 0.22, CW, 0.5,
+    s.text(MX, Y0 + ih + lh + 0.18, CW, 0.45,
            [[("No built-in vector function in any shader", AMBER, True), ("     |     ", DIM, False),
              ("No mathematics library", AMBER, True), ("     |     ", DIM, False),
              ("C++17, OpenGL 3.3 core", WHITE, False)]], 18, align=C, anchor=MID, body=True)
@@ -376,12 +376,12 @@ def build():
             ["Ray tracer", "OpenGL 4.3 compute"],
             ["Mathematics library", "none"]]
     rh = (Y1 - Y0) / len(rows)
-    s.table(MX, Y0, [3.75, 2.95], rows, row_h=rh, size=16, head_size=13, bold_cols=(1,), accent_cols=(1,))
-    ix = MX + 6.7 + 0.25
-    iw = W - MX - ix; ihh = Y1 - Y0 - 0.45
+    s.table(MX, Y0, [3.15, 2.05], rows, row_h=rh, size=15, head_size=13, bold_cols=(1,), accent_cols=(1,))
+    ix = MX + 5.20 + 0.30
+    iw = W - MX - ix; ihh = Y1 - Y0 - 0.40
     s.pic(fig("figures", "scene_primitives_exploded.png"), ix, Y0, iw, ihh, crop=(620, 10, 1600, 900), focus=(1.0, 0.5))
-    s.rect(ix, Y0 + ihh, iw, 0.45, PANEL)
-    s.text(ix + 0.08, Y0 + ihh, iw - 0.16, 0.45, "The camp drawn by primitive type: cube, sphere, cylinder, cone", 13, AMBER, anchor=MID)
+    s.rect(ix, Y0 + ihh, iw, 0.40, PANEL)
+    s.text(ix + 0.08, Y0 + ihh, iw - 0.16, 0.40, "The camp drawn by primitive type: cube, sphere, cylinder, cone", 13, AMBER, anchor=MID)
     s.footer()
 
     # ---- 6 Lighting and shading by hand
@@ -392,34 +392,34 @@ def build():
               "Gouraud lights the vertices, Phong lights every pixel. Dot, normalise, cross, reflect, refract, mix, clamp, step "
               "and smooth step are written out in one file and placed in front of every shader.")
     s.title("Lighting and shading, written by hand", "6  |  Illumination")
-    eh = 1.75
+    eh = 1.65
     s.rect(MX, Y0, CW, eh, PANEL); s.rect(MX, Y0, 0.06, eh, AMBER)
     main = eq_labelled([(r"$I \;=\;$", None), (r"$k_a I_a$", "ambient"),
                         (r"$\;+\;\sum_{l}\, f_{\mathrm{att},l}\; c_l\, I_l\; \mathrm{[}\;$", None),
                         (r"$k_d\,\max(0,\ \mathbf{N}\cdot\mathbf{L}_l)$", "diffuse"), (r"$\;+\;$", None),
-                        (r"$k_s\,\max(0,\ \mathbf{N}\cdot\mathbf{H}_l)^{n}$", "specular (Blinn-Phong)"), (r"$\;\mathrm{]}$", None)], "eq_main")
-    s.png(main, MX + 0.3, Y0 + 0.12, 8.6, eh - 0.24, align="l")
-    half = eq_png(r"$\mathbf{H}=\frac{\mathbf{L}+\mathbf{V}}{\Vert\mathbf{L}+\mathbf{V}\Vert}$", "eq_half", 30)
-    phong = eq_png(r"Phong:  $k_s\,\max(0,\ \mathbf{R}\cdot\mathbf{V})^{n}$", "eq_phong", 22, "#A8B0BA")
-    s.png(half, MX + 9.15, Y0 + 0.22, 2.9, 0.78)
-    s.png(phong, MX + 9.15, Y0 + 1.15, 2.9, 0.42)
-    y2 = Y0 + eh + 0.2; sw = 2.5; sg = 0.15; sih = Y1 - y2 - 0.7
+                        (r"$k_s\,\max(0,\ \mathbf{N}\cdot\mathbf{H}_l)^{n}$", "specular (Blinn-Phong)"), (r"$\;\mathrm{]}$", None)], "eq_main", size=32)
+    s.png(main, MX + 0.3, Y0 + 0.10, 8.6, eh - 0.20, align="l")
+    half = eq_png(r"$\mathbf{H}=\frac{\mathbf{L}+\mathbf{V}}{\Vert\mathbf{L}+\mathbf{V}\Vert}$", "eq_half", 28)
+    phong = eq_png(r"Phong:  $k_s\,\max(0,\ \mathbf{R}\cdot\mathbf{V})^{n}$", "eq_phong", 21, "#A8B0BA")
+    s.png(half, MX + 9.15, Y0 + 0.18, 2.9, 0.72)
+    s.png(phong, MX + 9.15, Y0 + 1.05, 2.9, 0.40)
+    y2 = Y0 + eh + 0.18; sw = 2.95; sg = 0.16; sih = Y1 - y2 - 0.55
     shade = [("Flat", "one normal per face", "shading_sphere_lowpoly_flat.png"),
-             ("Gouraud", "lit at the vertices", "shading_sphere_lowpoly_gouraud.png"),
+             ("Gouraud", "lit at vertices", "shading_sphere_lowpoly_gouraud.png"),
              ("Phong", "lit at every pixel", "shading_sphere_lowpoly_phong.png")]
     for i, (name, sub, f) in enumerate(shade):
         x = MX + i * (sw + sg)
         s.pic(fig("figures_lab", f), x, y2, sw, sih, crop=(40, 60, 600, 600))
-        s.rect(x, y2 + sih, sw, 0.7, PANEL)
-        s.text(x + 0.08, y2 + sih, sw - 0.16, 0.7, [[(name, WHITE, True), ("   " + sub, GREY, False)]], 14, anchor=MID)
-    fx = MX + 3 * sw + 2 * sg + 0.25; fw = W - MX - fx; fh = Y1 - y2
+        s.rect(x, y2 + sih, sw, 0.55, PANEL)
+        s.text(x + 0.08, y2 + sih, sw - 0.16, 0.55, [[(name, WHITE, True), ("   " + sub, GREY, False)]], 14, anchor=MID)
+    fx = MX + 3 * sw + 2 * sg + 0.22; fw = W - MX - fx; fh = Y1 - y2
     s.rect(fx, y2, fw, fh, PANEL); s.rect(fx, y2, fw, 0.04, AMBER)
-    s.text(fx + 0.15, y2 + 0.14, fw - 0.3, 0.3, "VECTOR FUNCTIONS WRITTEN BY HAND", 12, GREY, True)
-    s.text(fx + 0.15, y2 + 0.5, fw - 0.3, 1.5,
+    s.text(fx + 0.14, y2 + 0.12, fw - 0.28, 0.28, "VECTOR MATHS IN SHADERS", 12, GREY, True)
+    s.text(fx + 0.14, y2 + 0.44, fw - 0.28, 1.4,
            ["tsDot         tsLength", "tsNormalize   tsCross", "tsReflect     tsRefract", "tsMix         tsClamp",
-            "tsStep        tsSmoothstep"], 14, WHITE, font=MONO, gap=0.22)
-    s.text(fx + 0.15, y2 + fh - 1.22, fw - 0.3, 0.55, [[("905 calls", AMBER, True), ("  in 13 shader files", WHITE, False)]], 22, body=True)
-    s.text(fx + 0.15, y2 + fh - 0.62, fw - 0.3, 0.5, "A built-in vector call does not compile", 14, GREY, body=True)
+            "tsStep        tsSmoothstep"], 13, WHITE, font=MONO, gap=0.20)
+    s.text(fx + 0.14, y2 + fh - 1.15, fw - 0.28, 0.50, [[("905 calls", AMBER, True), ("  in 13 shaders", WHITE, False)]], 20, body=True)
+    s.text(fx + 0.14, y2 + fh - 0.58, fw - 0.28, 0.48, "Built-in GLSL calls refused", 13, GREY, body=True)
     s.footer()
 
     # ---- 7 Rover path planning
@@ -435,32 +435,32 @@ def build():
               "can see. The path becomes a guide line that five sensors and a proportional-derivative law follow, and the plan "
               "is redone every 0.4 or 1.6 seconds.")
     s.title("Intruder rovers: path planning", "7  |  Flood fill, Dijkstra, line follower")
-    mw = 6.2; mh = mw * 855 / 1170
+    mw = 6.95; mh = mw * 855 / 1170
     s.rect(MX, Y0, mw, mh, WHITE)
     s.pic(fig("figures", "plots", "p_rover_map.png"), MX + 0.05, Y0 + 0.05, mw - 0.1, mh - 0.1, crop=(75, 60, 1245, 915))
-    s.text(MX, Y0 + mh + 0.08, mw, 0.6, f"Route map: 4 rovers, two UAVs ({UAV_FULL}s), 130 s", 13, GREY, body=True)
-    rx = MX + mw + 0.3; rw = W - MX - rx
-    steps = [("Flood fill", "micromouse: distance to cover"), ("Dijkstra route", "distance + exposure + noise"),
-             ("Line follower", "LFR (line-follower robot)")]
-    cg = 0.34; cw_ = (rw - 2 * cg) / 3; chh = 1.15
+    s.text(MX, Y0 + mh + 0.06, mw, 0.30, f"Route map: 4 rovers, two UAVs ({UAV_FULL}s), 130 s mission", 13, GREY, body=True)
+    rx = MX + mw + 0.28; rw = W - MX - rx
+    steps = [("Flood fill", "BFS cover"), ("Dijkstra", "cost + exposure"),
+             ("Line follow", "5-sensor PD")]
+    cg = 0.20; cw_ = (rw - 2 * cg) / 3; chh = 1.05
     for i, (name, sub) in enumerate(steps):
         x = rx + i * (cw_ + cg)
         s.rect(x, Y0, cw_, chh, PANEL); s.rect(x, Y0, cw_, 0.04, AMBER)
-        s.text(x + 0.08, Y0 + 0.12, cw_ - 0.16, chh - 0.15, [[(f"{i + 1}  ", AMBER, True), (name, WHITE, True)], [(sub, GREY, False)]], 14, gap=0.25)
+        s.text(x + 0.06, Y0 + 0.10, cw_ - 0.12, chh - 0.12, [[(f"{i + 1}  ", AMBER, True), (name, WHITE, True)], [(sub, GREY, False)]], 13, gap=0.20)
         if i < 2: s.arrow(x + cw_ + (cg - 0.26) / 2, Y0 + chh / 2 - 0.15)
-    ty = Y0 + chh + 0.2
+    ty = Y0 + chh + 0.18
     rows = [["Algorithm", "In the code", "Time", "Space"],
-            ["Flood fill", "BFS (breadth-first search)", "O(N)", "O(N)"],
+            ["Flood fill", "BFS (breadth-first)", "O(N)", "O(N)"],
             ["Dijkstra", "binary heap (priority queue)", "O(N log N)", "O(N)"],
             ["Path", "steepest descent, L cells", "O(L)", "O(L)"],
             ["Line follower", "5 sensors × M line points", "O(M)", "O(M)"]]
-    s.table(rx, ty, [1.4, rw - 1.4 - 1.2 - 0.8, 1.2, 0.8], rows, row_h=0.5, size=13, head_size=12, bold_cols=(0,), accent_cols=(2, 3))
-    ny = ty + 0.5 * len(rows) + 0.08
-    s.text(rx, ny, rw, 0.32, "N = 80 × 80 = 6,400 cells of 0.5 m;  line follower: cost per frame", 13, GREY)
-    s.rect(rx + 0.05, ny + 0.59, 0.11, 0.11, AMBER)
-    s.text(rx + 0.25, ny + 0.42, rw - 0.25, 0.45, "Re-plans every 0.4 s hiding, 1.6 s infiltrating", 16, WHITE, body=True)
-    s.rect(rx + 0.05, ny + 1.02, 0.11, 0.11, AMBER)
-    s.text(rx + 0.25, ny + 0.85, rw - 0.25, 0.45, "PD (proportional-derivative) steering: Kp 3.2, Kd 0.25", 16, WHITE, body=True)
+    s.table(rx, ty, [1.35, rw - 1.35 - 1.15 - 0.75, 1.15, 0.75], rows, row_h=0.46, size=13, head_size=12, bold_cols=(0,), accent_cols=(2, 3))
+    ny = ty + 0.46 * len(rows) + 0.06
+    s.text(rx, ny, rw, 0.28, "N = 80 × 80 = 6,400 cells (0.5 m);  line follower: per frame", 12, GREY)
+    s.rect(rx + 0.05, ny + 0.42, 0.10, 0.10, AMBER)
+    s.text(rx + 0.22, ny + 0.30, rw - 0.22, 0.38, "Re-plans every 0.4 s hiding, 1.6 s infiltrating", 15, WHITE, body=True)
+    s.rect(rx + 0.05, ny + 0.82, 0.10, 0.10, AMBER)
+    s.text(rx + 0.22, ny + 0.70, rw - 0.22, 0.38, "PD steering: Kp 3.2, Kd 0.25", 15, WHITE, body=True)
     s.footer()
 
     # ---- 8 Computer vision
@@ -477,34 +477,34 @@ def build():
               "identities. The image stage is linear in the pixels, and both cameras together cost about 2.9 milliseconds a frame "
               "in the benchmark, on a worker thread in the game.")
     s.title("Computer vision that tracks in real time", "8  |  Thermal image to tracks")
-    tw = 2.2; gap = (CW - 5 * tw) / 4; ih = 1.5; lh = 0.82
+    tw = 2.25; gap = (CW - 5 * tw) / 4; ih = 1.62; lh = 0.78
     cvp = fig("figures_lab", "cv_pipeline_uav1.png")
     flir = fig("figures_final", "final_flir.jpg")
     strip = [("Thermal image", "320 × 240 per camera", cvp, dict(crop=(233, 114, 497, 294))),
-             ("Threshold", "Otsu, floor 204 of 255", cvp, dict(crop=(296, 553, 428, 643), nearest=True)),
+             ("Threshold", "Otsu, floor 204/255", cvp, dict(crop=(296, 553, 428, 643), nearest=True)),
              ("Blobs", "union-find, moments", cvp, dict(crop=(250, 915, 514, 1095))),
              ("Tracker", "Kalman + association", fig("figures_lab", "cv_tracks.png"), dict(crop=(590, 300, 1110, 655))),
-             ("Track boxes", "identity and range", flir, dict(crop=(318, 214, 610, 413)))]
+             ("Track boxes", "identity & range", flir, dict(crop=(318, 214, 610, 413)))]
     for i, (name, sub, path, kw) in enumerate(strip):
         x = MX + i * (tw + gap)
         s.pic(path, x, Y0, tw, ih, **kw)
         s.chip(x, Y0, str(i + 1), 0.36)
         s.rect(x, Y0 + ih, tw, lh, PANEL); s.rect(x, Y0 + ih, tw, 0.04, AMBER)
-        s.text(x + 0.08, Y0 + ih + 0.08, tw - 0.16, lh - 0.1, [[(name, WHITE, True)], [(sub, GREY, False)]], 14, gap=0.15)
+        s.text(x + 0.08, Y0 + ih + 0.06, tw - 0.16, lh - 0.08, [[(name, WHITE, True)], [(sub, GREY, False)]], 14, gap=0.12)
         if i < 4: s.arrow(x + tw + (gap - 0.26) / 2, Y0 + ih / 2 - 0.15)
-    by = Y0 + ih + lh + 0.2; bh = Y1 - by; bw = bh * 16 / 9
+    by = Y0 + ih + lh + 0.18; bh = Y1 - by; bw = bh * 16 / 9
     s.pic(flir, MX, by, bw, bh)
     s.caption(MX, by, bw, bh, f"Through the UAV ({UAV_FULL}) camera")
-    tx = MX + bw + 0.25; tw2 = W - MX - tx
+    tx = MX + bw + 0.28; tw2 = W - MX - tx
     rows = [["Stage, every frame", "Work", "Cost"],
             ["Threshold, despeckle", "histogram, 3 × 3 neighbours", "O(P)"],
             ["Blobs", "two passes, union-find", "≈ O(P)"],
             ["Kalman filter", "state (x, z, vx, vz) per track", "O(T)"],
             ["Data association", "Hungarian, gate χ² = 9.21", "O(n³)"],
-            ["Measured (benchmark)", "both cameras, sensor model + vision", "2.9 ms"]]
-    rh = 0.4
-    s.table(tx, by, [2.25, tw2 - 2.25 - 1.0, 1.0], rows, row_h=rh, size=13, head_size=12, bold_cols=(0,), accent_cols=(2,))
-    s.text(tx, by + rh * len(rows) + 0.06, tw2, 0.3, "P = 320 × 240 = 76,800 pixels;  T tracks;  n = tracks or blobs", 12, GREY)
+            ["Measured (benchmark)", "both cameras, sensor + vision", "2.9 ms"]]
+    rh = 0.38
+    s.table(tx, by, [2.10, tw2 - 2.10 - 0.95, 0.95], rows, row_h=rh, size=13, head_size=12, bold_cols=(0,), accent_cols=(2,))
+    s.text(tx, by + rh * len(rows) + 0.06, tw2, 0.28, "P = 320 × 240 = 76,800 pixels;  T tracks;  n = tracks / blobs", 12, GREY)
     s.footer()
 
     # ---- 9 Defence and vehicles
@@ -515,20 +515,20 @@ def build():
               "together when one intruder gets both rounds. The player can also walk a soldier up to the tank, the "
               "anti-aircraft gun or a launcher, press E to get in, and fire in first person.")
     s.title("Autonomous defence and controllable vehicles", "9  |  Strikes and vehicles")
-    gx = 0.165; pw = (CW - 2 * gx) / 3; ph = pw * 9 / 16; hh = 0.36
+    gx = 0.16; pw = (CW - 2 * gx) / 3; ph = pw * 9 / 16; hh = 0.34
     rowsp = [(f"Autonomous: two UAVs ({UAV_FULL}s) strike from thermal tracks",
               [("final_flir.jpg", "Thermal tracks"), ("final_single.jpg", "Single strike"), ("final_combined.jpg", "Combined strike: both rounds together")]),
              ("Playable: a soldier boards the tank, anti-aircraft gun or launcher (key E)",
               [("final_tank_walk.jpg", "Walk up, get in"), ("final_tank_sight.jpg", "Tank: gunner's sight"), ("final_aa_fire.jpg", "Anti-aircraft gun: first person")])]
     y = Y0 - 0.08
     for head, pics in rowsp:
-        s.rect(MX, y + 0.12, 0.11, 0.11, AMBER)
+        s.rect(MX, y + 0.11, 0.11, 0.11, AMBER)
         s.text(MX + 0.2, y, CW - 0.2, hh, head, 15, WHITE, True, anchor=MID, body=True)
         for i, (f, cap) in enumerate(pics):
             x = MX + i * (pw + gx)
             s.pic(fig("figures_final", f), x, y + hh, pw, ph)
             s.caption(x, y + hh, pw, ph, cap)
-        y += hh + ph + 0.1
+        y += hh + ph + 0.08
     s.footer()
 
     # ---- 10 Thank you

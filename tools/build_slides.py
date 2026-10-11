@@ -29,7 +29,7 @@ BG, PANEL = RGBColor(0x08, 0x0A, 0x0D), RGBColor(0x14, 0x18, 0x1E)
 AMBER, WHITE, GREY = RGBColor(0xFF, 0x9E, 0x1F), RGBColor(0xFF, 0xFF, 0xFF), RGBColor(0xA8, 0xB0, 0xBA)
 CYAN, DIM = RGBColor(0x6F, 0xD6, 0xE8), RGBColor(0x2A, 0x31, 0x3A)
 W, H = 13.333, 7.5
-FONT, MONO = "Calibri", "Consolas"
+FONT, MONO = "Segoe UI", "Consolas"
 
 # Picture search order (first match wins; .png before .jpg): frames of the final film, then the report captures.
 SOURCES = [("report/figures_final", "final film frame"), ("report/figures_v7", "v7"), ("report/figures_v6", "v6"), ("report/figures_v5", "v5"),
