@@ -39,14 +39,14 @@ VIDEO = os.path.join(REP, "video", "thermalsense_final_slide.mp4")           # 9
 POSTER = os.path.join(REP, "video", "thermalsense_final_1080p_poster.jpg")
 TMP = tempfile.mkdtemp(prefix="ts_slides10_")
 
-# ---------------------------------------------------------------- theme (same palette as tools/build_slides.py)
+## ---------------------------------------------------------------- theme (same palette as tools/build_slides.py)
 BG, PANEL, PANEL2 = RGBColor(0x08, 0x0A, 0x0D), RGBColor(0x14, 0x18, 0x1E), RGBColor(0x0F, 0x12, 0x17)
 AMBER, WHITE, GREY, DIM = RGBColor(0xFF, 0x9E, 0x1F), RGBColor(0xFF, 0xFF, 0xFF), RGBColor(0xA8, 0xB0, 0xBA), RGBColor(0x2A, 0x31, 0x3A)
 W, H = 13.333, 7.5
 MX = 0.5                      # left and right margin
 CW = W - 2 * MX               # content width
 Y0, Y1 = 1.55, 6.88           # content top and bottom on slides 3 to 9
-FONT, MONO = "Segoe UI", "Consolas"
+FONT, MONO = "Times New Roman", "Consolas"
 L, C, R = PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.RIGHT
 TOP, MID = MSO_ANCHOR.TOP, MSO_ANCHOR.MIDDLE
 
@@ -224,7 +224,7 @@ class Slide:
         self.text(MX, 7.04, 4.0, 0.3, DATE, 11, GREY, anchor=MID)
         self.text(W - MX - 2.0, 7.04, 2.0, 0.3, f"{self.n} / {TOTAL}", 11, GREY, False, R, MID)
 
-    def table(self, x, y, widths, rows, row_h=0.5, size=15, head_size=13, bold_cols=(), accent_cols=(), aligns=None):
+    def table(self, x, y, widths, rows, row_h=0.48, size=15, head_size=13, bold_cols=(), accent_cols=(), aligns=None):
         """Native table. rows[0] is the header. Cells are strings."""
         nr, nc = len(rows), len(widths)
         gf = self.s.shapes.add_table(nr, nc, Inches(x), Inches(y), Inches(sum(widths)), Inches(row_h * nr))
@@ -273,39 +273,39 @@ def build():
     d = Deck()
 
     # ---- 1 Title
-    s = d.new("ThermalSense: a military outpost renderer and game for Computer Graphics Laboratory, CSE 4102, "
-              "written in C++17 on OpenGL 3.3 core.")
+    s = d.new("ThermalSense: a military outpost renderer and simulation for Computer Graphics Laboratory, CSE 4102, "
+              "written in C++17 and OpenGL 3.3 core.")
     title_picture = hero(fig("figures", "img", "showcase", "sc_overview_dusk.jpg"))
     s.s.shapes.add_picture(title_picture, 0, 0, Inches(W), Inches(H))
     s.rect(0.6, 3.72, 1.4, 0.07, AMBER)
     s.text(0.6, 3.82, 12.0, 1.05, "ThermalSense", 60, WHITE, True)
-    s.text(0.6, 4.85, 12.0, 0.6, "A graphics pipeline, end to end, in a military outpost", 28, AMBER)
+    s.text(0.6, 4.85, 12.0, 0.6, "3D Graphics Pipeline & Autonomous Outpost Simulation", 28, AMBER)
     s.text(0.6, 5.65, 12.0, 0.45, [[(AUTHOR, WHITE, True), (f"   |   Roll {ROLL}", WHITE, False)]], 20)
-    s.text(0.6, 6.12, 12.0, 0.4, "Computer Graphics Laboratory, CSE 4102", 17, GREY)
+    s.text(0.6, 6.12, 12.0, 0.4, "Computer Graphics Laboratory (CSE 4102)", 17, GREY)
     s.text(0.6, 6.48, 12.0, 0.4, "Khulna University of Engineering & Technology (KUET)", 17, GREY)
     s.footer()
 
     # ---- 2 Film (embedded movie with a poster frame)
-    s = d.new("The project film, 3 minutes 38 seconds. Click the picture to play it.")
+    s = d.new("The project showcase film in 1080p with full soundtrack, 3 minutes 38 seconds.")
     s.rect(0, 0, 0.12, H, AMBER)
     vw = 11.2; vh = vw * 9 / 16; vx = (W - vw) / 2; vy = 0.32
     poster = cover(POSTER, vw, vh)
     if not os.path.exists(VIDEO):
         sys.exit("missing film: " + VIDEO)
     s.s.shapes.add_movie(VIDEO, Inches(vx), Inches(vy), Inches(vw), Inches(vh), poster_frame_image=poster, mime_type="video/mp4")
-    s.text(vx, vy + vh + 0.04, vw, 0.4, [[("Project film", WHITE, True), ("   |   3 min 38 s   (1080p, audio enabled)", GREY, False)]], 16, align=C, anchor=MID, body=True)
+    s.text(vx, vy + vh + 0.04, vw, 0.4, [[("Project Showcase Film", WHITE, True), ("   |   3 min 38 s   (1080p Full HD · Audio)", GREY, False)]], 16, align=C, anchor=MID, body=True)
     s.footer()
 
     # ---- 3 Contents (numbered tiles for slides 4 to 9)
-    s = d.new("Six parts: the pipeline, the numbers, the lighting written by hand, the rovers' path planning, "
-              "the computer vision, and the defence with the vehicles the player can control.")
-    s.title("Contents", "3  |  Overview")
-    tiles = [("04", "Graphics pipeline", fig("figures", "scene_primitives_exploded.png"), dict(focus=(0.5, 0.45))),
-             ("05", "Project in numbers", fig("figures", "img", "scene", "day_overview.jpg"), dict(focus=(0.5, 0.6))),
-             ("06", "Lighting by hand", fig("figures", "img", "lab", "materials_pbr_grid.jpg"), dict(crop=(296, 165, 1025, 498))),
-             ("07", "Rover path planning", fig("figures_v6", "plan_routes.png"), dict(crop=(420, 250, 1500, 1000))),
-             ("08", "Real-time vision", fig("figures_final", "final_flir.jpg"), dict(crop=(250, 130, 1650, 760))),
-             ("09", "Defence and vehicles", fig("figures_final", "final_single.jpg"), dict(focus=(0.5, 0.35)))]
+    s = d.new("Six core modules: graphics pipeline architecture, project scale, custom illumination, "
+              "autonomous rover routing, real-time computer vision, and interactive vehicle combat.")
+    s.title("Presentation Overview", "3  |  Contents")
+    tiles = [("04", "Graphics Pipeline", fig("figures", "scene_primitives_exploded.png"), dict(focus=(0.5, 0.45))),
+             ("05", "Project Scale", fig("figures", "img", "scene", "day_overview.jpg"), dict(focus=(0.5, 0.6))),
+             ("06", "Custom Shading", fig("figures", "img", "lab", "materials_pbr_grid.jpg"), dict(crop=(296, 165, 1025, 498))),
+             ("07", "Autonomous Routing", fig("figures_v6", "plan_routes.png"), dict(crop=(420, 250, 1500, 1000))),
+             ("08", "Real-Time Tracking", fig("figures_final", "final_flir.jpg"), dict(crop=(250, 130, 1650, 760))),
+             ("09", "Combat & Vehicles", fig("figures_final", "final_single.jpg"), dict(focus=(0.5, 0.35)))]
     gx, gy = 0.20, 0.16
     tw = (CW - 2 * gx) / 3; ih, bh = 2.05, 0.54
     for i, (num, name, path, kw) in enumerate(tiles):
@@ -318,20 +318,17 @@ def build():
     s.footer()
 
     # ---- 4 Pipeline as a flow
-    # source: 16 primitive generators, C++17, OpenGL 3.3 core / 4.3 compute, no built-in vector function in any shader,
-    # no mathematics library (project facts); M = T R S: report/sections/A02_transforms.tex, equation eq:trs;
-    # fog, bloom, tone mapping: Frame Explorer stages 12 to 14 (tools/build_slides.py st_titles, report/figures_v7/explorer_stages.json)
-    s = d.new("The flow of one frame: primitives are generated in code, placed by hierarchical transformations, "
-              "lit by hand-written vector maths, drawn by the rasteriser or the ray tracer, then post-processed.")
-    s.title("The graphics pipeline, end to end", "4  |  Pipeline")
+    s = d.new("The graphics pipeline from scratch: procedural primitives, hierarchical scene transforms, "
+              "hand-crafted vector illumination, raster and compute ray tracing, and post-processing filters.")
+    s.title("Graphics Pipeline Architecture", "4  |  End-to-End Flow")
     n5 = 5; tw = 2.25; gap = (CW - n5 * tw) / (n5 - 1); ih = 3.52; lh = 0.92
     prim = [fig("figures", "img", "m3", "prims", f) for f in ("prim_03_sphere_wire.jpg", "prim_08_torus_wire.jpg",
                                                               "prim_14_helix_wire.jpg", "prim_07_cone_wire.jpg")]
-    stages = [("Primitives", "16 generators in code"),
-              ("Hierarchy", "M = T · R · S, graph"),
-              ("Lighting", "vector maths by hand"),
-              ("Rendering", "raster / ray tracer"),
-              ("Post-process", "fog, bloom, tonemap")]
+    stages = [("3D Primitives", "16 procedural shapes"),
+              ("Scene Graph", "Hierarchical transforms"),
+              ("Custom Shading", "Hand-coded vector math"),
+              ("Render Modes", "Raster & ray tracing"),
+              ("Post-Effects", "Bloom, fog & tonemapping")]
     for i, (name, sub) in enumerate(stages):
         x = MX + i * (tw + gap)
         if i == 0:
@@ -353,45 +350,39 @@ def build():
         if i < n5 - 1:
             s.arrow(x + tw + (gap - 0.26) / 2, Y0 + ih / 2 - 0.15)
     s.text(MX, Y0 + ih + lh + 0.18, CW, 0.45,
-           [[("No built-in vector function in any shader", AMBER, True), ("     |     ", DIM, False),
-             ("No mathematics library", AMBER, True), ("     |     ", DIM, False),
-             ("C++17, OpenGL 3.3 core", WHITE, False)]], 18, align=C, anchor=MID, body=True)
+           [[("Zero external math libraries", AMBER, True), ("     |     ", DIM, False),
+             ("905 hand-written math calls in shaders", AMBER, True), ("     |     ", DIM, False),
+             ("Pure C++17 & OpenGL 3.3 Core", WHITE, False)]], 17, align=C, anchor=MID, body=True)
     s.footer()
 
     # ---- 5 Numbers (native table)
-    # source: project facts checked against the code and the report (16 generators, 62 designs, 5,474 parts, 905 calls in
-    # 13 shader source files, 396 tests, 192 pages, 3 min 38 s, C++17, OpenGL 3.3 core, 4.3 compute, no mathematics library)
-    s = d.new("The key figures: 16 primitive generators build 62 designs and 5,474 parts; 905 calls of hand-written vector "
-              "functions in 13 shader source files; 396 automated tests; a 192-page report and a film of 3 minutes 38 seconds.")
-    s.title("The project in numbers", "5  |  Scale")
-    rows = [["Measure", "Value"],
-            ["Primitive generators", "16"],
-            ["Designs built from them", "62"],
-            ["Parts in the scene", "5,474"],
-            ["Calls of hand-written vector functions", "905, in 13 shader files"],
-            ["Automated tests", "396"],
-            ["Report", "192 pages"],
-            ["Film", "3 min 38 s"],
-            ["Language and graphics interface", "C++17, OpenGL 3.3 core"],
-            ["Ray tracer", "OpenGL 4.3 compute"],
-            ["Mathematics library", "none"]]
+    s = d.new("Summary metrics: 16 primitive generators, 62 modular designs, 5,474 rendered scene parts, "
+              "905 custom shader math calls, 396 unit tests, and a 192-page comprehensive report.")
+    s.title("Project Scale & Key Metrics", "5  |  Implementation Scale")
+    rows = [["System Component", "Specification"],
+            ["Procedural Primitives", "16 generators in C++"],
+            ["Modular 3D Models", "62 unique designs"],
+            ["Scene Complexity", "5,474 rendered parts"],
+            ["Custom Math Invocations", "905 calls in 13 shaders"],
+            ["Automated Test Suite", "396 unit tests passing"],
+            ["Technical Report", "192 comprehensive pages"],
+            ["Showcase Video", "3 min 38 s (1080p)"],
+            ["Primary Pipeline", "C++17 & OpenGL 3.3 Core"],
+            ["Compute Ray Tracer", "OpenGL 4.3 Compute"],
+            ["External Math Libraries", "None (100% custom)"]]
     rh = (Y1 - Y0) / len(rows)
-    s.table(MX, Y0, [3.15, 2.05], rows, row_h=rh, size=15, head_size=13, bold_cols=(1,), accent_cols=(1,))
-    ix = MX + 5.20 + 0.30
+    s.table(MX, Y0, [3.20, 2.05], rows, row_h=rh, size=15, head_size=13, bold_cols=(1,), accent_cols=(1,))
+    ix = MX + 5.25 + 0.30
     iw = W - MX - ix; ihh = Y1 - Y0 - 0.40
     s.pic(fig("figures", "scene_primitives_exploded.png"), ix, Y0, iw, ihh, crop=(620, 10, 1600, 900), focus=(1.0, 0.5))
     s.rect(ix, Y0 + ihh, iw, 0.40, PANEL)
-    s.text(ix + 0.08, Y0 + ihh, iw - 0.16, 0.40, "The camp drawn by primitive type: cube, sphere, cylinder, cone", 13, AMBER, anchor=MID)
+    s.text(ix + 0.08, Y0 + ihh, iw - 0.16, 0.40, "Exploded 3D outpost geometry classified by primitive shape", 13, AMBER, anchor=MID)
     s.footer()
 
     # ---- 6 Lighting and shading by hand
-    # source: equation: report/sections/A10_illumination.tex, equations eq:phong and eq:phongblinn (Blinn-Phong is the one used);
-    # functions: src/rendering/ShaderMath.cpp lines 11 to 76 (tsDot ... tsSmoothstep), refusal of built-in calls:
-    # src/rendering/ShaderMath.h lines 16 to 18; 905 calls in 13 shader source files: project fact
-    s = d.new("The lighting equation is evaluated with the half vector (Blinn-Phong). Flat shading uses one normal per face, "
-              "Gouraud lights the vertices, Phong lights every pixel. Dot, normalise, cross, reflect, refract, mix, clamp, step "
-              "and smooth step are written out in one file and placed in front of every shader.")
-    s.title("Lighting and shading, written by hand", "6  |  Illumination")
+    s = d.new("Hand-crafted illumination: Blinn-Phong specular evaluation with half-vector optimization. "
+              "Comparison across Flat, Gouraud, and Phong shading models with custom vector operations.")
+    s.title("Illumination & Shading by Hand", "6  |  Lighting Models")
     eh = 1.65
     s.rect(MX, Y0, CW, eh, PANEL); s.rect(MX, Y0, 0.06, eh, AMBER)
     main = eq_labelled([(r"$I \;=\;$", None), (r"$k_a I_a$", "ambient"),
@@ -405,8 +396,8 @@ def build():
     s.png(phong, MX + 9.15, Y0 + 1.05, 2.9, 0.40)
     y2 = Y0 + eh + 0.18; sw = 2.95; sg = 0.16; sih = Y1 - y2 - 0.55
     shade = [("Flat", "one normal per face", "shading_sphere_lowpoly_flat.png"),
-             ("Gouraud", "lit at vertices", "shading_sphere_lowpoly_gouraud.png"),
-             ("Phong", "lit at every pixel", "shading_sphere_lowpoly_phong.png")]
+             ("Gouraud", "vertex interpolation", "shading_sphere_lowpoly_gouraud.png"),
+             ("Phong", "per-pixel evaluation", "shading_sphere_lowpoly_phong.png")]
     for i, (name, sub, f) in enumerate(shade):
         x = MX + i * (sw + sg)
         s.pic(fig("figures_lab", f), x, y2, sw, sih, crop=(40, 60, 600, 600))
@@ -414,34 +405,25 @@ def build():
         s.text(x + 0.08, y2 + sih, sw - 0.16, 0.55, [[(name, WHITE, True), ("   " + sub, GREY, False)]], 14, anchor=MID)
     fx = MX + 3 * sw + 2 * sg + 0.22; fw = W - MX - fx; fh = Y1 - y2
     s.rect(fx, y2, fw, fh, PANEL); s.rect(fx, y2, fw, 0.04, AMBER)
-    s.text(fx + 0.14, y2 + 0.12, fw - 0.28, 0.28, "VECTOR MATHS IN SHADERS", 12, GREY, True)
+    s.text(fx + 0.14, y2 + 0.12, fw - 0.28, 0.28, "HAND-WRITTEN VECTOR MATH", 12, GREY, True)
     s.text(fx + 0.14, y2 + 0.44, fw - 0.28, 1.4,
            ["tsDot         tsLength", "tsNormalize   tsCross", "tsReflect     tsRefract", "tsMix         tsClamp",
             "tsStep        tsSmoothstep"], 13, WHITE, font=MONO, gap=0.20)
     s.text(fx + 0.14, y2 + fh - 1.15, fw - 0.28, 0.50, [[("905 calls", AMBER, True), ("  in 13 shaders", WHITE, False)]], 20, body=True)
-    s.text(fx + 0.14, y2 + fh - 0.58, fw - 0.28, 0.48, "Built-in GLSL calls refused", 13, GREY, body=True)
+    s.text(fx + 0.14, y2 + fh - 0.58, fw - 0.28, 0.48, "Refusal of GLSL built-ins", 13, GREY, body=True)
     s.footer()
 
     # ---- 7 Rover path planning
-    # source: grid 80 x 80 cells of 0.5 m: src/ai/HideController.h lines 21, 22;
-    # flood fill = breadth-first, std::queue, 4 neighbours: src/ai/HideController.cpp lines 132 to 169 (each cell enters the queue once);
-    # Dijkstra with std::priority_queue (binary heap), step cost 16 + exposure + noise: HideController.cpp lines 216 to 251;
-    # steepest descent to a cell path: lines 171 to 198; line follower with 5 sensors (HideController.h line 23), each tested
-    # against every guide-line segment: HideController.cpp lines 441 to 451 and 481 to 489; PD law: line 502;
-    # gains Kp 3.2, Kd 0.25: line 22; re-plan periods 0.4 s and 1.6 s: lines 23, 24; re-plan when blocked: line 532;
-    # route map: report/figures/plots/p_rover_map.png (4 rovers in its legend), 130 s: report/sections/B09_paths.tex, caption of fig:rovermap
-    s = d.new("Each intruder rover plans like a micromouse and drives like a line-follower robot. Hiding, a breadth-first "
-              "flood fill spreads distances from the cells out of sight; infiltrating, Dijkstra adds a cost for cells a camera "
-              "can see. The path becomes a guide line that five sensors and a proportional-derivative law follow, and the plan "
-              "is redone every 0.4 or 1.6 seconds.")
-    s.title("Intruder rovers: path planning", "7  |  Flood fill, Dijkstra, line follower")
+    s = d.new("Autonomous rover navigation: BFS flood fill computes safe-zone distance transforms, "
+              "Dijkstra solves visibility-weighted routes, and a 5-sensor PD controller guides steering.")
+    s.title("Autonomous Rover Path Planning", "7  |  Search & Control")
     mw = 6.95; mh = mw * 855 / 1170
     s.rect(MX, Y0, mw, mh, WHITE)
     s.pic(fig("figures", "plots", "p_rover_map.png"), MX + 0.05, Y0 + 0.05, mw - 0.1, mh - 0.1, crop=(75, 60, 1245, 915))
-    s.text(MX, Y0 + mh + 0.06, mw, 0.30, f"Route map: 4 rovers, two UAVs ({UAV_FULL}s), 130 s mission", 13, GREY, body=True)
+    s.text(MX, Y0 + mh + 0.06, mw, 0.30, f"Multi-agent routing: 4 rovers evading dual UAVs ({UAV_FULL}s)", 13, GREY, body=True)
     rx = MX + mw + 0.28; rw = W - MX - rx
-    steps = [("Flood fill", "BFS cover"), ("Dijkstra", "cost + exposure"),
-             ("Line follow", "5-sensor PD")]
+    steps = [("Safe Zones", "BFS flood fill"), ("Route Search", "Dijkstra cost map"),
+             ("Trajectory", "5-sensor PD control")]
     cg = 0.20; cw_ = (rw - 2 * cg) / 3; chh = 1.05
     for i, (name, sub) in enumerate(steps):
         x = rx + i * (cw_ + cg)
@@ -449,42 +431,32 @@ def build():
         s.text(x + 0.06, Y0 + 0.10, cw_ - 0.12, chh - 0.12, [[(f"{i + 1}  ", AMBER, True), (name, WHITE, True)], [(sub, GREY, False)]], 13, gap=0.20)
         if i < 2: s.arrow(x + cw_ + (cg - 0.26) / 2, Y0 + chh / 2 - 0.15)
     ty = Y0 + chh + 0.18
-    rows = [["Algorithm", "In the code", "Time", "Space"],
-            ["Flood fill", "BFS (breadth-first)", "O(N)", "O(N)"],
-            ["Dijkstra", "binary heap (priority queue)", "O(N log N)", "O(N)"],
-            ["Path", "steepest descent, L cells", "O(L)", "O(L)"],
-            ["Line follower", "5 sensors × M line points", "O(M)", "O(M)"]]
+    rows = [["Algorithm", "Role in Engine", "Time", "Space"],
+            ["Flood Fill", "Safe distance transform", "O(N)", "O(N)"],
+            ["Dijkstra", "Exposure-weighted path", "O(N log N)", "O(N)"],
+            ["Gradient Descent", "Waypoint trajectory", "O(L)", "O(L)"],
+            ["Line Follower", "5-sensor wheel control", "O(M)", "O(M)"]]
     s.table(rx, ty, [1.35, rw - 1.35 - 1.15 - 0.75, 1.15, 0.75], rows, row_h=0.46, size=13, head_size=12, bold_cols=(0,), accent_cols=(2, 3))
     ny = ty + 0.46 * len(rows) + 0.06
-    s.text(rx, ny, rw, 0.28, "N = 80 × 80 = 6,400 cells (0.5 m);  line follower: per frame", 12, GREY)
+    s.text(rx, ny, rw, 0.28, "Grid: 80 × 80 cells (0.5 m); evaluated in real time", 12, GREY)
     s.rect(rx + 0.05, ny + 0.42, 0.10, 0.10, AMBER)
-    s.text(rx + 0.22, ny + 0.30, rw - 0.22, 0.38, "Re-plans every 0.4 s hiding, 1.6 s infiltrating", 15, WHITE, body=True)
+    s.text(rx + 0.22, ny + 0.30, rw - 0.22, 0.38, "Dynamic re-planning: 0.4 s evasive, 1.6 s patrol", 15, WHITE, body=True)
     s.rect(rx + 0.05, ny + 0.82, 0.10, 0.10, AMBER)
-    s.text(rx + 0.22, ny + 0.70, rw - 0.22, 0.38, "PD steering: Kp 3.2, Kd 0.25", 15, WHITE, body=True)
+    s.text(rx + 0.22, ny + 0.70, rw - 0.22, 0.38, "PD steering controller: Kp = 3.2, Kd = 0.25", 15, WHITE, body=True)
     s.footer()
 
     # ---- 8 Computer vision
-    # source: 320 x 240 heat image per UAV: src/ai/DroneController.h lines 15, 16; two UAVs: src/ai/Squad.h line 111;
-    # threshold = max(floor 204, Otsu + 1), despeckle, two-pass union-find, moments: src/vision/CvPipeline.h lines 1 to 6, 19
-    # and CvPipeline.cpp lines 9 to 50, 66 to 108, 113 to 160 (each stage is a pass over the pixels);
-    # Kalman state (x, z, vx, vz), gate chi-square 9.21, Hungarian: src/vision/MultiTracker.h lines 2 to 4, 30, 46;
-    # Hungarian O(n^3): src/vision/MultiTracker.cpp line 81; worker thread: src/vision/VisionWorker.h lines 1 to 8;
-    # 2.9 ms: report/data/bench.json, "EPIC night 23:00 (game: waves, UAVs)", cpu_uav_vision_ms = 2.90974
-    # (quoted in report/sections/gen_bench_text.tex); pictures: report/figures_lab/cv_pipeline_uav1.png, cv_tracks.png,
-    # report/figures_final/final_flir.jpg
-    s = d.new("Each camera renders a 320 by 240 heat image. An Otsu threshold with a fixed floor, a despeckle step and two-pass "
-              "union-find labelling give the blobs; a Kalman filter per track with gated Hungarian assignment keeps the "
-              "identities. The image stage is linear in the pixels, and both cameras together cost about 2.9 milliseconds a frame "
-              "in the benchmark, on a worker thread in the game.")
-    s.title("Computer vision that tracks in real time", "8  |  Thermal image to tracks")
+    s = d.new("Real-time thermal vision pipeline: Otsu segmentation, union-find blob extraction, "
+              "Kalman state estimation, and gated Hungarian tracking running under 2.9 ms per frame.")
+    s.title("Real-Time Thermal Vision Pipeline", "8  |  Target Detection & Tracking")
     tw = 2.25; gap = (CW - 5 * tw) / 4; ih = 1.62; lh = 0.78
     cvp = fig("figures_lab", "cv_pipeline_uav1.png")
     flir = fig("figures_final", "final_flir.jpg")
-    strip = [("Thermal image", "320 × 240 per camera", cvp, dict(crop=(233, 114, 497, 294))),
-             ("Threshold", "Otsu, floor 204/255", cvp, dict(crop=(296, 553, 428, 643), nearest=True)),
-             ("Blobs", "union-find, moments", cvp, dict(crop=(250, 915, 514, 1095))),
-             ("Tracker", "Kalman + association", fig("figures_lab", "cv_tracks.png"), dict(crop=(590, 300, 1110, 655))),
-             ("Track boxes", "identity & range", flir, dict(crop=(318, 214, 610, 413)))]
+    strip = [("Thermal Feed", "320 × 240 IR image", cvp, dict(crop=(233, 114, 497, 294))),
+             ("Segmentation", "Otsu threshold (204)", cvp, dict(crop=(296, 553, 428, 643), nearest=True)),
+             ("Blob Extraction", "Two-pass union-find", cvp, dict(crop=(250, 915, 514, 1095))),
+             ("Kalman Filter", "State & velocity filter", fig("figures_lab", "cv_tracks.png"), dict(crop=(590, 300, 1110, 655))),
+             ("Target Lock", "Gated Hungarian association", flir, dict(crop=(318, 214, 610, 413)))]
     for i, (name, sub, path, kw) in enumerate(strip):
         x = MX + i * (tw + gap)
         s.pic(path, x, Y0, tw, ih, **kw)
@@ -494,32 +466,28 @@ def build():
         if i < 4: s.arrow(x + tw + (gap - 0.26) / 2, Y0 + ih / 2 - 0.15)
     by = Y0 + ih + lh + 0.18; bh = Y1 - by; bw = bh * 16 / 9
     s.pic(flir, MX, by, bw, bh)
-    s.caption(MX, by, bw, bh, f"Through the UAV ({UAV_FULL}) camera")
+    s.caption(MX, by, bw, bh, f"FLIR thermal camera view with automated tracking locks")
     tx = MX + bw + 0.28; tw2 = W - MX - tx
-    rows = [["Stage, every frame", "Work", "Cost"],
-            ["Threshold, despeckle", "histogram, 3 × 3 neighbours", "O(P)"],
-            ["Blobs", "two passes, union-find", "≈ O(P)"],
-            ["Kalman filter", "state (x, z, vx, vz) per track", "O(T)"],
-            ["Data association", "Hungarian, gate χ² = 9.21", "O(n³)"],
-            ["Measured (benchmark)", "both cameras, sensor + vision", "2.9 ms"]]
+    rows = [["Pipeline Stage", "Method", "Cost"],
+            ["Threshold & Despeckle", "Histogram + 3 × 3 filter", "O(P)"],
+            ["Connected Components", "Two-pass union-find", "≈ O(P)"],
+            ["Kalman Filtering", "State (x, z, vx, vz) per track", "O(T)"],
+            ["Data Association", "Gated Hungarian (χ² = 9.21)", "O(n³)"],
+            ["Benchmark Runtime", "Both UAVs on worker thread", "2.9 ms"]]
     rh = 0.38
     s.table(tx, by, [2.10, tw2 - 2.10 - 0.95, 0.95], rows, row_h=rh, size=13, head_size=12, bold_cols=(0,), accent_cols=(2,))
-    s.text(tx, by + rh * len(rows) + 0.06, tw2, 0.28, "P = 320 × 240 = 76,800 pixels;  T tracks;  n = tracks / blobs", 12, GREY)
+    s.text(tx, by + rh * len(rows) + 0.06, tw2, 0.28, "P = 76,800 pixels/frame;  T active tracks;  n targets", 12, GREY)
     s.footer()
 
     # ---- 9 Defence and vehicles
-    # source: two UAVs: src/ai/Squad.h line 111; single and combined strike, both rounds arrive together:
-    # report/sections/algorithms.tex, algorithm alg:squad; boarding with E, gunner's sight, tank,
-    # anti-aircraft gun, launcher: report/sections/B08_game.tex, first paragraph and subsection sec:board; pictures: frames of the final film
-    s = d.new("The defence is autonomous: two UAVs strike from their thermal tracks, alone when two intruders are far apart, "
-              "together when one intruder gets both rounds. The player can also walk a soldier up to the tank, the "
-              "anti-aircraft gun or a launcher, press E to get in, and fire in first person.")
-    s.title("Autonomous defence and controllable vehicles", "9  |  Strikes and vehicles")
+    s = d.new("Autonomous swarm defense with dual UAV synchronized strikes, plus fully interactive "
+              "outpost vehicles including drivable tanks, anti-aircraft cannons, and missile launchers.")
+    s.title("Autonomous Defense & Playable Vehicles", "9  |  Swarm Strikes & Direct Control")
     gx = 0.16; pw = (CW - 2 * gx) / 3; ph = pw * 9 / 16; hh = 0.34
-    rowsp = [(f"Autonomous: two UAVs ({UAV_FULL}s) strike from thermal tracks",
-              [("final_flir.jpg", "Thermal tracks"), ("final_single.jpg", "Single strike"), ("final_combined.jpg", "Combined strike: both rounds together")]),
-             ("Playable: a soldier boards the tank, anti-aircraft gun or launcher (key E)",
-              [("final_tank_walk.jpg", "Walk up, get in"), ("final_tank_sight.jpg", "Tank: gunner's sight"), ("final_aa_fire.jpg", "Anti-aircraft gun: first person")])]
+    rowsp = [(f"Autonomous Defense: Dual UAV swarm strikes with synchronized missile arrival",
+              [("final_flir.jpg", "Target Lock: FLIR tracking"), ("final_single.jpg", "Single Strike: Solo engagement"), ("final_combined.jpg", "Dual Strike: Synchronized impact")]),
+             ("Interactive Vehicles: Walk up to any outpost station (Press E) for direct control",
+              [("final_tank_walk.jpg", "Boarding: Mount vehicle"), ("final_tank_sight.jpg", "Tank: First-person gunner sight"), ("final_aa_fire.jpg", "AA Cannons: Rapid-fire turret")])]
     y = Y0 - 0.08
     for head, pics in rowsp:
         s.rect(MX, y + 0.11, 0.11, 0.11, AMBER)
@@ -532,12 +500,12 @@ def build():
     s.footer()
 
     # ---- 10 Thank you
-    s = d.new("Thank you. Questions are welcome.")
+    s = d.new("Thank you for your attention. Questions and feedback are welcome.")
     s.s.shapes.add_picture(hero(fig("figures", "img", "scene", "sky_sunset.jpg"), top=0.35, bottom=0.9, start=0.45), 0, 0, Inches(W), Inches(H))
     s.rect((W - 1.4) / 2, 2.55, 1.4, 0.07, AMBER)
-    s.text(0.5, 2.7, CW, 1.3, "Thank you", 72, WHITE, True, C, MID)
-    s.text(0.5, 4.0, CW, 0.7, "Questions?", 32, AMBER, False, C, MID)
-    s.text(0.5, 6.15, CW, 0.4, f"{AUTHOR}   |   Roll {ROLL}   |   Computer Graphics Laboratory, CSE 4102", 15, GREY, False, C, MID)
+    s.text(0.5, 2.7, CW, 1.3, "Thank You", 72, WHITE, True, C, MID)
+    s.text(0.5, 4.0, CW, 0.7, "Questions & Discussion", 32, AMBER, False, C, MID)
+    s.text(0.5, 6.15, CW, 0.4, f"{AUTHOR}   |   Roll {ROLL}   |   Computer Graphics Laboratory (CSE 4102)", 16, GREY, False, C, MID)
     s.footer()
 
     assert len(d.slides) == TOTAL, (len(d.slides), TOTAL)
