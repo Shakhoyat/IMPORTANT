@@ -23,15 +23,15 @@ d=\frac{2NF}{F+N-z_n(F-N)}\qquad\text{(window depth back to distance, } z_n=2z_w
 \end{equation}
 \begin{itemize}
 \item Clip space keeps $w_c$; points with $|x_c|,|y_c|,|z_c|\le w_c$ are inside (Section~\ref{sec:clip}). After the divide
-the visible volume is the cube $[-1,1]^3$ (\ab{507}{NDC}).
+the visible volume is the cube $[-1,1]^3$ (\ab{508}{NDC}).
 \item $(x_0,y_0)=(0,0)$ and $W\times H$ come from \code{glViewport(0,0,w,h)}; the depth range is the default $[0,1]$.
-\item The screen-space passes (ambient occlusion, fog, reflections, \ab{508}{TAA}) invert Eq.~\eqref{eq:viewport} with their own
+\item The screen-space passes (ambient occlusion, fog, reflections, \ab{509}{TAA}) invert Eq.~\eqref{eq:viewport} with their own
 \code{linearDepth()} (Eq.~\eqref{eq:lindepth}, \code{ShadersPost.cpp}, \code{ShadersPostFx.cpp}).
 \end{itemize}
 
-\textbf{What the \ab{509}{GPU} does in fixed function, and where the project computes the same maths itself.} \ab{510}{OpenGL} 3.3 core
+\textbf{What the \ab{510}{GPU} does in fixed function, and where the project computes the same maths itself.} \ab{511}{OpenGL} 3.3 core
 has no fixed-function lighting, shading or matrix stack: every transform and every lighting equation of this report is
-the project's own C++ or \ab{511}{GLSL}, and the shaders call no built-in vector function either
+the project's own C++ or \ab{512}{GLSL}, and the shaders call no built-in vector function either
 (Section~\ref{sec:manualmath}). The stages between the vertex and the fragment shader are fixed hardware.
 Table~\ref{tab:fixedfn} lists them with the project's own implementation of the same equation (Frame Explorer,
 \code{math/ExplorerMath.cpp}, unit-tested).
@@ -86,4 +86,4 @@ $z_w$ would be almost white beyond a few metres), (b) the vertex stage in clip s
 
 \textbf{Limitation.} The near plane of 0.05\,m exists so a first-person rifle and a soldier's own hands are not clipped. It costs
 depth precision far away (Figure~\ref{fig:depth}b). Reversed-Z with a floating-point depth buffer would remove the
-problem but needs \code{glClipControl} (\ab{512}{OpenGL} 4.5), which the 3.3 baseline does not have.
+problem but needs \code{glClipControl} (\ab{513}{OpenGL} 4.5), which the 3.3 baseline does not have.

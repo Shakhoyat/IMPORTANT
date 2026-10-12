@@ -1,10 +1,10 @@
 \section{Performance evaluation}
 \label{sec:perf}
 \textbf{Setup.} 1920$\times$1080, EPIC, seed 1, the same orbit camera for every configuration. Each configuration first settles for 2\,s of simulation after a clock change, then is
-timed in 3 interleaved rounds of 10\,s. A frame includes the simulation tick, both \ab{607}{UAV} camera renders, the main frame
-and the \ab{608}{HUD}. Mean and 95th-percentile frame times come from every timed frame; draw calls include shadow passes.
-Headless runs use the RTX\,4070 through the \ab{609}{WSL2} d3d12 driver, which is slower than the native Windows driver
-(54--73\,\ab{610}{fps} headless against 80--101\,\ab{611}{fps} natively on the same shots).
+timed in 3 interleaved rounds of 10\,s. A frame includes the simulation tick, both \ab{611}{UAV} camera renders, the main frame
+and the \ab{612}{HUD}. Mean and 95th-percentile frame times come from every timed frame; draw calls include shadow passes.
+Headless runs use the RTX\,4070 through the \ab{613}{WSL2} d3d12 driver, which is slower than the native Windows driver
+(54--73\,\ab{614}{fps} headless against 80--101\,\ab{615}{fps} natively on the same shots).
 
 \begin{table}[htbp]
 \caption{Benchmark. Day = 10:30, no enemies, UAVs (uncrewed aerial vehicles) docked; night = 23:00 with intruder waves, both UAVs flying and
@@ -22,6 +22,6 @@ green band: under 16.7\,ms).}
 
 \input{sections/gen_bench_text}
 
-\textbf{Per-pass costs (RTX\,4070, 1080p EPIC).} \ab{612}{GTAO} 0.53--1.71\,ms (replaced \ab{613}{SSAO}, 0.39--0.59\,ms); contact
-shadows 0.10--0.17\,ms; \ab{614}{PCSS} added 1.0--1.9\,ms to the day scene pass; vegetation 1.7--2.7\,ms in gameplay views but 6.6\,ms
-on the high overview (over its 3\,ms budget); grass 0.4--1.5\,ms. Measured on a \ab{615}{GPU} shared with other jobs.
+\textbf{Per-pass costs (RTX\,4070, 1080p EPIC).} \ab{616}{GTAO} 0.53--1.71\,ms (replaced \ab{617}{SSAO}, 0.39--0.59\,ms); contact
+shadows 0.10--0.17\,ms; \ab{618}{PCSS} added 1.0--1.9\,ms to the day scene pass; vegetation 1.7--2.7\,ms in gameplay views but 6.6\,ms
+on the high overview (over its 3\,ms budget); grass 0.4--1.5\,ms. Measured on a \ab{619}{GPU} shared with other jobs.

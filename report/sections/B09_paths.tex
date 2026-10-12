@@ -2,9 +2,9 @@
 \label{sec:paths}
 \here{2}
 Each intruder rover combines two robot-contest machines. \textbf{Planning (MicroMouse):} on $80\times80$ cells of
-0.5\,m, cells hidden from the \ab{594}{UAVs} are goals; a breadth-first flood fill spreads distances from them and the rover walks
+0.5\,m, cells hidden from the \ab{598}{UAVs} are goals; a breadth-first flood fill spreads distances from them and the rover walks
 downhill. \textbf{Driving (line follower):} the path becomes a guide line, five sensors read it, and a
-\ab{595}{PD} controller sets the two wheel speeds. The soldiers use A* (1\,m cells, 0.40\,m clearance)
+\ab{599}{PD} controller sets the two wheel speeds. The soldiers use A* (1\,m cells, 0.40\,m clearance)
 smoothed into centripetal Catmull--Rom splines (Figures~\ref{fig:rovermap}, \ref{fig:guardmap}).
 \begin{equation}
 d(c)=1+\min_{n\in N_4(c)}d(n),\ d(\text{goal})=0;\qquad
@@ -29,7 +29,7 @@ with $w_i$ the sensors' lateral offsets, $s_i\in\{0,1\}$ their readings, $K_p=3.
 \label{fig:wb-lfr}
 \end{figure}
 
-Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a \ab{596}{UAV} can see. Figure~\ref{fig:flow-rover} and
+Infiltrating, the flood fill becomes Dijkstra with a penalty on cells a \ab{600}{UAV} can see. Figure~\ref{fig:flow-rover} and
 Algorithm~\ref{alg:intruder} give the whole controller of one rover.
 \flowRover
 
@@ -75,18 +75,18 @@ Algorithm~\ref{alg:intruder} give the whole controller of one rover.
 \label{sec:motion}
 Three motions run at once and react to each other.
 \begin{itemize}
-\item \textbf{\ab{597}{UAV} patrol.} Each \ab{598}{UAV} flies a breathing orbit round the bunker, the two half a turn apart, and its camera
+\item \textbf{\ab{601}{UAV} patrol.} Each \ab{602}{UAV} flies a breathing orbit round the bunker, the two half a turn apart, and its camera
 sweeps a ground point ahead of it:
 \begin{equation}
 \vect g_i(t)=r_i(t)\,\big(\cos\theta_i(t),\ \sin\theta_i(t)\big),\qquad
 r_i(t)=r_0+A\sin(\omega_r t+\varphi_i),\qquad \theta_i(t)=\omega_\theta t+\varphi_i,\qquad \varphi_2=\varphi_1+\pi
 \label{eq:orbit}
 \end{equation}
-\item \textbf{Rover route.} Every re-plan the rover solves Eq.~\eqref{eq:paths} again with the \ab{599}{UAV} positions of that
-moment, so the route changes while it is driven; a \ab{600}{UAV} overhead makes the rover stop in cover.
-\item \textbf{Strike.} A confirmed track pulls the \ab{601}{UAVs} off the orbit. One intruder gets both \ab{602}{UAVs} (combined strike);
+\item \textbf{Rover route.} Every re-plan the rover solves Eq.~\eqref{eq:paths} again with the \ab{603}{UAV} positions of that
+moment, so the route changes while it is driven; a \ab{604}{UAV} overhead makes the rover stop in cover.
+\item \textbf{Strike.} A confirmed track pulls the \ab{605}{UAVs} off the orbit. One intruder gets both \ab{606}{UAVs} (combined strike);
 a second intruder that is far away (more than 14\,m from the first) and close to a protected point
-takes the nearer \ab{603}{UAV}, and each \ab{604}{UAV} then strikes its own target alone (Section~\ref{sec:game}).
+takes the nearer \ab{607}{UAV}, and each \ab{608}{UAV} then strikes its own target alone (Section~\ref{sec:game}).
 \end{itemize}
 Figure~\ref{fig:paths} shows six moments of one night over the whole camp; Figure~\ref{fig:motionseries} follows one
 rover through the same night.
@@ -141,5 +141,5 @@ Catmull--Rom (centripetal) & smooth curve through the waypoints, no loops or cus
 
 \textbf{Limitation.} The rover's sensors read a line the planner drew, not a line painted in the scene, so the
 line-follower layer adds realistic lag and overshoot rather than new information. On top of it a deliberate sideways
-weave, a wandering speed and short pauses keep the \ab{605}{UAVs}' tracker from extrapolating a rover along one straight,
+weave, a wandering speed and short pauses keep the \ab{609}{UAVs}' tracker from extrapolating a rover along one straight,
 constant-speed line.

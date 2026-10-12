@@ -1,8 +1,8 @@
 \section{Game mode}
 \label{sec:game}
 \here{10}
-At night intruder rovers attack in waves; two \ab{579}{UAVs} patrol, find them in their thermal images, lock on and launch guided
-rounds, and the player can take over a soldier, a tank, the \ab{580}{AA} gun or a launcher. The squad never reads a rover's
+At night intruder rovers attack in waves; two \ab{583}{UAVs} patrol, find them in their thermal images, lock on and launch guided
+rounds, and the player can take over a soldier, a tank, the \ab{584}{AA} gun or a launcher. The squad never reads a rover's
 position from the scene: everything it knows comes from its own two cameras (Figure~\ref{fig:cvchain}). Hits are ray
 tests of each projectile's path segment per tick against target spheres and solid boxes, so a fast round cannot tunnel.
 
@@ -47,14 +47,14 @@ Back-projection & the centroid's pixel ray hits the terrain \code{0.2}\,m above 
 \end{table}
 
 \subsection{How the two UAVs (uncrewed aerial vehicles) work together}
-The two \ab{581}{UAVs} do not send each other messages; they share one \emph{track picture}. Every frame, both \ab{582}{UAVs}' ground
-measurements go into one multi-target tracker; the squad logic then reads that picture and gives each \ab{583}{UAV} a role.
+The two \ab{585}{UAVs} do not send each other messages; they share one \emph{track picture}. Every frame, both \ab{586}{UAVs}' ground
+measurements go into one multi-target tracker; the squad logic then reads that picture and gives each \ab{587}{UAV} a role.
 \begin{itemize}[nosep,leftmargin=*]
 \item \textbf{Predict} each track with a constant-velocity Kalman filter, state $(x,z,v_x,v_z)$, process noise \gv{accelNoise}\,m/s$^2$.
 \item \textbf{Gate}: a measurement may belong to a track only if its squared Mahalanobis distance
 $d^2=\boldsymbol\nu^\top S^{-1}\boldsymbol\nu<\gv{gateChi2}$ ($\chi^2$, 2 degrees of freedom, 99\,\%).
 \item \textbf{Assign} measurements to tracks with the Hungarian algorithm (minimum total $d^2$), one camera at a time.
-\item \textbf{Triangulate}: a rover seen by both \ab{584}{UAVs} in the same frame gives two skew pixel rays; the fused point is the
+\item \textbf{Triangulate}: a rover seen by both \ab{588}{UAVs} in the same frame gives two skew pixel rays; the fused point is the
 midpoint of their shortest connecting segment, far more accurate than one ray hitting the ground.
 \item \textbf{Life cycle}: tentative $\to$ confirmed after \gv{confirmHits} hits (event ``enemy spotted'') $\to$ coasting
 after \gv{coastAfter}\,s unseen $\to$ deleted after \gv{deleteAfter}\,s.
@@ -82,10 +82,10 @@ triangulation of Figure~\ref{fig:triang}a, and the launch delays of a time-on-ta
 \label{fig:wb-tracking}
 \end{figure}
 
-On a confirmed target the \ab{585}{UAV} with the longer lock becomes \textbf{LEAD}; the other, \textbf{WING}, flies about
+On a confirmed target the \ab{589}{UAV} with the longer lock becomes \textbf{LEAD}; the other, \textbf{WING}, flies about
 $90^\circ$ around the target at \gv{kSquadStandOff}\,m stand-off for the best triangulation. After \gv{kSquadLeadLock}\,s
 (lead) and \gv{kSquadWingLock}\,s (wing) of lock they make a \textbf{combined strike}: each round's flight time $T_k$ is
-predicted, the farther \ab{586}{UAV} launches first and both rounds arrive together (Eq.~\eqref{eq:tot}). A target lost behind
+predicted, the farther \ab{590}{UAV} launches first and both rounds arrive together (Eq.~\eqref{eq:tot}). A target lost behind
 cover is searched for \gv{kSquadReacquireTime}\,s by circling its last known position from both sides.
 \begin{equation}
 t_{\mathrm{launch},k}=t_0+\big(\max_j T_j-T_k\big),\qquad
@@ -221,13 +221,13 @@ Figures~\ref{fig:flow-tracker} and \ref{fig:flow-squad} draw the shared tracker 
 \subsection{Single strike, combined strike and the guards}
 \label{sec:coop}
 \begin{itemize}
-\item \textbf{Combined strike.} One intruder is engaged by both \ab{587}{UAVs}: the lead waits up to 8\,s for the wing's lock,
+\item \textbf{Combined strike.} One intruder is engaged by both \ab{591}{UAVs}: the lead waits up to 8\,s for the wing's lock,
 then both rounds are timed to arrive together.
 \item \textbf{Single strike.} A second intruder more than 14\,m from the first and within 10\,m of a protected point
-cannot wait. The \ab{588}{UAV} nearer to it leaves the pair and strikes it with one round; the other \ab{589}{UAV} strikes the first target
+cannot wait. The \ab{592}{UAV} nearer to it leaves the pair and strikes it with one round; the other \ab{593}{UAV} strikes the first target
 alone. When the second intruder is destroyed or lost the pair forms again.
 \item \textbf{Guards.} A soldier standing at his post with a tracked intruder closer than 26\,m and a clear line turns to
-it and fires bursts of 0.6\,s every 2.4\,s. The same segment test as the \ab{590}{UAVs}' rounds decides the clear line.
+it and fires bursts of 0.6\,s every 2.4\,s. The same segment test as the \ab{594}{UAVs}' rounds decides the clear line.
 \item \textbf{Weapons on alert.} With nobody at the controls the launchers keep their canisters and pod raised through
 the apertures of their nets and sweep their sector, the helicopter's rotor turns at flight idle, and the tank and the
 anti-aircraft gun lay on the tracked intruder (\code{WorldContext::alert}, \code{threatPos}).

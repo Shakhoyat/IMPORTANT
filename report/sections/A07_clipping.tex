@@ -2,7 +2,7 @@
 \label{sec:clip}
 \here{5}
 Primitives outside the view volume must be removed and primitives crossing it cut, before rasterisation.
-The \ab{513}{GPU} clips every triangle against the six planes $-w_c\le x_c,y_c,z_c\le w_c$. The program adds two \ab{514}{CPU} steps:
+The \ab{514}{GPU} clips every triangle against the six planes $-w_c\le x_c,y_c,z_c\le w_c$. The program adds two \ab{515}{CPU} steps:
 whole parts are culled against the frustum before they are submitted, and grass is culled per cell.
 \begin{equation}
 \text{plane } i:\ \vect a_i\cdot\vect p+d_i\ge0\ \text{inside};\qquad
@@ -18,8 +18,8 @@ c_0\lor c_1=0\Rightarrow\text{accept},\qquad c_0\land c_1\ne0\Rightarrow\text{re
 \end{gather}
 \begin{itemize}
 \item Liang--Barsky uses $p_{1,2}=\mp\Delta x$, $q_{1,2}=\pm(x_0-x_{\min/\max})$ and the same for $y$; one division per edge.
-\item The \ab{515}{GPU} clips in homogeneous clip space, before the divide, so a vertex behind the eye ($w<0$) is never divided.
-\item The \ab{516}{CPU} culling test of Eq.~\eqref{eq:cull} uses planes normalised by $\lVert\vect a_i\rVert$, so $\vect a_i\cdot\vect c+d_i$ is a
+\item The \ab{516}{GPU} clips in homogeneous clip space, before the divide, so a vertex behind the eye ($w<0$) is never divided.
+\item The \ab{517}{CPU} culling test of Eq.~\eqref{eq:cull} uses planes normalised by $\lVert\vect a_i\rVert$, so $\vect a_i\cdot\vect c+d_i$ is a
 distance in metres that can be compared with the radius $r$.
 \end{itemize}
 \begin{lstlisting}[language=C++,caption={Frustum planes from the view-projection matrix and the sphere test (\code{src/math/Frustum.cpp}).}]
@@ -41,7 +41,7 @@ bool Frustum::intersects(const Vec3& c, float r) const {
 
 \begin{figure}[htbp]
 \centering\includegraphics[width=\linewidth]{figures/diagrams/d_clipping.pdf}
-\caption{Analytical line clipping algorithms. Left: Cohen--Sutherland outcodes (above, below, right, left bits) perform rapid trivial rejection and acceptance; Liang--Barsky parameterizes line segments to clip the interval $[t_0,t_1]$ against viewport boundaries.}
+\caption{Analytical line clipping algorithms. Left: Cohen--Sutherland outcodes (above, below, right, left bits) perform rapid trivial rejection and acceptance; Liang--Barsky parameterises line segments to clip the interval $[t_0,t_1]$ against viewport boundaries.}
 \label{fig:d-clip}
 \end{figure}
 

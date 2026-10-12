@@ -215,6 +215,45 @@ for f in sorted(glob.glob(os.path.join(SEC, "*.tex"))):
 ok += typed - missing
 print("report text: %d typed numbers (above 12 or with decimals), %d not in the workbook" % (typed, missing))
 
+# ---- register sheets: World_Coordinates, Layout, Algorithms, Film against the export, the source files and the film's data
+wc = [r for r in rows("World_Coordinates")[8:] if r[0]]
+note(len(wc) == len(exp["components"]), "World_Coordinates: %d rows, the export has %d components" % (len(wc), len(exp["components"])))
+note(sum(1 for r in wc if r[4] != "Group") == exp["leaf_count"], "World_Coordinates: drawn parts differ from the export's leaf_count")
+note(rows("World_Coordinates")[4][6] == "agree", "World_Coordinates: the sheet's own count check says DIFFER")
+by = {c["id"]: c for c in exp["components"]}
+worst = 0.0
+for r in wc:
+    c = by.get(r[0])
+    if not c:
+        bad.append("World_Coordinates: unknown id %s" % r[0])
+        continue
+    m = c["world_matrix"]
+    want = list(c["S"]) + list(c["R_deg"]) + list(c["T"]) + [m[3], m[7], m[11]]
+    worst = max(worst, max(abs(float(a) - float(b)) for a, b in zip(r[7:19], want)))
+note(worst < 6e-4, "World_Coordinates: a coordinate differs from the export by %.4f" % worst)
+lay = rows("Layout")
+ctl = [r for r in lay if r[0] and any(r[0] == c["name"] for c in exp["controllables"])]
+note(len(ctl) >= len(exp["controllables"]), "Layout: %d of %d controllables listed" % (len(ctl), len(exp["controllables"])))
+for c in exp["controllables"]:
+    hit = [r for r in ctl if r[0] == c["name"] and num(r[2]) is not None]
+    note(bool(hit) and all(abs(num(hit[0][2 + j]) - c["position"][j]) < 6e-3 for j in range(3)), "Layout: position of %s" % c["name"])
+lamps = [r for r in lay if r[0] and any(r[0] == pl["name"] for pl in exp["practical_lights"]) and num(r[8]) is not None]
+note(len(lamps) == len(exp["practical_lights"]), "Layout: %d lamps listed, the export has %d" % (len(lamps), len(exp["practical_lights"])))
+alg = [r for r in rows("Algorithms") if r[0] and str(r[0]).startswith("src/") and isinstance(r[1], (int, float))]
+note(len(alg) > 80, "Algorithms: only %d source constants listed" % len(alg))
+for f, line, name, val, _ in alg:
+    src_line = open(os.path.join(ROOT, f), errors="replace").read().splitlines()[int(line) - 1]
+    m = re.search(r"\b%s\s*=\s*(-?[\d.]+)" % re.escape(str(name)), src_line)
+    note(bool(m) and abs(float(m.group(1)) - float(val)) < 1e-6, "Algorithms: %s in %s line %s is not %s" % (name, f, line, val))
+film_path = os.path.join(ROOT, "report", "data", "film.json")
+if os.path.exists(film_path):
+    film = json.load(open(film_path))
+    fr = [r for r in rows("Film")[9:] if isinstance(r[0], (int, float)) and r[3]]
+    note(len(fr) == len(film["beats"]), "Film: %d beats in the sheet, %d in film.json" % (len(fr), len(film["beats"])))
+    note(abs(sum(float(r[6]) for r in fr) - film["length"]) < 0.5, "Film: the lengths do not add up to the film's length")
+    said = {r[2]: r[3] for r in rows("Film") if r[2] and r[5] and str(r[5]).startswith("scene export")}
+    note(said.get("drawn parts") == exp["leaf_count"] and said.get("designs") == len(exp["designs"]), "Film: parts / designs stated in the film differ from the export")
+
 print("workbook: %d sheets, %d checks passed, %d failed" % (len(wb.sheetnames), ok, len(bad)))
 for b in bad:
     print("  " + b)

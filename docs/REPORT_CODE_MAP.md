@@ -442,7 +442,7 @@ Report source: `report/sections/A10_illumination.tex`
 | [`src/rendering/ShaderSources.cpp`](../src/rendering/ShaderSources.cpp) | [`computeLight`](../src/rendering/ShaderSources.cpp#L224), [`brdf`](../src/rendering/ShaderSources.cpp#L174), [`compose`](../src/rendering/ShaderSources.cpp#L737) |
 | [`src/rendering/ShadersPost.cpp`](../src/rendering/ShadersPost.cpp) | [`practicalAttenuation`](../src/rendering/ShadersPost.cpp#L336) |
 
-### 16.1 Vector maths written by hand
+### 16.1 Custom Vector Mathematics Implementation
 
 **Referenced in the text**
 

@@ -236,7 +236,7 @@ Report Sections 5 and 27.4.
 | 112 | [`src/objects/Tank.cpp:430`](../src/objects/Tank.cpp#L430) | Tank skid steering from the two track speeds. |
 | 113 | [`src/objects/Tank.cpp:468`](../src/objects/Tank.cpp#L468) | The tank gun fires. |
 | 114 | [`src/objects/Launchers.cpp:336`](../src/objects/Launchers.cpp#L336) | Launchers on alert: raised and sweeping. |
-| 115 | [`src/objects/Helicopter.cpp:334`](../src/objects/Helicopter.cpp#L334) | Helicopter at flight idle while unmanned. |
+| 115 | [`src/objects/Helicopter.cpp:335`](../src/objects/Helicopter.cpp#L335) | Helicopter at flight idle while unmanned. |
 | 116 | [`src/scene/KeyMap.cpp:43`](../src/scene/KeyMap.cpp#L43) | Every key and its context. |
 
 ## 17. Evidence: tests and the report's generators
@@ -245,6 +245,6 @@ Report Sections 5 and 27.4.
 |---|---|---|
 | 117 | [`tests/test_main.cpp:862`](../tests/test_main.cpp#L862) | 396 automated tests (run with `make test`). |
 | 118 | [`tools/report/check_numbers.py:31`](../tools/report/check_numbers.py#L31) | The report's hand-typed numbers checked against the code. |
-| 119 | [`tools/report/gen_designs.py:432`](../tools/report/gen_designs.py#L432) | Every printed transformation chain checked against the exported world matrix. |
+| 119 | [`tools/report/gen_designs.py:441`](../tools/report/gen_designs.py#L441) | Every printed transformation chain checked against the exported world matrix. |
 | 120 | [`src/app/Record.cpp:122`](../src/app/Record.cpp#L122) | The film recorder (scripted takes, camera views, event log). |
 

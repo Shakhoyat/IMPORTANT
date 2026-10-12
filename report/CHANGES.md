@@ -662,3 +662,30 @@ Teaching drawings of each section's maths; every constant drawn from the code is
     the export, the code and the report (149 checks); the family names match Section 7.
   - Repository: tool caches, development notes and the earlier workbook, report and figure generations removed; the
     film (720p and slide copies) is part of the repository.
+
+## After the showcase: full-length film, workbook registers, public documentation
+
+  - Program, one defect fixed: the helicopter's rotor head stood above the fuselage with a gap under it. The engine
+    cowling now reaches forward under the rotor (`src/objects/Helicopter.cpp`: size 0.95 x 0.75 x 1.9 m at
+    (0, 0.95, -1.15) -> 0.95 x 0.9 x 2.5 m at (0, 0.95, -0.9)) and the mast stands in it (0.18 x 0.18 x 0.55 m at
+    y = 1.55 -> 0.34 x 0.34 x 0.87 m at y = 1.385). Two components of the export changed (HEL-07, HEL-09); the scene
+    still has 5,474 parts; 396 tests pass.
+  - Recorder only (`src/app/Record.cpp`, no new program feature): `TS_FILM_SCRIPT`, timed steps that do what the keys
+    and the mouse do (switches of the key map, camera poses and orbits, jumps into an object's view, the pointer and
+    clicks, held controls, the menu, the Frame Explorer, the clock), and `TS_FILM_ALGO`, a record of what the tracker,
+    the squad and the rovers' planners hold ten times a second.
+  - Film: `tools/film` (the film as data in `acts/*.py`, plates, score, sound mix, assembler); 32 min 44 s, 149 beats
+    in 30 chapters; narration and shot list in `docs/FILM_SCRIPT.md`, subtitles and chapter list beside it; timeline
+    in `report/data/film.json`. Each chapter draws the idea step by step, then shows it in the running program.
+  - Film sound: narration (synthetic voice), the program's own sound, and a score written in code, mixed with the
+    narration leading. Measured: integrated loudness -14.2 LUFS, loudness range 2.9 LU, true peak -1.1 dBFS; the 30
+    chapters lie between -13.8 and -15.5 LUFS. Mean level per band (dB): below 150 Hz -23.7, 150-600 Hz -21.2,
+    600 Hz-2.5 kHz -24.8, 2.5-8 kHz -26.9, above 8 kHz -34.3.
+  - Workbook: 23 sheets (2,659 formula cells, no errors). New sheets `Index`, `World_Coordinates` (all 6,069
+    components), `Layout`, `Algorithms` (every constant with its source line) and `Film`
+    (`tools/v10/wb_registers.py`); `tools/report/check_workbook.py` now runs 1,156 checks.
+  - Report: rebuilt on the new export, 186 pages. The helicopter's card, coordinate sheet and pictures regenerated;
+    four short forms given their full form (GTAO twice, GPU, PCF); `tools/report/check_numbers.py` accepts the reworded
+    sentence on the hand-written functions; British spelling restored in one caption.
+  - `README.md` is generated from the project's data (`tools/report/gen_readme.py`), with pictures in `docs/img`
+    (`tools/film/figures.py`).

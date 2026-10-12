@@ -76,8 +76,8 @@ for p in glob.glob(os.path.join(ROOT, "src", "rendering", "*.cpp")):
 ill = tex("A10_illumination.tex")
 for fn, n in calls.items():
     expect("calls of ts%s" % fn, n, ill, r"\\code\{ts%s\} & \\code\{\w+\} & (\d+) &" % fn)
-expect("calls of the hand-written functions, total", sum(calls.values()), ill, r"\((\d+) calls in \d+ shader source files\)")
-expect("shader source files", len(files), ill, r"\(\d+ calls in (\d+) shader source files\)")
+expect("calls of the hand-written functions, total", sum(calls.values()), ill, r"\((\d+) calls (?:in|across) \d+ shader source files\)")
+expect("shader source files", len(files), ill, r"\(\d+ calls (?:in|across) (\d+) shader source files\)")
 for banned in ("dot", "normalize", "mix", "clamp", "smoothstep", "reflect", "refract", "cross", "length", "step"):
     for p in files:
         for raw in re.findall(r'R"\((.*?)\)"', open(p).read(), re.S):

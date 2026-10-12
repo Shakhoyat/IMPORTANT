@@ -3,7 +3,7 @@
 \here{10}
 A ray $\vect r(t)=\vect o+t\vect d$ is intersected with the scene. Rays answer three questions here: what is
 under the cursor (picking), is a point lit (shadow rays), and what does a mirror or glass show (reflection and
-refraction rays, Whitted \cite{whitted1980}). A \ab{556}{CPU}/GPU ray tracer with a \ab{557}{BVH} runs over the same scene.
+refraction rays, Whitted \cite{whitted1980}). A \ab{558}{CPU} and \ab{559}{GPU} ray tracer with a \ab{560}{BVH} runs over the same scene.
 \begin{equation}
 \text{sphere: } t^2(\vect d\cdot\vect d)+2t\,\vect d\cdot(\vect o-\vect c)+\lVert\vect o-\vect c\rVert^2-r^2=0;\quad
 \text{plane: } t=\frac{(\vect p_0-\vect o)\cdot\vect n}{\vect d\cdot\vect n}
@@ -35,10 +35,10 @@ F_{\text{Schlick}}=F_0+(1-F_0)(1-\cos\theta)^5,\qquad \text{total internal refle
 \begin{itemize}
 \item Quadratics are solved in the stable form $q=-(b+\operatorname{sign}(b)\sqrt{b^2-ac})$, roots $q/a$ and $c/q$, from the point of
 closest approach, so a 1\,cm wire 60\,m away keeps its precision.
-\item The terrain is a height field of triangles walked cell by cell with the 3D \ab{558}{DDA} of Section~\ref{sec:raster}; glass uses
+\item The terrain is a height field of triangles walked cell by cell with the 3D \ab{561}{DDA} of Section~\ref{sec:raster}; glass uses
 the exact Fresnel term with $\eta=1/1.5$ entering and $1.5$ leaving; smooth metal and wet surfaces use Schlick with
 $F_0=\operatorname{mix}(0.04,\boldsymbol\rho,m)$ (Figure~\ref{fig:fresnel}).
-\item The \ab{559}{BVH} split minimises $C$ over the 15 bin boundaries of each axis: $A$ are box surface areas, $n$ primitive counts.
+\item The \ab{562}{BVH} split minimises $C$ over the 15 bin boundaries of each axis: $A$ are box surface areas, $n$ primitive counts.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -110,7 +110,7 @@ ray--plane intersections, reflection, Snell refraction and the contribution of e
 \end{figure}
 
 \textbf{Uses in the game.} Mouse picking casts a ray through the clicked pixel (middle click jumps into that object);
-the interaction prompt tests a segment against wall boxes for line of sight; the \ab{560}{UAV} searchlight's beam length is a
+the interaction prompt tests a segment against wall boxes for line of sight; the \ab{563}{UAV} searchlight's beam length is a
 ray marched to the terrain and refined by bisection; a third-person camera arm is a sphere cast against the walls.
 
 \textbf{Limitation.} The ray-traced modes are teaching modes: at 1080p the path tracer runs at reduced internal resolution

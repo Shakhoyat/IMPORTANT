@@ -23,11 +23,11 @@ s=3f^2-2f^3,\quad f=\vect q-\lfloor\vect q\rfloor,\qquad
 \text{trilinear: } c=\operatorname{lerp}\big(c_{\lfloor\lambda\rfloor},\,c_{\lfloor\lambda\rfloor+1},\,\lambda-\lfloor\lambda\rfloor\big)\nonumber
 \end{gather}
 \begin{itemize}
-\item $h_{ij}$: an integer hash of the lattice corner (\code{latticeHash}, a 32-bit mix), the same on every \ab{536}{GPU} and on the
-\ab{537}{CPU} mirror; $\vect c_o$: a fixed offset per octave; $k$ fades the relief from 12 to 40\,m.
+\item $h_{ij}$: an integer hash of the lattice corner (\code{latticeHash}, a 32-bit mix), the same on every \ab{538}{GPU} and on the
+\ab{539}{CPU} mirror; $\vect c_o$: a fixed offset per octave; $k$ fades the relief from 12 to 40\,m.
 \item Box projection picks the plane of the largest normal component, so a primitive needs no stored $(u,v)$ and a
 pattern never stretches; it is used for the albedo patterns (\code{surfaceAlbedo}) and the relief (\code{surfaceBump}).
-\item Image textures (imported trees, the ground map, the font) are mip-mapped by the \ab{538}{GPU}: \code{glGenerateMipmap} builds the
+\item Image textures (imported trees, the ground map, the font) are mip-mapped by the \ab{540}{GPU}: \code{glGenerateMipmap} builds the
 box-filtered levels and \code{GL\_LINEAR\_MIPMAP\_LINEAR} selects $\lambda$ of Eq.~\eqref{eq:tex} and blends as in
 Eq.~\eqref{eq:filter}. This lookup is fixed-function; the procedural patterns are the project's own code.
 \end{itemize}
@@ -94,5 +94,5 @@ alpha-tested leaves.}\end{subfigure}
 A bump map perturbs only the normal (Eq.~\eqref{eq:tex}): the silhouette stays straight while the lighting shows
 relief.
 
-\textbf{Limitation.} Procedural world-space patterns need no \ab{539}{UV} unwrapping and never stretch, but they slide over a moving
-part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to \ab{540}{MSAA} and \ab{541}{TAA}.
+\textbf{Limitation.} Procedural world-space patterns need no \ab{541}{UV} unwrapping and never stretch, but they slide over a moving
+part unless evaluated in object space, and they cannot be mip-mapped; aliasing of fine noise is left to \ab{542}{MSAA} and \ab{543}{TAA}.

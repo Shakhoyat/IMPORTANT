@@ -1,6 +1,6 @@
 # cg_workbook.xlsx (the workbook of the report)
 
-18 sheets. Every derived number is a live Excel formula. Yellow cells are inputs taken from the code or the scene
+23 sheets. Every derived number is a live Excel formula. Yellow cells are inputs taken from the code or the scene
 export. White cells are formulas. Worked textbook examples are labelled as such on their sheet.
 
 ## Rebuild
@@ -48,3 +48,8 @@ LibreOffice is the extracted AppImage at `~/.local/opt/squashfs-root/opt/libreof
 | Performance | `report/data/bench.csv` (config, avg_ms, p95_ms, avg_fps, draw_calls, triangles) when it exists. Otherwise the sheet holds a TODO row. Re-run the script after the benchmark to import it and draw the bar chart. |
 | Report_Numbers | The register of the report's numbers. A: every number macro of the report (file, name, value, text printed, source, sections that use it). B: numbers stated in words (squad rule, guards, hand-written vector function calls, parts per shading model, tests). C: constants of the equations and hand-written tables (air mass, tone curve, fog, shadow bias, shadow settings per preset, near and far plane), each read from the source file named in its row. D: values derived in the text, as formulas. |
 | Coordinates | Every component of the first instance of every design (2,804 rows): size, rotation, and its centre and extent in the design frame after the transformation chain, from the export's world matrices. The coordinate sheets of the report's Section 7 print columns K to P to 0.1 cm. |
+| Index | The first sheet: what every sheet holds, the report section that prints it, its source and the checker that guards it. |
+| World_Coordinates | Every component of the scene, parts and groups (6,069 rows): S, R, T in the parent's frame, centre and extent in the world, heat and colour, from the export's `components`. A COUNTIF of the drawn parts must equal the export's count (5,474). The printed copy (PDF) shows only the head of the list. |
+| Layout | Export `layout`, `controllables`, `lights`, `practical_lights`, `walkspace`: sites of the base, the things that can be operated with their positions and controls, the four scene lights, the 43 lamps, the floors and walls of the walk space. |
+| Algorithms | A: every `constexpr` number of the vision, tracking, squad, flight, intruder, mission and garrison sources, with file and line (`tools/v10/wb_registers.py`: `CONST_FILES`). B: the values the running program reports in its export. `check_workbook.py` reads each source line again. |
+| Film | The shot list of the full-length film (`report/data/film.json`, written by `tools/film/build.py plan`) and the numbers its narration states, each with its source. |

@@ -32,10 +32,11 @@ SOFFICE = Path.home() / ".local/opt/squashfs-root/opt/libreoffice25.8/program/so
 UV = Path.home() / ".local/bin/uv"
 NSS_LIB = Path.home() / ".local/opt/nss/root/usr/lib/x86_64-linux-gnu"
 
-SHEETS = ["Primitives", "Decomposition", "Designs", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
+SHEETS = ["Index", "Primitives", "Decomposition", "Designs", "Transform_Trace", "Vertex_Groups", "View_Projection", "Clipping", "Illumination",
           "Color_Interp", "Ray_Tracing", "Thermal_Kernels", "Tracking", "Line_Follower", "Explosion", "Duty_Cycle",
-          "Performance", "Report_Numbers", "Coordinates"]
-NO_SNAP = {"Report_Numbers", "Coordinates"}   # registers: long lists, not rendered as figures
+          "Performance", "Report_Numbers", "Coordinates", "World_Coordinates", "Layout", "Algorithms", "Film"]
+# registers: long lists, not rendered as figures
+NO_SNAP = {"Index", "Report_Numbers", "Coordinates", "World_Coordinates", "Layout", "Algorithms", "Film"}
 
 # --------------------------------------------------------------------------------------------- workbook helpers
 if __name__ == "__main__" and "--snap-only" not in sys.argv:
@@ -2355,6 +2356,9 @@ def build(export_path):
     sheet_performance(wb)
     sheet_report_numbers(wb, exp)
     sheet_coordinates(wb, exp)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import wb_registers   # Index, World_Coordinates, Layout, Algorithms, Film
+    wb_registers.add(wb, exp, Sheet, ROOT)
     wb._sheets.sort(key=lambda ws: SHEETS.index(ws.title))
     wb.active = 0
     OUT_XLSX.parent.mkdir(parents=True, exist_ok=True)

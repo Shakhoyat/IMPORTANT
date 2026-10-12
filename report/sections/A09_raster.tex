@@ -15,7 +15,7 @@ a=\frac{\sum_k\lambda_k a_k/w_k}{\sum_k\lambda_k/w_k}
 signed area of $(\vect a,\vect b,\vect p)$; $\sum_kE_k$ is twice the triangle's area, so the $\lambda_k$ sum to 1.
 \item Top-left rule: a pixel centre exactly on an edge belongs to the triangle only if that edge is a top or left edge,
 so two triangles sharing an edge never both draw (or both miss) its pixels.
-\item The \ab{518}{GPU} does this in hardware; \code{math/ExplorerMath.cpp: rasterize} and \code{interpolatePerspective} compute the
+\item The \ab{519}{GPU} does this in hardware; \code{math/ExplorerMath.cpp: rasterize} and \code{interpolatePerspective} compute the
 same numbers for the Frame Explorer (Listing below, Figure~\ref{fig:raster}).
 \end{itemize}
 \begin{lstlisting}[language=C++,caption={Edge functions, barycentric weights, perspective-correct interpolation (\code{math/ExplorerMath.cpp}).}]
@@ -32,13 +32,13 @@ float interpolatePerspective(const Barycentric& b, float w0, float w1, float w2,
 }
 \end{lstlisting}
 
-\textbf{Lines: \ab{519}{DDA} and Bresenham.} Wireframes, hidden-line edges and debug paths are \code{GL\_LINES} drawn by the
-\abp{520}{GPU} line rasteriser; the two textbook line algorithms (Figure~\ref{fig:aa-plots}c) step one pixel at a time:
+\textbf{Lines: \ab{520}{DDA} and Bresenham.} Wireframes, hidden-line edges and debug paths are \code{GL\_LINES} drawn by the
+\abp{521}{GPU} line rasteriser; the two textbook line algorithms (Figure~\ref{fig:aa-plots}c) step one pixel at a time:
 \begin{gather}
 \text{DDA: } x_{i+1}=x_i+1,\quad y_{i+1}=y_i+m,\quad m=\frac{\Delta y}{\Delta x},\quad \text{plot }\big(x_i,\operatorname{round}(y_i)\big)\label{eq:lines}\\
 \text{Bresenham: } p_0=2\Delta y-\Delta x,\qquad p_{i+1}=\begin{cases}p_i+2\Delta y & p_i<0\\ p_i+2\Delta y-2\Delta x & p_i\ge0\quad (y\gets y+1)\end{cases}\nonumber
 \end{gather}
-The same incremental idea walks a ray through the terrain's height-field grid in the ray tracer (a 3D \ab{521}{DDA},
+The same incremental idea walks a ray through the terrain's height-field grid in the ray tracer (a 3D \ab{522}{DDA},
 \code{raytrace/Heightfield.cpp}): $t_{\max,x}\gets t_{\max,x}+\Delta t_x$ with $\Delta t_x=\text{cell}/|d_x|$, stepping
 the axis whose next boundary is nearer.
 
@@ -60,8 +60,8 @@ quad's diagonal, the perspective-correct one stays straight.}
 \label{fig:raster}
 \end{figure}
 
-\textbf{Anti-aliasing.} Edges sampled once per pixel form stairs. The program uses \ab{522}{MSAA} (several coverage samples, one
-shading per pixel): 2$\times$ at LOW, 4$\times$ at HIGH, 8$\times$ at ULTRA and 4$\times$ at EPIC, with \ab{523}{TAA} from HIGH up (Table~\ref{tab:aa}). \ab{524}{TAA}
+\textbf{Anti-aliasing.} Edges sampled once per pixel form stairs. The program uses \ab{523}{MSAA} (several coverage samples, one
+shading per pixel): 2$\times$ at LOW, 4$\times$ at HIGH, 8$\times$ at ULTRA and 4$\times$ at EPIC, with \ab{524}{TAA} from HIGH up (Table~\ref{tab:aa}). \ab{525}{TAA}
 jitters the projection by a Halton(2,3) sub-pixel offset every frame and blends the history, clipped to the
 variance box of the current $3\times3$ neighbourhood in YCoCg. The affine checker of Figure~\ref{fig:raster}b bends
 because $a$ is interpolated linearly in screen space instead of through $a/w$.
@@ -77,7 +77,7 @@ The offset is added to $P_{13}$ and $P_{23}$ of the projection, which moves the 
 \item The history weight $\beta^k$ decays geometrically (Figure~\ref{fig:aa-plots}b): an average over about
 $1/(1-\beta)=10$ frames when still.
 \item Code: jitter in \code{RendererFrame.cpp} (\code{halton}), blend and clip in \code{ShadersPostFx.cpp} (\code{kTaaFrag});
-\ab{525}{MSAA} samples are resolved by the \ab{526}{GPU} (\code{glBlitFramebuffer}).
+\ab{526}{MSAA} samples are resolved by the \ab{527}{GPU} (\code{glBlitFramebuffer}).
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -114,6 +114,6 @@ Figure~\ref{fig:flow-raster} and Algorithm~\ref{alg:raster} follow one triangle 
 \flowRaster
 \algRaster
 
-\textbf{Limitation.} \ab{527}{TAA} trades aliasing for blur and ghosting: a fast \ab{528}{UAV} leaves a faint trail for a few frames. With
+\textbf{Limitation.} \ab{528}{TAA} trades aliasing for blur and ghosting: a fast \ab{529}{UAV} leaves a faint trail for a few frames. With
 a static camera, pixels without vegetation still change by about 2.4/255 per frame from the jitter alone and vegetation
 pixels by 2.6--6.6/255, above the 1.5/255 that was the target.
