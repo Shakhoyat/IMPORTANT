@@ -135,7 +135,9 @@ std::vector<float> synthFootstep(Surface s, uint32_t variant) {
     Rng rng(variant * 7919u + static_cast<uint32_t>(s) * 131u + 17u);
     std::vector<float> v(samples(s == Surface::Metal ? 0.6f : 0.35f), 0.0f);
     footImpact(v, 0, s, 1.0f, rng);
-    footImpact(v, samples(0.035f + 0.03f * rng.uni()), s, 0.45f + 0.2f * rng.uni(), rng);   // toe
+    const float toeGain = 0.45f + 0.2f * rng.uni();     // drawn in a fixed order: within one call the compiler chooses it
+    const size_t toeAt = samples(0.035f + 0.03f * rng.uni());
+    footImpact(v, toeAt, s, toeGain, rng);   // toe
     static constexpr float kPeak[kSurfaceCount] = {0.45f, 0.5f, 0.55f, 0.55f, 0.35f};
     normalizePeak(v, kPeak[static_cast<int>(s)] * (0.85f + 0.15f * rng.uni()));
     fadeEdges(v, 0.0005f, 0.03f);
@@ -349,7 +351,9 @@ std::vector<float> synthImpact(Surface s, uint32_t take) {
     if (s == Surface::Gravel)
         for (int g = 0; g < 18; ++g) {
             const size_t at = samples(0.08f * rng.uni());
-            addSine(v, at, 2500.0f + 4000.0f * rng.uni(), 2500.0f, 1.0f, 0.0015f, 0.15f * rng.uni(), 0.0002f);
+            const float grainGain = 0.15f * rng.uni();   // fixed order of the two draws (see the footstep above)
+            const float grainHz = 2500.0f + 4000.0f * rng.uni();
+            addSine(v, at, grainHz, 2500.0f, 1.0f, 0.0015f, grainGain, 0.0002f);
         }
     if (s == Surface::Metal) {
         addSine(v, 0, 1830.0f, 1830.0f, 1.0f, 0.12f, 0.35f, 0.0003f);

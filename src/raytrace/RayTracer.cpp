@@ -314,7 +314,8 @@ Vec3 Tracer::whittedRec(const Ray& r, int depth, Rng* rng, RayTree* tree, int pa
             float ao = 1.0f;
             if (ts_.ambientOcclusion && rng) {
                 Ray ar;
-                ar.d = sampleCosine(h.n, rng->uniform(), rng->uniform());
+                const float u2 = rng->uniform(), u1 = rng->uniform();   // a fixed order: within one call the compiler chooses it
+                ar.d = sampleCosine(h.n, u1, u2);
                 ar.o = offsetPoint(h, ar.d);
                 ar.tmax = 1.5f;
                 ao = maxComponent(s_.transmittance(ar, kNoShadow | kLightProxy, &stats)) > 0.0f ? 1.0f : 0.25f;
@@ -664,7 +665,8 @@ RayTree debugTrace(const RtScene& s, const RtCamera& cam, float u, float v, cons
     Hit h;
     if (s.intersect(r, h) && s.material(h).transmission <= 0.0f) {
         Rng rng(7, 11);
-        const Vec3 d = sampleCosine(h.n, rng.uniform(), rng.uniform());
+        const float u2 = rng.uniform(), u1 = rng.uniform();   // a fixed order (see above)
+        const Vec3 d = sampleCosine(h.n, u1, u2);
         Ray br;
         br.d = d;
         br.o = h.p + h.n * kEps;

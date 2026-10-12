@@ -46,8 +46,11 @@ void addPine(Builder& b, SceneNode* parent, float x, float z, float height, floa
         const float tierH = (i == whorls - 1) ? span * 0.30f : r * rng.range(0.85f, 1.05f);
         const float base = kPineSkirt + span * 0.80f * std::pow(k, 0.9f);
         const Vec3 tilt{-90.0f + rng.range(-6.0f, 6.0f), rng.range(0.0f, 360.0f), rng.range(-6.0f, 6.0f)};
-        solid(b.part(tree, "Pine crown", P::Cone, {2.0f * r, 2.0f * r * rng.range(0.9f, 1.1f), tierH}, tilt,
-                     {rng.range(-0.04f, 0.04f), base + 0.5f * tierH, rng.range(-0.04f, 0.04f)}, needles,
+        // The draws are made in named steps: inside one call the compiler chooses the order of the arguments, and GCC and
+        // Clang choose differently, which gave the Windows build other trees than the Linux build.
+        const float offX = rng.range(-0.04f, 0.04f), offZ = rng.range(-0.04f, 0.04f);
+        const float depth = 2.0f * r * rng.range(0.9f, 1.1f);
+        solid(b.part(tree, "Pine crown", P::Cone, {2.0f * r, depth, tierH}, tilt, {offX, base + 0.5f * tierH, offZ}, needles,
                      "Branch whorl (cone, apex up)"));
     }
 }
@@ -92,8 +95,10 @@ void addBush(Builder& b, SceneNode* parent, float x, float z, float size, float 
     for (int i = 0; i < n; ++i) {
         const float a = rng.range(0.0f, 2.0f * PI), d = rng.range(0.0f, 0.38f) * size;
         const float r = rng.range(0.28f, 0.48f) * size;
-        solid(b.part(bush, "Bush", P::Sphere, {2 * r, 1.4f * r, 2 * r}, {0, rng.range(0.0f, 360.0f), 0},
-                     {std::cos(a) * d, r * 0.55f + rng.range(0.0f, 0.12f) * size, std::sin(a) * d}, leaves, "Shrub clump"));
+        const float lift = rng.range(0.0f, 0.12f) * size;      // drawn before the yaw (see addPine)
+        const float clumpYaw = rng.range(0.0f, 360.0f);
+        solid(b.part(bush, "Bush", P::Sphere, {2 * r, 1.4f * r, 2 * r}, {0, clumpYaw, 0},
+                     {std::cos(a) * d, r * 0.55f + lift, std::sin(a) * d}, leaves, "Shrub clump"));
     }
 }
 
@@ -139,7 +144,11 @@ int addForestPatch(Builder& b, SceneNode* parent, float cx, float cz, float radi
         const float own = round ? 1.3f : 1.0f;
         if (!vegetationAllowed(x, z, keepClear, own)) continue;
         if (round) addRoundTree(b, patch, x, z, rng.range(0.85f, 1.1f));
-        else addPine(b, patch, x, z, rng.range(3.0f, 4.6f), rng.range(0.0f, 360.0f));
+        else {
+            const float pineYaw = rng.range(0.0f, 360.0f);   // yaw first, then height: a fixed order for every compiler
+            const float pineHeight = rng.range(3.0f, 4.6f);
+            addPine(b, patch, x, z, pineHeight, pineYaw);
+        }
         keepClear.push_back({x, z, own});
         ++placed;
     }
