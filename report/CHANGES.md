@@ -678,9 +678,10 @@ Teaching drawings of each section's maths; every constant drawn from the code is
     in 30 chapters; narration and shot list in `docs/FILM_SCRIPT.md`, subtitles and chapter list beside it; timeline
     in `report/data/film.json`. Each chapter draws the idea step by step, then shows it in the running program.
   - Film sound: narration (synthetic voice), the program's own sound, and a score written in code, mixed with the
-    narration leading. Measured: integrated loudness -14.2 LUFS, loudness range 2.9 LU, true peak -1.1 dBFS; the 30
+    narration leading. Measured on the master: integrated loudness -14.2 LUFS, loudness range 2.9 LU, true peak -1.1 dBFS; the 30
     chapters lie between -13.8 and -15.5 LUFS. Mean level per band (dB): below 150 Hz -23.7, 150-600 Hz -21.2,
-    600 Hz-2.5 kHz -24.8, 2.5-8 kHz -26.9, above 8 kHz -34.3.
+    600 Hz-2.5 kHz -24.8, 2.5-8 kHz -26.9, above 8 kHz -34.3. The four copies in the repository (1280 x 720, 61 to
+    83 MB) carry the master's audio unchanged; decoded from their own start they peak between -0.4 and -1.3 dBFS.
   - Workbook: 23 sheets (2,659 formula cells, no errors). New sheets `Index`, `World_Coordinates` (all 6,069
     components), `Layout`, `Algorithms` (every constant with its source line) and `Film`
     (`tools/v10/wb_registers.py`); `tools/report/check_workbook.py` now runs 1,156 checks.

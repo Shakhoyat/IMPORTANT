@@ -415,9 +415,11 @@ def step_final():
     pic, mix = os.path.join(OUT, "picture.mp4"), os.path.join(OUT, "mix.wav")
     vid = os.path.join(ROOT, "report", "video")
     master = os.path.join(vid, "thermalsense_full_1080p.mp4")
-    ff(["-i", pic, "-i", mix, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", master])
-    ff(["-ss", "6", "-i", master, "-frames:v", "1", master.replace(".mp4", "_poster.jpg")])
+    import sys
+    if "--parts-only" not in sys.argv or not os.path.exists(master):     # --parts-only: keep the master, cut the parts again
+        ff(["-i", pic, "-i", mix, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", master])
+        ff(["-ss", "6", "-i", master, "-frames:v", "1", master.replace(".mp4", "_poster.jpg")])
     # copies for the repository: four parts at 1280 x 720, each under GitHub's 100 MB file limit
     total = B.timing()
     acts = {}
@@ -429,11 +431,12 @@ def step_final():
     for k in range(4):
         a, e = cuts[k], cuts[k + 1]
         dst = os.path.join(vid, "thermalsense_full_part%d.mp4" % (k + 1))
-        vb = str(int(92.0 * 8e6 / (e - a) - 128000))
+        # the parts carry the master's audio unchanged: a second encode at 128 kb/s overshot the limiter by 2 dB on a low hit
+        vb = str(int(92.0 * 8e6 / (e - a) - 256000))
         for n in ("1", "2"):
             ff(["-ss", "%.3f" % a, "-t", "%.3f" % (e - a), "-i", master, "-vf", "scale=1280:720", "-c:v", "libx264", "-preset", "medium", "-b:v", vb,
                 "-maxrate", str(int(int(vb) * 1.6)), "-bufsize", str(int(vb) * 3), "-pass", n, "-passlogfile", log] +
-               (["-an", "-f", "mp4", os.devnull] if n == "1" else ["-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", dst]))
+               (["-an", "-f", "mp4", os.devnull] if n == "1" else ["-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", dst]))
         print("part %d  %s - %s  %.0f MB" % (k + 1, B.clock(a), B.clock(e), os.path.getsize(dst) / 1e6), flush=True)
     print("wrote %s  %.1f s  %.0f MB" % (master, B.duration(master), os.path.getsize(master) / 1e6))
 
