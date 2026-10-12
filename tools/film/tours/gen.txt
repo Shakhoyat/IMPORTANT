@@ -1,0 +1,13 @@
+hour 10.5
+soldier 6
+doors 1
+start 0.0 -3.0 0 -3.4
+p 0.0 0.2
+p 0.6 1.2
+face 1.6 1.2
+wait 0.4
+use
+wait 1.6
+p 3.0 1.2
+p 4.0 0.0
+p 4.2 -1.0

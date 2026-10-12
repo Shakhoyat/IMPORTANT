@@ -1,0 +1,22 @@
+hour 10.5
+soldier 2
+doors 0
+start 16.5 -11.5 140
+g 18.4 -16.6
+face 21 -19
+wait 0.5
+use
+wait 1.5
+aim 60 22 -60
+wait 3
+sight
+wait 1
+fire 2.5
+aim 40 30 -75
+fire 2.5
+wait 1
+chase
+aim off
+wait 1
+exit
+wait 2
