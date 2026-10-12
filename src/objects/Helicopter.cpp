@@ -87,14 +87,15 @@ Helicopter::Helicopter() {
     b.part(bd, "Chin nose", P::Sphere, {0.9f, 0.5f, 0.9f}, {0, 0, 0}, {0, -0.22f, 0.8f}, paintLight, "Lower nose fairing");
     b.part(bd, "Door seam left", P::Cube, {0.03f, 0.75f, 0.02f}, {0, 0, 0}, {0.655f, 0.14f, 0.38f}, metal, "Door frame edge");
     b.part(bd, "Door seam right", P::Cube, {0.03f, 0.75f, 0.02f}, {0, 0, 0}, {-0.655f, 0.14f, 0.38f}, metal, "Door frame edge");
-    cowling_ = b.part(bd, "Engine cowling", P::Sphere, {0.95f, 0.75f, 1.9f}, {0, 0, 0}, {0, 0.95f, -1.15f}, paintLight,
+    cowling_ = b.part(bd, "Engine cowling", P::Sphere, {0.95f, 0.9f, 2.5f}, {0, 0, 0}, {0, 0.95f, -0.9f}, paintLight,
                       "Turbine engine fairing (warm in thermal)");
     cowling_->occluder = true;
     cowling_->animation = "Heat rises with rotor speed";
     exhaust_ = b.part(bd, "Engine exhaust", P::Cylinder, {0.2f, 0.2f, 0.55f}, {15, 0, 0}, {-0.35f, 1.0f, -2.1f}, hot,
                       "Exhaust pipe: hottest part in the thermal view");
     exhaust_->animation = "Heat rises with rotor speed";
-    b.part(bd, "Rotor mast", P::Cylinder, {0.18f, 0.18f, 0.55f}, {90, 0, 0}, {0, 1.55f, 0}, metal, "Main rotor mast");
+    // The mast stands in the cowling (which reaches forward under the rotor head): no gap between the head and the fuselage.
+    b.part(bd, "Rotor mast", P::Cylinder, {0.34f, 0.34f, 0.87f}, {90, 0, 0}, {0, 1.385f, 0}, metal, "Main rotor mast");
 
     // Tail boom (cone with the apex pointing aft), fin, stabiliser, bumper.
     b.part(bd, "Tail boom", P::Cone, {0.45f, 0.45f, 5.2f}, {0, 180, 0}, {0, 0.8f, -3.9f}, paint,

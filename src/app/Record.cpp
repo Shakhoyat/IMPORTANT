@@ -493,6 +493,369 @@ int App::recordMode() {
         }
     };
 
+    // TS_FILM_SCRIPT = file (with TS_FILM_CAM, which gives the hour and the opening camera): timed steps, one per line,
+    // "T step args" (T = video seconds; "+D" = D seconds after the previous step; '#' starts a comment). A step does what
+    // a key or the mouse does in the program, through the same functions, so a take shows the program as a player uses it:
+    //   set NAME VALUE                         a switch of the key map (view, edges, shading, depth, axes, plan, explode,
+    //                                          quality, pbr, cinematic, rt, lightterms, projection, taa, ssr, hud, rain ...)
+    //   cam EX EY EZ AX AY AZ FOV [S]          free camera glides to this pose in S seconds (0 = cut)
+    //   orbit CX CY CZ R H RATE DEG0 FOV       orbit a point; track KIND NAME R H RATE DEG0 FOV orbits a moving object
+    //   pov KIND NAME [first|chase|alt]        jump into an object's view (F4 list / middle click); next / prev (Insert / Delete)
+    //   control KIND NAME, view, release       take control (Enter), V, Backspace
+    //   picker open|close|down N|up N|enter    the POV list (F4)
+    //   cursor show|hide | cursor X Y [S] | cursorto KIND NAME [S] | cursorrow N [S]     the pointer, drawn in the frame
+    //   click left|double|middle               select / take control / jump into the object (or list row) under the pointer
+    //   hold AXIS VALUE S (forward turn lift aimyaw aimpitch strafe boost), fire S, action, use, look DX DY S
+    //   menu open|close|tab N, explorer STAGE [S]|off, raypick X Y, hour H, scrub H0 H1 S, clock auto|manual, dayops 0|1
+    // Every step is written with its video time to <video>_steps.txt (titles and key badges of the film are cut to it).
+    struct FilmStep {
+        float t = 0.0f;
+        std::string op, line;
+        std::vector<std::string> a;
+    };
+    struct FilmPose {
+        Vec3 eye, aim;
+        float fov = 50.0f;
+    };
+    std::vector<FilmStep> fsteps;
+    size_t fsK = 0;
+    bool fsOn = false;
+    std::ofstream fsLog;
+    FilmPose fsFrom{Vec3{film[1], film[2], film[3]}, Vec3{film[4], film[5], film[6]}, film[13]}, fsTo = fsFrom, fsShown = fsFrom;
+    float fsCamT0 = 0.0f, fsCamDur = 0.0f;
+    int fsCamMode = 0;   // 0 keyed poses, 1 orbit round a point, 2 orbit round a moving object
+    bool fsCamCut = true;
+    Vec3 fsOrbC{};
+    float fsOrbR = 10.0f, fsOrbH = 4.0f, fsOrbRate = 6.0f, fsOrbDeg0 = 0.0f, fsOrbT0 = 0.0f;
+    uint32_t fsOrbKey = 0;
+    float fsHoldV[6] = {}, fsHoldUntil[6] = {-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f}, fsBoostUntil = -1.0f, fsFireUntil = -1.0f;
+    float fsLookDx = 0.0f, fsLookDy = 0.0f, fsLookUntil = -1.0f;
+    bool fsCurShow = false;
+    float fsCurX = 0.5f, fsCurY = 0.5f, fsCurX0 = 0.5f, fsCurY0 = 0.5f, fsCurX1 = 0.5f, fsCurY1 = 0.5f, fsCurT0 = 0.0f, fsCurDur = 0.0f;
+    uint32_t fsCurKey = 0;
+    int fsCurRow = -1;
+    float fsClickT = -10.0f;
+    float fsScrubH0 = 0.0f, fsScrubH1 = 0.0f, fsScrubT0 = 0.0f, fsScrubDur = 0.0f;
+    std::unique_ptr<FrameExplorer> fsExplorer;
+    int fsExStage = 0;
+    float fsExT0 = 0.0f, fsExLen = 6.0f;
+    bool fsRayPick = false;
+    FilmStep fsWait;
+    float fsWaitUntil = -1.0f;
+    float fsRayX = 0.5f, fsRayY = 0.5f;
+    if (const char* fp = std::getenv("TS_FILM_SCRIPT"); fp && filmCam) {
+        std::ifstream in(fp);
+        std::string line;
+        float prev = 0.0f;
+        while (std::getline(in, line)) {
+            const size_t hash = line.find('#');
+            if (hash != std::string::npos) line.erase(hash);
+            std::istringstream ls(line);
+            std::string ts;
+            FilmStep st;
+            if (!(ls >> ts >> st.op)) continue;
+            st.t = ts[0] == '+' ? prev + static_cast<float>(std::atof(ts.c_str() + 1)) : static_cast<float>(std::atof(ts.c_str()));
+            prev = st.t;
+            for (std::string v; ls >> v;) st.a.push_back(v);
+            st.line = line;
+            fsteps.push_back(st);
+        }
+        std::stable_sort(fsteps.begin(), fsteps.end(), [](const FilmStep& x, const FilmStep& y) { return x.t < y.t; });
+        fsOn = !fsteps.empty();
+        if (fsOn) {
+            fsLog.open(stem + "_steps.txt");
+            std::printf("film script %s: %zu steps\n", fp, fsteps.size());
+            setFree(fsFrom.eye, fsFrom.aim, fsFrom.fov);   // the script's camera from the first frame (not the director's)
+        }
+    }
+    auto fsNum = [](const FilmStep& st, size_t i, float def) { return i < st.a.size() ? static_cast<float>(std::atof(st.a[i].c_str())) : def; };
+    auto fsStr = [](const FilmStep& st, size_t i) { return i < st.a.size() ? st.a[i] : std::string(); };
+    auto fsKind = [](const std::string& k, PovKind& out) {
+        static const std::pair<const char*, PovKind> names[] = {
+            {"soldier", PovKind::Soldier}, {"rover", PovKind::Rover}, {"uav", PovKind::Uav}, {"helicopter", PovKind::Helicopter},
+            {"tank", PovKind::Tank}, {"aagun", PovKind::AaGun}, {"launcher", PovKind::Launcher}, {"radar", PovKind::Radar},
+            {"missile", PovKind::Missile}, {"shell", PovKind::Shell}};
+        for (const auto& [n, v] : names)
+            if (k == n) {
+                out = v;
+                return true;
+            }
+        return false;
+    };
+    // the object a step names: KIND and a part of its name ("-" = the nearest of that kind)
+    auto fsSource = [&](const FilmStep& st, size_t i, PovSource& out) {
+        PovKind kind;
+        if (!fsKind(fsStr(st, i), kind)) return false;
+        const std::string name = fsStr(st, i + 1) == "-" ? std::string() : fsStr(st, i + 1);
+        const uint32_t key = findPov(kind, name.c_str());
+        for (const PovSource& p : listPovSources(*scene_, shownPose_.eye))
+            if (key != 0 && p.key == key) {
+                out = p;
+                return true;
+            }
+        return false;
+    };
+    auto fsProject = [&](const Vec3& p, float& nx, float& ny) {
+        const Mat4 vp = perspective(radians(shownPose_.fovDeg + fovKick_), aspect, shownPose_.nearZ, 600.0f) * shownPose_.view();
+        const Vec4 c = vp * Vec4{p.x, p.y, p.z, 1.0f};
+        if (c.w <= 1e-4f) return false;
+        nx = 0.5f * (c.x / c.w + 1.0f);
+        ny = 0.5f * (1.0f - c.y / c.w);
+        return nx > 0.0f && nx < 1.0f && ny > 0.0f && ny < 1.0f;
+    };
+    auto fsFreeFromShown = [&]() {   // the script's camera takes over from the game's, from the pose on screen
+        releaseRover();
+        possess(-1);
+        pickerOpen_ = false;
+        flyCam_ = false;
+        fsShown = FilmPose{shownPose_.eye, shownPose_.eye + shownPose_.forward() * 12.0f, shownPose_.fovDeg};
+        camera_.mode = CameraMode::Free;
+    };
+    auto fsSet = [&](const std::string& n, const std::string& v) {
+        const float x = static_cast<float>(std::atof(v.c_str()));
+        const bool on = x != 0.0f || v == "on";
+        auto pick = [&](std::initializer_list<const char*> names) {
+            int i = 0;
+            for (const char* c : names) {
+                if (v == c) return i;
+                ++i;
+            }
+            return static_cast<int>(x);
+        };
+        if (n == "view") settings_.view = static_cast<ViewMode>(pick({"thermal", "visible", "prims", "zbuf", "heatraw"}));
+        else if (n == "edges") settings_.edges = static_cast<EdgeMode>(pick({"solid", "hidden", "xray"}));
+        else if (n == "shading") settings_.shading = v == "flat" ? ShadingOverride::Flat : v == "gouraud" ? ShadingOverride::Gouraud
+                                                     : v == "phong" ? ShadingOverride::Phong : ShadingOverride::PerObject;
+        else if (n == "depth") settings_.depthTest = on;
+        else if (n == "indexed") settings_.indexed = on;
+        else if (n == "axes") settings_.showAxes = on;
+        else if (n == "plan") settings_.showPlan = on;
+        else if (n == "legend") settings_.showLegend = on;
+        else if (n == "moon") settings_.moonOn = on;
+        else if (n == "beacon") settings_.beaconOn = on;
+        else if (n == "spot") settings_.spotOn = on;
+        else if (n == "practicals") settings_.practicalsOn = on;
+        else if (n == "quality") settings_.quality = static_cast<Quality>(std::clamp(pick({"low", "high", "ultra", "epic"}), 0, kQualityCount - 1));
+        else if (n == "pbr") settings_.pbr = on;
+        else if (n == "cinematic") settings_.cinematic = on;
+        else if (n == "palette") settings_.palette = static_cast<int>(x) % 3;   // ironbow, white-hot, rainbow
+        else if (n == "taa") settings_.taaOn = on;
+        else if (n == "msaa") settings_.msaaOn = on;
+        else if (n == "ssr") settings_.ssrOn = on;
+        else if (n == "flare") settings_.flareOn = on;
+        else if (n == "autoexposure") settings_.autoExposureOn = on;
+        else if (n == "exposure") settings_.exposure = x;
+        else if (n == "dof") settings_.dof = x;
+        else if (n == "foliage") settings_.foliageOn = on;
+        else if (n == "particles") settings_.particlesOn = on;
+        else if (n == "shadows") settings_.shadowsOn = on;
+        else if (n == "ssao") settings_.ssaoOn = on;
+        else if (n == "fog") settings_.fogOn = on;
+        else if (n == "bloom") settings_.bloomOn = on;
+        else if (n == "bump") settings_.bumpOn = on;
+        else if (n == "pcss") settings_.pcssOn = on;
+        else if (n == "contact") settings_.contactShadowsOn = on;
+        else if (n == "gtao") settings_.gtaoOn = on;
+        else if (n == "aerial") settings_.aerialOn = on;
+        else if (n == "spotshadow") settings_.spotShadowOn = on;
+        else if (n == "vegetation") settings_.vegetationOn = on;
+        else if (n == "motionblur") settings_.motionBlur = x;
+        else if (n == "rtscale") settings_.rtScale = x, settings_.rtWhittedScale = x;
+        else if (n == "rt") settings_.rtMode = static_cast<rt::RtMode>(pick({"raster", "hybrid", "whitted", "path", "light"}));
+        else if (n == "rtoverlay") settings_.rtOverlay = on;
+        else if (n == "raydebug") renderer_->setRayDebug(on);
+        else if (n == "lightterms") settings_.lightTerms = pick({"all", "ambient", "diffuse", "specular"}) % 4;
+        else if (n == "projection") settings_.projection = pick({"perspective", "top", "front", "side", "isometric"}) % 5;
+        else if (n == "explode") exploded_ = on;
+        else if (n == "hud") {
+            showHud_ = x >= 1.0f;
+            debugHud_ = x >= 2.0f;
+        } else if (n == "feed") showFeed_ = on;
+        else if (n == "game") gameMode_ = on;
+        else if (n == "help") showHelp_ = on;
+        else if (n == "fpv") thermalFpv_ = on;
+        else if (n == "rain") rainTarget_ = on ? 1.0f : 0.0f;
+        else if (n == "props") {
+            if (on) props.install(*scene_);
+        } else return false;
+        return true;
+    };
+    auto fsRun = [&](const FilmStep& st, float t) {
+        bool ok = true;
+        std::string note;
+        if (st.op == "set") ok = fsSet(fsStr(st, 0), fsStr(st, 1));
+        else if (st.op == "cam") {
+            if (camera_.mode != CameraMode::Free) fsFreeFromShown();
+            fsFrom = fsShown;
+            fsTo = FilmPose{Vec3{fsNum(st, 0, 0), fsNum(st, 1, 5), fsNum(st, 2, 0)}, Vec3{fsNum(st, 3, 0), fsNum(st, 4, 0), fsNum(st, 5, 0)}, fsNum(st, 6, 50)};
+            fsCamT0 = t;
+            fsCamDur = fsNum(st, 7, 0.0f);
+            fsCamMode = 0;
+            fsCamCut = fsCamDur <= 0.0f;
+        } else if (st.op == "orbit" || st.op == "track") {
+            size_t i = 0;
+            if (st.op == "track") {
+                PovSource src;
+                ok = fsSource(st, 0, src);
+                fsOrbKey = ok ? src.key : 0;
+                fsOrbC = src.centre;
+                i = 2;
+            } else {
+                fsOrbC = Vec3{fsNum(st, 0, 0), fsNum(st, 1, 0), fsNum(st, 2, 0)};
+                i = 3;
+            }
+            if (ok) {
+                if (camera_.mode != CameraMode::Free) fsFreeFromShown();
+                fsOrbR = fsNum(st, i, 10.0f);
+                fsOrbH = fsNum(st, i + 1, 4.0f);
+                fsOrbRate = fsNum(st, i + 2, 6.0f);
+                fsOrbDeg0 = fsNum(st, i + 3, 0.0f);
+                fsTo.fov = fsNum(st, i + 4, 50.0f);
+                fsOrbT0 = t;
+                fsCamMode = st.op == "track" ? 2 : 1;
+                fsCamCut = fsStr(st, i + 5) == "cut";
+            }
+        } else if (st.op == "pov" || st.op == "control") {
+            PovSource src;
+            ok = fsSource(st, 0, src);
+            if (ok && st.op == "pov") {
+                const std::string v = fsStr(st, 2);
+                ok = jumpToPov(src.key, v == "chase" ? 1 : v == "alt" ? 2 : v == "first" ? 0 : -1, true);
+            } else if (ok) {
+                const std::vector<PovSource> list = listPovSources(*scene_, shownPose_.eye);
+                int at = -1;
+                for (size_t k = 0; k < list.size(); ++k)
+                    if (list[k].key == src.key) at = static_cast<int>(k);
+                ok = controlSource(at);
+            }
+            note = src.name;
+        } else if (st.op == "axes") {   // H, with the joint frames of one object ("axes soldier PATROL"; "axes off")
+            PovSource src;
+            settings_.showAxes = fsStr(st, 0) != "off";
+            axesControllable_ = settings_.showAxes && fsSource(st, 0, src) ? src.controllable : -1;
+        } else if (st.op == "povwait") {   // jump as soon as such an object exists (a round in flight), for at most S seconds
+            fsWait = st;
+            fsWaitUntil = t + fsNum(st, 3, 6.0f);
+        } else if (st.op == "take") takeControl();
+        else if (st.op == "jump") jumpEdge_ = true;
+        else if (st.op == "crouch") crouchWant_ = static_cast<int>(fsNum(st, 0, 1.0f));
+        else if (st.op == "next") cyclePovJump(+1);
+        else if (st.op == "prev") cyclePovJump(-1);
+        else if (st.op == "view") cyclePersonView();
+        else if (st.op == "third") setViewThirdPerson(fsNum(st, 0, 1.0f) != 0.0f);
+        else if (st.op == "release") fsFreeFromShown(), fsFrom = fsTo = fsShown, fsCamMode = 0, fsCamCut = true;
+        else if (st.op == "picker") {
+            const std::string a = fsStr(st, 0);
+            if ((a == "open") != pickerOpen_ && (a == "open" || a == "close")) togglePicker();
+            else if (a == "down") pickerMove(static_cast<int>(fsNum(st, 1, 1)));
+            else if (a == "up") pickerMove(-static_cast<int>(fsNum(st, 1, 1)));
+            else if (a == "enter") pickerConfirm();
+            if (pickerOpen_ && pickerSel_ >= 0 && pickerSel_ < static_cast<int>(pickerList_.size())) note = pickerList_[static_cast<size_t>(pickerSel_)].name;
+        } else if (st.op == "cursor") {
+            const std::string a = fsStr(st, 0);
+            if (a == "show" || a == "hide") fsCurShow = a == "show";
+            else {
+                fsCurShow = true;
+                fsCurKey = 0;
+                fsCurRow = -1;
+                fsCurX0 = fsCurX, fsCurY0 = fsCurY;
+                fsCurX1 = fsNum(st, 0, 0.5f), fsCurY1 = fsNum(st, 1, 0.5f);
+                fsCurT0 = t, fsCurDur = fsNum(st, 2, 0.6f);
+            }
+        } else if (st.op == "cursorto") {
+            PovSource src;
+            ok = fsSource(st, 0, src);
+            if (ok) {
+                fsCurShow = true;
+                fsCurKey = src.key;
+                fsCurRow = -1;
+                fsCurX0 = fsCurX, fsCurY0 = fsCurY;
+                fsCurT0 = t, fsCurDur = fsNum(st, 2, 0.8f);
+                note = src.name;
+            }
+        } else if (st.op == "cursorrow") {
+            fsCurShow = true;
+            fsCurKey = 0;
+            fsCurRow = static_cast<int>(fsNum(st, 0, 0));
+            fsCurX0 = fsCurX, fsCurY0 = fsCurY;
+            fsCurT0 = t, fsCurDur = fsNum(st, 1, 0.6f);
+        } else if (st.op == "click") {
+            const std::string a = fsStr(st, 0);
+            fsClickT = t;
+            if (a == "middle") pickPovAt(fsCurX, fsCurY);
+            else if (pickerOpen_ && pickerClick(fsCurX, fsCurY)) {
+            } else {
+                selectAt(fsCurX, fsCurY);
+                if (a == "double") controlSelected();
+            }
+            fsCurKey = 0;
+            fsCurRow = -1;
+            fsCurX1 = fsCurX, fsCurY1 = fsCurY, fsCurDur = 0.0f;
+            PovSource cur;
+            if (currentSource(cur)) note = cur.name;
+        } else if (st.op == "enter") controlSelected();
+        else if (st.op == "hold") {
+            static const char* axes[] = {"forward", "turn", "lift", "aimyaw", "aimpitch", "strafe"};
+            const std::string a = fsStr(st, 0);
+            ok = a == "boost";
+            if (ok) fsBoostUntil = t + fsNum(st, 2, 1.0f);
+            for (int k = 0; k < 6; ++k)
+                if (a == axes[k]) {
+                    fsHoldV[k] = fsNum(st, 1, 1.0f);
+                    fsHoldUntil[k] = t + fsNum(st, 2, 1.0f);
+                    ok = true;
+                }
+        } else if (st.op == "fire") {
+            fsFireUntil = t + fsNum(st, 0, 0.2f);
+            firePressedEdge_ = true;
+        } else if (st.op == "action") actionEdge_ = true;
+        else if (st.op == "use") {
+            ok = updateInteraction();
+            if (ok) performInteract();
+        } else if (st.op == "look") {
+            fsLookDx = fsNum(st, 0, 0), fsLookDy = fsNum(st, 1, 0);
+            fsLookUntil = t + std::max(fsNum(st, 2, 1.0f), 0.05f);
+        } else if (st.op == "menu") {
+            const std::string a = fsStr(st, 0);
+            if (a == "open") openMenu();
+            else if (a == "close") closeMenu();
+            else if (a == "tab") menuSelectTab(static_cast<int>(fsNum(st, 1, 0)));
+        } else if (st.op == "explorer") {
+            if (fsStr(st, 0) == "off") {
+                if (fsExplorer) fsExplorer->close();
+                fsExplorer.reset();
+            } else {
+                if (!fsExplorer) {   // freeze the frame on screen; later steps walk through its stages
+                    fsExplorer = std::make_unique<FrameExplorer>();
+                    CameraView cv;
+                    cv.view = lookAt(fsShown.eye, fsShown.aim, {0, 1, 0});
+                    cv.proj = perspective(radians(fsShown.fov), aspect, 0.05f, 600.0f);
+                    cv.position = fsShown.eye;
+                    fsExplorer->setConvergence(8, false);
+                    if (!fsExplorer->open(*renderer_, *scene_, cv, settings_, w, h)) fsExplorer.reset(), ok = false;
+                }
+                if (fsExplorer) {
+                    fsExStage = static_cast<int>(fsNum(st, 0, 0));
+                    fsExLen = fsNum(st, 1, 6.0f);
+                    fsExT0 = t;
+                    fsExplorer->setStage(fsExStage);
+                    fsExplorer->setTransition(0.0f);
+                }
+            }
+        } else if (st.op == "raypick") {
+            fsRayPick = true;
+            fsRayX = fsNum(st, 0, 0.5f), fsRayY = fsNum(st, 1, 0.5f);
+        } else if (st.op == "hour" || st.op == "clock" || st.op == "scrub") {
+            if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                if (st.op == "hour") clock->setAuto(false), clock->setHour(fsNum(st, 0, 12.0f)), fsScrubDur = 0.0f;
+                else if (st.op == "clock") clock->setAuto(fsStr(st, 0) == "auto"), fsScrubDur = 0.0f;
+                else fsScrubH0 = fsNum(st, 0, 6.0f), fsScrubH1 = fsNum(st, 1, 18.0f), fsScrubT0 = t, fsScrubDur = fsNum(st, 2, 10.0f), clock->setAuto(false);
+            }
+        } else if (st.op == "dayops") setDayOps(fsNum(st, 0, 1.0f) != 0.0f);
+        else if (st.op != "log") ok = false;
+        if (!ok) std::printf("film script: step failed at %.2f s:%s\n", t, st.line.c_str());
+        if (fsLog.is_open()) fsLog << t << (ok ? " ok " : " FAILED ") << st.line << (note.empty() ? "" : "  -> " + note) << '\n' << std::flush;
+    };
     // TS_FILM_EVENTS = file: every game event with the video time it happened at (cutting the film by events), plus
     // the squad's roles once a second.
     std::ofstream evOut;
@@ -500,6 +863,89 @@ int App::recordMode() {
     const char* evNames[] = {"WaveStart", "EnemySpotted", "LockOn", "RoundLaunched", "CombinedStrike", "Explosion", "EnemyHit",
                              "EnemyDestroyed", "Breach", "BaseLost", "CannonFire", "GatlingBurst", "DoorMoving", "Dusk",
                              "NightFalls", "Dawn", "DayBreak", "ShiftChange", "Withdraw", "RifleFire"};
+    // TS_FILM_ALGO = file: what the algorithms hold, ten times a second, as JSON lines (the film's explanatory plates are
+    // drawn from it): UAV poses and roles, the strike phases, every track of the shared tracker, every rover (pose, wheel
+    // speeds, line sensors, hiding / pausing) and, twice a second, the cost grid of one rover (TS_FILM_ALGO_ROVER = slot,
+    // default the first one alive): cells hidden from the UAVs, the flood-fill field and the guide line.
+    std::ofstream algoOut;
+    if (const char* af = std::getenv("TS_FILM_ALGO")) algoOut.open(af);
+    const int algoRoverEnv = static_cast<int>(envFloat("TS_FILM_ALGO_ROVER", -1.0f));
+    bool algoFreeDone = false;
+    auto algoDump = [&](int f) {
+        const float t = static_cast<float>(f) / static_cast<float>(fps);
+        std::ostringstream o;
+        o.setf(std::ios::fixed);
+        o.precision(3);
+        const Squad& sq = scene_->squad();
+        const DayCycle* dc = sa::dayCycle(*scene_);
+        o << "{\"t\":" << t << ",\"hour\":" << (dc ? dc->hour() : 0.0f) << ",\"strike\":\"" << strikePhaseName(sq.strike().phase)
+          << "\",\"side\":\"" << strikePhaseName(sq.sideStrike().phase) << "\",\"target\":" << sq.targetTrack() << ",\"uav\":[";
+        for (int i = 0; i < 2; ++i) {
+            const DroneState& d = scene_->droneState(i);
+            o << (i ? "," : "") << "{\"p\":[" << d.position.x << ',' << d.position.y << ',' << d.position.z << "],\"yaw\":" << d.yawDeg
+              << ",\"gyaw\":" << d.gimbalYawDeg << ",\"gpitch\":" << d.gimbalPitchDeg << ",\"lock\":" << d.lockTime << ",\"role\":\""
+              << squadRoleName(sq.roles[i]) << "\",\"duty\":\"" << scene_->uavDutyState(i) << "\"}";
+        }
+        o << "],\"tracks\":[";
+        bool first = true;
+        for (const Track& tr : sq.tracker().tracks()) {
+            o << (first ? "" : ",") << "{\"id\":" << tr.id << ",\"s\":" << static_cast<int>(tr.state) << ",\"x\":" << tr.x[0] << ",\"z\":" << tr.x[1]
+              << ",\"vx\":" << tr.x[2] << ",\"vz\":" << tr.x[3] << ",\"sig\":" << tr.positionSigma() << ",\"seen\":" << tr.seenNow
+              << ",\"tri\":" << (tr.triangulated ? 1 : 0) << ",\"hits\":" << tr.hits << ",\"since\":" << tr.sinceUpdate << '}';
+            first = false;
+        }
+        o << "],\"rovers\":[";
+        first = true;
+        int gridRover = -1, k = 0;
+        for (const auto& in : scene_->intruders()) {
+            const int slot = k++;
+            if (in->life != Intruder::Life::Alive) continue;
+            if (gridRover < 0 && (algoRoverEnv < 0 || algoRoverEnv == slot)) gridRover = slot;
+            const RoverState& r = in->state;
+            const Vec3 goal = in->hide.currentGoal();
+            o << (first ? "" : ",") << "{\"i\":" << slot << ",\"x\":" << r.position.x << ",\"z\":" << r.position.z << ",\"yaw\":" << r.yaw
+              << ",\"l\":" << r.leftSpeed << ",\"r\":" << r.rightSpeed << ",\"ir\":[";
+            for (int q = 0; q < kIrSensorCount; ++q) o << (q ? "," : "") << (r.sensors[q] ? 1 : 0);
+            o << "],\"hid\":" << (r.hidden ? 1 : 0) << ",\"ev\":" << (in->hide.evading() ? 1 : 0) << ",\"pause\":" << (in->hide.pausing() ? 1 : 0)
+              << ",\"hes\":" << (in->hide.hesitating() ? 1 : 0) << ",\"ret\":" << (in->hide.retreating() ? 1 : 0) << ",\"hp\":" << in->health
+              << ",\"obj\":[" << in->objective.x << ',' << in->objective.z << "],\"goal\":[" << goal.x << ',' << goal.z << "]}";
+            first = false;
+        }
+        o << "],\"soldiers\":[";
+        first = true;
+        for (const PovSource& ps : listPovSources(*scene_, Vec3{}))
+            if (ps.kind == PovKind::Soldier) {
+                o << (first ? "" : ",") << "[" << ps.position.x << ',' << ps.position.z << "]";
+                first = false;
+            }
+        o << "]";
+        if (f % (fps / 2) == 0 && gridRover >= 0) {
+            const HideController& hc = scene_->intruders()[static_cast<size_t>(gridRover)]->hide;
+            o << ",\"grid\":{\"i\":" << gridRover << ",\"line\":[";
+            first = true;
+            for (const Vec3& q : hc.guideLine()) {
+                o << (first ? "" : ",") << '[' << q.x << ',' << q.z << ']';
+                first = false;
+            }
+            o << "],\"flood\":[";
+            for (int cz = 0; cz < kGridCells; ++cz)
+                for (int cx = 0; cx < kGridCells; ++cx) o << (cz + cx ? "," : "") << hc.floodValue(cx, cz);
+            o << "],\"hidden\":\"";
+            for (int cz = 0; cz < kGridCells; ++cz)
+                for (int cx = 0; cx < kGridCells; ++cx) o << (hc.cellHidden(cx, cz) ? '1' : '0');
+            o << "\"";
+            if (!algoFreeDone) {
+                o << ",\"free\":\"";
+                for (int cz = 0; cz < kGridCells; ++cz)
+                    for (int cx = 0; cx < kGridCells; ++cx) o << (hc.cellFree(cx, cz) ? '1' : '0');
+                o << "\"";
+                algoFreeDone = true;
+            }
+            o << "}";
+        }
+        o << "}\n";
+        algoOut << o.str();
+    };
     const double start = nowSeconds();
     for (int f = 0; f < frames; ++f) {
         const float tDir = dirStart + dirSpeed * static_cast<float>(f) / static_cast<float>(fps);
@@ -535,6 +981,49 @@ int App::recordMode() {
                 held_.turn = shot.local > 1.2f ? 0.12f * std::sin(shot.local * 0.9f) : 0.0f;   // a slow scan
             }
             props.ensure();
+        }
+        if (fsOn) {
+            const float t = static_cast<float>(f) / static_cast<float>(fps);
+            while (fsK < fsteps.size() && fsteps[fsK].t <= t + 1e-4f) fsRun(fsteps[fsK++], t);
+            if (t < fsWaitUntil) {
+                PovSource src;
+                const std::string v = fsStr(fsWait, 2);
+                if (fsSource(fsWait, 0, src) && jumpToPov(src.key, v == "chase" ? 1 : v == "alt" ? 2 : 0, true)) {
+                    fsWaitUntil = -1.0f;
+                    if (fsLog.is_open()) fsLog << t << " ok povwait -> " << src.name << '\n' << std::flush;
+                }
+            }
+            if (!tourOn) {   // held keys of the script (a tour holds its own)
+                held_ = ControlInput{};
+                float* axis[6] = {&held_.forward, &held_.turn, &held_.lift, &held_.aimYaw, &held_.aimPitch, &held_.strafe};
+                for (int k = 0; k < 6; ++k)
+                    if (t < fsHoldUntil[k]) *axis[k] = fsHoldV[k];
+                held_.boost = t < fsBoostUntil;
+                held_.fire = t < fsFireUntil;
+                if (t < fsLookUntil) {
+                    aimYawAcc_ += fsLookDx / static_cast<float>(fps);
+                    aimPitchAcc_ += fsLookDy / static_cast<float>(fps);
+                }
+            }
+            if (fsScrubDur > 0.0f)
+                if (DayCycle* clock = sa::dayCycle(*scene_)) {
+                    const float u = clampf((t - fsScrubT0) / fsScrubDur, 0.0f, 1.0f);
+                    clock->setHour(fsScrubH0 + (fsScrubH1 - fsScrubH0) * u);
+                    if (u >= 1.0f) fsScrubDur = 0.0f;
+                }
+            // the pointer: towards a fixed point, a row of the POV list, or an object it follows until the click
+            if (fsCurKey != 0) {
+                for (const PovSource& p : listPovSources(*scene_, shownPose_.eye))
+                    if (p.key == fsCurKey) fsProject(p.centre, fsCurX1, fsCurY1);
+            } else if (fsCurRow >= 0 && pickerOpen_) {
+                const PickerLayout l = pickerLayout(w, h, static_cast<int>(pickerList_.size()), pickerSel_);
+                fsCurX1 = (l.x + 0.45f * l.w) / static_cast<float>(w);
+                fsCurY1 = (l.y + l.headerH + (static_cast<float>(fsCurRow - l.firstRow) + 0.5f) * l.rowH) / static_cast<float>(h);
+            }
+            const float cu = fsCurDur > 0.0f ? clampf((t - fsCurT0) / fsCurDur, 0.0f, 1.0f) : 1.0f;
+            const float ce = cu * cu * (3.0f - 2.0f * cu);
+            fsCurX = fsCurX0 + (fsCurX1 - fsCurX0) * ce;
+            fsCurY = fsCurY0 + (fsCurY1 - fsCurY0) * ce;
         }
         if (tourOn) {
             const std::vector<Controllable*> cl = sa::controllables(*scene_);
@@ -711,9 +1200,10 @@ int App::recordMode() {
                               << strikePhaseName(sq.sideStrike().phase) << " tracks " << sq.tracker().tracks().size() << '\n';
                 }
             }
-            if ((cut == DirectorCut::V7 || tourOn || filmUav >= 0) && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
+            if ((cut == DirectorCut::V7 || tourOn || filmUav >= 0 || fsOn) && camera_.mode != CameraMode::Cinematic && camera_.mode != CameraMode::Free) updateGameCamera(kSimStep);
             if (audioOn) audioEngine.pollEvents(*scene_);  // scene.events() only holds the last step's events
         }
+        if (algoOut.is_open() && f % (fps / 10) == 0) algoDump(f);
         if (tourOn) {
             settings_.letterbox = 0.0f;
             settings_.fade = 1.0f;
@@ -734,6 +1224,32 @@ int App::recordMode() {
                 followValid = true;
                 setFree(followEye, followAim, 55.0f);
             }
+        } else if (fsOn) {
+            const float t = static_cast<float>(f) / static_cast<float>(fps);
+            if (camera_.mode == CameraMode::Free) {   // the script's camera; in a POV or in control the game's own rig films
+                FilmPose want = fsTo;
+                if (fsCamMode == 0) {
+                    const float u = fsCamDur > 0.0f ? clampf((t - fsCamT0) / fsCamDur, 0.0f, 1.0f) : 1.0f;
+                    const float e = u * u * (3.0f - 2.0f * u);
+                    want = FilmPose{lerp(fsFrom.eye, fsTo.eye, e), lerp(fsFrom.aim, fsTo.aim, e), fsFrom.fov + (fsTo.fov - fsFrom.fov) * e};
+                    fsShown = want;
+                } else {
+                    if (fsCamMode == 2)
+                        for (const PovSource& p : listPovSources(*scene_, shownPose_.eye))
+                            if (p.key == fsOrbKey) fsOrbC = p.centre;
+                    const float a = radians(fsOrbDeg0 + fsOrbRate * (t - fsOrbT0));
+                    want.aim = fsOrbC;
+                    want.eye = fsOrbC + Vec3{std::cos(a) * fsOrbR, fsOrbH, std::sin(a) * fsOrbR};
+                    const float k = fsCamCut ? 1.0f : 0.06f;
+                    fsShown.eye = fsShown.eye + (want.eye - fsShown.eye) * k;
+                    fsShown.aim = fsShown.aim + (want.aim - fsShown.aim) * (fsCamCut ? 1.0f : 0.12f);
+                    fsShown.fov = fsShown.fov + (want.fov - fsShown.fov) * k;
+                    fsCamCut = false;
+                }
+                setFree(fsShown.eye, fsShown.aim, fsShown.fov);
+            }
+            settings_.letterbox = 0.0f;
+            settings_.fade = 1.0f;
         } else if (filmCam && filmUav >= 0) {
             // ride the UAV's thermal gimbal (the game's own first-person UAV view and HUD)
             if (camera_.mode != CameraMode::Pov) {
@@ -810,6 +1326,14 @@ int App::recordMode() {
             wav.write(audioBlock.data(), audioBlock.size());
         }
         target.bind();
+        if (fsOn && fsExplorer) {
+            const float local = static_cast<float>(f) / static_cast<float>(fps) - fsExT0;
+            GLint fbo = 0;
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
+            fsExplorer->setTransition(clampf(local / 0.6f, 0.0f, 1.0f));
+            fsExplorer->setAnimation(fsExStage == 3 ? local / std::max(fsExLen, 0.1f) * fsExplorer->rasterProbeTime() * 1.25f : local * 1.6f);
+            fsExplorer->draw(*renderer_, static_cast<GLuint>(fbo), w, h);
+        } else
         if (cut == DirectorCut::V7 && shot.act == V7Act::Explorer && explorer) {
             GLint fbo = 0;
             glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
@@ -844,6 +1368,37 @@ int App::recordMode() {
                 hud.rect(x - 18.0f * sc, y - 14.0f * sc, 6.0f * sc, 78.0f * sc, Rgba{1.0f, 0.62f, 0.15f, 0.9f * a});
                 hud.text(x, y, shot.name, 34.0f * sc, Rgba{1.0f, 1.0f, 1.0f, a});
                 hud.text(x, y + 44.0f * sc, shot.subtitle, 20.0f * sc, Rgba{0.82f, 0.86f, 0.9f, 0.9f * a});
+            }
+            hud.end();
+        }
+        if (fsOn && fsRayPick) {   // the ray debugger's click, on the frame just drawn
+            fsRayPick = false;
+            renderer_->setRayDebug(true);
+            settings_.rtOverlay = true;
+            if (!renderer_->rayDebugPick(*scene_, fsRayX, fsRayY)) std::printf("film script: the ray debugger found nothing at %.2f %.2f\n", fsRayX, fsRayY);
+        }
+        if (fsOn && fsCurShow) {   // the pointer and the ring of a click
+            const float t = static_cast<float>(f) / static_cast<float>(fps);
+            Hud& hud = renderer_->hud();
+            const float sc = static_cast<float>(h) / 1080.0f * 1.5f, x = fsCurX * static_cast<float>(w), y = fsCurY * static_cast<float>(h);
+            hud.begin(w, h);
+            const float ring = (t - fsClickT) / 0.45f;
+            if (ring >= 0.0f && ring < 1.0f) {
+                const float r = (8.0f + 30.0f * ring) * sc;
+                for (int k = 0; k < 28; ++k) {
+                    const float a0 = 6.2831853f * static_cast<float>(k) / 28.0f, a1 = 6.2831853f * static_cast<float>(k + 1) / 28.0f;
+                    for (float d = -1.0f; d <= 1.0f; d += 1.0f)
+                        hud.line(x + std::cos(a0) * (r + d), y + std::sin(a0) * (r + d), x + std::cos(a1) * (r + d), y + std::sin(a1) * (r + d),
+                                 Rgba{1.0f, 0.78f, 0.2f, 1.0f - ring});
+                }
+            }
+            const Rgba dark{0.05f, 0.06f, 0.08f, 0.95f}, white{1.0f, 1.0f, 1.0f, 1.0f};
+            for (int pass = 0; pass < 2; ++pass) {
+                const float g = pass == 0 ? 2.2f * sc : 0.0f;   // dark rim first
+                const Rgba c = pass == 0 ? dark : white;
+                hud.tri(x - g * 0.6f, y - g * 1.6f, x - g * 0.6f, y + 21.0f * sc + g * 1.4f, x + 15.0f * sc + g * 1.6f, y + 15.0f * sc + g * 0.6f, c);
+                hud.tri(x + 4.5f * sc - g, y + 14.0f * sc, x + 9.5f * sc - g * 0.4f, y + 26.0f * sc + g, x + 13.5f * sc + g, y + 24.0f * sc + g * 0.6f, c);
+                hud.tri(x + 4.5f * sc - g, y + 14.0f * sc, x + 13.5f * sc + g, y + 24.0f * sc + g * 0.6f, x + 9.5f * sc + g, y + 13.0f * sc, c);
             }
             hud.end();
         }
