@@ -8,7 +8,7 @@
     clip(text, src, at, ...)                an excerpt of a free take or of footage on disk
     plate(text, name, ...)                  an explanatory plate drawn by plates.py (function p_<name>)
     still(text, image, ...)                 a picture with a slow push
-    card(text, heading, lines, ...)         a text card (act opening, decision)
+    card(text, heading, lines, ...)         a text card (kind: intro, title, part, closing)
     split(text, panes, ...)                 two to four excerpts side by side, in step
 
 Every beat lasts as long as its narration (plus a breath), or `min` seconds if that is longer. tools/film/build.py turns
@@ -79,7 +79,7 @@ def still(text, image, title="", min=0.0, **kw):
     return _add("still", text, image=image, title=title, min=min, **kw)
 
 
-def card(text, heading, lines=(), kind="decision", min=0.0, **kw):
+def card(text, heading, lines=(), kind="part", min=0.0, **kw):
     return _add("card", text, heading=heading, lines=list(lines), card=kind, min=min, **kw)
 
 

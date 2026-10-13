@@ -19,10 +19,23 @@ import dsl  # noqa: E402
 ROOT = dsl.ROOT
 BG, PANEL, LINE = "#0c121c", "#162234", "#2a3b55"
 FG, DIM, AMB, CYAN, GREEN, RED, VIOLET = "#eef2f7", "#93a4ba", "#ffb02e", "#4cc9f0", "#6fd08c", "#ff6b6b", "#c58af9"
-FONT = "DejaVu Sans"
-MONO = "DejaVu Sans Mono"
-plt.rcParams["font.family"] = [FONT, "DejaVu Sans"]
-plt.rcParams["mathtext.fontset"] = "dejavusans"
+
+def _times():
+    """Times New Roman for every word on screen (the fonts of the Windows host; TeX Gyre Termes of the report otherwise)."""
+    import glob
+    from matplotlib import font_manager as fm
+    win = [os.path.join("/mnt/c/Windows/Fonts", f) for f in ("times.ttf", "timesbd.ttf", "timesi.ttf", "timesbi.ttf")]
+    files = win if all(os.path.exists(f) for f in win) else sorted(glob.glob(os.path.join(ROOT, "tools", "report", "fonts", "*.otf")))
+    for f in files:
+        fm.fontManager.addfont(f)
+    return fm.FontProperties(fname=files[0]).get_name()
+
+
+FONT = _times()
+MONO = FONT                      # code lines too: one typeface on every slide
+SIZE = 0.82                      # points per size unit (Times runs smaller than the sans it replaced)
+plt.rcParams["font.family"] = [FONT, "STIXGeneral"]
+plt.rcParams["mathtext.fontset"] = "stix"
 
 _cache = {}
 
@@ -62,8 +75,9 @@ def canvas():
 
 
 def txt(ax, x, y, s, size=30, color=FG, weight="normal", ha="left", va="center", alpha=1.0, mono=False, **kw):
-    return ax.text(x, y, s, fontsize=size * 0.72, color=color, fontweight=weight, ha=ha, va=va, alpha=alpha,
-                   family=MONO if mono else FONT, **kw)
+    if mono:                     # a code line keeps its indentation in a proportional face
+        s = "\u2003" * ((len(s) - len(s.lstrip(" "))) // 2) + s.lstrip(" ")
+    return ax.text(x, y, s, fontsize=size * SIZE, color=color, fontweight=weight, ha=ha, va=va, alpha=alpha, family=FONT, **kw)
 
 
 def box(ax, x, y, w, h, fc=PANEL, ec=LINE, lw=2.0, r=16, alpha=1.0, z=1):
@@ -205,7 +219,7 @@ def p_map(c):
                                  fc=colour[f], ec="none", alpha=0.9 if f != "vegetation" else 0.7, zorder=3)
             ax.add_collection(pc)
         txt(ax, 110, 90, "The outpost", size=50, weight="bold")
-        txt(ax, 110, 142, "drawn from the program's own part list: %s parts" % format(e["leaf_count"], ","), size=26, color=DIM)
+        txt(ax, 1312, 150, "drawn from the workbook's part list: %s parts" % format(e["leaf_count"], ","), size=24, color=DIM)
         line(ax, [px(-36, -38)[0], px(-26, -38)[0]], [1000, 1000], color=DIM, lw=3)
         txt(ax, px(-31, 0)[0], 972, "10 m", size=22, color=DIM, ha="center")
         txt(ax, px(0, 0)[0], px(0, 37.4)[1], "N", size=24, color=DIM, ha="center")
@@ -348,7 +362,7 @@ def p_primgrid(c):
             x += 36
 
     def head(ax, now):
-        txt(ax, 96, 110, "Sixteen generators, nothing else", size=50, weight="bold")
+        txt(ax, 96, 110, "Sixteen primitives, nothing else", size=50, weight="bold")
 
     def grp(gi):
         def draw(ax, now):
@@ -396,7 +410,7 @@ def p_trs(c):
 
     def head(ax, now):
         txt(ax, 96, 110, "One matrix places a part", size=50, weight="bold")
-        txt(ax, 96, 168, "every generator makes its shape one unit big, at the origin", size=28, color=DIM)
+        txt(ax, 96, 168, "every primitive starts one unit big, at the origin", size=28, color=DIM)
 
     def left(stage):
         def draw(ax, now):
@@ -408,7 +422,7 @@ def p_trs(c):
             cols = ["#5b6f8a", "#2f7fc1", "#2f7fc1", GREEN]
             for j in range(stage + 1):
                 _quad2d(ax, ox, oy, s, Ms[j], cols[j] if j == stage else "none", ec=cols[j], alpha=1.0 if j == stage else 0.45, lw=2.5 if j == stage else 1.5)
-            txt(ax, ox - 170, oy + 62, "  ->  ".join(names[:stage + 1]), size=26, color=AMB if now else DIM)
+            txt(ax, ox - 170, oy - 405, "  ->  ".join(names[:stage + 1]), size=26, color=AMB if now else DIM)
         return draw
 
     def right(ax, now):

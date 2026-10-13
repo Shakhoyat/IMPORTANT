@@ -5,6 +5,7 @@ report/data/film.json and build/film5/chapters.txt (the film), the source files 
 Pictures: docs/img (tools/film/figures.py) and report/figures/img.
 Run: ~/.local/bin/uv run -q --with pymupdf python tools/report/gen_readme.py [--youtube URL]"""
 import csv
+import glob
 import json
 import os
 import re
@@ -89,7 +90,7 @@ def main():
     A(row("---", "---"))
     A(row("**The film** (%s, narrated, with chapters)" % clock(film["length"]),
           ("[YouTube, full HD](%s)" % yt if yt else "YouTube link: *to be added after the upload*") +
-          "; copies in this repository by part: " + ", ".join("[part %d](report/video/thermalsense_full_part%d.mp4)" % (k, k) for k in (1, 2, 3, 4))))
+          "; copies in this repository by part: " + ", ".join("[part %d](report/video/thermalsense_full_part%d.mp4)" % (k, k) for k in range(1, 1 + len(glob.glob(os.path.join(ROOT, "report", "video", "thermalsense_full_part*.mp4")))))))
     A(row("The film's narration and shot list", "[`docs/FILM_SCRIPT.md`](docs/FILM_SCRIPT.md); subtitles [`docs/FILM_SUBTITLES.srt`](docs/FILM_SUBTITLES.srt); "
           "chapter list [`docs/FILM_CHAPTERS.txt`](docs/FILM_CHAPTERS.txt)"))
     A(row("**The report**%s" % (" (%d pages)" % n_pages if n_pages else ""), "[`report/main.pdf`](report/main.pdf)"))
@@ -101,8 +102,8 @@ def main():
     A("")
     A("## The film, chapter by chapter")
     A("")
-    A("Every chapter first draws the idea one step at a time, then shows the same thing in the running program, and ends with what was")
-    A("compared and what was chosen.")
+    A("The film goes through every topic of the graphics laboratory first, then the techniques beyond it and the algorithms of the")
+    A("outpost. Each chapter draws the idea one step at a time and then shows the same thing in the running program.")
     A("")
     A(row("Time", "Part", "Chapter"))
     A(row("---", "---", "---"))
@@ -258,18 +259,20 @@ def main():
     A("python3 tools/v10/build_cg_workbook.py --export report/data/scene_export_v10.json    # with uv: --with openpyxl --with matplotlib --with numpy")
     A("python3 tools/report/gen_designs.py && python3 tools/report/abbrev_pages.py          # Section 7; short forms per page; builds the PDF")
     A("# film (narration -> takes on the GPU -> plates -> picture -> sound -> master)")
-    A("U=\"uv run -q --python 3.12 --with kokoro-onnx --with soundfile --with numpy --with scipy --with pillow --with matplotlib --with openpyxl python tools/film/build.py\"")
+    A("U=\"uv run -q --python 3.12 --with edge-tts --with soundfile --with numpy --with scipy --with pillow --with matplotlib --with openpyxl python tools/film/build.py\"")
     A("$U voice && $U takes && $U events && $U plates && $U plan && $U picture && $U sound && $U final")
     A("python3 tools/film/figures.py && python3 tools/report/gen_readme.py                  # pictures and text of this page")
     A("```")
     A("")
-    A("`tools/film/build.py takes` records the 26 takes made for this film. Thirteen more recordings are reused from the short film and are")
+    A("`tools/film/build.py takes` records the %d takes made for this film. Thirteen more recordings are reused from the short film and are"
+      % film.get("takes", len(glob.glob(os.path.join(ROOT, "build", "film5", "takes", "*.sig")))))
     A("not re-recorded by it: six soldier tours (tank, bunker, generator room, barracks hall, anti-aircraft gun, missile launcher; their")
     A("scripts are in `tools/film/tours`, played with `TS_TOUR`), three views of the camp on alert, two views of the night, and the drones'")
     A("take-off and landing (camera glides with `TS_FILM_CAM`). A rebuild from a clean clone needs those files in `build/film3` and `build/film2`.")
     A("")
-    A("The narration is a synthetic voice (Kokoro, run locally); `tools/film/build.py sound --voice-track FILE` uses a recorded voice instead.")
-    A("The score is written in code (`tools/film/score.py`). Every sound of the program is synthesised (`src/audio`).")
+    A("The narration is a synthetic voice (Microsoft's Andrew, through `edge-tts`; `--engine kokoro` uses a local model instead);")
+    A("`tools/film/build.py sound --voice-track FILE` uses a recorded voice. The score is written in `tools/film/score.py`, and every sound")
+    A("of the program is synthesised (`src/audio`).")
     A("")
     open(os.path.join(ROOT, "README.md"), "w").write("\n".join(L))
     print("wrote README.md: %d lines, %d pictures" % (len(L), sum(ln.count("<img") for ln in L)))

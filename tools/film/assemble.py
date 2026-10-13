@@ -11,7 +11,6 @@ import dsl
 OUT, ROOT = dsl.OUT, dsl.ROOT
 B = None          # the build module (ffmpeg paths, sizes, timing helpers)
 XF = 0.35         # dissolve between the states of a plate (s)
-ACTS = ["Orientation", "Geometry", "Viewing", "Light", "World", "Control", "Vision", "Agents", "Engineering"]
 
 
 def _init():
@@ -27,7 +26,7 @@ def pool(n):
 
 
 def ff(args):
-    return B.sh([B.FF, "-y", "-loglevel", "error", "-threads", "6", "-filter_complex_threads", "2"] + args)
+    return B.sh([B.FF, "-y", "-loglevel", "error", "-threads", "4", "-filter_complex_threads", "2"] + args)
 
 
 def enc(frames):
@@ -74,7 +73,7 @@ def _plate(job):
     import plates
     c = plates.Ctx(b, sent, out_dir)
     fn = None
-    for mod in ("plates", "plates_b", "plates_c", "plates_d"):   # plates by act
+    for mod in ("plates_e", "plates", "plates_b", "plates_c", "plates_d"):   # the second cut's plates first, then by act
         try:
             fn = fn or getattr(importlib.import_module(mod), "p_" + b["name"], None)
         except ModuleNotFoundError:
@@ -99,7 +98,7 @@ def step_plates():
             continue
         jobs.append(((b, B.sentence_times(b), d), stamp, sig))
     print("%d plates to draw" % len(jobs), flush=True)
-    with pool(min(8, max(1, len(jobs)))) as pl:
+    with pool(min(int(os.environ.get("FILM_WORKERS", "3")), max(1, len(jobs)))) as pl:
         for (bid, n), (_, stamp, sig) in zip(pl.imap(_plate, [j[0] for j in jobs]), jobs):
             open(stamp, "w").write(sig)
             print("plate %s: %d states" % (bid, n), flush=True)
@@ -113,21 +112,21 @@ def _overlay(b, chapter, t_frac, path):
     fig.patch.set_alpha(0.0)
     if b["kind"] != "card":
         tag = (chapter["act"] + "   ·   " if chapter["act"] else "") + chapter["title"]
-        ax.text(1872, 44, tag, fontsize=15.5, color="#ffffff", alpha=0.92, ha="right", va="center", family=P.FONT,
+        ax.text(1872, 44, tag, fontsize=18, color="#ffffff", alpha=0.92, ha="right", va="center", family=P.FONT,
                 bbox=dict(boxstyle="round,pad=0.5", fc="#0c121c", ec="none", alpha=0.62))
     if b["kind"] == "split" and b.get("labels"):
         k = len(b["panes"])
         cols = 2 if k in (2, 4) else k
         pw = (1920 - 12 * (cols + 1)) // cols
         for i, lab in enumerate(b["labels"][:cols]):
-            ax.text(12 + i * (pw + 12) + pw / 2, 112, lab, fontsize=20, color="#ffffff", ha="center", va="center", family=P.FONT, fontweight="bold")
+            ax.text(12 + i * (pw + 12) + pw / 2, 112, lab, fontsize=23, color="#ffffff", ha="center", va="center", family=P.FONT, fontweight="bold")
     if b.get("title") and b["kind"] in ("live", "clip", "still", "split"):
         from matplotlib.patches import Rectangle
         ax.add_patch(Rectangle((0, 938), 1920, 142, fc="#0c121c", ec="none", alpha=0.0))
         for i in range(24):   # soft gradient under the title
             ax.add_patch(Rectangle((0, 930 + i * 6.25), 1920, 6.4, fc="#060a10", ec="none", alpha=0.035 * i))
         ax.add_patch(Rectangle((72, 968), 7, 58, fc=P.AMB, ec="none"))
-        ax.text(98, 997, b["title"], fontsize=27, color="#ffffff", ha="left", va="center", family=P.FONT, fontweight="bold")
+        ax.text(98, 997, b["title"], fontsize=31, color="#ffffff", ha="left", va="center", family=P.FONT, fontweight="bold")
     from matplotlib.patches import Rectangle
     ax.add_patch(Rectangle((0, 1074), 1920, 6, fc="#ffffff", ec="none", alpha=0.16))
     ax.add_patch(Rectangle((0, 1074), 1920 * t_frac, 6, fc=P.AMB, ec="none", alpha=0.95))
@@ -143,32 +142,41 @@ def _keycap(key, path):
     x, y = 1920 - 96 - w, 846
     P.box(ax, x + 5, y + 7, w, 96, fc="#05080d", ec="none", alpha=0.6)
     P.box(ax, x, y, w, 96, fc="#f3f5f8", ec="#ffffff", lw=2)
-    ax.text(x + w / 2, y + 49, key, fontsize=31, color="#10161f", ha="center", va="center", family=P.FONT, fontweight="bold")
-    ax.text(x - 18, y + 49, "key", fontsize=17, color="#ffffff", ha="right", va="center", family=P.FONT, alpha=0.85)
+    ax.text(x + w / 2, y + 49, key, fontsize=34, color="#10161f", ha="center", va="center", family=P.FONT, fontweight="bold")
+    ax.text(x - 18, y + 49, "key", fontsize=20, color="#ffffff", ha="right", va="center", family=P.FONT, alpha=0.85)
     fig.savefig(path, transparent=True)
     P.plt.close(fig)
 
 
 def _card(b, path):
+    """Text cards: intro (the presenter), title, part (the opening of a part of the film), closing (the last word)."""
     import plates as P
     fig, ax = P.canvas()
-    kind = b.get("card", "decision")
-    if kind == "title":
-        P.txt(ax, 960, 330, b["heading"], size=120, weight="bold", ha="center")
-        P.line(ax, [760, 1160], [420, 420], color=P.AMB, lw=5)
+    kind = b.get("card", "part")
+    if kind == "intro":
+        P.txt(ax, 960, 360, b["heading"], size=104, weight="bold", ha="center")
+        P.line(ax, [700, 1220], [448, 448], color=P.AMB, lw=5)
         for i, ln in enumerate(b["lines"]):
-            P.txt(ax, 960, 480 + i * 62, ln, size=40 if i == 0 else 32, ha="center", color=P.FG if i == 0 else P.DIM)
-    elif kind == "act":
-        P.txt(ax, 150, 330, b["heading"], size=92, weight="bold", color=P.AMB)
+            last = i == len(b["lines"]) - 1
+            P.txt(ax, 960, 535 + i * 76, ln, size=44 if i == 0 else 37, ha="center", color=P.AMB if last else P.FG if i < 2 else P.DIM,
+                  style="italic" if last else "normal")
+    elif kind == "title":
+        P.txt(ax, 960, 390, b["heading"], size=128, weight="bold", ha="center")
+        P.line(ax, [760, 1160], [485, 485], color=P.AMB, lw=5)
         for i, ln in enumerate(b["lines"]):
-            P.txt(ax, 150, 500 + i * 84, ln, size=50)
+            P.txt(ax, 960, 565 + i * 70, ln, size=46 if i == 0 else 36, ha="center", color=P.FG if i == 0 else P.DIM)
+    elif kind == "closing":
+        ax.text(960, 420, b["heading"], fontsize=52, color=P.FG, ha="center", va="center", family=P.FONT, style="italic", linespacing=1.55)
+        P.line(ax, [860, 1060], [665, 665], color=P.AMB, lw=4)
+        for i, ln in enumerate(b["lines"]):
+            P.txt(ax, 960, 750 + i * 68, ln, size=44 if i == 0 else 34, ha="center", color=P.FG if i == 0 else P.DIM)
     else:
-        P.box(ax, 190, 240, 1540, 560, ec=P.AMB, lw=3)
-        P.txt(ax, 260, 330, b["heading"], size=58, weight="bold", color=P.AMB)
+        tag, _, head = b["heading"].partition("|")
+        P.txt(ax, 150, 400, tag.strip().upper(), size=38, weight="bold", color=P.AMB)
+        P.line(ax, [150, 330], [452, 452], color=P.AMB, lw=4)
+        P.txt(ax, 150, 550, head.strip(), size=96, weight="bold")
         for i, ln in enumerate(b["lines"]):
-            head, _, rest = ln.partition("   ")
-            P.txt(ax, 260, 450 + i * 100, head.strip(), size=34, color=P.DIM)
-            P.txt(ax, 520, 450 + i * 100, rest.strip(), size=40, weight="bold" if i == 1 else "normal")
+            P.txt(ax, 150, 700 + i * 76, ln, size=46, color=P.DIM)
     fig.savefig(path, facecolor=P.BG)
     P.plt.close(fig)
 
@@ -199,7 +207,7 @@ def _segment(job):
     srcs = [os.path.join(OUT, "takes", b["take"] + ".mp4")] if b["kind"] == "live" else [dsl.footage(b["src"])] if b["kind"] == "clip" else \
         [os.path.join(OUT, "plates", b["id"] + ".mp4")] if b["kind"] == "plate" else [dsl.footage(p[0]) for p in b.get("panes", []) if not p[0].startswith("anim:")]
     sig = hashlib.sha1(repr((sorted((k, repr(v)) for k, v in b.items() if k != "start"), chapter["title"], chapter["act"], round(t_frac, 4),
-                             [(p, os.path.getmtime(p)) for p in srcs if os.path.exists(p)], "v2")).encode()).hexdigest()   # bump "v2" when the look changes
+                             [(p, os.path.getmtime(p)) for p in srcs if os.path.exists(p)], "v3")).encode()).hexdigest()   # bump "v3" when the look changes
     if os.path.exists(out) and os.path.exists(out + ".sig") and open(out + ".sig").read() == sig:
         return b["id"]
     _overlay(b, chapter, t_frac, ov)
@@ -279,7 +287,8 @@ def step_picture():
     for ch in dsl.CHAPTERS:
         for b in ch["beats"]:
             jobs.append((b, ch, (b["start"] + b["dur"] / 2) / total))
-    with pool(10) as pl:
+    # few workers: ten 1080p encoders at once exhausted this machine's memory (16 GB) and restarted it
+    with pool(int(os.environ.get("FILM_WORKERS", "3"))) as pl:
         for i, bid in enumerate(pl.imap(_segment, jobs)):
             print("segment %d/%d %s" % (i + 1, len(jobs), bid), flush=True)
     lst = os.path.join(OUT, "seg", "list.txt")
@@ -415,28 +424,40 @@ def step_final():
     pic, mix = os.path.join(OUT, "picture.mp4"), os.path.join(OUT, "mix.wav")
     vid = os.path.join(ROOT, "report", "video")
     master = os.path.join(vid, "thermalsense_full_1080p.mp4")
+    import glob
     import sys
     if "--parts-only" not in sys.argv or not os.path.exists(master):     # --parts-only: keep the master, cut the parts again
+        first = master.replace(".mp4", "_v1.mp4")
+        if os.path.exists(master) and not os.path.exists(first):         # the first cut stays until the new one is accepted
+            os.replace(master, first)
         ff(["-i", pic, "-i", mix, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", master])
-        ff(["-ss", "6", "-i", master, "-frames:v", "1", master.replace(".mp4", "_poster.jpg")])
-    # copies for the repository: four parts at 1280 x 720, each under GitHub's 100 MB file limit
+        ff(["-ss", "24", "-i", master, "-frames:v", "1", master.replace(".mp4", "_poster.jpg")])
+    # copies for the repository at 1280 x 720, cut where a part of the film begins, each under GitHub's 100 MB file limit
     total = B.timing()
-    acts = {}
+    starts = []
     for ch in dsl.CHAPTERS:
-        if ch["beats"] and ch["act"] not in acts:
-            acts[ch["act"]] = ch["beats"][0]["start"]
-    cuts = [0.0, acts.get("Light", total / 4), acts.get("Control", total / 2), acts.get("Agents", 3 * total / 4), total]
+        if ch["beats"] and ch["act"] and (not starts or starts[-1][0] != ch["act"]):
+            starts.append((ch["act"], ch["beats"][0]["start"]))
+    n = max(4, int(math.ceil(total / 500.0)))                           # about eight minutes a part
+    cuts = [0.0]
+    for k in range(1, n):
+        want = total * k / n
+        best = min((t for _, t in starts if t > cuts[-1] + 120.0), key=lambda t: abs(t - want), default=want)
+        cuts.append(best if abs(best - want) < 150.0 else want)
+    cuts.append(total)
+    for old in glob.glob(os.path.join(vid, "thermalsense_full_part*.mp4")):
+        os.remove(old)
     log = os.path.join(OUT, "pass")
-    for k in range(4):
+    for k in range(n):
         a, e = cuts[k], cuts[k + 1]
         dst = os.path.join(vid, "thermalsense_full_part%d.mp4" % (k + 1))
         # the parts carry the master's audio unchanged: a second encode at 128 kb/s overshot the limiter by 2 dB on a low hit
-        vb = str(int(92.0 * 8e6 / (e - a) - 256000))
-        for n in ("1", "2"):
+        vb = str(int(min(92.0 * 8e6 / (e - a) - 256000, 1500000)))
+        for ps in ("1", "2"):
             ff(["-ss", "%.3f" % a, "-t", "%.3f" % (e - a), "-i", master, "-vf", "scale=1280:720", "-c:v", "libx264", "-preset", "medium", "-b:v", vb,
-                "-maxrate", str(int(int(vb) * 1.6)), "-bufsize", str(int(vb) * 3), "-pass", n, "-passlogfile", log] +
-               (["-an", "-f", "mp4", os.devnull] if n == "1" else ["-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", dst]))
+                "-maxrate", str(int(int(vb) * 1.6)), "-bufsize", str(int(vb) * 3), "-pass", ps, "-passlogfile", log] +
+               (["-an", "-f", "mp4", os.devnull] if ps == "1" else ["-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", dst]))
         print("part %d  %s - %s  %.0f MB" % (k + 1, B.clock(a), B.clock(e), os.path.getsize(dst) / 1e6), flush=True)
     print("wrote %s  %.1f s  %.0f MB" % (master, B.duration(master), os.path.getsize(master) / 1e6))
 

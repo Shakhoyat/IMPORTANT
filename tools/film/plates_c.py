@@ -103,7 +103,7 @@ def p_bench(c):
             y = y0 + i * 110
             txt(ax, x0 - 30, y + 32, name, size=30, ha="right", weight="bold")
             ax.add_patch(Rectangle((x0, y), ms * 60, 64, fc=AMB if "EPIC" in name else "#3f6fa0", ec="none", zorder=3))
-            txt(ax, x0 + max(ms, 17.6) * 60 + 18, y + 32, "%.1f ms   (%.0f frames a second)" % (ms, fps), size=26)
+            txt(ax, x0 + max(ms, 17.6) * 60 + 18, y + 32, "%.1f ms   (%.0f frames a second)" % (ms, fps), size=22)
     return reveal(c, [(0, bars)])
 
 
@@ -132,7 +132,7 @@ def p_sound(c):
 
     def rules(ax, now):
         txt(ax, 150, 1010, "delay = distance / 343 m/s      high tones fade with distance      echoes from the wall and the treeline", size=24, color=DIM)
-    return reveal(c, [(0, head("No sound files", "spectrograms of what the program's own synthesiser writes")), (c.t(1), spec(0)), (c.t(2), spec(1)),
+    return reveal(c, [(0, head("Sound synthesis", "spectrograms of what the program's own synthesiser writes")), (c.t(1), spec(0)), (c.t(2), spec(1)),
                       (c.t(3), rules), (c.t(5), spec(2))])
 
 
@@ -172,7 +172,7 @@ def p_walkspace(c):
         txt(ax, 1280, 356, "a door is a gate in this map", size=26, weight="bold", color=AMB)
         txt(ax, 1280, 430, "shut: a wall", size=26)
         txt(ax, 1280, 490, "open: a doorway", size=26)
-        txt(ax, 1280, 570, "it opens when a soldier is\nclose and facing it", size=24, color=DIM, va="top", linespacing=1.4)
+        txt(ax, 1280, 545, "it opens when a soldier is\nclose and facing it", size=22, color=DIM, va="top", linespacing=1.4)
     return reveal(c, [(0, head("The map under the soldiers' feet", "the command bunker, seen from above")), (c.t(0) + 3.0, floors), (c.t(0) + 6.0, walls), (c.t(1), door)])
 
 

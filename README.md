@@ -15,7 +15,7 @@ drones that decide together how to strike, intruders that plan routes and hide, 
 
 | To see | Open |
 | --- | --- |
-| **The film** (32:44, narrated, with chapters) | YouTube link: *to be added after the upload*; copies in this repository by part: [part 1](report/video/thermalsense_full_part1.mp4), [part 2](report/video/thermalsense_full_part2.mp4), [part 3](report/video/thermalsense_full_part3.mp4), [part 4](report/video/thermalsense_full_part4.mp4) |
+| **The film** (39:35, narrated, with chapters) | YouTube link: *to be added after the upload*; copies in this repository by part: [part 1](report/video/thermalsense_full_part1.mp4), [part 2](report/video/thermalsense_full_part2.mp4), [part 3](report/video/thermalsense_full_part3.mp4), [part 4](report/video/thermalsense_full_part4.mp4), [part 5](report/video/thermalsense_full_part5.mp4) |
 | The film's narration and shot list | [`docs/FILM_SCRIPT.md`](docs/FILM_SCRIPT.md); subtitles [`docs/FILM_SUBTITLES.srt`](docs/FILM_SUBTITLES.srt); chapter list [`docs/FILM_CHAPTERS.txt`](docs/FILM_CHAPTERS.txt) |
 | **The report** (186 pages) | [`report/main.pdf`](report/main.pdf) |
 | **The workbook** (23 sheets; the register of every number and coordinate) | [`report/workbooks/cg_workbook.xlsx`](report/workbooks/cg_workbook.xlsx) |
@@ -26,41 +26,44 @@ drones that decide together how to strike, intruders that plan routes and hide, 
 
 ## The film, chapter by chapter
 
-Every chapter first draws the idea one step at a time, then shows the same thing in the running program, and ends with what was
-compared and what was chosen.
+The film goes through every topic of the graphics laboratory first, then the techniques beyond it and the algorithms of the
+outpost. Each chapter draws the idea one step at a time and then shows the same thing in the running program.
 
 | Time | Part | Chapter |
 | --- | --- | --- |
 | 0:00 |  | ThermalSense |
-| 0:51 | Orientation | What the program is |
-| 2:07 | Geometry | From a triangle to sixteen primitives |
-| 4:36 | Geometry | Transformations and the scene graph |
-| 5:58 | Viewing | Camera and projection |
-| 7:26 | Viewing | Clipping and hidden surfaces |
-| 8:34 | Viewing | Rasterisation and anti-aliasing |
-| 9:47 | Light | Illumination |
-| 11:04 | Light | Shading: flat, Gouraud, Phong |
-| 11:53 | Light | Texture, shadows, and the camera as an eye |
-| 13:06 | Light | Reflection and ray tracing |
-| 14:18 | World | Day, night and weather |
-| 15:29 | World | Vegetation, scale and speed |
-| 16:17 | World | Sound made by code |
-| 16:43 | Control | Buildings you can walk into |
-| 17:38 | Control | Take control of anything |
-| 19:06 | Control | Jump into anything that moves |
-| 20:29 | Control | The garrison's day |
-| 21:49 | Vision | The thermal camera |
-| 22:43 | Vision | From a heat picture to a target |
-| 23:37 | Vision | Tracking |
-| 24:44 | Agents | The drones |
-| 25:25 | Agents | One drone, or both? |
-| 26:58 | Agents | The intruder: choosing a route |
-| 28:01 | Agents | The intruder: following the line |
-| 28:42 | Agents | The intruder: hearing a drone and hiding |
-| 29:40 | Agents | The game, and the blast |
-| 30:34 | Engineering | Hard problems |
-| 31:05 | Engineering | Proof |
-| 31:41 |  | One night, uncut |
+| 1:14 | Orientation | The outpost |
+| 2:39 | Geometry | Primitives: from a triangle to sixteen shapes |
+| 4:55 | Geometry | Transformations and the scene graph |
+| 6:17 | Viewing | Viewing and projection |
+| 7:40 | Viewing | Clipping and hidden surfaces |
+| 9:13 | Viewing | Rasterisation and colour interpolation |
+| 10:46 | Light | Illumination |
+| 12:19 | Light | Shading: flat, Gouraud, Phong |
+| 12:58 | Light | Texture mapping |
+| 13:32 | Light | Ray tracing |
+| 14:41 | Rendering | Materials that behave like the real thing |
+| 15:28 | Rendering | Shadows and ambient occlusion |
+| 16:07 | Rendering | The camera as an eye |
+| 17:34 | Rendering | Scale and speed |
+| 18:34 | World | Day, night and weather |
+| 19:37 | World | Sound synthesis |
+| 20:07 | Control | Buildings you can walk into |
+| 21:15 | Control | Take control of anything |
+| 23:16 | Control | Jump into anything that moves |
+| 24:50 | Control | The garrison's day |
+| 26:38 | Vision | The thermal camera |
+| 27:59 | Vision | From a heat picture to a target |
+| 29:32 | Vision | Tracking |
+| 30:57 | Agents | The drones |
+| 31:41 | Agents | One drone, or both? |
+| 33:23 | Agents | The intruder: choosing a route |
+| 34:33 | Agents | The intruder: following the line |
+| 35:27 | Agents | The intruder: hearing a drone and hiding |
+| 36:14 | Agents | The game, and the blast |
+| 37:34 | Engineering | Hard problems |
+| 38:03 | Engineering | How it is checked |
+| 38:38 |  | One night at the outpost |
 
 <table><tr>
 <td width="50%"><img src="docs/img/film_open_world.jpg" alt="An open world: the camera is free"><br><sub>An open world: the camera is free</sub></td>
@@ -304,15 +307,16 @@ python3 tools/v10/gen_numbers.py report/data/scene_export_v10.json
 python3 tools/v10/build_cg_workbook.py --export report/data/scene_export_v10.json    # with uv: --with openpyxl --with matplotlib --with numpy
 python3 tools/report/gen_designs.py && python3 tools/report/abbrev_pages.py          # Section 7; short forms per page; builds the PDF
 # film (narration -> takes on the GPU -> plates -> picture -> sound -> master)
-U="uv run -q --python 3.12 --with kokoro-onnx --with soundfile --with numpy --with scipy --with pillow --with matplotlib --with openpyxl python tools/film/build.py"
+U="uv run -q --python 3.12 --with edge-tts --with soundfile --with numpy --with scipy --with pillow --with matplotlib --with openpyxl python tools/film/build.py"
 $U voice && $U takes && $U events && $U plates && $U plan && $U picture && $U sound && $U final
 python3 tools/film/figures.py && python3 tools/report/gen_readme.py                  # pictures and text of this page
 ```
 
-`tools/film/build.py takes` records the 26 takes made for this film. Thirteen more recordings are reused from the short film and are
+`tools/film/build.py takes` records the 33 takes made for this film. Thirteen more recordings are reused from the short film and are
 not re-recorded by it: six soldier tours (tank, bunker, generator room, barracks hall, anti-aircraft gun, missile launcher; their
 scripts are in `tools/film/tours`, played with `TS_TOUR`), three views of the camp on alert, two views of the night, and the drones'
 take-off and landing (camera glides with `TS_FILM_CAM`). A rebuild from a clean clone needs those files in `build/film3` and `build/film2`.
 
-The narration is a synthetic voice (Kokoro, run locally); `tools/film/build.py sound --voice-track FILE` uses a recorded voice instead.
-The score is written in code (`tools/film/score.py`). Every sound of the program is synthesised (`src/audio`).
+The narration is a synthetic voice (Microsoft's Andrew, through `edge-tts`; `--engine kokoro` uses a local model instead);
+`tools/film/build.py sound --voice-track FILE` uses a recorded voice. The score is written in `tools/film/score.py`, and every sound
+of the program is synthesised (`src/audio`).

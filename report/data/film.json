@@ -1,9 +1,19 @@
 {
-"length": 1964.33,
+"length": 2375.83,
+"takes": 33,
 "beats": [
 {
 "start": 0.0,
-"length": 5.83,
+"length": 18.17,
+"act": "",
+"chapter": "ThermalSense",
+"kind": "card",
+"source": "Hi, this is Shakhoyat",
+"title": ""
+},
+{
+"start": 18.17,
+"length": 7.9,
 "act": "",
 "chapter": "ThermalSense",
 "kind": "clip",
@@ -11,8 +21,8 @@
 "title": ""
 },
 {
-"start": 5.83,
-"length": 6.57,
+"start": 26.07,
+"length": 7.3,
 "act": "",
 "chapter": "ThermalSense",
 "kind": "clip",
@@ -20,8 +30,8 @@
 "title": ""
 },
 {
-"start": 12.4,
-"length": 5.0,
+"start": 33.37,
+"length": 6.47,
 "act": "",
 "chapter": "ThermalSense",
 "kind": "clip",
@@ -29,8 +39,8 @@
 "title": ""
 },
 {
-"start": 17.4,
-"length": 22.37,
+"start": 39.83,
+"length": 14.0,
 "act": "",
 "chapter": "ThermalSense",
 "kind": "card",
@@ -38,152 +48,134 @@
 "title": ""
 },
 {
-"start": 39.77,
-"length": 11.8,
+"start": 53.83,
+"length": 20.3,
 "act": "",
 "chapter": "ThermalSense",
-"kind": "card",
-"source": "How this film works",
-"title": ""
+"kind": "plate",
+"source": "workbook",
+"title": "The workbook behind the project"
 },
 {
-"start": 51.57,
-"length": 20.67,
+"start": 74.13,
+"length": 19.83,
 "act": "Orientation",
-"chapter": "What the program is",
+"chapter": "The outpost",
 "kind": "plate",
 "source": "map",
 "title": "The outpost, from above"
 },
 {
-"start": 72.23,
-"length": 14.97,
+"start": 93.97,
+"length": 13.03,
 "act": "Orientation",
-"chapter": "What the program is",
+"chapter": "The outpost",
 "kind": "live",
 "source": "tour0",
 "title": "An open world: fly anywhere"
 },
 {
-"start": 87.2,
+"start": 107.0,
 "length": 7.1,
 "act": "Orientation",
-"chapter": "What the program is",
+"chapter": "The outpost",
 "kind": "live",
 "source": "tour0",
 "title": "An open world: fly anywhere"
 },
 {
-"start": 94.3,
-"length": 12.97,
+"start": 114.1,
+"length": 12.6,
 "act": "Orientation",
-"chapter": "What the program is",
+"chapter": "The outpost",
 "kind": "live",
 "source": "tour0",
 "title": "Menu and help"
 },
 {
-"start": 107.27,
-"length": 19.93,
+"start": 126.7,
+"length": 32.57,
 "act": "Orientation",
-"chapter": "What the program is",
+"chapter": "The outpost",
 "kind": "plate",
 "source": "roadmap",
-"title": "The road through the film"
+"title": "The plan of the video"
 },
 {
-"start": 127.2,
-"length": 9.3,
+"start": 159.27,
+"length": 7.37,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "card",
-"source": "1  Geometry",
+"source": "Part 1 | The graphics lab",
 "title": ""
 },
 {
-"start": 136.5,
-"length": 21.03,
+"start": 166.63,
+"length": 28.2,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "plate",
 "source": "triangle",
 "title": "Vertices, indices, triangles"
 },
 {
-"start": 157.53,
-"length": 23.0,
+"start": 194.83,
+"length": 25.03,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "plate",
 "source": "sphere",
 "title": "Tessellation: how round is round enough"
 },
 {
-"start": 180.53,
-"length": 22.53,
+"start": 219.87,
+"length": 30.27,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "plate",
 "source": "primgrid",
 "title": "The sixteen primitives"
 },
 {
-"start": 203.07,
-"length": 17.33,
+"start": 250.13,
+"length": 17.0,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "live",
 "source": "prims",
 "title": "F: which primitive made each part"
 },
 {
-"start": 220.4,
+"start": 267.13,
 "length": 7.0,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "live",
 "source": "prims",
 "title": "G: explode into parts"
 },
 {
-"start": 227.4,
+"start": 274.13,
 "length": 8.0,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "live",
 "source": "prims",
 "title": "X: wireframe"
 },
 {
-"start": 235.4,
-"length": 13.73,
+"start": 282.13,
+"length": 13.7,
 "act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
+"chapter": "Primitives: from a triangle to sixteen shapes",
 "kind": "still",
 "source": "pictures",
 "title": "A drone, part by part"
 },
 {
-"start": 249.13,
-"length": 7.67,
-"act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
-"kind": "still",
-"source": "pictures",
-"title": "A tank, part by part"
-},
-{
-"start": 256.8,
-"length": 19.8,
-"act": "Geometry",
-"chapter": "From a triangle to sixteen primitives",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 276.6,
-"length": 21.67,
+"start": 295.83,
+"length": 27.33,
 "act": "Geometry",
 "chapter": "Transformations and the scene graph",
 "kind": "plate",
@@ -191,8 +183,8 @@
 "title": "M = T R S, and why the order matters"
 },
 {
-"start": 298.27,
-"length": 19.67,
+"start": 323.17,
+"length": 21.67,
 "act": "Geometry",
 "chapter": "Transformations and the scene graph",
 "kind": "plate",
@@ -200,8 +192,8 @@
 "title": "The scene graph: parent times child"
 },
 {
-"start": 317.93,
-"length": 11.97,
+"start": 344.83,
+"length": 11.57,
 "act": "Geometry",
 "chapter": "Transformations and the scene graph",
 "kind": "live",
@@ -209,8 +201,8 @@
 "title": "H: the axes of the nodes"
 },
 {
-"start": 329.9,
-"length": 6.5,
+"start": 356.4,
+"length": 7.77,
 "act": "Geometry",
 "chapter": "Transformations and the scene graph",
 "kind": "live",
@@ -218,8 +210,8 @@
 "title": "A hierarchy in motion"
 },
 {
-"start": 336.4,
-"length": 10.37,
+"start": 364.17,
+"length": 13.13,
 "act": "Geometry",
 "chapter": "Transformations and the scene graph",
 "kind": "live",
@@ -227,71 +219,44 @@
 "title": "A soldier: 75 parts, 7 levels"
 },
 {
-"start": 346.77,
-"length": 11.3,
-"act": "Geometry",
-"chapter": "Transformations and the scene graph",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 358.07,
-"length": 10.0,
+"start": 377.3,
+"length": 26.03,
 "act": "Viewing",
-"chapter": "Camera and projection",
-"kind": "card",
-"source": "2  Viewing",
-"title": ""
-},
-{
-"start": 368.07,
-"length": 19.33,
-"act": "Viewing",
-"chapter": "Camera and projection",
+"chapter": "Viewing and projection",
 "kind": "plate",
 "source": "lookat",
 "title": "The view matrix"
 },
 {
-"start": 387.4,
-"length": 23.2,
+"start": 403.33,
+"length": 25.13,
 "act": "Viewing",
-"chapter": "Camera and projection",
+"chapter": "Viewing and projection",
 "kind": "plate",
 "source": "project",
 "title": "Perspective: divide by the distance"
 },
 {
-"start": 410.6,
-"length": 7.6,
+"start": 428.47,
+"length": 9.67,
 "act": "Viewing",
-"chapter": "Camera and projection",
+"chapter": "Viewing and projection",
 "kind": "live",
 "source": "proj",
 "title": "Ctrl+P: the projection"
 },
 {
-"start": 418.2,
-"length": 15.0,
+"start": 438.13,
+"length": 21.93,
 "act": "Viewing",
-"chapter": "Camera and projection",
+"chapter": "Viewing and projection",
 "kind": "live",
 "source": "proj",
 "title": "Ctrl+P: the projection"
 },
 {
-"start": 433.2,
-"length": 13.57,
-"act": "Viewing",
-"chapter": "Camera and projection",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 446.77,
-"length": 21.2,
+"start": 460.07,
+"length": 33.53,
 "act": "Viewing",
 "chapter": "Clipping and hidden surfaces",
 "kind": "plate",
@@ -299,8 +264,17 @@
 "title": "Clipping a line to the window"
 },
 {
-"start": 467.97,
-"length": 14.67,
+"start": 493.6,
+"length": 23.93,
+"act": "Viewing",
+"chapter": "Clipping and hidden surfaces",
+"kind": "plate",
+"source": "polyclip",
+"title": "Clipping a polygon, culling an object"
+},
+{
+"start": 517.53,
+"length": 16.97,
 "act": "Viewing",
 "chapter": "Clipping and hidden surfaces",
 "kind": "plate",
@@ -308,8 +282,8 @@
 "title": "The depth buffer"
 },
 {
-"start": 482.63,
-"length": 11.13,
+"start": 534.5,
+"length": 11.73,
 "act": "Viewing",
 "chapter": "Clipping and hidden surfaces",
 "kind": "live",
@@ -317,8 +291,8 @@
 "title": "Z: the depth test"
 },
 {
-"start": 493.77,
-"length": 6.5,
+"start": 546.23,
+"length": 7.6,
 "act": "Viewing",
 "chapter": "Clipping and hidden surfaces",
 "kind": "live",
@@ -326,80 +300,62 @@
 "title": "F: the depth buffer"
 },
 {
-"start": 500.27,
-"length": 13.8,
+"start": 553.83,
+"length": 23.97,
 "act": "Viewing",
-"chapter": "Clipping and hidden surfaces",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 514.07,
-"length": 18.93,
-"act": "Viewing",
-"chapter": "Rasterisation and anti-aliasing",
+"chapter": "Rasterisation and colour interpolation",
 "kind": "plate",
 "source": "raster",
 "title": "Edge functions fill a triangle"
 },
 {
-"start": 533.0,
-"length": 12.47,
+"start": 577.8,
+"length": 19.53,
 "act": "Viewing",
-"chapter": "Rasterisation and anti-aliasing",
+"chapter": "Rasterisation and colour interpolation",
+"kind": "still",
+"source": "pictures",
+"title": "Colour interpolation, with the correction for perspective"
+},
+{
+"start": 597.33,
+"length": 13.57,
+"act": "Viewing",
+"chapter": "Rasterisation and colour interpolation",
 "kind": "live",
 "source": "explorer",
 "title": "Frame Explorer: one frame in 16 stages"
 },
 {
-"start": 545.47,
-"length": 7.5,
+"start": 610.9,
+"length": 8.0,
 "act": "Viewing",
-"chapter": "Rasterisation and anti-aliasing",
+"chapter": "Rasterisation and colour interpolation",
 "kind": "live",
 "source": "explorer",
 "title": "Frame Explorer: rasterisation"
 },
 {
-"start": 552.97,
-"length": 13.0,
+"start": 618.9,
+"length": 17.0,
 "act": "Viewing",
-"chapter": "Rasterisation and anti-aliasing",
+"chapter": "Rasterisation and colour interpolation",
 "kind": "live",
 "source": "explorer",
 "title": "Frame Explorer: depth, shadow, fog, tone curve"
 },
 {
-"start": 565.97,
-"length": 8.5,
+"start": 635.9,
+"length": 10.43,
 "act": "Viewing",
-"chapter": "Rasterisation and anti-aliasing",
+"chapter": "Rasterisation and colour interpolation",
 "kind": "still",
 "source": "pictures",
 "title": "Frame Explorer: image laboratory"
 },
 {
-"start": 574.47,
-"length": 12.97,
-"act": "Viewing",
-"chapter": "Rasterisation and anti-aliasing",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 587.43,
-"length": 8.17,
-"act": "Light",
-"chapter": "Illumination",
-"kind": "card",
-"source": "3  Light",
-"title": ""
-},
-{
-"start": 595.6,
-"length": 19.97,
+"start": 646.33,
+"length": 38.4,
 "act": "Light",
 "chapter": "Illumination",
 "kind": "plate",
@@ -407,17 +363,17 @@
 "title": "Ambient + diffuse + specular"
 },
 {
-"start": 615.57,
-"length": 18.0,
+"start": 684.73,
+"length": 18.07,
 "act": "Light",
 "chapter": "Illumination",
 "kind": "plate",
 "source": "tsmath",
-"title": "The vector mathematics is written out"
+"title": "The vector mathematics, written by hand"
 },
 {
-"start": 633.57,
-"length": 6.0,
+"start": 702.8,
+"length": 6.43,
 "act": "Light",
 "chapter": "Illumination",
 "kind": "live",
@@ -425,7 +381,7 @@
 "title": "Ctrl+L: one term at a time"
 },
 {
-"start": 639.57,
+"start": 709.23,
 "length": 10.0,
 "act": "Light",
 "chapter": "Illumination",
@@ -434,8 +390,8 @@
 "title": "Ctrl+L: one term at a time"
 },
 {
-"start": 649.57,
-"length": 15.0,
+"start": 719.23,
+"length": 19.97,
 "act": "Light",
 "chapter": "Illumination",
 "kind": "live",
@@ -443,8 +399,8 @@
 "title": "Keys 1 to 4: the lights"
 },
 {
-"start": 664.57,
-"length": 16.77,
+"start": 739.2,
+"length": 22.33,
 "act": "Light",
 "chapter": "Shading: flat, Gouraud, Phong",
 "kind": "still",
@@ -452,8 +408,8 @@
 "title": "Flat, Gouraud, Phong"
 },
 {
-"start": 681.33,
-"length": 10.0,
+"start": 761.53,
+"length": 16.47,
 "act": "Light",
 "chapter": "Shading: flat, Gouraud, Phong",
 "kind": "live",
@@ -461,125 +417,170 @@
 "title": "O: the shading model"
 },
 {
-"start": 691.33,
-"length": 8.0,
+"start": 778.0,
+"length": 24.67,
 "act": "Light",
-"chapter": "Shading: flat, Gouraud, Phong",
-"kind": "live",
-"source": "shade",
-"title": "B: Blinn-Phong or microfacet"
+"chapter": "Texture mapping",
+"kind": "plate",
+"source": "texture",
+"title": "Procedural texture: layers of noise"
 },
 {
-"start": 699.33,
-"length": 13.97,
+"start": 802.67,
+"length": 10.03,
 "act": "Light",
-"chapter": "Shading: flat, Gouraud, Phong",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 713.3,
-"length": 11.67,
-"act": "Light",
-"chapter": "Texture, shadows, and the camera as an eye",
+"chapter": "Texture mapping",
 "kind": "still",
 "source": "pictures",
 "title": "Relief without more triangles"
 },
 {
-"start": 724.97,
-"length": 20.13,
+"start": 812.7,
+"length": 35.73,
 "act": "Light",
-"chapter": "Texture, shadows, and the camera as an eye",
-"kind": "plate",
-"source": "shadowmap",
-"title": "Shadow maps"
-},
-{
-"start": 745.1,
-"length": 10.0,
-"act": "Light",
-"chapter": "Texture, shadows, and the camera as an eye",
-"kind": "live",
-"source": "shadows",
-"title": "Shadows and ambient occlusion"
-},
-{
-"start": 755.1,
-"length": 19.17,
-"act": "Light",
-"chapter": "Texture, shadows, and the camera as an eye",
-"kind": "plate",
-"source": "tonemap",
-"title": "From light to a pixel value"
-},
-{
-"start": 774.27,
-"length": 12.0,
-"act": "Light",
-"chapter": "Texture, shadows, and the camera as an eye",
-"kind": "live",
-"source": "shadows",
-"title": "Fog, bloom, and the first renderer"
-},
-{
-"start": 786.27,
-"length": 26.0,
-"act": "Light",
-"chapter": "Reflection and ray tracing",
+"chapter": "Ray tracing",
 "kind": "plate",
 "source": "rays",
 "title": "Tracing a ray"
 },
 {
-"start": 812.27,
-"length": 5.9,
+"start": 848.43,
+"length": 6.4,
 "act": "Light",
-"chapter": "Reflection and ray tracing",
+"chapter": "Ray tracing",
 "kind": "live",
 "source": "rt",
 "title": "; the render mode"
 },
 {
-"start": 818.17,
-"length": 17.0,
+"start": 854.83,
+"length": 17.3,
 "act": "Light",
-"chapter": "Reflection and ray tracing",
+"chapter": "Ray tracing",
 "kind": "live",
 "source": "rt",
 "title": "; the render mode"
 },
 {
-"start": 835.17,
+"start": 872.13,
 "length": 9.0,
 "act": "Light",
-"chapter": "Reflection and ray tracing",
+"chapter": "Ray tracing",
 "kind": "live",
 "source": "rt",
 "title": "' the ray debugger"
 },
 {
-"start": 844.17,
-"length": 13.87,
-"act": "Light",
-"chapter": "Reflection and ray tracing",
+"start": 881.13,
+"length": 11.6,
+"act": "Rendering",
+"chapter": "Materials that behave like the real thing",
 "kind": "card",
-"source": "Decision",
+"source": "Part 2 | Beyond the lab",
 "title": ""
 },
 {
-"start": 858.03,
-"length": 10.63,
-"act": "World",
-"chapter": "Day, night and weather",
-"kind": "card",
-"source": "4  World",
-"title": ""
+"start": 892.73,
+"length": 23.8,
+"act": "Rendering",
+"chapter": "Materials that behave like the real thing",
+"kind": "still",
+"source": "pictures",
+"title": "From Blinn-Phong to a microfacet model"
 },
 {
-"start": 868.67,
-"length": 21.57,
+"start": 916.53,
+"length": 11.83,
+"act": "Rendering",
+"chapter": "Materials that behave like the real thing",
+"kind": "live",
+"source": "pbr",
+"title": "B: Blinn-Phong or microfacet"
+},
+{
+"start": 928.37,
+"length": 27.6,
+"act": "Rendering",
+"chapter": "Shadows and ambient occlusion",
+"kind": "plate",
+"source": "shadowmap",
+"title": "Shadow maps with soft edges"
+},
+{
+"start": 955.97,
+"length": 11.63,
+"act": "Rendering",
+"chapter": "Shadows and ambient occlusion",
+"kind": "live",
+"source": "shadows",
+"title": "Shadows and ambient occlusion"
+},
+{
+"start": 967.6,
+"length": 18.47,
+"act": "Rendering",
+"chapter": "The camera as an eye",
+"kind": "plate",
+"source": "tonemap",
+"title": "From light to a pixel value"
+},
+{
+"start": 986.07,
+"length": 15.87,
+"act": "Rendering",
+"chapter": "The camera as an eye",
+"kind": "live",
+"source": "air",
+"title": "Fog, bloom, and the first renderer"
+},
+{
+"start": 1001.93,
+"length": 29.9,
+"act": "Rendering",
+"chapter": "The camera as an eye",
+"kind": "plate",
+"source": "taa",
+"title": "Temporal anti-aliasing"
+},
+{
+"start": 1031.83,
+"length": 22.73,
+"act": "Rendering",
+"chapter": "The camera as an eye",
+"kind": "still",
+"source": "pictures",
+"title": "Screen-space reflections against traced ones"
+},
+{
+"start": 1054.57,
+"length": 36.93,
+"act": "Rendering",
+"chapter": "Scale and speed",
+"kind": "plate",
+"source": "instancing",
+"title": "One blade, drawn 450,000 times"
+},
+{
+"start": 1091.5,
+"length": 15.93,
+"act": "Rendering",
+"chapter": "Scale and speed",
+"kind": "live",
+"source": "veg",
+"title": "F5: quality LOW, HIGH, ULTRA, EPIC"
+},
+{
+"start": 1107.43,
+"length": 7.33,
+"act": "Rendering",
+"chapter": "Scale and speed",
+"kind": "plate",
+"source": "bench",
+"title": "Frame time per preset"
+},
+{
+"start": 1114.77,
+"length": 28.87,
 "act": "World",
 "chapter": "Day, night and weather",
 "kind": "plate",
@@ -587,17 +588,17 @@
 "title": "One clock drives the light"
 },
 {
-"start": 890.23,
-"length": 25.0,
+"start": 1143.63,
+"length": 21.0,
 "act": "World",
 "chapter": "Day, night and weather",
 "kind": "live",
 "source": "daylapse",
-"title": "A day in 25 seconds"
+"title": "A day in 20 seconds"
 },
 {
-"start": 915.23,
-"length": 14.0,
+"start": 1164.63,
+"length": 13.0,
 "act": "World",
 "chapter": "Day, night and weather",
 "kind": "live",
@@ -605,53 +606,26 @@
 "title": "R: rain   J: fireflies"
 },
 {
-"start": 929.23,
-"length": 27.47,
+"start": 1177.63,
+"length": 30.23,
 "act": "World",
-"chapter": "Vegetation, scale and speed",
-"kind": "plate",
-"source": "instancing",
-"title": "One blade, drawn 450,000 times"
-},
-{
-"start": 956.7,
-"length": 14.0,
-"act": "World",
-"chapter": "Vegetation, scale and speed",
-"kind": "live",
-"source": "veg",
-"title": "F5: quality LOW, HIGH, ULTRA, EPIC"
-},
-{
-"start": 970.7,
-"length": 7.0,
-"act": "World",
-"chapter": "Vegetation, scale and speed",
-"kind": "plate",
-"source": "bench",
-"title": "Frame time per preset"
-},
-{
-"start": 977.7,
-"length": 25.93,
-"act": "World",
-"chapter": "Sound made by code",
+"chapter": "Sound synthesis",
 "kind": "plate",
 "source": "sound",
-"title": "Every sound is computed"
+"title": "Sound synthesis"
 },
 {
-"start": 1003.63,
-"length": 8.43,
+"start": 1207.87,
+"length": 8.77,
 "act": "Control",
 "chapter": "Buildings you can walk into",
 "kind": "card",
-"source": "5  Control",
+"source": "Part 3 | Take control",
 "title": ""
 },
 {
-"start": 1012.07,
-"length": 16.17,
+"start": 1216.63,
+"length": 16.0,
 "act": "Control",
 "chapter": "Buildings you can walk into",
 "kind": "plate",
@@ -659,17 +633,17 @@
 "title": "The walk space"
 },
 {
-"start": 1028.23,
-"length": 7.03,
+"start": 1232.63,
+"length": 7.0,
 "act": "Control",
 "chapter": "Buildings you can walk into",
 "kind": "clip",
 "source": "f3:f_bunker",
-"title": "A soldier under your control"
+"title": "A soldier under my control"
 },
 {
-"start": 1035.27,
-"length": 7.0,
+"start": 1239.63,
+"length": 6.5,
 "act": "Control",
 "chapter": "Buildings you can walk into",
 "kind": "clip",
@@ -677,8 +651,8 @@
 "title": "Tunnel and command room"
 },
 {
-"start": 1042.27,
-"length": 6.0,
+"start": 1246.13,
+"length": 6.23,
 "act": "Control",
 "chapter": "Buildings you can walk into",
 "kind": "clip",
@@ -686,8 +660,8 @@
 "title": "E: open a door"
 },
 {
-"start": 1048.27,
-"length": 10.5,
+"start": 1252.37,
+"length": 7.5,
 "act": "Control",
 "chapter": "Buildings you can walk into",
 "kind": "clip",
@@ -695,8 +669,17 @@
 "title": "The barracks hall"
 },
 {
-"start": 1058.77,
-"length": 17.67,
+"start": 1259.87,
+"length": 15.77,
+"act": "Control",
+"chapter": "Buildings you can walk into",
+"kind": "clip",
+"source": "walk",
+"title": "W A S D: walk   Shift: sprint   V: first or third person"
+},
+{
+"start": 1275.63,
+"length": 22.2,
 "act": "Control",
 "chapter": "Take control of anything",
 "kind": "plate",
@@ -704,7 +687,7 @@
 "title": "Select, control, sight, release"
 },
 {
-"start": 1076.43,
+"start": 1297.83,
 "length": 5.5,
 "act": "Control",
 "chapter": "Take control of anything",
@@ -713,8 +696,8 @@
 "title": "The tank"
 },
 {
-"start": 1081.93,
-"length": 10.0,
+"start": 1303.33,
+"length": 8.5,
 "act": "Control",
 "chapter": "Take control of anything",
 "kind": "clip",
@@ -722,8 +705,8 @@
 "title": "Drive: W A S D   aim: arrows"
 },
 {
-"start": 1091.93,
-"length": 8.2,
+"start": 1311.83,
+"length": 7.4,
 "act": "Control",
 "chapter": "Take control of anything",
 "kind": "clip",
@@ -731,8 +714,8 @@
 "title": "V: gunner's sight   Enter: fire"
 },
 {
-"start": 1100.13,
-"length": 5.0,
+"start": 1319.23,
+"length": 5.13,
 "act": "Control",
 "chapter": "Take control of anything",
 "kind": "clip",
@@ -740,7 +723,7 @@
 "title": "Anti-aircraft gun"
 },
 {
-"start": 1105.13,
+"start": 1324.37,
 "length": 4.4,
 "act": "Control",
 "chapter": "Take control of anything",
@@ -749,8 +732,35 @@
 "title": "Missile launcher"
 },
 {
-"start": 1109.53,
-"length": 20.0,
+"start": 1328.77,
+"length": 9.17,
+"act": "Control",
+"chapter": "Take control of anything",
+"kind": "live",
+"source": "operate",
+"title": "8: the radar"
+},
+{
+"start": 1337.93,
+"length": 7.0,
+"act": "Control",
+"chapter": "Take control of anything",
+"kind": "live",
+"source": "operate",
+"title": "The gate barrier"
+},
+{
+"start": 1344.93,
+"length": 7.5,
+"act": "Control",
+"chapter": "Take control of anything",
+"kind": "live",
+"source": "operate",
+"title": "9: the blast doors"
+},
+{
+"start": 1352.43,
+"length": 17.5,
 "act": "Control",
 "chapter": "Take control of anything",
 "kind": "live",
@@ -758,7 +768,7 @@
 "title": "The helicopter"
 },
 {
-"start": 1129.53,
+"start": 1369.93,
 "length": 17.0,
 "act": "Control",
 "chapter": "Take control of anything",
@@ -767,8 +777,17 @@
 "title": "A drone: chase, nose camera, thermal camera"
 },
 {
-"start": 1146.53,
-"length": 16.87,
+"start": 1386.93,
+"length": 10.0,
+"act": "Control",
+"chapter": "Take control of anything",
+"kind": "live",
+"source": "rovdrive",
+"title": "Driving an intruder"
+},
+{
+"start": 1396.93,
+"length": 24.53,
 "act": "Control",
 "chapter": "Jump into anything that moves",
 "kind": "plate",
@@ -776,7 +795,7 @@
 "title": "A click becomes a ray"
 },
 {
-"start": 1163.4,
+"start": 1421.47,
 "length": 7.0,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -785,7 +804,7 @@
 "title": "Click a soldier"
 },
 {
-"start": 1170.4,
+"start": 1428.47,
 "length": 7.5,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -794,7 +813,7 @@
 "title": "Through his eyes"
 },
 {
-"start": 1177.9,
+"start": 1435.97,
 "length": 6.0,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -803,7 +822,7 @@
 "title": "V: third person"
 },
 {
-"start": 1183.9,
+"start": 1441.97,
 "length": 8.0,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -812,8 +831,8 @@
 "title": "F4: the list of points of view"
 },
 {
-"start": 1191.9,
-"length": 10.0,
+"start": 1449.97,
+"length": 10.67,
 "act": "Control",
 "chapter": "Jump into anything that moves",
 "kind": "live",
@@ -821,16 +840,16 @@
 "title": "Insert / Delete, or the Travel menu: any point of view"
 },
 {
-"start": 1201.9,
-"length": 8.6,
+"start": 1460.63,
+"length": 10.77,
 "act": "Control",
 "chapter": "Jump into anything that moves",
 "kind": "clip",
 "source": "v7a",
-"title": "F4 at night"
+"title": "K: the cinematic director"
 },
 {
-"start": 1210.5,
+"start": 1471.4,
 "length": 6.8,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -839,7 +858,7 @@
 "title": "Riding a round"
 },
 {
-"start": 1217.3,
+"start": 1478.2,
 "length": 5.8,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -848,7 +867,7 @@
 "title": "Into an intruder"
 },
 {
-"start": 1223.1,
+"start": 1484.0,
 "length": 6.4,
 "act": "Control",
 "chapter": "Jump into anything that moves",
@@ -857,8 +876,8 @@
 "title": "A sentry, first person"
 },
 {
-"start": 1229.5,
-"length": 19.23,
+"start": 1490.4,
+"length": 25.5,
 "act": "Control",
 "chapter": "The garrison's day",
 "kind": "plate",
@@ -866,8 +885,8 @@
 "title": "A soldier finds his way"
 },
 {
-"start": 1248.73,
-"length": 14.27,
+"start": 1515.9,
+"length": 22.73,
 "act": "Control",
 "chapter": "The garrison's day",
 "kind": "plate",
@@ -875,7 +894,7 @@
 "title": "Walking: the foot decides, the knee follows"
 },
 {
-"start": 1263.0,
+"start": 1538.63,
 "length": 13.0,
 "act": "Control",
 "chapter": "The garrison's day",
@@ -884,8 +903,8 @@
 "title": "The day shift"
 },
 {
-"start": 1276.0,
-"length": 7.23,
+"start": 1551.63,
+"length": 6.73,
 "act": "Control",
 "chapter": "The garrison's day",
 "kind": "clip",
@@ -893,8 +912,8 @@
 "title": "On alert"
 },
 {
-"start": 1283.23,
-"length": 5.57,
+"start": 1558.37,
+"length": 6.6,
 "act": "Control",
 "chapter": "The garrison's day",
 "kind": "clip",
@@ -902,8 +921,8 @@
 "title": "On alert"
 },
 {
-"start": 1288.8,
-"length": 3.97,
+"start": 1564.97,
+"length": 4.67,
 "act": "Control",
 "chapter": "The garrison's day",
 "kind": "clip",
@@ -911,26 +930,26 @@
 "title": "On alert"
 },
 {
-"start": 1292.77,
-"length": 16.47,
+"start": 1569.63,
+"length": 28.37,
 "act": "Control",
 "chapter": "The garrison's day",
-"kind": "card",
-"source": "Decision",
-"title": ""
+"kind": "plate",
+"source": "tick",
+"title": "A fixed tick, and a session you can replay"
 },
 {
-"start": 1309.23,
-"length": 11.33,
+"start": 1598.0,
+"length": 12.43,
 "act": "Vision",
 "chapter": "The thermal camera",
 "kind": "card",
-"source": "6  Vision",
+"source": "Part 4 | Machine vision",
 "title": ""
 },
 {
-"start": 1320.57,
-"length": 23.4,
+"start": 1610.43,
+"length": 35.27,
 "act": "Vision",
 "chapter": "The thermal camera",
 "kind": "plate",
@@ -938,8 +957,8 @@
 "title": "A camera that sees heat, with its faults"
 },
 {
-"start": 1343.97,
-"length": 10.0,
+"start": 1645.7,
+"length": 9.0,
 "act": "Vision",
 "chapter": "The thermal camera",
 "kind": "live",
@@ -947,17 +966,17 @@
 "title": "F: thermal view   T: palette"
 },
 {
-"start": 1353.97,
-"length": 9.2,
+"start": 1654.7,
+"length": 25.2,
 "act": "Vision",
 "chapter": "The thermal camera",
 "kind": "live",
 "source": "thermal",
-"title": "The drone's camera: 320 x 240"
+"title": "The drone's camera: 320 x 240, recalibration, three zoom steps"
 },
 {
-"start": 1363.17,
-"length": 25.47,
+"start": 1679.9,
+"length": 30.17,
 "act": "Vision",
 "chapter": "From a heat picture to a target",
 "kind": "plate",
@@ -965,8 +984,17 @@
 "title": "Five steps, every frame"
 },
 {
-"start": 1388.63,
-"length": 20.67,
+"start": 1710.07,
+"length": 26.23,
+"act": "Vision",
+"chapter": "From a heat picture to a target",
+"kind": "plate",
+"source": "otsu",
+"title": "Otsu's method: let the picture choose its own threshold"
+},
+{
+"start": 1736.3,
+"length": 27.17,
 "act": "Vision",
 "chapter": "From a heat picture to a target",
 "kind": "plate",
@@ -974,8 +1002,8 @@
 "title": "Target, person or clutter"
 },
 {
-"start": 1409.3,
-"length": 8.6,
+"start": 1763.47,
+"length": 9.07,
 "act": "Vision",
 "chapter": "From a heat picture to a target",
 "kind": "still",
@@ -983,8 +1011,8 @@
 "title": "Soldiers are marked as persons"
 },
 {
-"start": 1417.9,
-"length": 23.4,
+"start": 1772.53,
+"length": 36.63,
 "act": "Vision",
 "chapter": "Tracking",
 "kind": "plate",
@@ -992,8 +1020,8 @@
 "title": "Predict, then correct"
 },
 {
-"start": 1441.3,
-"length": 19.9,
+"start": 1809.17,
+"length": 23.8,
 "act": "Vision",
 "chapter": "Tracking",
 "kind": "plate",
@@ -1001,8 +1029,8 @@
 "title": "Gating, matching, two views"
 },
 {
-"start": 1461.2,
-"length": 12.47,
+"start": 1832.97,
+"length": 12.2,
 "act": "Vision",
 "chapter": "Tracking",
 "kind": "clip",
@@ -1010,8 +1038,8 @@
 "title": "Tracks coast behind cover"
 },
 {
-"start": 1473.67,
-"length": 11.3,
+"start": 1845.17,
+"length": 11.83,
 "act": "Vision",
 "chapter": "Tracking",
 "kind": "plate",
@@ -1019,17 +1047,17 @@
 "title": "One track's uncertainty, measured"
 },
 {
-"start": 1484.97,
-"length": 11.77,
+"start": 1857.0,
+"length": 12.7,
 "act": "Agents",
 "chapter": "The drones",
 "kind": "card",
-"source": "7  Agents",
+"source": "Part 5 | The agents",
 "title": ""
 },
 {
-"start": 1496.73,
-"length": 15.63,
+"start": 1869.7,
+"length": 19.5,
 "act": "Agents",
 "chapter": "The drones",
 "kind": "plate",
@@ -1037,8 +1065,8 @@
 "title": "A drone's day"
 },
 {
-"start": 1512.37,
-"length": 8.0,
+"start": 1889.2,
+"length": 7.0,
 "act": "Agents",
 "chapter": "The drones",
 "kind": "clip",
@@ -1046,7 +1074,7 @@
 "title": "Take-off at dusk"
 },
 {
-"start": 1520.37,
+"start": 1896.2,
 "length": 5.0,
 "act": "Agents",
 "chapter": "The drones",
@@ -1055,8 +1083,8 @@
 "title": "Night patrol"
 },
 {
-"start": 1525.37,
-"length": 21.2,
+"start": 1901.2,
+"length": 27.13,
 "act": "Agents",
 "chapter": "One drone, or both?",
 "kind": "plate",
@@ -1064,8 +1092,8 @@
 "title": "Lead and wing"
 },
 {
-"start": 1546.57,
-"length": 12.17,
+"start": 1928.33,
+"length": 26.57,
 "act": "Agents",
 "chapter": "One drone, or both?",
 "kind": "plate",
@@ -1073,7 +1101,7 @@
 "title": "Time on target"
 },
 {
-"start": 1558.73,
+"start": 1954.9,
 "length": 8.5,
 "act": "Agents",
 "chapter": "One drone, or both?",
@@ -1082,8 +1110,8 @@
 "title": "Combined strike"
 },
 {
-"start": 1567.23,
-"length": 21.53,
+"start": 1963.4,
+"length": 22.27,
 "act": "Agents",
 "chapter": "One drone, or both?",
 "kind": "plate",
@@ -1091,8 +1119,8 @@
 "title": "Two intruders: split, or stay together?"
 },
 {
-"start": 1588.77,
-"length": 8.0,
+"start": 1985.67,
+"length": 8.7,
 "act": "Agents",
 "chapter": "One drone, or both?",
 "kind": "clip",
@@ -1100,8 +1128,8 @@
 "title": "Single strike"
 },
 {
-"start": 1596.77,
-"length": 8.17,
+"start": 1994.37,
+"length": 8.73,
 "act": "Agents",
 "chapter": "One drone, or both?",
 "kind": "clip",
@@ -1109,17 +1137,8 @@
 "title": "The guards fire too"
 },
 {
-"start": 1604.93,
-"length": 13.67,
-"act": "Agents",
-"chapter": "One drone, or both?",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 1618.6,
-"length": 16.2,
+"start": 2003.1,
+"length": 15.73,
 "act": "Agents",
 "chapter": "The intruder: choosing a route",
 "kind": "plate",
@@ -1127,8 +1146,8 @@
 "title": "The intruder's map"
 },
 {
-"start": 1634.8,
-"length": 19.2,
+"start": 2018.83,
+"length": 20.3,
 "act": "Agents",
 "chapter": "The intruder: choosing a route",
 "kind": "plate",
@@ -1136,8 +1155,8 @@
 "title": "What a cell costs"
 },
 {
-"start": 1654.0,
-"length": 18.23,
+"start": 2039.13,
+"length": 25.33,
 "act": "Agents",
 "chapter": "The intruder: choosing a route",
 "kind": "plate",
@@ -1145,8 +1164,8 @@
 "title": "Flood fill from the goal"
 },
 {
-"start": 1672.23,
-"length": 9.3,
+"start": 2064.47,
+"length": 9.03,
 "act": "Agents",
 "chapter": "The intruder: choosing a route",
 "kind": "live",
@@ -1154,8 +1173,8 @@
 "title": "M: the flood field and the route"
 },
 {
-"start": 1681.53,
-"length": 24.57,
+"start": 2073.5,
+"length": 33.17,
 "act": "Agents",
 "chapter": "The intruder: following the line",
 "kind": "plate",
@@ -1163,8 +1182,8 @@
 "title": "Five sensors, two wheels"
 },
 {
-"start": 1706.1,
-"length": 10.0,
+"start": 2106.67,
+"length": 14.6,
 "act": "Agents",
 "chapter": "The intruder: following the line",
 "kind": "live",
@@ -1172,7 +1191,7 @@
 "title": "A rover on its line"
 },
 {
-"start": 1716.1,
+"start": 2121.27,
 "length": 6.0,
 "act": "Agents",
 "chapter": "The intruder: following the line",
@@ -1181,8 +1200,8 @@
 "title": "The rover's camera"
 },
 {
-"start": 1722.1,
-"length": 26.7,
+"start": 2127.27,
+"length": 26.97,
 "act": "Agents",
 "chapter": "The intruder: hearing a drone and hiding",
 "kind": "plate",
@@ -1190,8 +1209,8 @@
 "title": "Hiding from a drone"
 },
 {
-"start": 1748.8,
-"length": 18.83,
+"start": 2154.23,
+"length": 20.57,
 "act": "Agents",
 "chapter": "The intruder: hearing a drone and hiding",
 "kind": "split",
@@ -1199,17 +1218,8 @@
 "title": "One moment, three views"
 },
 {
-"start": 1767.63,
-"length": 12.8,
-"act": "Agents",
-"chapter": "The intruder: hearing a drone and hiding",
-"kind": "card",
-"source": "Decision",
-"title": ""
-},
-{
-"start": 1780.43,
-"length": 20.8,
+"start": 2174.8,
+"length": 19.97,
 "act": "Agents",
 "chapter": "The game, and the blast",
 "kind": "plate",
@@ -1217,8 +1227,26 @@
 "title": "Night Watch: the rules"
 },
 {
-"start": 1801.23,
-"length": 18.83,
+"start": 2194.77,
+"length": 15.87,
+"act": "Agents",
+"chapter": "The game, and the blast",
+"kind": "live",
+"source": "hud",
+"title": "F11: the game display   U: the drone's feed"
+},
+{
+"start": 2210.63,
+"length": 10.0,
+"act": "Agents",
+"chapter": "The game, and the blast",
+"kind": "live",
+"source": "dayops",
+"title": "Shift+F2: day operations"
+},
+{
+"start": 2220.63,
+"length": 20.83,
 "act": "Agents",
 "chapter": "The game, and the blast",
 "kind": "plate",
@@ -1226,7 +1254,7 @@
 "title": "An explosion is particles"
 },
 {
-"start": 1820.07,
+"start": 2241.47,
 "length": 6.0,
 "act": "Agents",
 "chapter": "The game, and the blast",
@@ -1235,8 +1263,8 @@
 "title": "Blast, fire, smoke"
 },
 {
-"start": 1826.07,
-"length": 8.0,
+"start": 2247.47,
+"length": 7.0,
 "act": "Agents",
 "chapter": "The game, and the blast",
 "kind": "clip",
@@ -1244,17 +1272,8 @@
 "title": "Dawn"
 },
 {
-"start": 1834.07,
-"length": 6.27,
-"act": "Engineering",
-"chapter": "Hard problems",
-"kind": "card",
-"source": "8  Engineering",
-"title": ""
-},
-{
-"start": 1840.33,
-"length": 25.03,
+"start": 2254.47,
+"length": 28.83,
 "act": "Engineering",
 "chapter": "Hard problems",
 "kind": "plate",
@@ -1262,84 +1281,75 @@
 "title": "Four hard problems"
 },
 {
-"start": 1865.37,
-"length": 17.17,
+"start": 2283.3,
+"length": 17.57,
 "act": "Engineering",
-"chapter": "Proof",
+"chapter": "How it is checked",
 "kind": "plate",
 "source": "proof",
 "title": "How it is checked"
 },
 {
-"start": 1882.53,
-"length": 19.3,
+"start": 2300.87,
+"length": 17.37,
 "act": "Engineering",
-"chapter": "Proof",
+"chapter": "How it is checked",
 "kind": "still",
 "source": "pictures",
 "title": "One workbook for every number"
 },
 {
-"start": 1901.83,
-"length": 4.6,
+"start": 2318.23,
+"length": 5.5,
 "act": "",
-"chapter": "One night, uncut",
+"chapter": "One night at the outpost",
 "kind": "clip",
 "source": "n_wide",
 "title": ""
 },
 {
-"start": 1906.43,
-"length": 9.0,
+"start": 2323.73,
+"length": 7.0,
 "act": "",
-"chapter": "One night, uncut",
+"chapter": "One night at the outpost",
 "kind": "clip",
 "source": "n_follow",
 "title": ""
 },
 {
-"start": 1915.43,
-"length": 4.0,
+"start": 2330.73,
+"length": 7.0,
 "act": "",
-"chapter": "One night, uncut",
-"kind": "clip",
-"source": "n_uav1",
-"title": ""
-},
-{
-"start": 1919.43,
-"length": 8.0,
-"act": "",
-"chapter": "One night, uncut",
+"chapter": "One night at the outpost",
 "kind": "clip",
 "source": "n_follow",
 "title": ""
 },
 {
-"start": 1927.43,
-"length": 6.0,
+"start": 2337.73,
+"length": 4.5,
 "act": "",
-"chapter": "One night, uncut",
+"chapter": "One night at the outpost",
 "kind": "clip",
 "source": "n_wide",
 "title": ""
 },
 {
-"start": 1933.43,
-"length": 15.2,
+"start": 2342.23,
+"length": 13.53,
 "act": "",
-"chapter": "One night, uncut",
+"chapter": "One night at the outpost",
 "kind": "plate",
 "source": "numbers",
 "title": ""
 },
 {
-"start": 1948.63,
-"length": 15.7,
+"start": 2355.77,
+"length": 20.07,
 "act": "",
-"chapter": "One night, uncut",
+"chapter": "One night at the outpost",
 "kind": "card",
-"source": "ThermalSense",
+"source": "\u201cIf student A and student B both use AI for a project,\nshow me how creative you can be,\nand how much depth you can cover.\u201d",
 "title": ""
 }
 ]

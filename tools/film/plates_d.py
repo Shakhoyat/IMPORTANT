@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib.patches import Circle, Ellipse, Polygon, Rectangle
 
 import dsl
-from plates import (AMB, BG, CYAN, DIM, FG, GREEN, LINE, PANEL, RED, ROOT, VIOLET, arrow, box, canvas, export, line, plt, reveal, txt)  # noqa: F401
+from plates import (AMB, BG, CYAN, DIM, FG, FONT, GREEN, LINE, PANEL, RED, ROOT, VIOLET, arrow, box, canvas, export, line, plt, reveal, txt)  # noqa: F401
 from plates_b import head
 from plates_c import _axes
 
@@ -590,7 +590,7 @@ def a_rovermap(at, dur, out, fps=15):
             ax.set_xlim(0, 1080)
             ax.set_ylim(1080, 0)
             st = "HIDING" if me and me[0]["ev"] else "PAUSED IN COVER" if me and me[0]["pause"] else "INFILTRATING"
-            ax.text(30, 50, st, fontsize=17, color=VIOLET if st == "HIDING" else AMB, fontweight="bold", family="DejaVu Sans")
+            ax.text(30, 50, st, fontsize=19, color=VIOLET if st == "HIDING" else AMB, fontweight="bold", family=FONT)
         fig.savefig(os.path.join(tmp, "f%04d.png" % k), facecolor=BG)
         plt.close(fig)
     subprocess.run([os.path.expanduser("~/.local/bin/ffmpeg"), "-y", "-loglevel", "error", "-framerate", str(fps), "-i", os.path.join(tmp, "f%04d.png"),
@@ -704,9 +704,9 @@ def p_proof(c):
 
 def p_numbers(c):
     e = export()
-    items = [(str(len(e["primitives"])), "generators"), (format(e["leaf_count"], ","), "parts"), (str(len(e["designs"])), "designs"),
+    items = [(str(len(e["primitives"])), "primitives"), (format(e["leaf_count"], ","), "parts"), (str(len(e["designs"])), "designs"),
              (str(sum(1 for q in e["controllables"] if q["possessable"])), "things to operate"),
-             ("396", "tests"), ("0", "maths libraries and\nbuilt-in shader functions")]
+             ("396", "tests"), ("23", "sheets in the workbook,\none row for every component")]
 
     def draw(ax, now):
         for i, (n, s) in enumerate(items):

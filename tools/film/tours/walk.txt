@@ -1,0 +1,13 @@
+hour 16.5
+soldier 6
+doors 0
+start 1.2 30 180
+wait 0.8
+p 1.2 26
+p 1.2 19 run
+view first
+p 1.6 16.5
+wait 0.8
+view third
+p 3.5 15
+wait 1.5

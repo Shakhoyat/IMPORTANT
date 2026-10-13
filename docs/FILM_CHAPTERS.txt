@@ -1,30 +1,33 @@
 0:00 ThermalSense
-0:51 What the program is
-2:07 From a triangle to sixteen primitives
-4:36 Transformations and the scene graph
-5:58 Camera and projection
-7:26 Clipping and hidden surfaces
-8:34 Rasterisation and anti-aliasing
-9:47 Illumination
-11:04 Shading: flat, Gouraud, Phong
-11:53 Texture, shadows, and the camera as an eye
-13:06 Reflection and ray tracing
-14:18 Day, night and weather
-15:29 Vegetation, scale and speed
-16:17 Sound made by code
-16:43 Buildings you can walk into
-17:38 Take control of anything
-19:06 Jump into anything that moves
-20:29 The garrison's day
-21:49 The thermal camera
-22:43 From a heat picture to a target
-23:37 Tracking
-24:44 The drones
-25:25 One drone, or both?
-26:58 The intruder: choosing a route
-28:01 The intruder: following the line
-28:42 The intruder: hearing a drone and hiding
-29:40 The game, and the blast
-30:34 Hard problems
-31:05 Proof
-31:41 One night, uncut
+1:14 The outpost
+2:39 Primitives: from a triangle to sixteen shapes
+4:55 Transformations and the scene graph
+6:17 Viewing and projection
+7:40 Clipping and hidden surfaces
+9:13 Rasterisation and colour interpolation
+10:46 Illumination
+12:19 Shading: flat, Gouraud, Phong
+12:58 Texture mapping
+13:32 Ray tracing
+14:41 Materials that behave like the real thing
+15:28 Shadows and ambient occlusion
+16:07 The camera as an eye
+17:34 Scale and speed
+18:34 Day, night and weather
+19:37 Sound synthesis
+20:07 Buildings you can walk into
+21:15 Take control of anything
+23:16 Jump into anything that moves
+24:50 The garrison's day
+26:38 The thermal camera
+27:59 From a heat picture to a target
+29:32 Tracking
+30:57 The drones
+31:41 One drone, or both?
+33:23 The intruder: choosing a route
+34:33 The intruder: following the line
+35:27 The intruder: hearing a drone and hiding
+36:14 The game, and the blast
+37:34 Hard problems
+38:03 How it is checked
+38:38 One night at the outpost

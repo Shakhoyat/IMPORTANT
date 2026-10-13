@@ -318,7 +318,7 @@ def p_tsmath(c):
         line(ax, [130, 560], [912, 912], color=RED, lw=3)
         txt(ax, 640, 912, "refused at compile time", size=28, color=RED)
         txt(ax, 140, 968, "905 calls of the written-out functions in 13 shader source files", size=26, color=FG)
-    return reveal(c, [(0, head("No built-in vector functions")), (0.3, listing), (c.t(2), refuse)])
+    return reveal(c, [(0, head("The vector mathematics, written by hand")), (0.3, listing), (c.t(2), refuse)])
 
 
 def p_shadowmap(c):
