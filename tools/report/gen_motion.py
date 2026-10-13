@@ -79,8 +79,8 @@ def steps():
             ax.plot(s[:, 1], s[:, 2], color=UAV[k], lw=0.9, ls=(0, (1, 1.2)), zorder=5)
             ax.add_patch(plt.Circle((s[-1, 1], s[-1, 2]), FOOT, fc="#f7e08a", ec="#b8860b", lw=0.6, alpha=0.45, zorder=3))
             ax.plot(s[-1, 1], s[-1, 2], marker="^", ms=5, mfc=UAV[k], mec="white", mew=0.6, zorder=9)
-            ax.text(s[-1, 1] + 1.8, s[-1, 2] - 1.8, "UAV-%d" % (k + 1), fontsize=6.5, color="black", zorder=9,
-                    bbox=dict(fc="white", ec="none", alpha=0.7, pad=0.4))
+            ax.text(s[-1, 1] + 1.8, s[-1, 2] - 1.8, "UAV-%d" % (k + 1), fontsize=6.5, color="black", zorder=11,   # above the crosses
+                    bbox=dict(fc="white", ec="none", alpha=0.85, pad=0.4))
         for kt, kx, kz, ki in K:
             if kt <= t:
                 ax.plot(kx, kz, marker="x", ms=6, mew=1.6, color="black", zorder=9)
@@ -129,12 +129,13 @@ def series():
         for s in ("top", "right"):
             ax.spines[s].set_visible(False)
     axs[0].axhline(FOOT, color="#b8860b", lw=0.7, ls="--")
-    axs[0].text(t[0], FOOT + 0.6, "camera footprint, 5 m", fontsize=6.5, color="#7a5a00")
+    # the notes stand above each panel, clear of the data
     pauses = int(np.sum(np.diff((speed < 0.05).astype(int)) == 1))
-    axs[1].text(0.99, 0.86, "%d pauses in cover" % pauses, transform=axs[1].transAxes, ha="right", fontsize=6.5, color="0.3")
-    axs[2].text(0.99, 0.86, "peaks: the route was re-planned", transform=axs[2].transAxes, ha="right", fontsize=6.5, color="0.3")
+    for ax, note in ((axs[0], "dashed: camera footprint, 5 m"), (axs[1], "%d pause%s in cover" % (pauses, "" if pauses == 1 else "s")),
+                     (axs[2], "peaks: the route was re-planned")):
+        ax.text(1.0, 1.02, note, transform=ax.transAxes, ha="right", va="bottom", fontsize=6.5, color="#7a5a00" if ax is axs[0] else "0.3")
     axs[2].set_xlabel("time (s); shaded: a UAV is overhead (the rover is inside a camera footprint)", fontsize=7.5)
-    fig.subplots_adjust(left=0.105, right=0.99, top=0.98, bottom=0.125, hspace=0.16)
+    fig.subplots_adjust(left=0.105, right=0.99, top=0.95, bottom=0.125, hspace=0.30)
     fig.savefig(os.path.join(OUT, "p_motion_series.pdf"))
     fig.savefig(os.path.join(OUT, "p_motion_series.png"), dpi=200)
     plt.close(fig)

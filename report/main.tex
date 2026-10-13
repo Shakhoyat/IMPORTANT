@@ -17,9 +17,12 @@
 \setlength{\intextsep}{9pt plus 2pt minus 2pt}
 \setlength{\abovecaptionskip}{4pt}\setlength{\belowcaptionskip}{3pt}
 \usepackage{float}
-\usepackage{placeins}
+\usepackage[section]{placeins}% a section starts after the floats of the one before it
 \usepackage{longtable}
 \usepackage{needspace}
+\usepackage{etoolbox}
+\pretocmd{\section}{\needspace{12\baselineskip}}{}{}% no heading alone at the foot of a page
+\pretocmd{\subsection}{\needspace{6\baselineskip}}{}{}
 \usepackage{tikz}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}

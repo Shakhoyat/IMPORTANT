@@ -335,6 +335,10 @@ def radius_stats(ps):
     return min(r), max(r), sum(r) / len(r)
 
 
+# Caption titles that would otherwise get a short form expanded twice ("SAM missile": the full form already ends in "missile")
+CAPTION_NAME = {"SAM missile": "Surface-to-air missile"}
+
+
 def rule(d):
     nm = d["name"]
     rp = rel_positions(d)
@@ -401,9 +405,9 @@ def rule(d):
         return ("Generation rule: $n=\\max(3,\\lfloor L/0.9\\rfloor)$ branches along the vehicle side, each a stem cylinder leaning "
                 "14--28$^\\circ$, a sphere of foliage and a cone tip; three sphere brush clumps at the foot.")
     if nm == "AA gun surround":
-        return "Generation rule: a ring of capsule sandbags around the round pad (one running course), three ammunition crates outside."
+        return "Generation rule: a ring of capsule sandbags around the round pad in two courses, the upper one shifted half a bag (running bond), three ammunition crates outside."
     if nm == "Radar surround":
-        return "Generation rule: a square fence of posts and two wire strands per bay around the concrete pad, with one warning sign."
+        return "Generation rule: a square fence of posts and three wire strands per bay (at 0.4, 1.0 and 1.7 m) around the concrete pad, with one warning sign."
     return ""
 
 
@@ -801,22 +805,22 @@ for fam in FAMILIES:
         cut_note = ""
         if j.get("cutaway"):
             names = [tex(c.rstrip("*").lower() + ("s" if c.endswith("*") else "")) for c in j["cut"]]
-            cut_note = (" Cutaway: %s are left out in both panels (%d parts) so what they cover shows." %
+            cut_note = (" In the pictures (a cutaway), the %s are left out (%d parts) so that what they cover shows." %
                         (", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0], sum(j["removed"].values())))
         hfig = 5.1 if large else 3.6
         first = not cards   # the family's first card follows its heading on a fresh page: no space test (it would break again)
         # no space test before a card: its picture block is one box, so a card starts where the box fits (the test read a
         # stale page total after the coordinate sheets and sent cards to a new page with most of the old one empty)
         fig = ["" if first else ("\\FloatBarrier" if large else "") + "\\par\\addvspace{2mm}",
-               "\\begin{center}",
+               "\\begin{center}\\begin{minipage}{\\linewidth}\\centering",   # picture box + caption: one unbreakable block
                "\\fcolorbox{black!30}{white}{\\begin{minipage}{0.975\\linewidth}\\centering\\vspace{0.6mm}",
                pair(j, label_groups=large, hmax=hfig),
                ("\\\\[1mm]\\begin{tabular}{@{}c@{}}\\img{%s}{%.2fcm}\\\\[-0.3mm]{\\fontsize{7.5}{9}\\selectfont %s}\\end{tabular}"
                 % (insitu(nm), 0.46 * 16.0 if large else 9.0, scene_caption(nm)) if (large or nm in SKY) and insitu(nm) else ""),
                "\\\\[0.8mm]{\\fontsize{7}{8.5}\\selectfont %s}\\vspace{0.6mm}\\end{minipage}}\\par\\nobreak" % strip,
-               "\\captionof{figure}{%s.%s}\\label{fig:d-%s}" % (tex(nm), cut_note, slug(nm)),
-               "\\end{center}\\vspace{-3mm}"]
-        body = ["\\noindent\\textbf{%s.}\\label{des:%s} %s%s" % (tex(nm), slug(nm), sentence(d), veg_note(nm))]
+               "\\captionof{figure}{%s.}\\label{fig:d-%s}" % (CAPTION_NAME.get(nm, tex(nm)), slug(nm)),
+               "\\end{minipage}\\end{center}\\vspace{-3mm}"]
+        body = ["\\noindent\\textbf{%s.}\\label{des:%s} %s%s%s" % (tex(nm), slug(nm), sentence(d), veg_note(nm), cut_note)]
         r = rule(d)
         if r:
             body.append(r)
