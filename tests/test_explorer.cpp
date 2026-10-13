@@ -282,8 +282,22 @@ TS_TEST_GROUP(explorer) {
             my += halton(k, 3) - 0.5f;
             inside = inside && halton(k, 2) > 0 && halton(k, 2) < 1 && halton(k, 3) > 0 && halton(k, 3) < 1;
         }
-        record("T290", "Halton (2,3) sequence of the TAA jitter: textbook values, 8 offsets inside the pixel, centred",
-               "error < 1e-6, |mean| < 0.1", fmt("err %.2g, mean (%.3f, %.3f)", err, mx / 8, my / 8), err < 1e-6f && inside && std::fabs(mx / 8) < 0.1f && std::fabs(my / 8) < 0.1f);
+        // the offset moves a point by the same sub-pixel step at every depth, under perspective and parallel projection
+        const float jx = 0.5f * 2.0f / 1920.0f, jy = -0.25f * 2.0f / 1080.0f;
+        float shift = 0.0f;
+        for (int k = 0; k < 2; ++k) {
+            const Mat4 p0 = k == 0 ? perspective(radians(50.0f), 16.0f / 9.0f, 0.05f, 600.0f) : ortho(-53.3f, 53.3f, -30.0f, 30.0f, 110.0f, 190.0f);
+            Mat4 p1 = p0;
+            jitterProjection(p1, jx, jy);
+            for (float z : {-111.0f, -150.0f, -189.0f}) {
+                const Vec4 a = p0 * Vec4{7.0f, -3.0f, z, 1.0f}, b = p1 * Vec4{7.0f, -3.0f, z, 1.0f};
+                shift = std::max(shift, std::fabs(b.x / b.w - a.x / a.w + jx));
+                shift = std::max(shift, std::fabs(b.y / b.w - a.y / a.w + jy));
+            }
+        }
+        record("T290", "Halton (2,3) sequence of the TAA jitter: textbook values, 8 offsets inside the pixel, centred; the projection offset is depth-free",
+               "error < 1e-6, |mean| < 0.1, shift error < 1e-6", fmt("err %.2g, mean (%.3f, %.3f), shift err %.2g", err, mx / 8, my / 8, shift),
+               err < 1e-6f && inside && std::fabs(mx / 8) < 0.1f && std::fabs(my / 8) < 0.1f && shift < 1e-6f);
     }
 
     // ---- T291: tone curve monotonic, bounded; exposure clamp -----------------------------------------------------------

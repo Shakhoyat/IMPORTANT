@@ -2,6 +2,7 @@
 // pipes 30 fps RGB frames into ffmpeg (H.264). Without ffmpeg the frames are written as PNG files.
 #include <glad/gl.h>
 
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
@@ -529,6 +530,7 @@ int App::recordMode() {
     float fsOrbR = 10.0f, fsOrbH = 4.0f, fsOrbRate = 6.0f, fsOrbDeg0 = 0.0f, fsOrbT0 = 0.0f;
     uint32_t fsOrbKey = 0;
     float fsHoldV[6] = {}, fsHoldUntil[6] = {-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f}, fsBoostUntil = -1.0f, fsFireUntil = -1.0f;
+    float fsNucT0 = -1.0f;   // the thermal sensor's shutter closed at this time (step "nuc", the Q key)
     float fsLookDx = 0.0f, fsLookDy = 0.0f, fsLookUntil = -1.0f;
     bool fsCurShow = false;
     float fsCurX = 0.5f, fsCurY = 0.5f, fsCurX0 = 0.5f, fsCurY0 = 0.5f, fsCurX1 = 0.5f, fsCurY1 = 0.5f, fsCurT0 = 0.0f, fsCurDur = 0.0f;
@@ -674,6 +676,7 @@ int App::recordMode() {
         else if (n == "game") gameMode_ = on;
         else if (n == "help") showHelp_ = on;
         else if (n == "fpv") thermalFpv_ = on;
+        else if (n == "zoom") thermalFovDeg_ = clampf(x, 5.0f, 40.0f);   // the thermal camera's zoom steps (wheel: 40 / 20 / 8 degrees)
         else if (n == "rain") rainTarget_ = on ? 1.0f : 0.0f;
         else if (n == "props") {
             if (on) props.install(*scene_);
@@ -729,6 +732,20 @@ int App::recordMode() {
                 ok = controlSource(at);
             }
             note = src.name;
+        } else if (st.op == "possess") {   // any object that can be operated, by a part of its name ("possess barrier"): keys 5-0, [ ]
+            auto lower = [](std::string v) {
+                for (char& ch : v) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+                return v;
+            };
+            const std::vector<Controllable*> list = sa::controllables(*scene_);
+            const std::string want = lower(fsStr(st, 0));
+            ok = false;
+            for (size_t k = 0; k < list.size() && !ok; ++k)
+                if (list[k] && list[k]->possessable() && lower(list[k]->name()).find(want) != std::string::npos) {
+                    possess(static_cast<int>(k));
+                    note = list[k]->name();
+                    ok = true;
+                }
         } else if (st.op == "axes") {   // H, with the joint frames of one object ("axes soldier PATROL"; "axes off")
             PovSource src;
             settings_.showAxes = fsStr(st, 0) != "off";
@@ -738,6 +755,8 @@ int App::recordMode() {
             fsWaitUntil = t + fsNum(st, 3, 6.0f);
         } else if (st.op == "take") takeControl();
         else if (st.op == "jump") jumpEdge_ = true;
+        else if (st.op == "nuc") fsNucT0 = t;
+        else if (st.op == "aim") aiming_ = fsNum(st, 0, 1.0f) != 0.0f;
         else if (st.op == "crouch") crouchWant_ = static_cast<int>(fsNum(st, 0, 1.0f));
         else if (st.op == "next") cyclePovJump(+1);
         else if (st.op == "prev") cyclePovJump(-1);
@@ -985,6 +1004,11 @@ int App::recordMode() {
         if (fsOn) {
             const float t = static_cast<float>(f) / static_cast<float>(fps);
             while (fsK < fsteps.size() && fsteps[fsK].t <= t + 1e-4f) fsRun(fsteps[fsK++], t);
+            if (fsNucT0 >= 0.0f) {   // the shutter of Interactive.cpp: shut in 0.06 s, held, open over the last 0.1 s of 0.4 s
+                const float a = t - fsNucT0;
+                settings_.nucShutter = clampf(std::min(a / 0.06f, (0.4f - a) / 0.1f), 0.0f, 1.0f);
+                if (a >= 0.4f) fsNucT0 = -1.0f, settings_.nucShutter = 0.0f;
+            }
             if (t < fsWaitUntil) {
                 PovSource src;
                 const std::string v = fsStr(fsWait, 2);

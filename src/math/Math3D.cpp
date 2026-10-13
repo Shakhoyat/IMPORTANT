@@ -104,6 +104,16 @@ Mat4 ortho(float l, float r, float b, float t, float n, float f) {
     return m;
 }
 
+void jitterProjection(Mat4& proj, float jx, float jy) {
+    if (proj.at(3, 3) == 0.0f) {
+        proj.at(0, 2) += jx;
+        proj.at(1, 2) += jy;
+    } else {
+        proj.at(0, 3) -= jx;
+        proj.at(1, 3) -= jy;
+    }
+}
+
 Mat4 lookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {
     const Vec3 f = normalize(center - eye);
     const Vec3 s = normalize(cross(f, up));

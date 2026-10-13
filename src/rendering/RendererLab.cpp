@@ -256,8 +256,7 @@ bool Renderer::labSnapshot(fx::FrameSnapshot& out) {
     // Matrices: the depth buffer holds the jittered projection; the unjittered one is what TAA converges to.
     out.view = frame_.cam.view;
     out.proj = frame_.cam.proj;
-    out.proj.at(0, 2) += 2.0f * frame_.jitterUV[0];
-    out.proj.at(1, 2) += 2.0f * frame_.jitterUV[1];
+    jitterProjection(out.proj, 2.0f * frame_.jitterUV[0], 2.0f * frame_.jitterUV[1]);
     out.viewProj = frame_.viewProj;
     out.viewProjJ = frame_.viewProjJ;
     out.camPos = frame_.cam.position;

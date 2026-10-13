@@ -69,6 +69,9 @@ Mat4 rotateEulerYXZ(const Vec3& eulerDegrees);
 
 Mat4 perspective(float fovyRadians, float aspect, float zNear, float zFar);
 Mat4 ortho(float left, float right, float bottom, float top, float zNear, float zFar);
+// Sub-pixel offset of a projection (the TAA jitter): every point moves by (-jx, -jy) in NDC. A perspective matrix
+// (w = -z) takes the offset in column 2, a parallel one (w = 1) in column 3.
+void jitterProjection(Mat4& proj, float jx, float jy);
 Mat4 lookAt(const Vec3& eye, const Vec3& center, const Vec3& up);
 
 Mat4 inverse(const Mat4& m);  // general 4x4 inverse (identity if singular)

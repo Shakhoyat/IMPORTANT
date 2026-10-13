@@ -263,7 +263,8 @@ void Renderer::setFrameUniforms(Shader& sh, const Scene& scene, const CameraView
     sh.set("uBumpOff", s.bumpOn ? 0 : 1);
     setPracticalUniforms(sh, hdr && s.practicalsOn);
     setIndoorUniforms(sh);
-    sh.set("uFogDensity", hdr ? A.fogDensity : 0.028f * 10.0f / kTerrainRadius);
+    // no distance fog under a parallel projection (Ctrl+P): its eye stands 150 m off, which is no viewing distance
+    sh.set("uFogDensity", cam.proj.at(3, 3) != 0.0f ? 0.0f : hdr ? A.fogDensity : 0.028f * 10.0f / kTerrainRadius);
     sh.set("uTime", scene.time());
     sh.set("uGrain", s.grain);
     sh.set("uResolution", static_cast<float>(w), static_cast<float>(h));

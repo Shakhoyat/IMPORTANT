@@ -729,6 +729,10 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
     const bool visible = s.view == ViewMode::Visible;
     frame_.settings = s;
     if (lightingOff("aerial")) frame_.settings.aerialOn = false;
+    if (camIn.proj.at(3, 3) != 0.0f) {   // parallel projection (Ctrl+P): the eye stands 150 m off, which is no viewing distance
+        q.volumetric = false;
+        frame_.settings.aerialOn = false;
+    }
     frame_.pcfTaps = q.pcfTaps;
     frame_.time = scene.time();
     atmo_ = scene.lights.atmo;
@@ -771,9 +775,8 @@ void Renderer::beginFrame(const Scene& scene, const CameraView& camIn, int w, in
         const unsigned k = (frameIndex_ % 8) + 1;
         const float jx = (halton(k, 2) - 0.5f) * 2.0f / static_cast<float>(w);
         const float jy = (halton(k, 3) - 0.5f) * 2.0f / static_cast<float>(h);
-        cam.proj.at(0, 2) += jx;
-        cam.proj.at(1, 2) += jy;
-        // A point at view depth z moves by (jx, jy) * z / -z... in NDC: x_ndc += -jx (w = -z); in UV: -j / 2.
+        jitterProjection(cam.proj, jx, jy);
+        // Every point moves by -(jx, jy) in NDC (perspective: (jx, jy) * z / w with w = -z; parallel: w = 1); in UV: -j / 2.
         frame_.jitterUV[0] = -0.5f * jx;
         frame_.jitterUV[1] = -0.5f * jy;
     } else {
